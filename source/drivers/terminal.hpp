@@ -1,11 +1,13 @@
 #pragma once
 
-extern uint16_t framebuffer_width;
-extern uint16_t framebuffer_height;
+extern uint16_t columns;
+extern uint16_t rows;
+
+extern char *term_colour;
 
 void term_print(const char *string);
 
-void term_init(struct stivale2_struct_tag_terminal *term_str_tag, struct stivale2_struct_tag_framebuffer *frm);
+void term_init(struct stivale2_struct_tag_terminal *term_str_tag);
 
 void cursor_up(int lines), cursor_down(int lines), cursor_right(int lines), cursor_left(int lines);
 
