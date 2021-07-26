@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/x86_64-pc-elf/x86_64-pc-elf/include/"
+            ],
+            "defines": [],
+            "compilerPath": "/opt/x86_64-pc-elf/bin/x86_64-pc-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": []
+        }
+    ],
+    "version": 4
+}
