@@ -1,3 +1,3 @@
 #pragma once
 
-void main();
+void main(struct stivale2_struct_tag_smp *smp);

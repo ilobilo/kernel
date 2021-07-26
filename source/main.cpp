@@ -2,7 +2,7 @@
 #include "drivers/terminal.hpp"
 #include "include/io.hpp"
 
-void main()
+void main(struct stivale2_struct_tag_smp *smp)
 {
     
 }
