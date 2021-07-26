@@ -31,4 +31,4 @@ Make sure you have this programs installed:
 This command will download limine, compile it, build the kernel and run it in qemu.
 
 # Discord server
-https://discord.gg/AvHCbFDqGa
+https://discord.gg/fM5GK3RpS7
