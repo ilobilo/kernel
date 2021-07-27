@@ -59,27 +59,3 @@ void memset(void* str, char ch, size_t n)
         s[i]=ch;
     }
 }
-/*
-int itoa(char* num2str, int num)
-{
-    int num_c, dig=0;
-    num_c = num;
-    size_t i;
-    
-    while (num_c != 0)
-    {
-        dig++;
-        num_c /= 10;
-    }
-    num2str = (char*)calloc(dig+1, sizeof(*num2str));
-    if (!num2str)
-        return ENOMEM;
-    i = dig;
-    while (num != 0)
-    {
-        num2str[i--] = num%10;
-        num /= 10;
-    }
-    return 0;
-}
-*/
