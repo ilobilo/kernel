@@ -1,8 +1,8 @@
 KERNEL := kernel.bin
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-CC = gcc
-CPP = g++
+CC = x86_64-pc-elf-gcc
+CPP = x86_64-pc-elf-g++
 AS = nasm
 
 CFLAGS = -O3 -pipe
