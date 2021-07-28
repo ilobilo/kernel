@@ -1,7 +1,5 @@
 #include <stddef.h>
 #include "stivale2.h"
-#include "system/gdt.hpp"
-#include "drivers/terminal.hpp"
 #include "main.hpp"
 
 static uint8_t stack[4096];
@@ -58,13 +56,7 @@ void* stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
 
 extern "C" void _start(struct stivale2_struct *stivale2_struct)
 {
-    GDT_init();
-    
-    term_init((stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));
-    
-    struct stivale2_struct_tag_smp *smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
-
-    main((stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID));
+    main(stivale2_struct);//(stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID));
 
     for (;;);
 }

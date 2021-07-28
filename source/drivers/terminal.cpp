@@ -48,7 +48,6 @@ void term_clear(char *ansii_colour)
             term_print(ansii_colour);
             term_print(" ");
         }
-        
     }
     term_print("\033[H");
 }
@@ -93,5 +92,40 @@ void cursor_left(int lines)
     for (int i = 0; i < lines; i++)
     {
         term_print("\033[1D");
+    }
+}
+
+void term_center(char *text)
+{
+    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
+    {
+        term_print(" ");
+    }
+    term_print(text);
+    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
+    {
+        term_print(" ");
+    }
+}
+
+void term_check(bool ok, char *message)
+{
+    term_print("[\033[32;40m*\033[37;40m] ");
+    term_print(message);
+    if (ok)
+    {
+        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
+        {
+            term_print(" ");
+        }
+        term_print("\033[1m\033[34;40m[\033[21m \033[32;40mOK\033[34;40m \033[1m]\033[37;40m\033[21m");
+    }
+    else
+    {
+        for (uint16_t i = 0; i < columns - (11 + strlen(message)); i++)
+        {
+            term_print(" ");
+        }
+        term_print("\033[1m\033[34;40m[\033[21m \033[31;40mERR\033[34;40m \033[1m]\033[37;40m\033[21m");
     }
 }

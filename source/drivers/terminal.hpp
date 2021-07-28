@@ -14,3 +14,7 @@ void cursor_up(int lines), cursor_down(int lines), cursor_right(int lines), curs
 void term_clear(char *ansii_colour), term_clear();
 
 void term_setcolour(char *ascii_colour), term_resetcolour();
+
+void term_center(char *text);
+
+void term_check(bool ok, char *mesaage);

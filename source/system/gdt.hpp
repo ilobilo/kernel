@@ -30,4 +30,4 @@ extern GDT DefaultGDT;
 
 extern "C" void LoadGDT(GDTDescriptor* gdtDescriptor);
 
-void GDT_init();
+bool GDT_init();
