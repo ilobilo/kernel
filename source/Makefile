@@ -83,4 +83,4 @@ clean:
 	@rm -rf $(KERNEL) $(OBJ) $(SOURCEDIR)/../iso_root/*
 
 run:
-	@qemu-system-x86_64 -accel kvm -smp 12 -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
+	@qemu-system-x86_64 -cpu qemu64 -smp 12 -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
