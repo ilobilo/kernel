@@ -1,5 +1,5 @@
 # kernel
-My first os written in cpp (Currently displays nothing)<br />
+My first os written in cpp<br />
 Contributors are welcome
 
 # Building And Running
