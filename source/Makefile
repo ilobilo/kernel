@@ -55,6 +55,9 @@ OBJ += $(ASMFILES:.asm=_asm.o)
 all: $(KERNEL) iso clean run
 	@echo Done!
 
+bios: $(KERNEL) iso clean run-bios
+	@echo Done!
+
 $(KERNEL): $(OBJ)
 	@$(CC) $(INTERNALLDFLAGS) $(OBJ) -o $@
 
@@ -68,7 +71,7 @@ $(KERNEL): $(OBJ)
 	@$(AS) $(ASMFLAGS) $^ -f elf64 -o $@
 
 iso:
-	@cp $(KERNEL) $(FONTFILE) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
+	@cp $(KERNEL) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
 	@xorriso -as mkisofs -b limine-cd.bin \
@@ -84,3 +87,6 @@ clean:
 
 run:
 	@qemu-system-x86_64 -cpu max -smp 12 -cdrom $(SOURCEDIR)/../image.iso -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd > /dev/null
+
+run-bios:
+	@qemu-system-x86_64 -cpu max -smp 12 -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
