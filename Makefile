@@ -1,8 +1,8 @@
 all: limine
 	@make -C ./source
 
-run:
-	@make -C ./source run
+bios: limine
+	@make -C ./source bios
 
 limine:
 	@git clone https://github.com/limine-bootloader/limine.git --branch=v2.0-branch-binary --depth=1
