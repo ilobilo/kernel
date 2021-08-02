@@ -1,5 +1,5 @@
 [bits 64]
-LoadGDT:   
+LoadGDT:
     lgdt [rdi]
     mov ax, 0x30
     mov ds, ax

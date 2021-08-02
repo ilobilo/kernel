@@ -9,7 +9,7 @@ CFLAGS = -O3 -pipe
 CPPFLAGS = -O3 -pipe
 ASMFLAGS = 
 
-INTERNALLDFLAGS :=        \
+INTERNALLDFLAGS :=            \
 	-fno-pic -fpie        \
 	-Wl,-static,-pie,--no-dynamic-linker,-ztext \
 	-static-pie           \
@@ -17,7 +17,7 @@ INTERNALLDFLAGS :=        \
 	-T$(SOURCEDIR)/linker.ld    \
 	-z max-page-size=0x1000
 
-INTERNALCFLAGS  :=        \
+INTERNALCFLAGS  :=            \
 	-I.                   \
 	-std=gnu11            \
 	-ffreestanding        \
@@ -30,7 +30,7 @@ INTERNALCFLAGS  :=        \
 	-mno-sse2             \
 	-mno-red-zone
 
-INTERNALCPPFLAGS  :=      \
+INTERNALCPPFLAGS  :=          \
 	-I.                   \
 	-std=c++14            \
 	-ffreestanding        \
@@ -83,4 +83,4 @@ clean:
 	@rm -rf $(KERNEL) $(OBJ) $(SOURCEDIR)/../iso_root/*
 
 run:
-	@qemu-system-x86_64 -cpu qemu64 -smp 12 -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
+	@qemu-system-x86_64 -cpu max -smp 12 -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
