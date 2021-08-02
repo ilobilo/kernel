@@ -19,5 +19,5 @@ void main(struct stivale2_struct *stivale2_struct)
     term_print(cpus);
     term_print("\n");
 
-    term_check(GDT_init(), "Initializing Global Descriptot Table...");
+    term_check(GDT_init(), "Initializing Global Descriptor Table...");
 }
