@@ -7,7 +7,7 @@
 uint16_t columns;
 uint16_t rows;
 
-char *term_colour = "\033[37;40m";
+char *term_colour = "\033[0m";
 
 void (*term_write)(const char *string, int length);
 
@@ -34,7 +34,7 @@ void term_setcolour(char *ascii_colour)
 
 void term_resetcolour()
 {
-    term_colour = "\033[37;40m";
+    term_colour = "\033[0m";
     term_print(term_colour);
 }
 
@@ -110,7 +110,7 @@ void term_center(char *text)
 
 void term_check(bool ok, char *message)
 {
-    term_print("[\033[32;40m*\033[37;40m] ");
+    term_print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
     term_print(message);
     if (ok)
     {
@@ -118,7 +118,7 @@ void term_check(bool ok, char *message)
         {
             term_print(" ");
         }
-        term_print("\033[1m\033[34;40m[\033[21m \033[32;40mOK\033[34;40m \033[1m]\033[37;40m\033[21m");
+        term_print("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
     }
     else
     {
@@ -126,6 +126,6 @@ void term_check(bool ok, char *message)
         {
             term_print(" ");
         }
-        term_print("\033[1m\033[34;40m[\033[21m \033[31;40mERR\033[34;40m \033[1m]\033[37;40m\033[21m");
+        term_print("\033[1m[\033[21m \033[31mERR\033[0m \033[1m]\033[21m");
     }
 }
