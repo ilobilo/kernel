@@ -26,6 +26,13 @@ void term_print(const char *string)
     term_write(string, strlen(string));
 }
 
+void term_printi(int i)
+{
+    char *out;
+    int_to_string(i, out);
+    term_print(out);
+}
+
 void term_setcolour(char *ascii_colour)
 {
     term_colour = ascii_colour;
