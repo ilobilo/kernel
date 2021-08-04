@@ -1,6 +1,4 @@
-#include "include/string.hpp"
 #include "drivers/terminal.hpp"
-#include "include/io.hpp"
 #include "system/gdt/gdt.hpp"
 #include "stivale2.h"
 #include "kernel.hpp"
@@ -13,10 +11,8 @@ void main(struct stivale2_struct *stivale2_struct)
 
     term_center("Welcome to kernel project!");
 
-    char *cpus;
-    int_to_string(smp_tag->cpu_count, cpus);
     term_print("CPU cores available: ");
-    term_print(cpus);
+    term_printi(smp_tag->cpu_count);
     term_print("\n");
 
     term_check(GDT_init(), "Initializing Global Descriptor Table...");

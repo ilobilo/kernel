@@ -1,11 +1,15 @@
 #pragma once
 
+#include <stdint.h>
+
 extern uint16_t columns;
 extern uint16_t rows;
 
 extern char *term_colour;
 
 void term_print(const char *string);
+
+void term_printi(int i);
 
 void term_init(struct stivale2_struct_tag_terminal *term_str_tag);
 
