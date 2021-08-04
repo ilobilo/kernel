@@ -1,6 +1,7 @@
 KERNEL := kernel.bin
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-FONTFILE := $(SOURCEDIR)/unifont.raw
+#FONTFILE := $(SOURCEDIR)/unifont.raw
+BACKGROUND := $(SOURCEDIR)/bg.bmp
 
 CC = x86_64-pc-elf-gcc
 CPP = x86_64-pc-elf-g++
@@ -72,7 +73,7 @@ $(KERNEL): $(OBJ)
 	@$(AS) $(ASMFLAGS) $^ -f elf64 -o $@
 
 iso:
-	@cp $(KERNEL) $(FONTFILE) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
+	@cp $(KERNEL) $(BACKGROUND) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
 	@xorriso -as mkisofs -b limine-cd.bin \
