@@ -2,6 +2,16 @@
 My first os built from scratch<br />
 Contributors are welcome
 
+# TODO
+
+- [x] GDT
+- [x] IDT
+- [x] Keyboard
+- [ ] Shell
+- [ ] Paging
+- [ ] Modules
+- [ ] Userspace
+
 # Building And Running
 
 Make sure you have this programs installed:
