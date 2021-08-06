@@ -8,7 +8,7 @@ Contributors are welcome
 - [x] IDT
 - [x] Keyboard
 - [ ] Shell
-- [ ] Paging
+- [ ] Memory Manager
 - [ ] Modules
 - [ ] Userspace
 
