@@ -1,5 +1,9 @@
+#include "drivers/keyboard.hpp"
+#include "drivers/pit.hpp"
 #include "drivers/terminal.hpp"
 #include "system/gdt/gdt.hpp"
+#include "system/idt/idt.hpp"
+#include "include/io.hpp"
 #include "stivale2.h"
 #include "kernel.hpp"
 
@@ -15,5 +19,19 @@ void main(struct stivale2_struct *stivale2_struct)
     term_printi(smp_tag->cpu_count);
     term_print("\n");
 
-    term_check(GDT_init(), "Initializing Global Descriptor Table...");
+    GDT_init();
+    term_check(true, "Initializing Global Descriptor Table...");
+
+    IDT_init();
+    term_check(true, "Initializing Interrupt Descriptor Table...");
+
+    PIT_init(100);
+    term_check(true, "Initializing PIT...");
+
+    Keyboard_init();
+    term_check(true, "Initializing Keyboard...");
+
+//    register_interrupt_handler(IRQ1, Keyboard_Handler);
+//    asm volatile ("int $0x3");
+//    asm volatile ("int $0x4");
 }
