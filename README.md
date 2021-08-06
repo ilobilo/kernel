@@ -13,19 +13,19 @@ Make sure you have this programs installed:
 
 1. First download toolchain from releases page
 
-2. extract it in /opt directory with:
+2. extract it in /opt directory with:<br />
 ``cd /opt && sudo tar xpJf <Downloaded toolchain.tar.xz>``<br />
 (bin directory should be /opt/x86_64-pc-elf/bin/)
 
-3. add this line to your ~/.bashrc:
+3. add this line to your ~/.bashrc:<br />
 ``export PATH="/opt/x86_64-pc-elf/bin:$PATH"``
 
-4. Run ``source ~/.bashrc``
+4. Run<br />``source ~/.bashrc``
 
-5. Clone this repo with:
-``git clone https://github.com/ilobilo/kernel``
+5. Clone this repo with:<br />
+``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
 
-6. Go to kernel directory and run:
+6. Go to kernel directory and run:<br />
 ``make/make bios``
 
 This command will download limine, compile it, build the kernel and run it in qemu.
