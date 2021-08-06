@@ -31,7 +31,6 @@ void main(struct stivale2_struct *stivale2_struct)
     Keyboard_init();
     term_check(true, "Initializing Keyboard...");
 
-//    register_interrupt_handler(IRQ1, Keyboard_Handler);
 //    asm volatile ("int $0x3");
 //    asm volatile ("int $0x4");
 }
