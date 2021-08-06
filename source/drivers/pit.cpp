@@ -4,6 +4,15 @@
 
 uint64_t tick = 0;
 
+void sleep(long sec)
+{
+    long start = tick;
+    while (tick < start + sec * 100)
+    {
+        asm ("hlt");
+    }
+}
+
 static void PIT_Handler(struct interrupt_registers *)
 {
     tick++;
