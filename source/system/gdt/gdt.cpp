@@ -11,11 +11,10 @@ GDT DefaultGDT = {
     {0, 0, 0, 0x92, 0xa0, 0},
 };
 
-bool GDT_init()
+void GDT_init()
 {
     GDTDescriptor gdtDescriptor;
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
     LoadGDT(&gdtDescriptor);
-    return true;
 }
