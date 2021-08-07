@@ -120,8 +120,9 @@ char get_ascii_char(uint8_t key_code)
     }
 }
 
-volatile bool kbd_irq = false;
-
+char* str;
+//char* curs;
+//int count = 0;
 char c[2] = "\0";
 
 static void Keyboard_Handler(struct interrupt_registers *)
@@ -147,12 +148,34 @@ static void Keyboard_Handler(struct interrupt_registers *)
         case KEY_R_SHIFT_R:
             isShiftPressed = false;
             break;
+        case KEY_ENTER:
+            term_print("\n");
+            for (int i = 0; i < strlen(str); i++)
+            {
+                str[i] = '\0';
+            }
+            break;
         case KEY_BACKSPACE:
-            term_print("\b \b");
+            if (str[0] != '\0')
+            {
+                str[strlen(str) - 1] = '\0';
+                term_print("\b \b");
+            }
+            break;
+        case KEY_LEFT:
+            cursor_left(1);
+//            curs[count] = str[strlen(str) - (count + 1)];
+//            count++;
+            break;
+        case KEY_RIGHT:
+            cursor_right(1);
+//            curs[count] = '\0';
+//            count--;
             break;
         default:
             c[0] = get_ascii_char(scancode);
             term_print(c);
+            strcat(str, c);
             break;
     }
 }
@@ -160,4 +183,5 @@ static void Keyboard_Handler(struct interrupt_registers *)
 void Keyboard_init()
 {
     register_interrupt_handler(IRQ1, Keyboard_Handler);
+    str[0] = '\0';
 }
