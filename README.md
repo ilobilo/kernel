@@ -2,6 +2,8 @@
 My first os built from scratch<br />
 Contributors are welcome
 
+# [LICENSE](LICENSE)
+
 # TODO
 
 - [x] GDT
