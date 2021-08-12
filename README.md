@@ -23,7 +23,7 @@ Make sure you have this programs installed:
 * Nasm
 * Qemu x86-64
 
-1. First download toolchain from releases page
+1. Download the toolchain from releases page
 
 2. extract it in /opt directory with:<br />
 ``cd /opt && sudo tar xpJf <Downloaded toolchain.tar.xz>``<br />
