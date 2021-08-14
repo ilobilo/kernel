@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-uint32_t strlen(const char* str)
+size_t strlen(const char* str)
 {
-    uint32_t length = 0;
+    size_t length = 0;
     while(str[length])
     {
         length++;

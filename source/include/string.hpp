@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-uint32_t strlen(const char* str);
+size_t strlen(const char* str);
 
 char* strcpy(char* destination, const char* source);
 
