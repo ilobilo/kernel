@@ -1,6 +1,5 @@
 KERNEL := kernel.bin
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-#FONTFILE := $(SOURCEDIR)/unifont.raw
 BACKGROUND := $(SOURCEDIR)/bg.bmp
 
 CC = x86_64-pc-elf-gcc

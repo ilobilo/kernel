@@ -1,6 +1,6 @@
-#include "../../drivers/terminal.hpp"
-#include "../../include/io.hpp"
-#include "idt.hpp"
+#include <drivers/terminal.hpp>
+#include <include/io.hpp>
+#include <system/idt/idt.hpp>
 
 int_handler_t interrupt_handlers[256];
 

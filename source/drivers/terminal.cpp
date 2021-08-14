@@ -1,8 +1,8 @@
 #include <stddef.h>
-#include "../kernel.hpp"
-#include "../stivale2.h"
-#include "../include/string.hpp"
-#include "terminal.hpp"
+#include <kernel.hpp>
+#include <stivale2.h>
+#include <include/string.hpp>
+#include <drivers/terminal.hpp>
 
 uint16_t columns;
 uint16_t rows;
