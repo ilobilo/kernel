@@ -19,7 +19,7 @@ INTERNALLDFLAGS :=            \
 	-z max-page-size=0x1000
 
 INTERNALCFLAGS  :=            \
-	-I.                   \
+	-I$(SOURCEDIR)        \
 	-std=gnu11            \
 	-ffreestanding        \
 	-fno-stack-protector  \
@@ -32,7 +32,7 @@ INTERNALCFLAGS  :=            \
 	-mno-red-zone
 
 INTERNALCPPFLAGS  :=          \
-	-I.                   \
+	-I$(SOURCEDIR)        \
 	-std=c++14            \
 	-ffreestanding        \
 	-fno-stack-protector  \
