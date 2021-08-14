@@ -1,11 +1,11 @@
-#include "drivers/keyboard.hpp"
-#include "drivers/pit.hpp"
-#include "drivers/terminal.hpp"
-#include "system/gdt/gdt.hpp"
-#include "system/idt/idt.hpp"
-#include "include/io.hpp"
-#include "stivale2.h"
-#include "kernel.hpp"
+#include <drivers/keyboard.hpp>
+#include <drivers/pit.hpp>
+#include <drivers/terminal.hpp>
+#include <system/gdt/gdt.hpp>
+#include <system/idt/idt.hpp>
+#include <include/io.hpp>
+#include <stivale2.h>
+#include <kernel.hpp>
 
 void main(struct stivale2_struct *stivale2_struct)
 {

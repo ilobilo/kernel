@@ -1,9 +1,9 @@
 #include <stdint.h>
-#include "../system/idt/idt.hpp"
-#include "../include/string.hpp"
-#include "../include/io.hpp"
-#include "terminal.hpp"
-#include "keyboard.hpp"
+#include <system/idt/idt.hpp>
+#include <include/string.hpp>
+#include <include/io.hpp>
+#include <drivers/terminal.hpp>
+#include <drivers/keyboard.hpp>
 
 bool isCapsLock = false;
 bool isShiftPressed = false;
