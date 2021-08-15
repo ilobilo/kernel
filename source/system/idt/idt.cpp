@@ -17,12 +17,19 @@ void idt_set_descriptor(uint8_t vector, void* isr)
     descriptor->zero           = 0;
 }
 
+void register_interrupt_handler(uint8_t n, int_handler_t handler);
+static void not_implemented(struct interrupt_registers *);
 void isr_install();
 
 void IDT_init()
 {
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
+
+    for (int i = 32; i < 48; i++)
+    {
+        register_interrupt_handler(i, not_implemented);
+    }
 
     isr_install();
 
@@ -93,9 +100,8 @@ void irq_handler(struct interrupt_registers *regs)
     outb(PIC1_COMMAND, PIC_EOI);
 }
 
-static void not_implemented()
+static void not_implemented(struct interrupt_registers *)
 {
-    term_print("\nInterrupt Handler Not Imolemented!");
 }
 
 void isr_install()
