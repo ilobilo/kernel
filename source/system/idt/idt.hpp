@@ -103,15 +103,6 @@ struct idtr_t
 	uint16_t	limit;
 	uint64_t	base;
 } __attribute__((packed));
-/*
-struct __attribute__((packed)) interrupt_registers
-{
-	uint32_t gs, fs, es, ds;
-	uint32_t rdi, rsi, rbp, rsp, rbx, rdx, rcx, rax;
-	uint32_t int_no, err_code;
-	uint32_t eip, cs, eflags, useresp, ss;
-};
-*/
 
 struct __attribute__((packed)) interrupt_registers
 {
