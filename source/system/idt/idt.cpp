@@ -4,14 +4,14 @@
 
 int_handler_t interrupt_handlers[256];
 
-void idt_set_descriptor(uint8_t vector, void* isr)
+void idt_set_descriptor(uint8_t vector, void* isr, uint8_t type_attr)
 {
     idt_desc_t* descriptor = (idt_desc_t *)&idt[vector];
 
     descriptor->offset_1       = (uint64_t)isr & 0xFFFF;
     descriptor->selector       = 0x28;
     descriptor->ist            = 0;
-    descriptor->type_attr      = 0x8E;
+    descriptor->type_attr      = type_attr;
     descriptor->offset_2       = ((uint64_t)isr >> 16) & 0xFFFF;
     descriptor->offset_3       = ((uint64_t)isr >> 32) & 0xFFFFFFFF;
     descriptor->zero           = 0;
@@ -106,38 +106,38 @@ static void not_implemented(struct interrupt_registers *)
 
 void isr_install()
 {
-    idt_set_descriptor(0, (void*)isr0);
-    idt_set_descriptor(1, (void*)isr1);
-    idt_set_descriptor(2, (void*)isr2);
-    idt_set_descriptor(3, (void*)isr3);
-    idt_set_descriptor(4, (void*)isr4);
-    idt_set_descriptor(5, (void*)isr5);
-    idt_set_descriptor(6, (void*)isr6);
-    idt_set_descriptor(7, (void*)isr7);
-    idt_set_descriptor(8, (void*)isr8);
-    idt_set_descriptor(9, (void*)isr9);
-    idt_set_descriptor(10, (void*)isr10);
-    idt_set_descriptor(11, (void*)isr11);
-    idt_set_descriptor(12, (void*)isr12);
-    idt_set_descriptor(13, (void*)isr13);
-    idt_set_descriptor(14, (void*)isr14);
-    idt_set_descriptor(15, (void*)isr15);
-    idt_set_descriptor(16, (void*)isr16);
-    idt_set_descriptor(17, (void*)isr17);
-    idt_set_descriptor(18, (void*)isr18);
-    idt_set_descriptor(19, (void*)isr19);
-    idt_set_descriptor(20, (void*)isr20);
-    idt_set_descriptor(21, (void*)isr21);
-    idt_set_descriptor(22, (void*)isr22);
-    idt_set_descriptor(23, (void*)isr23);
-    idt_set_descriptor(24, (void*)isr24);
-    idt_set_descriptor(25, (void*)isr25);
-    idt_set_descriptor(26, (void*)isr26);
-    idt_set_descriptor(27, (void*)isr27);
-    idt_set_descriptor(28, (void*)isr28);
-    idt_set_descriptor(29, (void*)isr29);
-    idt_set_descriptor(30, (void*)isr30);
-    idt_set_descriptor(31, (void*)isr31);
+    idt_set_descriptor(0, (void*)isr0, 0x8E);
+    idt_set_descriptor(1, (void*)isr1, 0x8E);
+    idt_set_descriptor(2, (void*)isr2, 0x8E);
+    idt_set_descriptor(3, (void*)isr3, 0x8E);
+    idt_set_descriptor(4, (void*)isr4, 0x8E);
+    idt_set_descriptor(5, (void*)isr5, 0x8E);
+    idt_set_descriptor(6, (void*)isr6, 0x8E);
+    idt_set_descriptor(7, (void*)isr7, 0x8E);
+    idt_set_descriptor(8, (void*)isr8, 0x8E);
+    idt_set_descriptor(9, (void*)isr9, 0x8E);
+    idt_set_descriptor(10, (void*)isr10, 0x8E);
+    idt_set_descriptor(11, (void*)isr11, 0x8E);
+    idt_set_descriptor(12, (void*)isr12, 0x8E);
+    idt_set_descriptor(13, (void*)isr13, 0x8E);
+    idt_set_descriptor(14, (void*)isr14, 0x8E);
+    idt_set_descriptor(15, (void*)isr15, 0x8E);
+    idt_set_descriptor(16, (void*)isr16, 0x8E);
+    idt_set_descriptor(17, (void*)isr17, 0x8E);
+    idt_set_descriptor(18, (void*)isr18, 0x8E);
+    idt_set_descriptor(19, (void*)isr19, 0x8E);
+    idt_set_descriptor(20, (void*)isr20, 0x8E);
+    idt_set_descriptor(21, (void*)isr21, 0x8E);
+    idt_set_descriptor(22, (void*)isr22, 0x8E);
+    idt_set_descriptor(23, (void*)isr23, 0x8E);
+    idt_set_descriptor(24, (void*)isr24, 0x8E);
+    idt_set_descriptor(25, (void*)isr25, 0x8E);
+    idt_set_descriptor(26, (void*)isr26, 0x8E);
+    idt_set_descriptor(27, (void*)isr27, 0x8E);
+    idt_set_descriptor(28, (void*)isr28, 0x8E);
+    idt_set_descriptor(29, (void*)isr29, 0x8E);
+    idt_set_descriptor(30, (void*)isr30, 0x8E);
+    idt_set_descriptor(31, (void*)isr31, 0x8E);
 
     outb(0x20, 0x11);
     outb(0xA0, 0x11);
@@ -150,23 +150,20 @@ void isr_install()
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-//    outb(0x21,0xfd);
-//    outb(0xa1,0xff);
-
-    idt_set_descriptor(32, (void*)irq0);
-    idt_set_descriptor(33, (void*)irq1);
-    idt_set_descriptor(34, (void*)irq2);
-    idt_set_descriptor(35, (void*)irq3);
-    idt_set_descriptor(36, (void*)irq4);
-    idt_set_descriptor(37, (void*)irq5);
-    idt_set_descriptor(38, (void*)irq6);
-    idt_set_descriptor(39, (void*)irq7);
-    idt_set_descriptor(40, (void*)irq8);
-    idt_set_descriptor(41, (void*)irq9);
-    idt_set_descriptor(42, (void*)irq10);
-    idt_set_descriptor(43, (void*)irq11);
-    idt_set_descriptor(44, (void*)irq12);
-    idt_set_descriptor(45, (void*)irq13);
-    idt_set_descriptor(46, (void*)irq14);
-    idt_set_descriptor(47, (void*)irq15);
+    idt_set_descriptor(32, (void*)irq0, 0x8E);
+    idt_set_descriptor(33, (void*)irq1, 0x8E);
+    idt_set_descriptor(34, (void*)irq2, 0x8E);
+    idt_set_descriptor(35, (void*)irq3, 0x8E);
+    idt_set_descriptor(36, (void*)irq4, 0x8E);
+    idt_set_descriptor(37, (void*)irq5, 0x8E);
+    idt_set_descriptor(38, (void*)irq6, 0x8E);
+    idt_set_descriptor(39, (void*)irq7, 0x8E);
+    idt_set_descriptor(40, (void*)irq8, 0x8E);
+    idt_set_descriptor(41, (void*)irq9, 0x8E);
+    idt_set_descriptor(42, (void*)irq10, 0x8E);
+    idt_set_descriptor(43, (void*)irq11, 0x8E);
+    idt_set_descriptor(44, (void*)irq12, 0x8E);
+    idt_set_descriptor(45, (void*)irq13, 0x8E);
+    idt_set_descriptor(46, (void*)irq14, 0x8E);
+    idt_set_descriptor(47, (void*)irq15, 0x8E);
 }
