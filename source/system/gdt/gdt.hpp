@@ -16,9 +16,9 @@ struct GDTEntry {
 }__attribute__((packed));
 
 struct GDT {
-    GDTEntry Null; //0x00
-    GDTEntry KernelCode; //0x08
-    GDTEntry KernelData; //0x10
+    GDTEntry Null;
+    GDTEntry KernelCode;
+    GDTEntry KernelData;
     GDTEntry UserNull;
     GDTEntry UserCode;
     GDTEntry UserData;
