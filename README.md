@@ -22,6 +22,7 @@ Make sure you have this programs installed:
 * Make
 * Nasm
 * Qemu x86-64
+* Wget
 
 1. Download the toolchain from releases page
 
