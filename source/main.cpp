@@ -15,9 +15,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     term_center("Welcome to kernel project");
 
-    term_print("CPU cores available: ");
-    term_printi(smp_tag->cpu_count);
-    term_print("\n");
+    printf("CPU cores available: %i\n", smp_tag->cpu_count);
 
     GDT_init();
     term_check(true, "Initializing Global Descriptor Table...");

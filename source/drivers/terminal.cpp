@@ -33,6 +33,13 @@ void term_printi(int i)
     term_print(out);
 }
 
+void term_printc(char c)
+{
+    char cs[2] = "\0";
+    cs[0] = c;
+    term_print(cs);
+}
+
 void term_setcolour(char *ascii_colour)
 {
     term_colour = ascii_colour;
@@ -134,5 +141,36 @@ void term_check(bool ok, char *message)
             term_print(" ");
         }
         term_print("\033[1m[\033[21m \033[31mERR\033[0m \033[1m]\033[21m");
+    }
+}
+
+void printf(char *c, ...)
+{
+    char *s;
+    va_list lst;
+    va_start(lst, c);
+    while(*c != '\0')
+    {
+        if(*c != '%')
+        {
+            term_printc(*c);
+            c++;
+            continue;
+        }
+
+        c++;
+
+        if(*c == '\0')
+        {
+            break;
+        }
+
+        switch(*c)
+        {
+            case 's': term_print(va_arg(lst, char *)); break;
+            case 'c': term_printc(va_arg(lst, int)); break;
+            case 'd': case 'i': term_printi(va_arg(lst, int)); break;
+        }
+        c++;
     }
 }
