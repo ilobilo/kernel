@@ -149,7 +149,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
             isShiftPressed = false;
             break;
         case KEY_ENTER:
-            term_print("\n");
+            printf("\n");
             for (int i = 0; i < strlen(str); i++)
             {
                 str[i] = '\0';
@@ -159,7 +159,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
             if (str[0] != '\0')
             {
                 str[strlen(str) - 1] = '\0';
-                term_print("\b \b");
+                printf("\b \b");
             }
             break;
         case KEY_LEFT:
@@ -174,7 +174,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
             break;
         default:
             c[0] = get_ascii_char(scancode);
-            term_print(c);
+            printf(c);
             strcat(str, c);
             break;
     }

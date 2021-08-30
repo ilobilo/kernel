@@ -31,11 +31,11 @@ bool are_interrupts_enabled(bool should_print)
     {
         if (flags & (1 << 9))
         {
-            term_print("Interrupts are enabled!");
+            printf("Interrupts are enabled!");
         }
         else
         {
-            term_print("Interrupts are not enabled!");
+            printf("Interrupts are not enabled!");
         }
     }
     return flags & (1 << 9);
