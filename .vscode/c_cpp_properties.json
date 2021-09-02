@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/source/**",
                 "/opt/x86_64-pc-elf/x86_64-pc-elf/include/"
             ],
             "defines": [],
