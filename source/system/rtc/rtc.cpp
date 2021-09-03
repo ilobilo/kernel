@@ -4,7 +4,7 @@
 
 uint8_t bcdtobin(uint8_t value)
 {
-    return (value>>4)*10 + (value&15);
+    return (value >> 4) * 10 + (value & 15);
 }
 
 uint8_t year()
