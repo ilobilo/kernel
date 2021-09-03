@@ -120,10 +120,18 @@ char get_ascii_char(uint8_t key_code)
     }
 }
 
-char* str;
+char* buff;
 //char* curs;
 //int count = 0;
 char c[2] = "\0";
+
+void clearbuff()
+{
+    for (int i = 0; i < strlen(buff); i++)
+    {
+        buff[i] = '\0';
+    }
+}
 
 static void Keyboard_Handler(struct interrupt_registers *)
 {
@@ -150,21 +158,18 @@ static void Keyboard_Handler(struct interrupt_registers *)
             break;
         case KEY_ENTER:
             printf("\n");
-            for (int i = 0; i < strlen(str); i++)
-            {
-                str[i] = '\0';
-            }
+            clearbuff();
             break;
         case KEY_BACKSPACE:
-            if (str[0] != '\0')
+            if (buff[0] != '\0')
             {
-                str[strlen(str) - 1] = '\0';
+                buff[strlen(buff) - 1] = '\0';
                 printf("\b \b");
             }
             break;
         case KEY_LEFT:
             cursor_left(1);
-//            curs[count] = str[strlen(str) - (count + 1)];
+//            curs[count] = buff[strlen(buff) - (count + 1)];
 //            count++;
             break;
         case KEY_RIGHT:
@@ -175,7 +180,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
         default:
             c[0] = get_ascii_char(scancode);
             printf(c);
-            strcat(str, c);
+            strcat(buff, c);
             break;
     }
 }
@@ -183,5 +188,5 @@ static void Keyboard_Handler(struct interrupt_registers *)
 void Keyboard_init()
 {
     register_interrupt_handler(IRQ1, Keyboard_Handler);
-    str[0] = '\0';
+    buff[0] = '\0';
 }

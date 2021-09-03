@@ -3,6 +3,7 @@
 #include <stivale2.h>
 #include <include/string.hpp>
 #include <drivers/terminal.hpp>
+#include <drivers/keyboard.hpp>
 
 uint16_t columns;
 uint16_t rows;
@@ -31,6 +32,7 @@ void term_printi(int i)
     char *out;
     int_to_string(i, out);
     term_print(out);
+    clearbuff();
 }
 
 void term_printc(char c)

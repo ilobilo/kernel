@@ -79,4 +79,8 @@
 #define KEY_R_SHIFT_R 0xB6
 #define KEY_CAPS_LOCK 0x3A
 
+extern char* buff;
+
+void clearbuff();
+
 void Keyboard_init();
