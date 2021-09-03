@@ -3,6 +3,7 @@
 #include <drivers/terminal.hpp>
 #include <system/gdt/gdt.hpp>
 #include <system/idt/idt.hpp>
+#include <system/rtc/rtc.hpp>
 #include <include/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
@@ -28,6 +29,9 @@ void main(struct stivale2_struct *stivale2_struct)
 
     Keyboard_init();
     term_check(true, "Initializing Keyboard...");
+
+    printf("Current time: ");
+    RTC_GetTime();
 
 //    asm volatile ("int $0x3");
 //    asm volatile ("int $0x4");
