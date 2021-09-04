@@ -1,6 +1,6 @@
-#include <drivers/keyboard.hpp>
-#include <drivers/pit.hpp>
-#include <drivers/terminal.hpp>
+#include <drivers/keyboard/keyboard.hpp>
+#include <drivers/pit/pit.hpp>
+#include <drivers/terminal/terminal.hpp>
 #include <system/gdt/gdt.hpp>
 #include <system/idt/idt.hpp>
 #include <system/rtc/rtc.hpp>
