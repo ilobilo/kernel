@@ -1,4 +1,4 @@
-#include <drivers/terminal.hpp>
+#include <drivers/terminal/terminal.hpp>
 #include <include/io.hpp>
 #include <system/rtc/rtc.hpp>
 

@@ -2,8 +2,8 @@
 #include <system/idt/idt.hpp>
 #include <include/string.hpp>
 #include <include/io.hpp>
-#include <drivers/terminal.hpp>
-#include <drivers/keyboard.hpp>
+#include <drivers/terminal/terminal.hpp>
+#include <drivers/keyboard/keyboard.hpp>
 
 bool isCapsLock = false;
 bool isShiftPressed = false;

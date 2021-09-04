@@ -2,8 +2,7 @@
 #include <kernel.hpp>
 #include <stivale2.h>
 #include <include/string.hpp>
-#include <drivers/terminal.hpp>
-#include <drivers/keyboard.hpp>
+#include <drivers/terminal/terminal.hpp>
 
 uint16_t columns;
 uint16_t rows;
