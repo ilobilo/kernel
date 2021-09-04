@@ -1,4 +1,4 @@
-# kernel
+# Kernel project
 My first os built from scratch<br />
 Contributors are welcome
 
@@ -10,7 +10,7 @@ Contributors are welcome
 - [x] IDT
 - [x] Keyboard
 - [x] Iinitrd
-- [ ] Serial
+- [ ] Serial debugging
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
@@ -30,13 +30,15 @@ Contributors are welcome
 
 # Building And Running
 
-Make sure you have this programs installed:
+Make sure you have following programs installed:
 * GCC
 * G++
 * Make
 * Nasm
 * Qemu x86-64
+* Xorriso
 * Wget
+* Tar
 
 1. Download the toolchain from releases page
 
@@ -52,10 +54,10 @@ Make sure you have this programs installed:
 5. Clone this repo with:<br />
 ``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
 
-6. Go to kernel directory and run:<br />
+6. Go to kernel directory and run(UEFI or BIOS(:<br />
 ``make/make bios``
 
-This command will download limine, compile it, build the kernel and run it in qemu.
+This command will download limine installer, compile it, build the kernel, create iso file and run it in qemu.
 
 # Discord server
 https://discord.gg/fM5GK3RpS7
