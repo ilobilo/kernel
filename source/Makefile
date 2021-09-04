@@ -1,6 +1,7 @@
 KERNEL := kernel.bin
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKGROUND := $(SOURCEDIR)/bg.bmp
+INITRD := $(SOURCEDIR)/initrd.tar.gz
 
 CC = x86_64-pc-elf-gcc
 CPP = x86_64-pc-elf-g++
@@ -56,9 +57,9 @@ OBJ += $(ASMFILES:.asm=_asm.o)
 
 .PHONY: all
 
-all: $(KERNEL) iso clean run
+all: $(KERNEL) initrd iso clean run
 
-bios: $(KERNEL) iso clean run-bios
+bios: $(KERNEL) initrd iso clean run-bios
 
 $(KERNEL): $(OBJ)
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
@@ -72,8 +73,11 @@ $(KERNEL): $(OBJ)
 %_asm.o: %.asm
 	$(AS) $(ASMFLAGS) $^ -f elf64 -o $@
 
+initrd:
+	@tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./
+
 iso:
-	cp $(KERNEL) $(BACKGROUND) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
+	cp $(KERNEL) $(BACKGROUND) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
 	xorriso -as mkisofs -b limine-cd.bin \
@@ -85,10 +89,10 @@ iso:
 	$(SOURCEDIR)/../limine/limine-install $(SOURCEDIR)/../image.iso > /dev/null
 
 clean:
-	rm -rf $(KERNEL) $(OBJ) $(SOURCEDIR)/../iso_root/*
+	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(SOURCEDIR)/../iso_root/*
 
 run:
-	qemu-system-x86_64 -cpu max -smp 12 -m 512M -rtc base=localtime -cdrom $(SOURCEDIR)/../image.iso -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd > /dev/null
+	qemu-system-x86_64 -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -cdrom $(SOURCEDIR)/../image.iso -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd > /dev/null
 
 run-bios:
-	qemu-system-x86_64 -cpu max -smp 12 -m 512M -rtc base=localtime -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
+	qemu-system-x86_64 -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
