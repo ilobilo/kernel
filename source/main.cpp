@@ -30,7 +30,7 @@ void main(struct stivale2_struct *stivale2_struct)
     Keyboard_init();
     term_check(true, "Initializing Keyboard...");
 
-    printf("Current time: ");
+    printf("Current RTC time: ");
     RTC_GetTime();
 
 //    asm volatile ("int $0x3");
