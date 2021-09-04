@@ -54,8 +54,9 @@ Make sure you have following programs installed:
 5. Clone this repo with:<br />
 ``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
 
-6. Go to kernel directory and run(UEFI or BIOS(:<br />
-``make/make bios``
+6. Go to kernel directory and run:<br />
+``make`` For UEFI<br />
+``make bios`` For BIOS<br />
 
 This command will download limine installer, compile it, build the kernel, create iso file and run it in qemu.
 
