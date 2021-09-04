@@ -9,19 +9,24 @@ Contributors are welcome
 - [x] GDT
 - [x] IDT
 - [x] Keyboard
+- [x] PIT
+- [x] RTC
 - [x] Iinitrd
 - [ ] Serial debugging
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
 - [ ] ACPI
+- [ ] VFS
 - [ ] PCI
 - [ ] AHCI
-- [ ] Real filesystems
+- [ ] Real filesystems (ext2, fat...)
 - [ ] Multithreading
 - [ ] Userspace
+- [ ] System calls
+- [ ] ELF execution
 - [ ] POSIX
-- [ ] Port libc
+- [ ] Port libc (Newlib)
 - [ ] Port apps
 - [ ] Sound
 - [ ] Network
