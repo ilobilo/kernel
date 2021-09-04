@@ -46,6 +46,16 @@ int strcmp(const char* a, const char* b)
     return (int)(unsigned char)(*a) - (int)(unsigned char)(*b);
 }
 
+char* strstr(const char *str, const char *substring)
+{
+  const char *a = str, *b = substring;
+  for (;;) {
+    if ( !*b ) return (char *) str;
+    if ( !*a ) return NULL;
+    if ( *a++ != *b++) { a = ++str; b = substring; }
+  }
+}
+
 void memcpy(void* dest, void* src, size_t n) 
 {
     int i;
@@ -70,26 +80,50 @@ void memset(void* str, char ch, size_t n)
 void reverse(char s[])
 {
     int c, i, j;
-    for (i = 0, j = strlen(s) - 1; i < j; i++, j--) {
+    for (i = 0, j = strlen(s) - 1; i < j; i++, j--)
+    {
         c = s[i];
         s[i] = s[j];
         s[j] = c;
     }
 }
 
-void int_to_string(int n, char str[])
+char* int_to_string(int num)
 {
-    int i, sign;
-    if ((sign = n) < 0) n = -n;
-    i = 0;
-    do {
-        str[i++] = n % 10 + '0';
-    } while ((n /= 10) > 0);
-
-    if (sign < 0) str[i++] = '-';
-    str[i] = '\0';
-
-    reverse(str);
+    bool isMinus = false;
+    static char out[10];
+    int g = 0;
+    if (num != 0)
+    {
+        char temp[10];
+        int i = 0;
+        if (num < 0)
+        {
+            isMinus = true;
+            num = -num;
+        }
+        if (num > 0); else { temp[i++] = '8'; num = -(num / 10); }
+        while (num > 0)
+        {
+            temp[i++] = num % 10 + '0';
+            num /= 10;
+        }
+        if (isMinus)
+        {
+            out[g] = '-';
+            g++;
+        }
+        while (--i >= 0)
+        {
+            out[g] = temp[i];
+            g++;
+        }
+        return out;
+    }
+    else
+    {
+        return "0";
+    }
 }
 
 int string_to_int(char* str)
