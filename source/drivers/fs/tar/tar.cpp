@@ -31,11 +31,11 @@ void tar_parse(unsigned int address)
         }
 
         unsigned int size = getsize(header->size);
-        
+
         headers[i] = header;
         names[i] = header->name;
         address += ((size / 512) + 1) * 512;
-        
+
         if (size % 512)
         {
             address += 512;
@@ -67,16 +67,19 @@ void tar_list()
 
 void tar_cat(char* name)
 {
-    printf("--BEGIN-- %s\n", name);
     int len = sizeof(names) / sizeof(names[0]);
     for (int i = 0; i < len; ++i)
     {
         if(!strcmp(names[i], name))
         {
+            printf("--BEGIN-- %s\n", name);
             printf("%s", (char *)addrs[i]);
+            printf("--END-- %s\n", name);
+            return;
         }
     }
-    printf("--END-- %s\n", name);
+    printf("\033[31mInvalid Filename!\n");
+    term_resetcolour();
 }
 
 void tar_init(unsigned int address)
