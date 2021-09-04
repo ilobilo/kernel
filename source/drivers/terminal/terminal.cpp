@@ -28,7 +28,30 @@ void term_print(const char *string)
 
 void term_printi(int num)
 {
-    term_print(int_to_string(num));
+    if (num != 0)
+    {
+        char temp[10];
+        int i = 0;
+        if (num < 0)
+        {
+            term_print("-");
+            num = -num;
+        }
+        if (num > 0); else { temp[i++] = '8'; num = -(num / 10); }
+        while (num > 0)
+        {
+            temp[i++] = num % 10 + '0';
+            num /= 10;
+        }
+        while (--i >= 0)
+        {
+            term_printc(temp[i]);
+        }
+    }
+    else
+    {
+        term_print("0");
+    }
 }
 
 void term_printc(char c)
