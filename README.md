@@ -14,6 +14,8 @@ Contributors are welcome
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
+- [ ] ACPI
+- [ ] PCI
 - [ ] AHCI
 - [ ] Real filesystems
 - [ ] Multithreading
