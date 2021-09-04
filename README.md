@@ -9,10 +9,22 @@ Contributors are welcome
 - [x] GDT
 - [x] IDT
 - [x] Keyboard
-- [ ] Shell
-- [ ] Memory Manager
-- [ ] Modules
+- [x] Iinitrd
+- [ ] Serial
+- [ ] Heap
+- [ ] PMM
+- [ ] VMM
+- [ ] AHCI
+- [ ] Real filesystems
+- [ ] Multithreading
 - [ ] Userspace
+- [ ] POSIX
+- [ ] Port libc
+- [ ] Port apps
+- [ ] Sound
+- [ ] Network
+- [ ] USB
+- [ ] GUI
 
 # Building And Running
 
