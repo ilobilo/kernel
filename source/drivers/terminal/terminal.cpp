@@ -3,6 +3,7 @@
 #include <stivale2.h>
 #include <include/string.hpp>
 #include <drivers/terminal/terminal.hpp>
+#include <drivers/keyboard/keyboard.hpp>
 
 uint16_t columns;
 uint16_t rows;
@@ -75,6 +76,7 @@ void term_resetcolour()
 
 void term_clear(char *ansii_colour)
 {
+    clearbuff();
     term_print("\033[H");
     for (uint16_t i = 0; i < rows; i++)
     {
@@ -89,6 +91,7 @@ void term_clear(char *ansii_colour)
 
 void term_clear()
 {
+    clearbuff();
     term_print("\033[H");
     for (uint16_t i = 0; i < columns; i++)
     {

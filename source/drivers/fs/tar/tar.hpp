@@ -22,4 +22,6 @@ void tar_list();
 
 void tar_cat(char* name);
 
+int tar_getnum(char* name);
+
 void tar_init(unsigned int address);

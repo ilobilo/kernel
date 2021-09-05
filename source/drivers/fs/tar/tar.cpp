@@ -82,6 +82,20 @@ void tar_cat(char* name)
     term_resetcolour();
 }
 
+int tar_getnum(char* name)
+{
+    int len = sizeof(names) / sizeof(names[0]);
+    for (int i = 0; i < len; ++i)
+    {
+        if(!strcmp(names[i], name))
+        {
+            return i;
+        }
+    }
+    printf("\033[31mInvalid Filename!\n");
+    term_resetcolour();
+}
+
 void tar_init(unsigned int address)
 {
     tar_parse(address);
