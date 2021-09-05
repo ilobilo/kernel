@@ -1,6 +1,7 @@
 #include <drivers/keyboard/keyboard.hpp>
 #include <drivers/pit/pit.hpp>
 #include <drivers/terminal/terminal.hpp>
+#include <drivers/drawing/drawing.hpp>
 #include <drivers/fs/tar/tar.hpp>
 #include <system/gdt/gdt.hpp>
 #include <system/idt/idt.hpp>
@@ -16,6 +17,7 @@ void main(struct stivale2_struct *stivale2_struct)
     struct stivale2_struct_tag_modules *mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
     struct stivale2_struct_tag_cmdline *cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
 
+    drawing_init((stivale2_struct_tag_framebuffer (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID));
     term_init((stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));
 
     char* cmdline = (char *)cmd_tag->cmdline;
@@ -36,7 +38,7 @@ void main(struct stivale2_struct *stivale2_struct)
     IDT_init();
     term_check(true, "Initializing Interrupt Descriptor Table...");
 
-    PIT_init(100);
+    PIT_init();
     term_check(true, "Initializing PIT...");
 
     Keyboard_init();
