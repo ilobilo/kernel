@@ -92,7 +92,7 @@ clean:
 	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(SOURCEDIR)/../iso_root/*
 
 run:
-	qemu-system-x86_64 -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -cdrom $(SOURCEDIR)/../image.iso -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd > /dev/null
+	qemu-system-x86_64 -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -serial stdio -cdrom $(SOURCEDIR)/../image.iso -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
 
 run-bios:
-	qemu-system-x86_64 -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -cdrom $(SOURCEDIR)/../image.iso -boot d > /dev/null
+	qemu-system-x86_64 -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -serial stdio -cdrom $(SOURCEDIR)/../image.iso -boot d

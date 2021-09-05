@@ -2,6 +2,7 @@
 #include <kernel.hpp>
 #include <stivale2.h>
 #include <include/string.hpp>
+#include <drivers/serial/serial.hpp>
 #include <drivers/terminal/terminal.hpp>
 #include <drivers/keyboard/keyboard.hpp>
 
@@ -18,6 +19,8 @@ void term_init(struct stivale2_struct_tag_terminal *term_str_tag)
     term_write = (void (*)(const char *string, int length))term_write_ptr;
     columns = term_str_tag->cols;
     rows = term_str_tag->rows;
+
+    serial_info("Initialized terminal");
 
     term_clear();
 }

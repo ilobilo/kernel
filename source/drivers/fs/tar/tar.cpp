@@ -1,4 +1,5 @@
 #include <drivers/fs/tar/tar.hpp>
+#include <drivers/serial/serial.hpp>
 #include <drivers/terminal/terminal.hpp>
 #include <include/string.hpp>
 
@@ -98,6 +99,9 @@ int tar_getnum(char* name)
 
 void tar_init(unsigned int address)
 {
+    serial_info("Parsing initrd");
     tar_parse(address);
+    serial_info("Getting file addresses");
     tar_getaddrs(address);
+    serial_info("Initialized initrd");
 }

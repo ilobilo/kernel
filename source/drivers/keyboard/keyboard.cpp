@@ -2,6 +2,7 @@
 #include <system/idt/idt.hpp>
 #include <include/string.hpp>
 #include <include/io.hpp>
+#include <drivers/serial/serial.hpp>
 #include <drivers/terminal/terminal.hpp>
 #include <drivers/keyboard/keyboard.hpp>
 
@@ -189,4 +190,5 @@ void Keyboard_init()
 {
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
+    serial_info("Initialized keyboard");
 }

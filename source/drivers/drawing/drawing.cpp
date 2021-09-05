@@ -1,3 +1,4 @@
+#include <drivers/serial/serial.hpp>
 #include <drivers/drawing/drawing.hpp>
 #include <include/math.hpp>
 
@@ -177,4 +178,6 @@ void drawing_init(struct stivale2_struct_tag_framebuffer *frm_tag)
     frm_pitch = frm_tag->framebuffer_pitch;
     frm_bpp = frm_tag->framebuffer_bpp;
     frm_pixperscanline = frm_pitch / 4;
+
+    serial_info("Initialized drawing functions");
 }
