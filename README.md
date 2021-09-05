@@ -12,6 +12,7 @@ Contributors are welcome
 - [x] PIT
 - [x] RTC
 - [x] Iinitrd
+- [x] Drawing on framebuffer
 - [ ] Serial debugging
 - [ ] Heap
 - [ ] PMM
