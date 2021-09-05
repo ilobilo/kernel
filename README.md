@@ -13,7 +13,7 @@ Contributors are welcome
 - [x] RTC
 - [x] Iinitrd
 - [x] Drawing on framebuffer
-- [ ] Serial debugging
+- [x] Serial debugging
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
