@@ -188,7 +188,11 @@ static void Keyboard_Handler(struct interrupt_registers *)
 
 void Keyboard_init()
 {
+    serial_info("Initializing keyboard");
+
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
+
     serial_info("Initialized keyboard");
+    serial_printc('\n');
 }

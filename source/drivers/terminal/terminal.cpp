@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <kernel.hpp>
 #include <stivale2.h>
 #include <include/string.hpp>
@@ -15,14 +16,15 @@ void (*term_write)(const char *string, int length);
 
 void term_init(struct stivale2_struct_tag_terminal *term_str_tag)
 {
+    serial_info("Initializing terminal");
+
     void *term_write_ptr = (void *)term_str_tag->term_write;
     term_write = (void (*)(const char *string, int length))term_write_ptr;
     columns = term_str_tag->cols;
     rows = term_str_tag->rows;
 
     serial_info("Initialized terminal");
-
-    term_clear();
+    serial_printc('\n');
 }
 
 void term_print(const char *string)
@@ -63,6 +65,11 @@ void term_printc(char c)
     char cs[2] = "\0";
     cs[0] = c;
     term_print(cs);
+}
+
+void _putchar(char character)
+{
+    term_printc(character);
 }
 
 void term_setcolour(char *ascii_colour)
@@ -170,7 +177,7 @@ void term_check(bool ok, char *message)
         term_print("\033[1m[\033[21m \033[31mERR\033[0m \033[1m]\033[21m");
     }
 }
-
+/*
 void printf(char *c, ...)
 {
     char *s;
@@ -201,3 +208,4 @@ void printf(char *c, ...)
         c++;
     }
 }
+*/

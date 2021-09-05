@@ -68,3 +68,12 @@ This command will download limine installer, compile it, build the kernel, creat
 
 # Discord server
 https://discord.gg/fM5GK3RpS7
+
+# Resources used:
+* Printf: https://github.com/mpaland/printf
+* Osdev wiki: https://wiki.osdev.org/
+* Osdev discord server: https://discord.gg/RnCtsqD
+* PonchoOS: https://github.com/Absurdponcho/PonchoOS
+* Poncho discord server: https://discord.gg/N2Dpwpu4qT
+* FaruOS (colours): https://github.com/leapofazzam123/faruos
+* And of course Google
