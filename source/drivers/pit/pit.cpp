@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <drivers/serial/serial.hpp>
 #include <system/idt/idt.hpp>
 #include <include/io.hpp>
 
@@ -36,4 +37,6 @@ void PIT_init()
 
     outb(0x40, l);
     outb(0x40, h);
+
+    serial_info("Initialized PIT");
 }

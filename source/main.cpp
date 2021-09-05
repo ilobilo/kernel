@@ -1,6 +1,7 @@
 #include <drivers/keyboard/keyboard.hpp>
 #include <drivers/pit/pit.hpp>
 #include <drivers/terminal/terminal.hpp>
+#include <drivers/serial/serial.hpp>
 #include <drivers/drawing/drawing.hpp>
 #include <drivers/fs/tar/tar.hpp>
 #include <system/gdt/gdt.hpp>
@@ -16,6 +17,8 @@ void main(struct stivale2_struct *stivale2_struct)
     struct stivale2_struct_tag_smp *smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
     struct stivale2_struct_tag_modules *mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
     struct stivale2_struct_tag_cmdline *cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
+
+    serial_init();
 
     drawing_init((stivale2_struct_tag_framebuffer (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID));
     term_init((stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));

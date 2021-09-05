@@ -1,3 +1,4 @@
+#include <drivers/serial/serial.hpp>
 #include <drivers/terminal/terminal.hpp>
 #include <include/io.hpp>
 #include <system/idt/idt.hpp>
@@ -35,6 +36,7 @@ void IDT_init()
 
     __asm__ volatile ("lidt %0" : : "memory"(idtr));
     __asm__ volatile ("sti");
+    serial_info("Initialized IDT");
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)
@@ -82,6 +84,10 @@ void isr_handler(struct interrupt_registers *regs)
     term_clear();
     term_center("[PANIC] System Exception!");
     term_center((char*)exception_messages[regs->int_no & 0xff]);
+
+    serial_err("System exception!");
+    serial_err((char*)exception_messages[regs->int_no & 0xff]);
+
     __asm__ volatile ("cli; hlt");
 }
 

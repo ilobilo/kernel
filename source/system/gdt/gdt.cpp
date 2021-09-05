@@ -1,3 +1,4 @@
+#include <drivers/serial/serial.hpp>
 #include <system/gdt/gdt.hpp>
 
 __attribute__((aligned(0x1000)))
@@ -17,4 +18,5 @@ void GDT_init()
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
     LoadGDT(&gdtDescriptor);
+    serial_info("Initialized GDT");
 }
