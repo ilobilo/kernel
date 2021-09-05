@@ -14,6 +14,7 @@ Contributors are welcome
 - [x] Iinitrd
 - [x] Drawing on framebuffer
 - [x] Serial debugging
+- [ ] Paging
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
