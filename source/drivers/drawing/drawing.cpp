@@ -104,10 +104,10 @@ void drawline(int x0, int y0, int x1, int y1, uint32_t colour)
 
 void drawrectangle(int x, int y, int w, int h, uint32_t colour)
 {
-    drawline(x, y, x + w, y, colour);
-    drawline(x, y, x, y + h, colour);
-    drawline(x, y + h, x + w, y + h, colour);
-    drawline(x + w, y, x + w, y + h, colour);
+    drawline(x, y, x + w, y, colour); // ¯
+    drawline(x, y + h - 1, x + w, y + h - 1, colour); // _
+    drawline(x, y, x, y + h, colour); // |*
+    drawline(x + w - 1, y, x + w - 1, y + h, colour); // *| 
 }
 
 void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour)
