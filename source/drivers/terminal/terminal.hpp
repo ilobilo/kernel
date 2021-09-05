@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <drivers/terminal/printf.h>
 
 extern uint16_t columns;
 extern uint16_t rows;
@@ -26,4 +27,4 @@ void term_center(char *text);
 
 void term_check(bool ok, char *mesaage);
 
-void printf(char *c, ...);
+//void printf(char *c, ...);

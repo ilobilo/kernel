@@ -104,4 +104,5 @@ void tar_init(unsigned int address)
     serial_info("Getting file addresses");
     tar_getaddrs(address);
     serial_info("Initialized initrd");
+    serial_printc('\n');
 }

@@ -108,7 +108,7 @@ void drawrectangle(int x, int y, int w, int h, uint32_t colour)
     drawline(x, y, x + w, y, colour); // ¯
     drawline(x, y + h - 1, x + w, y + h - 1, colour); // _
     drawline(x, y, x, y + h, colour); // |*
-    drawline(x + w - 1, y, x + w - 1, y + h, colour); // *| 
+    drawline(x + w - 1, y, x + w - 1, y + h, colour); // *|
 }
 
 void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour)
@@ -132,7 +132,6 @@ void drawcircle(int cx, int cy, int radius, uint32_t colour)
         if (radius > x) err += ++x * 2 + 1;
         if (radius <= y) err += ++y * 2 + 1;
     } while (x < 0);
-    
 }
 
 void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
@@ -156,7 +155,7 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
             putpix(i, cy + x, colour);
             putpix(i, cy - x, colour);
         }
-        
+
         y++;
         err += yC;
         yC += 2;
@@ -167,11 +166,12 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
             xC += 2;
         }
     }
-    
 }
 
 void drawing_init(struct stivale2_struct_tag_framebuffer *frm_tag)
 {
+    serial_info("Initializing drawing functions");
+
     frm_addr = frm_tag->framebuffer_addr;
     frm_width = frm_tag->framebuffer_width;
     frm_height = frm_tag->framebuffer_height;
@@ -180,4 +180,5 @@ void drawing_init(struct stivale2_struct_tag_framebuffer *frm_tag)
     frm_pixperscanline = frm_pitch / 4;
 
     serial_info("Initialized drawing functions");
+    serial_printc('\n');
 }
