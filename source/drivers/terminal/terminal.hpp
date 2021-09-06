@@ -15,7 +15,7 @@ void term_printi(int i);
 
 void term_printc(char c);
 
-void term_init(struct stivale2_struct_tag_terminal *term_str_tag);
+void term_init();
 
 void cursor_up(int lines), cursor_down(int lines), cursor_right(int lines), cursor_left(int lines);
 

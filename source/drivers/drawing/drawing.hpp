@@ -23,4 +23,4 @@ void drawcircle(int xm, int ym, int r, uint32_t colour);
 
 void drawfilledcircle(int cx, int cy, int radius, uint32_t colour);
 
-void drawing_init(struct stivale2_struct_tag_framebuffer *frm_tag);
+void drawing_init();
