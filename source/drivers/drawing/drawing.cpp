@@ -1,6 +1,7 @@
 #include <drivers/serial/serial.hpp>
 #include <drivers/drawing/drawing.hpp>
 #include <include/math.hpp>
+#include <main.hpp>
 
 uint64_t frm_addr;
 uint16_t frm_width;
@@ -168,7 +169,7 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
     }
 }
 
-void drawing_init(struct stivale2_struct_tag_framebuffer *frm_tag)
+void drawing_init()
 {
     serial_info("Initializing drawing functions");
 

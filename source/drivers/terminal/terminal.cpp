@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <kernel.hpp>
 #include <stivale2.h>
+#include <main.hpp>
 #include <include/string.hpp>
 #include <drivers/serial/serial.hpp>
 #include <drivers/terminal/terminal.hpp>
@@ -14,14 +15,14 @@ char *term_colour = "\033[0m";
 
 void (*term_write)(const char *string, int length);
 
-void term_init(struct stivale2_struct_tag_terminal *term_str_tag)
+void term_init()
 {
     serial_info("Initializing terminal");
 
-    void *term_write_ptr = (void *)term_str_tag->term_write;
+    void *term_write_ptr = (void *)term_tag->term_write;
     term_write = (void (*)(const char *string, int length))term_write_ptr;
-    columns = term_str_tag->cols;
-    rows = term_str_tag->rows;
+    columns = term_tag->cols;
+    rows = term_tag->rows;
 
     serial_info("Initialized terminal");
     serial_printc('\n');

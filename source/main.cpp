@@ -4,6 +4,7 @@
 #include <drivers/serial/serial.hpp>
 #include <drivers/drawing/drawing.hpp>
 #include <drivers/fs/tar/tar.hpp>
+#include <system/memory/memory.hpp>
 #include <system/gdt/gdt.hpp>
 #include <system/idt/idt.hpp>
 #include <system/rtc/rtc.hpp>
@@ -12,16 +13,26 @@
 #include <stivale2.h>
 #include <kernel.hpp>
 
+struct stivale2_struct_tag_smp *smp_tag;
+struct stivale2_struct_tag_memmap *mmap_tag;
+struct stivale2_struct_tag_framebuffer *frm_tag;
+struct stivale2_struct_tag_terminal *term_tag;
+struct stivale2_struct_tag_modules *mod_tag;
+struct stivale2_struct_tag_cmdline *cmd_tag;
+
 void main(struct stivale2_struct *stivale2_struct)
 {
-    struct stivale2_struct_tag_smp *smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
-    struct stivale2_struct_tag_modules *mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
-    struct stivale2_struct_tag_cmdline *cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
+    smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
+    mmap_tag = (stivale2_struct_tag_memmap (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
+    frm_tag = (stivale2_struct_tag_framebuffer (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
+    term_tag = (stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID);
+    mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
+    cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
 
     serial_init();
 
-    drawing_init((stivale2_struct_tag_framebuffer (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID));
-    term_init((stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));
+    drawing_init();
+    term_init();
 
     char* cmdline = (char *)cmd_tag->cmdline;
     bool initrd = false;
@@ -33,7 +44,9 @@ void main(struct stivale2_struct *stivale2_struct)
 
     term_center("Welcome to kernel project");
 
-    printf("CPU cores available: %i\n", smp_tag->cpu_count);
+    printf("CPU cores available: %d\n", smp_tag->cpu_count);
+    printf("Total memory: %dMB\n", getmemsize() / 1024 / 1024);
+    printf("Total usable memory: %dMB\n", getusablememsize() / 1024 / 1024);
 
     GDT_init();
     term_check(true, "Initializing Global Descriptor Table...");
