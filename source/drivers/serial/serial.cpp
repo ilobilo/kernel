@@ -23,14 +23,14 @@ void serial_printstr(char* str)
 
 void serial_info(char* str)
 {
-    serial_printstr("[\033[0;33mINFO\033[0m] ");
+    serial_printstr("[\033[33mINFO\033[0m] ");
     serial_printstr(str);
     serial_printc('\n');
 }
 
 void serial_err(char* str)
 {
-    serial_printstr("[\033[0;31mERROR\033[0m] ");
+    serial_printstr("[\033[31mERROR\033[0m] ");
     serial_printstr(str);
     serial_printc('\n');
 }
@@ -38,12 +38,13 @@ void serial_err(char* str)
 void serial_init()
 {
     outb(COM1 + 1, 0x00);
-	outb(COM1 + 3, 0x80);
-	outb(COM1 + 0, 0x03);
-	outb(COM1 + 1, 0x00);
-	outb(COM1 + 3, 0x03);
-	outb(COM1 + 2, 0xC7);
-	outb(COM1 + 4, 0x0B);
+    outb(COM1 + 3, 0x80);
+    outb(COM1 + 0, 0x03);
+    outb(COM1 + 1, 0x00);
+    outb(COM1 + 3, 0x03);
+    outb(COM1 + 2, 0xC7);
+    outb(COM1 + 4, 0x0B);
 
-    serial_printc('\n');
+    serial_printstr("\033[H\033[2J");
+//    serial_printc("\033[2J");
 }

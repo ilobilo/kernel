@@ -82,6 +82,7 @@ void main(struct stivale2_struct *stivale2_struct)
         tar_cat("./example.txt");
     }
 
+    serial_info("Started kernel shell\n");
     while (true)
     {
         shell_run();
