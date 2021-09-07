@@ -10,7 +10,7 @@ stivale2.h:
 	@wget -nc https://github.com/stivale/stivale/raw/master/stivale2.h -P $(KERNELDIR)/source/
 
 limine:
-	@git clone https://github.com/limine-bootloader/limine.git --single-branch --branch=v2.0-branch-binary --depth=1
+	@git clone https://github.com/limine-bootloader/limine.git --single-branch --branch=latest-binary --depth=1
 	@make -C $(KERNELDIR)/limine
 
 clean:
