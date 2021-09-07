@@ -49,11 +49,11 @@ Make sure you have following programs installed:
 
 1. Download the toolchain from releases page
 
-2. extract it in /opt directory with:<br />
+2. Extract it in /opt directory with:<br />
 ``cd /opt && sudo tar xpJf <Downloaded toolchain.tar.xz>``<br />
 (bin directory should be /opt/x86_64-pc-elf/bin/)
 
-3. add this line to your ~/.bashrc:<br />
+3. Add this line to your ~/.bashrc:<br />
 ``export PATH="/opt/x86_64-pc-elf/bin:$PATH"``
 
 4. Run<br />``source ~/.bashrc``
