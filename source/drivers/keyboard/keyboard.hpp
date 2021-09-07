@@ -14,4 +14,8 @@ extern char* buff;
 
 void clearbuff();
 
+char getchar();
+
+char* getline();
+
 void Keyboard_init();

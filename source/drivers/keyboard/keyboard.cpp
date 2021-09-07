@@ -50,6 +50,9 @@ void clearbuff()
     }
 }
 
+volatile bool pressed = false;
+volatile bool enter = false;
+
 // Main keyboard handler
 static void Keyboard_Handler(struct interrupt_registers *)
 {
@@ -104,6 +107,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
                     case '\n':
                         printf("\n");
                         clearbuff();
+                        enter = true;
                         break;
                     case '\b':
                         if (buff[0] != '\0')
@@ -113,6 +117,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
                         }
                         break;
                     default:
+                        pressed = true;
                         printf(c);
                         strcat(buff, c);
                         break;
@@ -123,13 +128,40 @@ static void Keyboard_Handler(struct interrupt_registers *)
     }
 }
 
+char getchar()
+{
+    while (!pressed);
+    pressed = false;
+    return c[0];
+}
+
+char* getline()
+{
+    static char retstr[1024] = "\0";
+    memset(retstr, '\0', 1024);
+    int i = 0;
+    while (!enter)
+    {
+        if (pressed)
+        {
+            if (i >= 1024 - 1)
+            {
+                printf("\nBuffer Overflow");
+            }
+            retstr[i] = getchar();
+            i++;
+        }
+    }
+    enter = false;
+    return retstr;
+}
+
 void Keyboard_init()
 {
     serial_info("Initializing keyboard");
 
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
-
     serial_info("Initialized keyboard");
     serial_printc('\n');
 }
