@@ -10,6 +10,7 @@
 #include <system/rtc/rtc.hpp>
 #include <include/string.hpp>
 #include <include/io.hpp>
+#include <misc/kshell.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
 
@@ -79,6 +80,11 @@ void main(struct stivale2_struct *stivale2_struct)
         term_resetcolour();
 
         tar_cat("./example.txt");
+    }
+
+    while (true)
+    {
+        shell_run();
     }
 
 //    asm volatile ("int $0x3");

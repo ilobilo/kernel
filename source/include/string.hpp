@@ -12,6 +12,8 @@ int strcmp(const char* a, const char* b);
 
 char* strstr(const char *str, const char *substring);
 
+char* strchr(const char str[], char ch);
+
 void memcpy(void* dest, void* src, size_t n);
 
 void memset(void* str, char ch, size_t n);

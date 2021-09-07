@@ -56,6 +56,13 @@ char* strstr(const char *str, const char *substring)
   }
 }
 
+char* strchr(const char str[], char ch) 
+{
+    while (*str && *str != ch ) ++str;
+
+    return (char *)(ch == *str ? str : NULL);  
+}
+
 void memcpy(void* dest, void* src, size_t n) 
 {
     int i;
@@ -75,6 +82,18 @@ void memset(void* str, char ch, size_t n)
     {
         s[i] = ch;
     }
+}
+
+void memmove(void* dest, void* src, size_t n)
+{
+    char *csrc = (char *)src;
+    char *cdest = (char *)dest;
+    char temp[n];
+    for (int i=0; i<n; i++)
+        temp[i] = csrc[i];
+        
+    for (int i=0; i<n; i++)
+        cdest[i] = temp[i];
 }
 
 void reverse(char s[])
