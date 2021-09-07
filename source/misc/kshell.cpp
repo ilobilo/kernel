@@ -1,5 +1,6 @@
 #include <drivers/terminal/terminal.hpp>
 #include <drivers/keyboard/keyboard.hpp>
+#include <drivers/serial/serial.hpp>
 #include <drivers/fs/tar/tar.hpp>
 #include <include/string.hpp>
 
@@ -8,6 +9,10 @@ void shell_parse(char* cmd)
     if(!strcmp(cmd, "ls"))
     {
         tar_list();
+    }
+    else
+    {
+        printf("\033[31mCommand not found!\033[0m\n");
     }
 }
 
