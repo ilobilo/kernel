@@ -14,7 +14,28 @@ void shell_parse(char* cmd)
 void shell_run()
 {
     printf("root@kernel:~# ");
-    char* command = getline();;
+    char* command = getline();
+    char* cmd = "\0";
 
-    shell_parse(command);
+    for (int i = 0; i < strlen(cmd); i++)
+    {
+        cmd[i] = '\0';
+    }
+
+    // Get cmd string
+    for (int i = 0; i < strlen(command); i++)
+    {
+        if (command[i] != ' ' && command[i] != '\0')
+        {
+            char c[2] = "\0";
+            c[0] = command[i];
+            strcat(cmd, c);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    shell_parse(cmd);
 }
