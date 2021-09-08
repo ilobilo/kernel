@@ -99,10 +99,9 @@ int tar_getnum(char* name)
 
 void tar_init(unsigned int address)
 {
-    serial_info("Parsing initrd");
+    serial_info("Parsing initrd\n");
     tar_parse(address);
-    serial_info("Getting file addresses");
+    serial_info("Getting file addresses\n");
     tar_getaddrs(address);
-    serial_info("Initialized initrd");
-    serial_printc('\n');
+    serial_info("Initialized initrd\n\n");
 }

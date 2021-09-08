@@ -26,7 +26,7 @@ static void PIT_Handler(struct interrupt_registers *)
 
 void PIT_init()
 {
-    serial_info("Initializing PIT");
+    serial_info("Initializing PIT\n");
 
     register_interrupt_handler(IRQ0, PIT_Handler);
 
@@ -40,6 +40,5 @@ void PIT_init()
     outb(0x40, l);
     outb(0x40, h);
 
-    serial_info("Initialized PIT");
-    serial_printc('\n');
+    serial_info("Initialized PIT\n\n");
 }
