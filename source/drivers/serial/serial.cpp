@@ -50,5 +50,5 @@ void serial_init()
     outb(COM1 + 2, 0xC7);
     outb(COM1 + 4, 0x0B);
 
-    serial_printf("\033[H\033[2J");
+    serial_printf("\033[H\033[0m\033[2J");
 }
