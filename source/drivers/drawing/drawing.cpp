@@ -171,7 +171,7 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
 
 void drawing_init()
 {
-    serial_info("Initializing drawing functions");
+    serial_info("Initializing drawing functions\n");
 
     frm_addr = frm_tag->framebuffer_addr;
     frm_width = frm_tag->framebuffer_width;
@@ -180,6 +180,5 @@ void drawing_init()
     frm_bpp = frm_tag->framebuffer_bpp;
     frm_pixperscanline = frm_pitch / 4;
 
-    serial_info("Initialized drawing functions");
-    serial_printc('\n');
+    serial_info("Initialized drawing functions\n\n");
 }

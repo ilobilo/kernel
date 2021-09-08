@@ -71,7 +71,7 @@ This command will download limine installer, compile it, build the kernel, creat
 https://discord.gg/fM5GK3RpS7
 
 # Resources used:
-* Printf: https://github.com/mpaland/printf
+* Printf: https://github.com/eyalroz/printf
 * Osdev wiki: https://wiki.osdev.org/
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS

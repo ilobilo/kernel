@@ -17,15 +17,14 @@ void (*term_write)(const char *string, int length);
 
 void term_init()
 {
-    serial_info("Initializing terminal");
+    serial_info("Initializing terminal\n");
 
     void *term_write_ptr = (void *)term_tag->term_write;
     term_write = (void (*)(const char *string, int length))term_write_ptr;
     columns = term_tag->cols;
     rows = term_tag->rows;
 
-    serial_info("Initialized terminal");
-    serial_printc('\n');
+    serial_info("Initialized terminal\n\n");
 }
 
 void term_print(const char *string)

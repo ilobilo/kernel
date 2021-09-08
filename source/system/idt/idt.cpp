@@ -24,23 +24,17 @@ void isr_install();
 
 void IDT_init()
 {
-    serial_info("Initializing IDT");
+    serial_info("Initializing IDT\n");
 
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
-
-    for (int i = 32; i < 48; i++)
-    {
-        register_interrupt_handler(i, not_implemented);
-    }
 
     isr_install();
 
     __asm__ volatile ("lidt %0" : : "memory"(idtr));
     __asm__ volatile ("sti");
 
-    serial_info("Initialized IDT");
-    serial_printc('\n');
+    serial_info("Initialized IDT\n\n");
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)
@@ -85,33 +79,43 @@ static const char *exception_messages[32] = {
 
 void isr_handler(struct interrupt_registers *regs)
 {
-    term_clear();
-    term_center("[PANIC] System Exception!");
-    term_center((char*)exception_messages[regs->int_no & 0xff]);
+    printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
+    printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
 
-    serial_err("System exception!");
-    serial_err((char*)exception_messages[regs->int_no & 0xff]);
+    serial_err("System exception!\n");
+    serial_err("Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
 
+    switch (regs->int_no)
+    {
+        case 8:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+            printf("[\033[31mPANIC\033[0m] Error code: %d\n", regs->error_code);
+            serial_err("Error code: %d\n", regs->error_code);
+            break;
+    }
+
+    printf("[\033[31mPANIC\033[0m] System halted!\n");
+    serial_err("System halted!\n");
     __asm__ volatile ("cli; hlt");
 }
 
 void irq_handler(struct interrupt_registers *regs)
 {
-    if (regs->int_no != 0)
+    if (interrupt_handlers[regs->int_no] != 0)
     {
         int_handler_t handler = interrupt_handlers[regs->int_no];
         handler(regs);
     }
 
-    if(regs->int_no >= 8)
+    if(regs->int_no >= IRQ8)
     {
         outb(PIC2_COMMAND, PIC_EOI);
     }
     outb(PIC1_COMMAND, PIC_EOI);
-}
-
-static void not_implemented(struct interrupt_registers *)
-{
 }
 
 void isr_install()
@@ -160,20 +164,20 @@ void isr_install()
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    idt_set_descriptor(32, (void*)irq0, 0x8E);
-    idt_set_descriptor(33, (void*)irq1, 0x8E);
-    idt_set_descriptor(34, (void*)irq2, 0x8E);
-    idt_set_descriptor(35, (void*)irq3, 0x8E);
-    idt_set_descriptor(36, (void*)irq4, 0x8E);
-    idt_set_descriptor(37, (void*)irq5, 0x8E);
-    idt_set_descriptor(38, (void*)irq6, 0x8E);
-    idt_set_descriptor(39, (void*)irq7, 0x8E);
-    idt_set_descriptor(40, (void*)irq8, 0x8E);
-    idt_set_descriptor(41, (void*)irq9, 0x8E);
-    idt_set_descriptor(42, (void*)irq10, 0x8E);
-    idt_set_descriptor(43, (void*)irq11, 0x8E);
-    idt_set_descriptor(44, (void*)irq12, 0x8E);
-    idt_set_descriptor(45, (void*)irq13, 0x8E);
-    idt_set_descriptor(46, (void*)irq14, 0x8E);
-    idt_set_descriptor(47, (void*)irq15, 0x8E);
+    idt_set_descriptor(IRQ0, (void*)irq0, 0x8E);
+    idt_set_descriptor(IRQ1, (void*)irq1, 0x8E);
+    idt_set_descriptor(IRQ2, (void*)irq2, 0x8E);
+    idt_set_descriptor(IRQ3, (void*)irq3, 0x8E);
+    idt_set_descriptor(IRQ4, (void*)irq4, 0x8E);
+    idt_set_descriptor(IRQ5, (void*)irq5, 0x8E);
+    idt_set_descriptor(IRQ6, (void*)irq6, 0x8E);
+    idt_set_descriptor(IRQ7, (void*)irq7, 0x8E);
+    idt_set_descriptor(IRQ8, (void*)irq8, 0x8E);
+    idt_set_descriptor(IRQ9, (void*)irq9, 0x8E);
+    idt_set_descriptor(IRQ10, (void*)irq10, 0x8E);
+    idt_set_descriptor(IRQ11, (void*)irq11, 0x8E);
+    idt_set_descriptor(IRQ12, (void*)irq12, 0x8E);
+    idt_set_descriptor(IRQ13, (void*)irq13, 0x8E);
+    idt_set_descriptor(IRQ14, (void*)irq14, 0x8E);
+    idt_set_descriptor(IRQ15, (void*)irq15, 0x8E);
 }

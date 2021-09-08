@@ -1,3 +1,4 @@
+#include <drivers/terminal/terminal.hpp>
 #include <drivers/serial/serial.hpp>
 #include <include/io.hpp>
 
@@ -6,33 +7,37 @@ int is_transmit_empty(void)
 	return inb(COM1 + 5) & 0x20;
 }
 
-void serial_printc(char c)
+void serial_printc(char c, void* arg)
 {
     while (is_transmit_empty() == 0);
 
     outb(COM1, c);
 }
 
-void serial_printstr(char* str)
+void serial_printf(const char* fmt, ...)
 {
-    for (int i = 0; i < str[i] != '\0'; i++)
-    {
-        serial_printc(str[i]);
-    }
+    va_list args;
+    va_start(args, fmt);
+    vfctprintf(&serial_printc, nullptr, fmt, args);    
+    va_end(args);
 }
 
-void serial_info(char* str)
+void serial_info(const char* fmt, ...)
 {
-    serial_printstr("[\033[33mINFO\033[0m] ");
-    serial_printstr(str);
-    serial_printc('\n');
+    va_list args;
+    va_start(args, fmt);
+    vfctprintf(&serial_printc, nullptr, "[\033[33mINFO\033[0m] ", args);
+    vfctprintf(&serial_printc, nullptr, fmt, args);    
+    va_end(args);
 }
 
-void serial_err(char* str)
+void serial_err(const char* fmt, ...)
 {
-    serial_printstr("[\033[31mERROR\033[0m] ");
-    serial_printstr(str);
-    serial_printc('\n');
+    va_list args;
+    va_start(args, fmt);
+    vfctprintf(&serial_printc, nullptr, "[\033[31mERROR\033[0m] ", args);
+    vfctprintf(&serial_printc, nullptr, fmt, args);    
+    va_end(args);
 }
 
 void serial_init()
@@ -45,5 +50,5 @@ void serial_init()
     outb(COM1 + 2, 0xC7);
     outb(COM1 + 4, 0x0B);
 
-    serial_printstr("\033[H\033[2J");
+    serial_printf("\033[H\033[2J");
 }
