@@ -10,7 +10,7 @@ void shell_parse(char* cmd)
     {
         tar_list();
     }
-    else
+    else if (strcmp(cmd, ""))
     {
         printf("\033[31mCommand not found!\033[0m\n");
     }
