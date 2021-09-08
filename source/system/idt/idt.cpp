@@ -93,8 +93,8 @@ void isr_handler(struct interrupt_registers *regs)
         case 12:
         case 13:
         case 14:
-            printf("[\033[31mPANIC\033[0m] Error code: %d\n", regs->error_code);
-            serial_err("Error code: %d\n", regs->error_code);
+            printf("[\033[31mPANIC\033[0m] Error code: 0x%llX\n", regs->error_code);
+            serial_err("Error code: 0x%llX\n", regs->error_code);
             break;
     }
 
