@@ -60,7 +60,19 @@ static void Keyboard_Handler(struct interrupt_registers *)
 
     if (scancode & 0x80)
     {
-        // Key released
+        switch (scancode)
+        {
+            case L_SHIFT_UP:
+            case R_SHIFT_UP:
+                kbd_mod.shift = 0;
+                break;
+            case CTRL_UP:
+                kbd_mod.ctrl = 0;
+                break;
+            case ALT_UP:
+                kbd_mod.alt = 0;
+                break;
+        }
     }
     else
     {
@@ -70,21 +82,11 @@ static void Keyboard_Handler(struct interrupt_registers *)
             case R_SHIFT_DOWN:
                 kbd_mod.shift = 1;
                 break;
-            case L_SHIFT_UP:
-            case R_SHIFT_UP:
-                kbd_mod.shift = 0;
-                break;
             case CTRL_DOWN:
                 kbd_mod.ctrl = 1;
                 break;
-            case CTRL_UP:
-                kbd_mod.ctrl = 0;
-                break;
             case ALT_DOWN:
                 kbd_mod.alt = 1;
-                break;
-            case ALT_UP:
-                kbd_mod.alt = 0;
                 break;
             case CAPSLOCK:
                 kbd_mod.capslock = (!kbd_mod.capslock) ? 1 : 0;
@@ -118,7 +120,7 @@ static void Keyboard_Handler(struct interrupt_registers *)
                         break;
                     default:
                         pressed = true;
-                        printf(c);
+                        term_print(c);
                         strcat(buff, c);
                         break;
                 }
