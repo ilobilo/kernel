@@ -1,5 +1,6 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKGROUND := $(SOURCEDIR)/bg.bmp
+FONT := $(SOURCEDIR)/font.raw
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.bin
 ISO := $(SOURCEDIR)/../image.iso
@@ -90,12 +91,12 @@ initrd:
 	tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./
 
 iso:
-	cp $(KERNEL) $(BACKGROUND) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
+	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
 	echo "\nBuilding iso image..."
 	$(XORRISO) $(XORRISOFLAGS) $(SOURCEDIR)/../iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"
-		
+
 	echo "\nInstaling limine..."
 	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install limine!\e[0m"
 

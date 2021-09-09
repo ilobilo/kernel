@@ -4,7 +4,7 @@
 #define NUMLOCK 0x45
 #define SCROLLLOCK 0x46
 
-#define L_SHIFT_DOWN 0x2
+#define L_SHIFT_DOWN 0x2A
 #define R_SHIFT_DOWN 0x36
 #define L_SHIFT_UP 0xAA
 #define R_SHIFT_UP 0xB6
