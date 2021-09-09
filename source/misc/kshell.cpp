@@ -6,7 +6,7 @@
 
 void shell_parse(char* cmd)
 {
-    if(!strcmp(cmd, "ls"))
+    if (!strcmp(cmd, "ls"))
     {
         tar_list();
     }
