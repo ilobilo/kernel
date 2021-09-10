@@ -1,5 +1,6 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKGROUND := $(SOURCEDIR)/bg.bmp
+FONT := $(SOURCEDIR)/font.raw
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.bin
 ISO := $(SOURCEDIR)/../image.iso
@@ -8,15 +9,15 @@ LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS =  -cpu max -smp 12 -m 512M -rtc base=localtime -serial stdio -vnc 0.0.0.0:1
+QEMUFLAGS =  -enable-kvm -cpu max -smp 12 -m 512M -rtc base=localtime -serial stdio
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CC = x86_64-linux-gnu-gcc
-CPP = x86_64-linux-gnu-g++
-LD = x86_64-linux-gnu-ld
+CC = x86_64-pc-elf-gcc
+CPP = x86_64-pc-elf-g++
+LD = x86_64-pc-elf-ld
 AS = nasm
 
 CFLAGS = -O3 -pipe -w
@@ -90,7 +91,7 @@ initrd:
 	tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./
 
 iso:
-	cp $(KERNEL) $(BACKGROUND) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
+	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
 	echo "\nBuilding iso image..."
