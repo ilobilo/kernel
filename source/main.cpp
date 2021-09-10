@@ -32,16 +32,17 @@ void main(struct stivale2_struct *stivale2_struct)
 
     serial_init();
 
-    drawing_init();
-    term_init();
-
     char* cmdline = (char *)cmd_tag->cmdline;
     bool initrd = false;
+
     if (strstr(cmdline, "initrd"))
     {
-        tar_init(mod_tag->modules->begin);
+        initrd_init(mod_tag->modules->begin);
         initrd = true;
     }
+
+    drawing_init();
+    term_init();
 
     term_center("Welcome to kernel project");
 
@@ -63,26 +64,8 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("Current RTC time: ");
     RTC_GetTime();
-
-    if (initrd)
-    {
-        printf("\n\033[31mExecuting tar_list() here:\n\n");
-        term_resetcolour();
-
-        tar_list();
-
-        printf("\n\033[31mExecuting tar_cat(\"./example2.txt\") here:\n\n");
-        term_resetcolour();
-
-        tar_cat("./example2.txt");
-
-        printf("\n\033[31mExecuting tar_cat(\"./example.txt\") here:\n\n");
-        term_resetcolour();
-
-        tar_cat("./example.txt");
-    }
-
-    serial_info("Starting kernel shell\n\n");
+    
+    serial_info("Starting kernel shell\n");
     while (true)
     {
         shell_run();

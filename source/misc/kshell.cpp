@@ -4,11 +4,11 @@
 #include <drivers/fs/tar/tar.hpp>
 #include <include/string.hpp>
 
-void shell_parse(char* cmd)
+void shell_parse(char* cmd, char* arg)
 {
     if (!strcmp(cmd, "ls"))
     {
-        tar_list();
+        initrd_list();
     }
     else if (strcmp(cmd, ""))
     {
@@ -21,6 +21,7 @@ void shell_run()
     printf("root@kernel:~# ");
     char* command = getline();
     char* cmd = "\0";
+    char* arg = command;
 
     for (int i = 0; i < strlen(cmd); i++)
     {
@@ -42,5 +43,14 @@ void shell_run()
         }
     }
 
-    shell_parse(cmd);
+    // Remove cmd from arg
+    if (strlen(cmd) != strlen(command))
+    {
+        for (int i = 0; i < strlen(cmd) + 1; i++)
+        {
+            arg++;
+        }
+    }
+
+    shell_parse(cmd, arg);
 }

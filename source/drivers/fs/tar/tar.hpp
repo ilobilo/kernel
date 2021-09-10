@@ -1,6 +1,10 @@
 #pragma once
 
-struct tar_header
+#include <drivers/fs/vfs/vfs.hpp>
+
+#define HEADER_SIZE 128
+
+struct tar_file_header_t
 {
     char name[100];
     char mode[8];
@@ -12,16 +16,17 @@ struct tar_header
     char typeflag[1];
 };
 
-extern struct tar_header *headers[32];
-extern int count;
-extern unsigned int addrs[];
+struct tar_header_t
+{
+    tar_file_header_t* headers[HEADER_SIZE];
+    unsigned int address[HEADER_SIZE];
+    int count;
+};
 
-void tar_getaddrs(); 
+extern int files_count;
 
-void tar_list();
+unsigned int getsize(const char *in);
 
-void tar_cat(char* name);
+void initrd_list();
 
-int tar_getnum(char* name);
-
-void tar_init(unsigned int address);
+void initrd_init(unsigned int address);

@@ -14,12 +14,12 @@ GDT DefaultGDT = {
 
 void GDT_init()
 {
-    serial_info("Initializing GDT\n");
+    serial_info("Initializing GDT");
 
     GDTDescriptor gdtDescriptor;
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
     LoadGDT(&gdtDescriptor);
 
-    serial_info("Initialized GDT\n\n");
+    serial_info("Initialized GDT\n");
 }

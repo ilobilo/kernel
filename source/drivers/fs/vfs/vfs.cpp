@@ -2,7 +2,7 @@
 
 fs_node *fs_root = 0;
 
-uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, uint8_t* buffer)
+uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
 {
     if (node->read != 0)
     {
@@ -14,7 +14,7 @@ uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, uint8_t* buffer)
     }
 }
 
-uint64_t write_fs(fs_node* node, uint64_t offset, uint64_t size, uint8_t* buffer)
+uint64_t write_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
 {
     if (node->write != 0)
     {

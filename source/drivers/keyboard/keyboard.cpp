@@ -160,10 +160,10 @@ char* getline()
 
 void Keyboard_init()
 {
-    serial_info("Initializing keyboard\n");
+    serial_info("Initializing keyboard");
 
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
     
-    serial_info("Initialized keyboard\n\n");
+    serial_info("Initialized keyboard\n");
 }

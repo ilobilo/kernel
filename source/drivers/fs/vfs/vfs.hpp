@@ -10,8 +10,8 @@
 #define FS_SYMLINK      0x06
 #define FS_MOUNTPOINT   0x08
 
-typedef uint64_t (*read_t)(struct fs_node*, uint64_t, uint64_t, uint8_t*);
-typedef uint64_t (*write_t)(struct fs_node*, uint64_t, uint64_t, uint8_t*);
+typedef uint64_t (*read_t)(struct fs_node*, uint64_t, uint64_t, char*);
+typedef uint64_t (*write_t)(struct fs_node*, uint64_t, uint64_t, char*);
 typedef void (*open_t)(struct fs_node*);
 typedef void (*close_t)(struct fs_node*);
 typedef struct dirent * (*readdir_t)(struct fs_node*, uint64_t);
@@ -44,8 +44,8 @@ struct dirent
 
 extern fs_node* fs_root;
 
-uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, uint8_t* buffer);
-uint64_t write_fs(fs_node* node, uint64_t offset, uint64_t size, uint8_t* buffer);
+uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer);
+uint64_t write_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer);
 void open_fs(fs_node* node, uint8_t read, uint8_t write);
 void close_fs(fs_node* node);
 struct dirent* readdir_fs(fs_node *node, uint64_t index);

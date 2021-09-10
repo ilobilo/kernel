@@ -3,10 +3,7 @@
 #include <drivers/terminal/terminal.hpp>
 #include <include/string.hpp>
 
-struct tar_header *headers[32];
-int count;
-unsigned int addrs[32];
-char* names[32];
+tar_header_t* tar_headers;
 
 unsigned int getsize(const char *in)
 {
@@ -20,88 +17,55 @@ unsigned int getsize(const char *in)
     return size;
 }
 
-void tar_parse(unsigned int address)
+unsigned int initrd_parse(unsigned int address)
 {
     unsigned int i;
     for (i = 0; ; i++)
     {
-        struct tar_header *header = (struct tar_header *)address;
+        struct tar_file_header_t* header = (tar_file_header_t *)address;
+        
         if (header->name[0] == '\0')
         {
             break;
         }
-
         unsigned int size = getsize(header->size);
-
-        headers[i] = header;
-        names[i] = header->name;
+        tar_headers->headers[i] = header;
+        tar_headers->address[i] = address;
+        tar_headers->count++;
+        
         address += ((size / 512) + 1) * 512;
-
+        
         if (size % 512)
         {
             address += 512;
         }
     }
-    count = i;
-}
-
-void tar_getaddrs(unsigned int address)
-{
-    for (int i = 0; i < count; i++)
+    for (int g = 1; g < tar_headers->count; g++)
     {
-        addrs[i] = address;
-        address += ((getsize(headers[i]->size) / 512) + 1) * 512 + 512;
+        memmove(tar_headers->headers[g]->name, tar_headers->headers[g]->name + 1, strlen(tar_headers->headers[g]->name));
     }
+    tar_headers->count--;
+    i--;
+    return i;
 }
 
-void tar_list()
+void initrd_list()
 {
     int size = 0;
-    printf("Total %d items:\n", count);
-    for (int i = 0; i < count; i++)
+    printf("Total %d items:\n", tar_headers->count);
+    for (int i = 1; i < tar_headers->count + 1; i++)
     {
-        printf("%d) %s %dB\n", i + 1, names[i], oct_to_dec(string_to_int(headers[i]->size)));
-        size += oct_to_dec(string_to_int(headers[i]->size));
+        printf("%d) %s %dB\n", i, tar_headers->headers[i]->name, oct_to_dec(string_to_int(tar_headers->headers[i]->size)));
+        size += oct_to_dec(string_to_int(tar_headers->headers[i]->size));
     }
     printf("Total size: %dB\n", size);
 }
 
-void tar_cat(char* name)
+void initrd_init(unsigned int address)
 {
-    int len = sizeof(names) / sizeof(names[0]);
-    for (int i = 0; i < len; ++i)
-    {
-        if(!strcmp(names[i], name))
-        {
-            printf("--BEGIN-- %s\n", name);
-            printf("%s", (char *)addrs[i]);
-            printf("--END-- %s\n", name);
-            return;
-        }
-    }
-    printf("\033[31mInvalid Filename!\n");
-    term_resetcolour();
-}
+    serial_info("Initializing initrd");
 
-int tar_getnum(char* name)
-{
-    int len = sizeof(names) / sizeof(names[0]);
-    for (int i = 0; i < len; ++i)
-    {
-        if(!strcmp(names[i], name))
-        {
-            return i;
-        }
-    }
-    printf("\033[31mInvalid Filename!\n");
-    term_resetcolour();
-}
+    initrd_parse(address);
 
-void tar_init(unsigned int address)
-{
-    serial_info("Parsing initrd\n");
-    tar_parse(address);
-    serial_info("Getting file addresses\n");
-    tar_getaddrs(address);
-    serial_info("Initialized initrd\n\n");
+    serial_info("Initialized initrd\n");
 }

@@ -24,7 +24,7 @@ void isr_install();
 
 void IDT_init()
 {
-    serial_info("Initializing IDT\n");
+    serial_info("Initializing IDT");
 
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
@@ -34,7 +34,7 @@ void IDT_init()
     __asm__ volatile ("lidt %0" : : "memory"(idtr));
     __asm__ volatile ("sti");
 
-    serial_info("Initialized IDT\n\n");
+    serial_info("Initialized IDT\n");
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)
