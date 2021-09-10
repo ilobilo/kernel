@@ -20,8 +20,8 @@ void shell_run()
 {
     printf("root@kernel:~# ");
     char* command = getline();
-    char* cmd = "\0";
     char* arg = command;
+    char* cmd = "\0";
 
     for (int i = 0; i < strlen(cmd); i++)
     {

@@ -64,7 +64,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("Current RTC time: ");
     RTC_GetTime();
-    
+
     serial_info("Starting kernel shell\n");
     while (true)
     {

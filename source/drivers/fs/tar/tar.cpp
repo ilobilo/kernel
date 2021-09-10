@@ -23,18 +23,18 @@ unsigned int initrd_parse(unsigned int address)
     for (i = 0; ; i++)
     {
         struct tar_file_header_t* header = (tar_file_header_t *)address;
-        
+
         if (header->name[0] == '\0')
         {
             break;
         }
         unsigned int size = getsize(header->size);
         tar_headers->headers[i] = header;
-        tar_headers->address[i] = address;
+        tar_headers->address[i] = address + 512;
         tar_headers->count++;
-        
+
         address += ((size / 512) + 1) * 512;
-        
+
         if (size % 512)
         {
             address += 512;
@@ -59,6 +59,21 @@ void initrd_list()
         size += oct_to_dec(string_to_int(tar_headers->headers[i]->size));
     }
     printf("Total size: %dB\n", size);
+}
+
+void initrd_cat(char* name)
+{
+    for (int i = 0; i < tar_headers->count; ++i)
+    {
+        if(!strcmp(tar_headers->headers[i]->name, name))
+        {
+            printf("--BEGIN-- %s\n", name);
+            printf("%s", (char *)tar_headers->address[i]);
+            printf("--END-- %s\n", name);
+            return;
+        }
+    }
+    printf("\033[31mInvalid Filename!\033[0m\n");
 }
 
 void initrd_init(unsigned int address)
