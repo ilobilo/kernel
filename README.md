@@ -14,20 +14,21 @@ Contributors are welcome
 - [x] Iinitrd
 - [x] Drawing on framebuffer
 - [x] Serial debugging
+- [ ] VFS
 - [ ] Paging
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
 - [ ] ACPI
-- [ ] VFS
 - [ ] PCI
 - [ ] AHCI
 - [ ] Real filesystems (ext2, fat...)
 - [ ] Multithreading
+- [ ] TSS
 - [ ] Userspace
 - [ ] System calls
-- [ ] ELF execution
 - [ ] POSIX
+- [ ] ELF execution
 - [ ] Port libc (Newlib)
 - [ ] Port apps
 - [ ] Sound
