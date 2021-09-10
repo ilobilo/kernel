@@ -27,7 +27,8 @@ void serial_info(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     vfctprintf(&serial_printc, nullptr, "[\033[33mINFO\033[0m] ", args);
-    vfctprintf(&serial_printc, nullptr, fmt, args);    
+    vfctprintf(&serial_printc, nullptr, fmt, args);
+    vfctprintf(&serial_printc, nullptr, "\n", args);
     va_end(args);
 }
 
@@ -36,7 +37,8 @@ void serial_err(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     vfctprintf(&serial_printc, nullptr, "[\033[31mERROR\033[0m] ", args);
-    vfctprintf(&serial_printc, nullptr, fmt, args);    
+    vfctprintf(&serial_printc, nullptr, fmt, args); 
+    vfctprintf(&serial_printc, nullptr, "\n", args);   
     va_end(args);
 }
 
