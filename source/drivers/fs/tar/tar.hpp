@@ -23,10 +23,12 @@ struct tar_header_t
     int count;
 };
 
-extern int files_count;
+extern tar_header_t* tar_headers;
 
 unsigned int getsize(const char *in);
 
 void initrd_list();
+
+void initrd_cat(char* name);
 
 void initrd_init(unsigned int address);
