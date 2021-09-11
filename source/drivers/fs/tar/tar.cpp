@@ -55,8 +55,15 @@ void initrd_list()
     printf("Total %d items:\n", tar_headers->count);
     for (int i = 1; i < tar_headers->count + 1; i++)
     {
-        printf("%d) %s %dB\n", i, tar_headers->headers[i]->name, oct_to_dec(string_to_int(tar_headers->headers[i]->size)));
-        size += oct_to_dec(string_to_int(tar_headers->headers[i]->size));
+        if (tar_headers->headers[i]->typeflag[0] == '0')
+        {
+            printf("%d) %s %dB\n", i, tar_headers->headers[i]->name, oct_to_dec(string_to_int(tar_headers->headers[i]->size)));
+            size += oct_to_dec(string_to_int(tar_headers->headers[i]->size));
+        }
+        else if (tar_headers->headers[i]->typeflag[0] = '5')
+        {
+            printf("%d) |DIRECTORY| %s\n", i, tar_headers->headers[i]->name);
+        }
     }
     printf("Total size: %dB\n", size);
 }
@@ -65,12 +72,20 @@ void initrd_cat(char* name)
 {
     for (int i = 0; i < tar_headers->count; ++i)
     {
-        if(!strcmp(tar_headers->headers[i]->name, name))
+        if (!strcmp(tar_headers->headers[i]->name, name))
         {
-            printf("--BEGIN-- %s\n", name);
-            printf("%s", (char *)tar_headers->address[i]);
-            printf("--END-- %s\n", name);
-            return;
+            if (tar_headers->headers[i]->typeflag[0] == '0')
+            {
+                printf("--BEGIN-- %s\n", name);
+                printf("%s", (char *)tar_headers->address[i]);
+                printf("--END-- %s\n", name);
+                return;
+            }
+            else
+            {
+                printf("\033[31m\"%s\" is not a regular file!\033[0m\n", name);
+                return;
+            }
         }
     }
     printf("\033[31mInvalid Filename!\033[0m\n");
