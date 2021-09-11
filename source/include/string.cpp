@@ -1,3 +1,4 @@
+#include <drivers/terminal/terminal.hpp>
 #include <stdint.h>
 #include <stddef.h>
 #include <include/math.hpp>
@@ -72,6 +73,30 @@ void memcpy(void* dest, void* src, size_t n)
     {
         dest_char[i] = src_char[i];
     }
+}
+
+int memcmp(const void *s1, const void *s2, int len)
+{
+    unsigned char *p = (unsigned char*)s1;
+    unsigned char *q = (unsigned char*)s2;
+    int charstat = 0;
+
+    if (s1 == s2)
+    {
+        return charstat;
+    }
+    while (len > 0)
+    {
+        if (*p != *q)
+        {
+            charstat = (*p >*q)?1:-1;
+            break;
+        }
+        len--;
+        p++;
+        q++;
+    }
+    return charstat;
 }
 
 void memset(void* str, char ch, size_t n)
@@ -167,4 +192,16 @@ long oct_to_dec(int oct)
     }
 
     return dec;
+}
+
+char* humanify(int bytes, char* buf)
+{
+    int i = 0;
+    const char* units[] = { "B", "KB", "MB", "GB", "TB" };
+    for (i = 0; bytes > 1024; i++)
+    {
+        bytes /= 1024;
+    }
+    sprintf(buf, "%d%s", bytes, units[i]);
+    return buf;
 }
