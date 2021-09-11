@@ -76,6 +76,18 @@ void initrd_cat(char* name)
     printf("\033[31mInvalid Filename!\033[0m\n");
 }
 
+int initrd_getid(char* name)
+{
+    for (int i = 0; i < tar_headers->count; ++i)
+    {
+        if(!strcmp(tar_headers->headers[i]->name, name))
+        {
+            return i;
+        }
+    }
+    return 0;
+}
+
 void initrd_init(unsigned int address)
 {
     serial_info("Initializing initrd");
