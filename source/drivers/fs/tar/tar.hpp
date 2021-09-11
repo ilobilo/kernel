@@ -31,4 +31,6 @@ void initrd_list();
 
 void initrd_cat(char* name);
 
+int initrd_getid(char* name);
+
 void initrd_init(unsigned int address);
