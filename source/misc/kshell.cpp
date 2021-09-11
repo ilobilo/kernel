@@ -1,7 +1,8 @@
 #include <drivers/terminal/terminal.hpp>
 #include <drivers/keyboard/keyboard.hpp>
+#include <drivers/pit/pit.hpp>
 #include <drivers/serial/serial.hpp>
-#include <drivers/fs/tar/tar.hpp>
+#include <drivers/fs/ustar/ustar.hpp>
 #include <include/string.hpp>
 
 void shell_parse(char* cmd, char* arg)
@@ -9,6 +10,11 @@ void shell_parse(char* cmd, char* arg)
     if (!strcmp(cmd, "ls"))
     {
         initrd_list();
+    }
+    else if (!strcmp(cmd, "crash"))
+    {
+        asm volatile ("int $0x3");
+        asm volatile ("int $0x4");
     }
     else if (strcmp(cmd, ""))
     {

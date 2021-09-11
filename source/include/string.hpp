@@ -16,6 +16,8 @@ char* strchr(const char str[], char ch);
 
 void memcpy(void* dest, void* src, size_t n);
 
+int memcmp(const void *s1, const void *s2, int len);
+
 void memset(void* str, char ch, size_t n);
 
 void memmove(void* dest, void* src, size_t n);
@@ -25,3 +27,5 @@ char* int_to_string(int num);
 int string_to_int(char* str);
 
 long oct_to_dec(int n);
+
+char* humanify(int bytes, char* buf);

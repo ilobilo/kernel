@@ -3,7 +3,7 @@
 #include <drivers/terminal/terminal.hpp>
 #include <drivers/serial/serial.hpp>
 #include <drivers/drawing/drawing.hpp>
-#include <drivers/fs/tar/tar.hpp>
+#include <drivers/fs/ustar/ustar.hpp>
 #include <system/memory/memory.hpp>
 #include <system/gdt/gdt.hpp>
 #include <system/idt/idt.hpp>
@@ -37,7 +37,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     if (strstr(cmdline, "initrd"))
     {
-        initrd_init(mod_tag->modules->begin);
+        initrd_init(mod_tag->modules->begin, mod_tag->modules->end);
         initrd = true;
     }
 
@@ -65,12 +65,11 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("Current RTC time: ");
     RTC_GetTime();
 
+    printf("\nUserspace not yet implemented! dropping to kernel shell...\n\n");
+
     serial_info("Starting kernel shell\n");
     while (true)
     {
         shell_run();
     }
-
-//    asm volatile ("int $0x3");
-//    asm volatile ("int $0x4");
 }

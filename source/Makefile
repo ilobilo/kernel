@@ -88,7 +88,7 @@ $(KERNEL): $(OBJ)
 
 initrd:
 	echo "\nCreating initrd..."
-	tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./
+	tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./ --format=ustar 
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \

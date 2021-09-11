@@ -82,8 +82,8 @@ void isr_handler(struct interrupt_registers *regs)
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
     printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
 
-    serial_err("System exception!\n");
-    serial_err("Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
+    serial_err("System exception!");
+    serial_err("Exception: %s", (char*)exception_messages[regs->int_no & 0xff]);
 
     switch (regs->int_no)
     {
@@ -94,7 +94,7 @@ void isr_handler(struct interrupt_registers *regs)
         case 13:
         case 14:
             printf("[\033[31mPANIC\033[0m] Error code: 0x%llX\n", regs->error_code);
-            serial_err("Error code: 0x%llX\n", regs->error_code);
+            serial_err("Error code: 0x%llX", regs->error_code);
             break;
     }
 
