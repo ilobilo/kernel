@@ -64,7 +64,7 @@
 
 // Support for the decimal notation floating point conversion specifiers (%f, %F)
 #ifndef PRINTF_SUPPORT_FLOAT_SPECIFIERS
-//#define PRINTF_SUPPORT_FLOAT_SPECIFIERS 1
+#define PRINTF_SUPPORT_FLOAT_SPECIFIERS 1
 #endif
 
 // Support for the exponential notatin floating point conversion specifiers (%e, %g, %E, %G)

@@ -43,8 +43,6 @@ INTERNALCFLAGS  :=           \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
-	-mno-sse             \
-	-mno-sse2            \
 	-mno-red-zone
 
 INTERNALCPPFLAGS  :=         \
@@ -56,8 +54,6 @@ INTERNALCPPFLAGS  :=         \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
-	-mno-sse             \
-	-mno-sse2            \
 	-mno-red-zone
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c')

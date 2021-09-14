@@ -54,8 +54,12 @@ void* stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
 	}
 }
 
+extern "C" void InitSSE();
+
 extern "C" void _start(struct stivale2_struct *stivale2_struct)
 {
+    InitSSE();
+
     main(stivale2_struct);
 
     for (;;);
