@@ -34,7 +34,7 @@ char get_ascii_char(uint8_t key_code)
 void handle_comb(char c)
 {
     // Example: ctrl + alt + w
-    if (kbd_mod.ctrl && kbd_mod.alt && c == 'w') printf("It works!");
+    if (kbd_mod.ctrl && kbd_mod.alt && (c == 'w') || (c == 'W')) printf("It works! ");
 }
 
 // Keyboard buffer
@@ -102,29 +102,30 @@ static void Keyboard_Handler(struct interrupt_registers *)
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
                     handle_comb(c[0]);
-                    goto end;
                 }
-                switch (c[0])
+                else
                 {
-                    case '\n':
-                        printf("\n");
-                        clearbuff();
-                        enter = true;
-                        break;
-                    case '\b':
-                        if (buff[0] != '\0')
-                        {
-                            buff[strlen(buff) - 1] = '\0';
-                            printf("\b \b");
-                        }
-                        break;
-                    default:
-                        pressed = true;
-                        term_print(c);
-                        strcat(buff, c);
-                        break;
+                    switch (c[0])
+                    {
+                        case '\n':
+                            printf("\n");
+                            clearbuff();
+                            enter = true;
+                            break;
+                        case '\b':
+                            if (buff[0] != '\0')
+                            {
+                                buff[strlen(buff) - 1] = '\0';
+                                printf("\b \b");
+                            }
+                            break;
+                        default:
+                            pressed = true;
+                            term_print(c);
+                            strcat(buff, c);
+                            break;
+                    }
                 }
-                end:
                 break;
         }
     }
