@@ -39,7 +39,7 @@ void handle_comb(char c)
 
 // Keyboard buffer
 char* buff;
-char c[2] = "\0";
+char c[10] = "\0";
 
 // Clear keyboard buffer
 void clearbuff()
@@ -97,7 +97,24 @@ static void Keyboard_Handler(struct interrupt_registers *)
             case SCROLLLOCK:
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
                 break;
+            case UP:
+                strcpy(c, "\033[A");
+                term_print(c);
+                break;
+            case DOWN:
+                strcpy(c, "\033[B");
+                term_print(c);
+                break;
+            case RIGHT:
+                strcpy(c, "\033[C");
+                term_print(c);
+                break;
+            case LEFT:
+                strcpy(c, "\033[D");
+                term_print(c);
+                break;
             default:
+                memset(c, 0, strlen(c));
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
