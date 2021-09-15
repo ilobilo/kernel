@@ -19,8 +19,9 @@ Contributors are welcome
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
-- [ ] ACPI
-- [ ] PCI
+- [x] ACPI
+- [ ] HPET
+- [x] PCI
 - [ ] AHCI
 - [ ] Real filesystems (ext2, fat...)
 - [ ] Multithreading
@@ -78,4 +79,4 @@ https://discord.gg/fM5GK3RpS7
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
 * FaruOS (colours): https://github.com/leapofazzam123/faruos
-* And of course Google
+* And of course GooACPI
