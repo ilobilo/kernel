@@ -19,7 +19,7 @@ void ACPI_init()
     {
         use_xstd = true;
         rsdt = (sdt_header*)rsdp->xsdtaddr;
-        serial_info("ACPI: Found XSDT at: 0x%X\n", rsdt);
+        serial_info("Found XSDT at: 0x%X\n", rsdt);
     }
     else
     {
