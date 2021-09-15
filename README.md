@@ -20,6 +20,8 @@ Contributors are welcome
 - [ ] PMM
 - [ ] VMM
 - [x] ACPI
+- [ ] Shutdown
+- [ ] Reboot
 - [ ] HPET
 - [x] PCI
 - [ ] AHCI
