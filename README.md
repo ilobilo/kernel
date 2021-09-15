@@ -79,4 +79,4 @@ https://discord.gg/fM5GK3RpS7
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
 * FaruOS (colours): https://github.com/leapofazzam123/faruos
-* And of course GooACPI
+* And of course Google
