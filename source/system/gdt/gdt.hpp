@@ -13,7 +13,7 @@ struct GDTEntry {
     uint8_t AccessByte;
     uint8_t Limit1_Flags;
     uint8_t Base2;
-}__attribute__((packed));
+} __attribute__((packed));
 
 struct GDT {
     GDTEntry Null;
