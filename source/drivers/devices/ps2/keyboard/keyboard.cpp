@@ -53,7 +53,7 @@ volatile bool pressed = false;
 volatile bool enter = false;
 
 // Main keyboard handler
-static void Keyboard_Handler(struct interrupt_registers *)
+static void Keyboard_Handler(interrupt_registers *)
 {
     uint8_t scancode = inb(0x60);
 
@@ -177,10 +177,10 @@ char* getline()
 
 void Keyboard_init()
 {
-    serial_info("Initializing keyboard");
+    serial_info("Initializing PS2 keyboard");
 
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
     
-    serial_info("Initialized keyboard\n");
+    serial_info("Initialized PS2 keyboard\n");
 }
