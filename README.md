@@ -19,8 +19,11 @@ Contributors are welcome
 - [ ] Heap
 - [ ] PMM
 - [ ] VMM
-- [ ] ACPI
-- [ ] PCI
+- [x] ACPI
+- [ ] Shutdown
+- [ ] Reboot
+- [ ] HPET
+- [x] PCI
 - [ ] AHCI
 - [ ] Real filesystems (ext2, fat...)
 - [ ] Multithreading
