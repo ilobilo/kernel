@@ -1,5 +1,5 @@
-#include <drivers/terminal/terminal.hpp>
-#include <drivers/serial/serial.hpp>
+#include <drivers/display/terminal/terminal.hpp>
+#include <drivers/display/serial/serial.hpp>
 #include <system/acpi/pcidesc.hpp>
 #include <system/acpi/pci.hpp>
 

@@ -1,4 +1,4 @@
-#include <drivers/serial/serial.hpp>
+#include <drivers/display/serial/serial.hpp>
 #include <system/gdt/gdt.hpp>
 
 __attribute__((aligned(0x1000)))

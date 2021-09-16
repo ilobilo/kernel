@@ -1,6 +1,6 @@
+#include <drivers/display/serial/serial.hpp>
+#include <drivers/display/terminal/terminal.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
-#include <drivers/serial/serial.hpp>
-#include <drivers/terminal/terminal.hpp>
 #include <include/string.hpp>
 
 ustar_header_t* ustar_headers;
