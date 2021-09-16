@@ -1,7 +1,6 @@
-#include <drivers/terminal/terminal.hpp>
-#include <drivers/keyboard/keyboard.hpp>
-#include <drivers/pit/pit.hpp>
-#include <drivers/serial/serial.hpp>
+#include <drivers/devices/ps2/keyboard/keyboard.hpp>
+#include <drivers/display/terminal/terminal.hpp>
+#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <include/string.hpp>
 

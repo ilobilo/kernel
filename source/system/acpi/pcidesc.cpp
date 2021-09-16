@@ -1,4 +1,4 @@
-#include <drivers/terminal/terminal.hpp>
+#include <drivers/display/terminal/terminal.hpp>
 #include <system/acpi/pcidesc.hpp>
 #include <include/string.hpp>
 

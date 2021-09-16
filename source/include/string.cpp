@@ -1,4 +1,4 @@
-#include <drivers/terminal/terminal.hpp>
+#include <drivers/display/terminal/terminal.hpp>
 #include <stdint.h>
 #include <stddef.h>
 #include <include/math.hpp>

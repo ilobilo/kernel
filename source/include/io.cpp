@@ -1,6 +1,6 @@
+#include <drivers/display/terminal/terminal.hpp>
 #include <stdint.h>
 #include <stdbool.h>
-#include <drivers/terminal/terminal.hpp>
 
 uint8_t inb(uint16_t port)
 {
