@@ -116,10 +116,10 @@ static idtr_t idtr;
 
 void IDT_init();
 
-typedef void (*int_handler_t) (struct interrupt_registers *registers);
+typedef void (*int_handler_t) (interrupt_registers *registers);
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
 
-extern "C" void isr_handler(struct interrupt_registers *regs);
+extern "C" void isr_handler(interrupt_registers *regs);
 
-extern "C" void irq_handler(struct interrupt_registers *regs);
+extern "C" void irq_handler(interrupt_registers *regs);

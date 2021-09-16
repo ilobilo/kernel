@@ -66,7 +66,7 @@ void main(struct stivale2_struct *stivale2_struct)
     term_check(true, "Initializing PIT...");
 
     Keyboard_init();
-    term_check(true, "Initializing Keyboard...");
+    term_check(true, "Initializing PS2 Keyboard...");
 
     printf("Current RTC time: ");
     RTC_GetTime();

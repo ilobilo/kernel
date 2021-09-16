@@ -19,7 +19,7 @@ uint64_t get_tick()
     return tick;
 }
 
-static void PIT_Handler(struct interrupt_registers *)
+static void PIT_Handler(interrupt_registers *)
 {
     tick++;
 }

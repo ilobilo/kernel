@@ -19,7 +19,6 @@ void idt_set_descriptor(uint8_t vector, void* isr, uint8_t type_attr)
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
-static void not_implemented(struct interrupt_registers *);
 void isr_install();
 
 void IDT_init()
@@ -77,7 +76,7 @@ static const char *exception_messages[32] = {
     "Reserved",
 };
 
-void isr_handler(struct interrupt_registers *regs)
+void isr_handler(interrupt_registers *regs)
 {
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
     printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
@@ -103,7 +102,7 @@ void isr_handler(struct interrupt_registers *regs)
     __asm__ volatile ("cli; hlt");
 }
 
-void irq_handler(struct interrupt_registers *regs)
+void irq_handler(interrupt_registers *regs)
 {
     if (interrupt_handlers[regs->int_no] != 0)
     {
