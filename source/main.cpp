@@ -71,7 +71,7 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("Current RTC time: ");
     RTC_GetTime();
 
-    printf("\nUserspace not yet implemented! dropping to kernel shell...\n\n");
+    printf("\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
     serial_info("Starting kernel shell\n");
     while (true)
