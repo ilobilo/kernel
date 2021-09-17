@@ -22,7 +22,6 @@ Contributors are welcome
 - [x] ACPI
 - [ ] Shutdown
 - [ ] Reboot
-- [ ] HPET
 - [x] PCI
 - [ ] AHCI
 - [ ] Real filesystems (ext2, fat...)
@@ -34,6 +33,7 @@ Contributors are welcome
 - [ ] ELF execution
 - [ ] Port libc (Newlib)
 - [ ] Port apps
+- [ ] FUSE
 - [ ] Sound
 - [ ] Network
 - [ ] USB
