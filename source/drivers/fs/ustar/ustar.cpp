@@ -3,6 +3,8 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <include/string.hpp>
 
+bool initrd = false;
+
 ustar_header_t* ustar_headers;
 
 unsigned int getsize(const char* s)
@@ -44,8 +46,18 @@ int initrd_parse(unsigned int address)
     return i;
 }
 
+void not_initialized()
+{
+    printf("\033[31mInitrd has not been initialized!\033[0m\n");
+}
+
 void initrd_list()
 {
+    if (!initrd)
+    {
+        not_initialized();
+        return;
+    }
     int size = 0;
     printf("Total %d items:\n--------------------\n", ustar_headers->count);
     for (int i = 1; i < ustar_headers->count + 1; i++)
@@ -54,17 +66,17 @@ void initrd_list()
         {
             case REGULAR_FILE:
                 char buf[10];
-                printf("%d) %s %s\n", i, ustar_headers->headers[i]->name, humanify(oct_to_dec(string_to_int(ustar_headers->headers[i]->size)), buf));
+                printf("%d) (REGULAR) %s %s\n", i, ustar_headers->headers[i]->name, humanify(oct_to_dec(string_to_int(ustar_headers->headers[i]->size)), buf));
                 size += oct_to_dec(string_to_int(ustar_headers->headers[i]->size));
                 break;
             case SYMLINK:
-                printf("%d) (SYMLINK) %s --> %s\n", i, ustar_headers->headers[i]->name, ustar_headers->headers[i]->link);
+                printf("%d) \033[96m(SYMLINK) %s --> %s\033[0m\n", i, ustar_headers->headers[i]->name, ustar_headers->headers[i]->link);
                 break;
             case DIRECTORY:
-                printf("%d) (DIRECTORY) %s\n", i, ustar_headers->headers[i]->name);
+                printf("%d) \033[35m(DIRECTORY) %s\033[0m\n", i, ustar_headers->headers[i]->name);
                 break;
             default:
-                printf("%d) (File type not supported!) %s\n", i, ustar_headers->headers[i]->name);
+                printf("%d) \033[31m(File type not supported!) %s\033[0m\n", i, ustar_headers->headers[i]->name);
                 break;
         }
     }
@@ -74,6 +86,11 @@ void initrd_list()
 
 char* initrd_cat(char* name)
 {
+    if (!initrd)
+    {
+        not_initialized();
+        return 0;
+    }
     char* contents;
     int i = 0;
     i = initrd_getid(name);
@@ -104,6 +121,11 @@ char* initrd_cat(char* name)
 
 int initrd_getid(char* name)
 {
+    if (!initrd)
+    {
+        not_initialized();
+        return 0;
+    }
     for (int i = 0; i < ustar_headers->count; ++i)
     {
         if(!strcmp(ustar_headers->headers[i]->name, name))
@@ -116,6 +138,11 @@ int initrd_getid(char* name)
 
 int ustar_search(char* filename, char** contents)
 {
+    if (!initrd)
+    {
+        not_initialized();
+        return 0;
+    }
     for (int i = 1; i < ustar_headers->count + 1; i++)
     {
         if (!strcmp(ustar_headers->headers[i]->name, filename))
@@ -132,6 +159,7 @@ void initrd_init(unsigned int address)
     serial_info("Initializing initrd");
 
     initrd_parse(address);
+    initrd = true;
 
     serial_info("Initialized initrd\n");
 }

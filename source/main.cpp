@@ -23,6 +23,20 @@ struct stivale2_struct_tag_terminal* term_tag;
 struct stivale2_struct_tag_modules* mod_tag;
 struct stivale2_struct_tag_cmdline* cmd_tag;
 
+char* cmdline;
+
+int find_module(char* name)
+{
+    for (int i = 0; i < mod_tag->module_count; i++)
+    {
+        if (!strcmp(mod_tag->modules[i].string, "initrd"))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void main(struct stivale2_struct *stivale2_struct)
 {
     smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
@@ -33,17 +47,9 @@ void main(struct stivale2_struct *stivale2_struct)
     mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
     cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
 
+    cmdline = (char *)cmd_tag->cmdline;
+
     serial_init();
-
-    char* cmdline = (char *)cmd_tag->cmdline;
-    bool initrd = false;
-
-    if (strstr(cmdline, "initrd"))
-    {
-        initrd_init(mod_tag->modules->begin);
-        initrd = true;
-    }
-
     drawing_init();
     term_init();
 
@@ -52,6 +58,13 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("CPU cores available: %d\n", smp_tag->cpu_count);
     printf("Total memory: %dMB\n", getmemsize() / 1024 / 1024);
     printf("Total usable memory: %dMB\n", getusablememsize() / 1024 / 1024);
+
+    int i = find_module("initrd");
+    if (i != -1 && strstr(cmdline, "initrd"))
+    {
+        initrd_init(mod_tag->modules[i].begin);
+    }
+    term_check(initrd, "Initializing Initrd...");
 
     GDT_init();
     term_check(true, "Initializing Global Descriptor Table...");

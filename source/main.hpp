@@ -10,4 +10,8 @@ extern struct stivale2_struct_tag_terminal* term_tag;
 extern struct stivale2_struct_tag_modules* mod_tag;
 extern struct stivale2_struct_tag_cmdline* cmd_tag;
 
+extern char* cmdline;
+
+int find_module(char* name);
+
 void main(struct stivale2_struct *stivale2_struct);
