@@ -16,10 +16,9 @@ unsigned int getsize(const char* s)
     return ret;
 }
 
-int initrd_parse(unsigned int address, unsigned int end)
+int initrd_parse(unsigned int address)
 {
     unsigned int i;
-    unsigned int size = end - size;
     for (i = 0; ; i++)
     {
         struct ustar_file_header_t *header = (ustar_file_header_t*)address;
@@ -35,11 +34,6 @@ int initrd_parse(unsigned int address, unsigned int end)
         ustar_headers->count++;
 
         address += (((size + 511) / 512) + 1) * 512;
-
-        if ((uintptr_t)header >= address + size)
-        {
-            break;
-        }
     }
     for (int g = 1; g < ustar_headers->count; g++)
     {
@@ -133,11 +127,11 @@ int ustar_search(char* filename, char** contents)
     return 0;
 }
 
-void initrd_init(unsigned int address, unsigned int end)
+void initrd_init(unsigned int address)
 {
     serial_info("Initializing initrd");
 
-    initrd_parse(address, end);
+    initrd_parse(address);
 
     serial_info("Initialized initrd\n");
 }

@@ -40,7 +40,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     if (strstr(cmdline, "initrd"))
     {
-        initrd_init(mod_tag->modules->begin, mod_tag->modules->end);
+        initrd_init(mod_tag->modules->begin);
         initrd = true;
     }
 
