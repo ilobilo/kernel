@@ -155,10 +155,10 @@ void term_center(char *text)
 
 void term_check(bool ok, char *message)
 {
-    term_print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
-    term_print(message);
     if (ok)
     {
+        term_print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
+        term_print(message);
         for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
         {
             term_print(" ");
@@ -167,11 +167,13 @@ void term_check(bool ok, char *message)
     }
     else
     {
-        for (uint16_t i = 0; i < columns - (11 + strlen(message)); i++)
+        term_print("\033[1m[\033[21m\033[31m*\033[0m\033[1m]\033[21m ");
+        term_print(message);
+        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
         {
             term_print(" ");
         }
-        term_print("\033[1m[\033[21m \033[31mERR\033[0m \033[1m]\033[21m");
+        term_print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
     }
 }
 /*

@@ -39,6 +39,8 @@ struct ustar_header_t
     int count;
 };
 
+extern bool initrd;
+
 extern ustar_header_t* ustar_headers;
 
 unsigned int getsize(const char* s);

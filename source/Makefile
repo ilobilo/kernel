@@ -2,7 +2,7 @@ SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKGROUND := $(SOURCEDIR)/bg.bmp
 FONT := $(SOURCEDIR)/font.raw
 INITRD := $(SOURCEDIR)/initrd.tar.gz
-KERNEL := $(SOURCEDIR)/kernel.bin
+KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
 
 LIMINE = $(SOURCEDIR)/../limine/limine-install
@@ -56,9 +56,9 @@ INTERNALCPPFLAGS  :=         \
 	-mno-3dnow           \
 	-mno-red-zone
 
-CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c')
-CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp')
-ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm')
+CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initramfs/*")
+CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initramfs/*")
+ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initramfs/*")
 OBJ = $(CFILES:.c=.o)
 OBJ += $(CPPFILES:.cpp=.o)
 OBJ += $(ASMFILES:.asm=_asm.o)
