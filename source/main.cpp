@@ -1,4 +1,5 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
+#include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/display/drawing/drawing.hpp>
@@ -79,6 +80,9 @@ void main(struct stivale2_struct *stivale2_struct)
 
     Keyboard_init();
     term_check(true, "Initializing PS2 Keyboard...");
+
+    Mouse_init();
+    term_check(true, "Initializing PS2 Mouse...");
 
     printf("Current RTC time: ");
     RTC_GetTime();
