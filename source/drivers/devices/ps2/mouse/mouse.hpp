@@ -10,10 +10,10 @@
 
 enum mousestate
 {
-    none = 0b00000000,
-    left = 0b00000001,
-    middle = 0b00000100,
-    right = 0b00000010,
+    button_none = 0b00000000,
+    button_left = 0b00000001,
+    button_middle = 0b00000100,
+    button_right = 0b00000010,
 };
 
 extern point mousepos;
