@@ -56,8 +56,7 @@ void main(struct stivale2_struct *stivale2_struct)
     term_center("Welcome to kernel project");
 
     printf("CPU cores available: %d\n", smp_tag->cpu_count);
-    printf("Total memory: %dMB\n", getmemsize() / 1024 / 1024);
-    printf("Total usable memory: %dMB\n", getusablememsize() / 1024 / 1024);
+    printf("Total usable memory: %dMB\n", getmemsize() / 1024 / 1024);
 
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
@@ -84,7 +83,7 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("Current RTC time: ");
     RTC_GetTime();
 
-    printf("\nUserspace not implemented yet! dropping to kernel shell...\n\n");
+    printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
     serial_info("Starting kernel shell\n");
     while (true)

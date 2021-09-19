@@ -2,6 +2,8 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
+#include <system/timers/rtc/rtc.hpp>
+#include <system/timers/pit/pit.hpp>
 #include <include/string.hpp>
 
 void shell_parse(char* cmd, char* arg)
@@ -9,6 +11,20 @@ void shell_parse(char* cmd, char* arg)
     if (!strcmp(cmd, "ls"))
     {
         initrd_list();
+    }
+    else if (!strcmp(cmd, "time"))
+    {
+        RTC_GetTime();
+        printf("\n");
+    }
+    else if (!strcmp(cmd, "timef"))
+    {
+        while (true)
+        {
+            RTC_GetTime();
+            sleep(1);
+            printf("\r\033[2K");
+        }
     }
     else if (!strcmp(cmd, "crash"))
     {
