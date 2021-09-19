@@ -136,6 +136,14 @@ uint8_t mouseread()
     return inb(0x60);
 }
 
+mousestate get_mousestate()
+{
+    if (packet[0] & ps2_left) return ps2_left;
+    else if (packet[0] & ps2_middle) return ps2_middle;
+    else if (packet[0] & ps2_right) return ps2_right;
+    return ps2_none;
+}
+
 void proccesspacket()
 {
     if (!packetready) return;
@@ -199,32 +207,32 @@ void proccesspacket()
     clearcursor(cursorinside, mouseposold);
 
     static bool circle = false;
-    if (packet[0] & ps2_left) 
+    switch(get_mousestate())
     {
-        if (circle)
-        {
-            drawfilledcircle(mousepos.X, mousepos.Y, 5, 0xff0000);   
-        }
-        else
-        {
-            drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xff0000);
-        }
-    }
-    if (packet[0] & ps2_middle)
-    {
-        if (circle) circle = false;
-        else circle = true;
-    }
-    if (packet[0] & ps2_right)
-    {
-        if (circle)
-        {
-            drawfilledcircle(mousepos.X, mousepos.Y, 5, 0xdd56f5);   
-        }
-        else
-        {
-            drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xdd56f5);
-        }
+        case ps2_left:
+            if (circle)
+            {
+                drawfilledcircle(mousepos.X, mousepos.Y, 5, 0xff0000);   
+            }
+            else
+            {
+                drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xff0000);
+            }
+            break;
+        case ps2_middle:
+            if (circle) circle = false;
+            else circle = true;
+            break;
+        case ps2_right:
+            if (circle)
+            {
+                drawfilledcircle(mousepos.X, mousepos.Y, 5, 0xdd56f5);   
+            }
+            else
+            {
+                drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xdd56f5);
+            }
+            break;
     }
 
     drawovercursor(cursorinside, mousepos, 0xffffff, true);
