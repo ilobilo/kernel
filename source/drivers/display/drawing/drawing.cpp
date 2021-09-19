@@ -1,6 +1,5 @@
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/display/drawing/drawing.hpp>
-#include <include/math.hpp>
 #include <main.hpp>
 
 uint64_t frm_addr;
@@ -9,6 +8,11 @@ uint16_t frm_height;
 uint16_t frm_pitch;
 uint16_t frm_bpp;
 uint16_t frm_pixperscanline;
+
+uint32_t cursorbuffer[16 * 19];
+uint32_t cursorbuffersecond[16 * 19];
+
+bool mousedrawn;
 
 void putpix(uint32_t x, uint32_t y, uint32_t colour)
 {
@@ -167,6 +171,54 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
             xC += 2;
         }
     }
+}
+
+void clearcursor(uint8_t cursor[], point pos)
+{
+    if (!mousedrawn) return;
+
+    int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
+
+    if (dx < 16) xmax = dx;
+    if (dy < 19) ymax = dy;
+
+    for (int y = 0; y < ymax; y++)
+    {
+        for (int x = 0; x < xmax; x++)
+        {
+            int bit = y * 16 + x;
+            int byte = bit / 8;
+            if ((cursor[byte] & (0b10000000 >> (x % 8))))
+            {
+                putpix(pos.X + x, pos.Y + y, cursorbuffer[y * 16 + x]);
+            }
+        }
+    }
+}
+
+void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
+{
+    int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
+
+    if (dx < 16) xmax = dx;
+    if (dy < 19) ymax = dy;
+
+    for (int y = 0; y < ymax; y++)
+    {
+        for (int x = 0; x < xmax; x++)
+        {
+            int bit = y * 16 + x;
+            int byte = bit / 8;
+            if ((cursor[byte] & (0b10000000 >> (x % 8))))
+            {
+                if (back) cursorbuffer[y * 16 + x] = getpix(pos.X + x, pos.Y + y);
+                putpix(pos.X + x, pos.Y + y, colour);
+                if (back) cursorbuffersecond[y * 16 + x] = getpix(pos.X + x, pos.Y + y);
+            }
+        }
+    }
+
+    mousedrawn = true;
 }
 
 void drawing_init()
