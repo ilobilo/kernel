@@ -199,7 +199,7 @@ void proccesspacket()
     clearcursor(cursorinside, mouseposold);
 
     static bool circle = false;
-    if (packet[0] & button_left) 
+    if (packet[0] & ps2_left) 
     {
         if (circle)
         {
@@ -210,12 +210,12 @@ void proccesspacket()
             drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xff0000);
         }
     }
-    if (packet[0] & button_middle)
+    if (packet[0] & ps2_middle)
     {
         if (circle) circle = false;
         else circle = true;
     }
-    if (packet[0] & button_right)
+    if (packet[0] & ps2_right)
     {
         if (circle)
         {
