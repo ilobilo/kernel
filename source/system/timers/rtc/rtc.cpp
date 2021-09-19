@@ -45,7 +45,7 @@ uint8_t second()
 
 void RTC_GetTime()
 {
-    printf("20%d/%d/%d %d:%d:%d\n", year(), month(),
+    printf("20%d/%d/%d %d:%d:%d", year(), month(),
         day(), hour(),
         minute(), second());
 }

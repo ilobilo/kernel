@@ -113,31 +113,36 @@ void term_clear()
 
 void cursor_up(int lines)
 {
-    for (int i = 0; i < lines; i++)
-    {
-        term_print("\033[1A");
-    }
+    printf("\033[%dA", lines);
 }
 void cursor_down(int lines)
 {
-    for (int i = 0; i < lines; i++)
-    {
-        term_print("\033[1B");
-    }
+    printf("\033[%dB", lines);
 }
 void cursor_right(int lines)
 {
-    for (int i = 0; i < lines; i++)
-    {
-        term_print("\033[1C");
-    }
+    printf("\033[%dC", lines);
 }
 void cursor_left(int lines)
 {
-    for (int i = 0; i < lines; i++)
-    {
-        term_print("\033[1D");
-    }
+    printf("\033[%dD", lines);
+}
+
+void cursor_up()
+{
+    printf("\033[1A");
+}
+void cursor_down()
+{
+    printf("\033[1B");
+}
+void cursor_right()
+{
+    printf("\033[1C");
+}
+void cursor_left()
+{
+    printf("\033[1D");
 }
 
 void term_center(char *text)
