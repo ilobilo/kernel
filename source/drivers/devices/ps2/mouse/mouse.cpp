@@ -11,11 +11,6 @@ bool packetready = false;
 point mousepos;
 point mouseposold;
 
-uint32_t cursorbuffer[16 * 19];
-uint32_t cursorbuffersecond[16 * 19];
-
-bool drawn;
-
 uint8_t cursorborder[]
 {
     0b10000000, 0b00000000,
@@ -61,54 +56,6 @@ uint8_t cursorinside[]
     0b00000011, 0b11000000,
     0b00000001, 0b10000000,
 };
-
-void clearcursor(uint8_t cursor[], point pos)
-{
-    if (!drawn) return;
-
-    int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
-
-    if (dx < 16) xmax = dx;
-    if (dy < 19) ymax = dy;
-
-    for (int y = 0; y < ymax; y++)
-    {
-        for (int x = 0; x < xmax; x++)
-        {
-            int bit = y * 16 + x;
-            int byte = bit / 8;
-            if ((cursor[byte] & (0b10000000 >> (x % 8))))
-            {
-                putpix(pos.X + x, pos.Y + y, cursorbuffer[y * 16 + x]);
-            }
-        }
-    }
-}
-
-void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
-{
-    int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
-
-    if (dx < 16) xmax = dx;
-    if (dy < 19) ymax = dy;
-
-    for (int y = 0; y < ymax; y++)
-    {
-        for (int x = 0; x < xmax; x++)
-        {
-            int bit = y * 16 + x;
-            int byte = bit / 8;
-            if ((cursor[byte] & (0b10000000 >> (x % 8))))
-            {
-                if (back) cursorbuffer[y * 16 + x] = getpix(pos.X + x, pos.Y + y);
-                putpix(pos.X + x, pos.Y + y, colour);
-                if (back) cursorbuffersecond[y * 16 + x] = getpix(pos.X + x, pos.Y + y);
-            }
-        }
-    }
-
-    drawn = true;
-}
 
 void mousewait()
 {
