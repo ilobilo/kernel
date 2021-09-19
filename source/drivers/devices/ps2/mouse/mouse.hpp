@@ -18,4 +18,6 @@ enum mousestate
 
 extern point mousepos;
 
+mousestate get_mousestate();
+
 void Mouse_init();
