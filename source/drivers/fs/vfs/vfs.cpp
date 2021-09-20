@@ -50,7 +50,7 @@ void close_fs(fs_node* node)
     }
 }
 
-struct dirent* readdir_fs(fs_node *node, uint64_t index)
+struct dirent_t* readdir_fs(fs_node *node, uint64_t index)
 {
     if ((node->flags & 0x7) == FS_DIRECTORY && node->readdir != 0)
     {
