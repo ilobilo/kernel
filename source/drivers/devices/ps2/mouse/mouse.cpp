@@ -11,6 +11,9 @@ bool packetready = false;
 point mousepos;
 point mouseposold;
 
+uint32_t mousebordercol = 0xffffff;
+uint32_t mouseinsidecol = 0x2d2d2d;
+
 uint8_t cursorborder[]
 {
     0b10000000, 0b00000000,
@@ -182,8 +185,8 @@ void proccesspacket()
             break;
     }
 
-    drawovercursor(cursorinside, mousepos, 0x2d2d2d, true);
-    drawovercursor(cursorborder, mousepos, 0xffffff, false);
+    drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
+    drawovercursor(cursorborder, mousepos, mousebordercol, false);
     
     packetready = false;
     mouseposold = mousepos;
