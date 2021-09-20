@@ -45,11 +45,11 @@ extern ustar_header_t* ustar_headers;
 
 unsigned int getsize(const char* s);
 
-void initrd_list();
+void ustar_list();
 
-char* initrd_cat(char* name);
+char* ustar_cat(char* name);
 
-int initrd_getid(char* name);
+int ustar_getid(char* name);
 
 int ustar_search(char* filename, char** contents);
 
