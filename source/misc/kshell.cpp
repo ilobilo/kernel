@@ -10,7 +10,7 @@ void shell_parse(char* cmd, char* arg)
 {
     if (!strcmp(cmd, "ls"))
     {
-        initrd_list();
+        ustar_list();
     }
     else if (!strcmp(cmd, "time"))
     {

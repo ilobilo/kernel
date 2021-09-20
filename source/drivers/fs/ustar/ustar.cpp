@@ -18,7 +18,7 @@ unsigned int getsize(const char* s)
     return ret;
 }
 
-int initrd_parse(unsigned int address)
+int ustar_parse(unsigned int address)
 {
     unsigned int i;
     for (i = 0; ; i++)
@@ -51,7 +51,7 @@ void not_initialized()
     printf("\033[31mInitrd has not been initialized!\033[0m\n");
 }
 
-void initrd_list()
+void ustar_list()
 {
     if (!initrd)
     {
@@ -84,7 +84,7 @@ void initrd_list()
     printf("--------------------\nTotal size: %s\n", humanify(size, buf1));
 }
 
-char* initrd_cat(char* name)
+char* ustar_cat(char* name)
 {
     if (!initrd)
     {
@@ -93,7 +93,7 @@ char* initrd_cat(char* name)
     }
     char* contents;
     int i = 0;
-    i = initrd_getid(name);
+    i = ustar_getid(name);
     switch (ustar_headers->headers[i]->typeflag[0])
     {
         case REGULAR_FILE:
@@ -119,7 +119,7 @@ char* initrd_cat(char* name)
     return "Invalid file name!";
 }
 
-int initrd_getid(char* name)
+int ustar_getid(char* name)
 {
     if (!initrd)
     {
@@ -158,7 +158,7 @@ void initrd_init(unsigned int address)
 {
     serial_info("Initializing initrd");
 
-    initrd_parse(address);
+    ustar_parse(address);
     initrd = true;
 
     serial_info("Initialized initrd\n");
