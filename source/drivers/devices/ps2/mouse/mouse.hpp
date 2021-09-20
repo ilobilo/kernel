@@ -18,6 +18,9 @@ enum mousestate
 
 extern point mousepos;
 
+extern uint32_t mousebordercol;
+extern uint32_t mouseinsidecol;
+
 mousestate get_mousestate();
 
 void Mouse_init();

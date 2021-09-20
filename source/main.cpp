@@ -81,6 +81,11 @@ void main(struct stivale2_struct *stivale2_struct)
     Keyboard_init();
     term_check(true, "Initializing PS2 Keyboard...");
 
+    if (strstr(cmdline, "oldmouse"))
+    {
+        mousebordercol = 0x000000;
+        mouseinsidecol = 0xffffff;
+    }
     Mouse_init();
     term_check(true, "Initializing PS2 Mouse...");
 
