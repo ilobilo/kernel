@@ -1,6 +1,6 @@
 #include <drivers/fs/vfs/vfs.hpp>
 
-fs_node *fs_root = 0;
+fs_node* fs_root = 0;
 
 uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
 {
