@@ -4,13 +4,16 @@
 
 #define HEADER_SIZE 128
 
-#define REGULAR_FILE '0'
-#define HARDLINK '1'
-#define SYMLINK '2'
-#define CHARDEV '3'
-#define BLOCKDEV '4'
-#define DIRECTORY '5'
-#define FIFO '6'
+enum ustar_filetypes
+{
+    REGULAR_FILE = '0',
+    HARDLINK = '1',
+    SYMLINK = '2',
+    CHARDEV = '3',
+    BLOCKDEV = '4',
+    DIRECTORY = '5',
+    FIFO = '6'
+};
 
 struct ustar_file_header_t
 {

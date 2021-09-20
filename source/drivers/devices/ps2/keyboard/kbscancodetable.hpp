@@ -1,33 +1,36 @@
 #pragma once
 
-#define CAPSLOCK 0x3A
-#define NUMLOCK 0x45
-#define SCROLLLOCK 0x46
+enum keys
+{
+    CAPSLOCK = 0x3A,
+    NUMLOCK = 0x45,
+    SCROLLLOCK = 0x46,
 
-#define L_SHIFT_DOWN 0x2A
-#define R_SHIFT_DOWN 0x36
-#define L_SHIFT_UP 0xAA
-#define R_SHIFT_UP 0xB6
+    L_SHIFT_DOWN = 0x2A,
+    R_SHIFT_DOWN = 0x36,
+    L_SHIFT_UP = 0xAA,
+    R_SHIFT_UP = 0xB6,
 
-#define CTRL_DOWN 0x1D
-#define CTRL_UP 0x9D
+    CTRL_DOWN = 0x1D,
+    CTRL_UP = 0x9D,
 
-#define ALT_DOWN 0x38
-#define ALT_UP 0xB8
+    ALT_DOWN = 0x38,
+    ALT_UP = 0xB8,
 
-#define HOME 0x47
-#define END 0x52
+    HOME = 0x47,
+    END = 0x52,
 
-#define PGUP 0x49
-#define PGDN 0x51
+    PGUP = 0x49,
+    PGDN = 0x51,
 
-#define INSERT 0x52
-#define DELETE 0x53
+    INSERT = 0x52,
+    DELETE = 0x53,
 
-#define UP 0x48
-#define DOWN 0x50
-#define LEFT 0x4B
-#define RIGHT 0x4D
+    UP = 0x48,
+    DOWN = 0x50,
+    LEFT = 0x4B,
+    RIGHT = 0x4D,
+};
 
 unsigned char kbdus[128] =
 {
