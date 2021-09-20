@@ -183,7 +183,7 @@ void proccesspacket()
     }
 
     drawovercursor(cursorinside, mousepos, 0x2d2d2d, true);
-    drawovercursor(cursorborder, mousepos, 0xc7c7c7, false);
+    drawovercursor(cursorborder, mousepos, 0xffffff, false);
     
     packetready = false;
     mouseposold = mousepos;
