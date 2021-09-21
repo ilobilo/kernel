@@ -15,10 +15,9 @@ Contributors are welcome
 - [x] Drawing on framebuffer
 - [x] Serial debugging
 - [ ] VFS
-- [ ] Paging
-- [ ] Heap
 - [ ] PMM
 - [ ] VMM
+- [ ] Heap
 - [x] ACPI
 - [ ] Shutdown
 - [ ] Reboot
