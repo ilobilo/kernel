@@ -12,7 +12,7 @@ Contributors are welcome
 - [x] PS2 Mouse
 - [x] PIT
 - [x] RTC
-- [x] Iinitrd
+- [x] Initrd
 - [x] Drawing on framebuffer
 - [x] Serial debugging
 - [ ] VFS
