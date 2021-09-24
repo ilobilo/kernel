@@ -8,7 +8,8 @@ Contributors are welcome
 
 - [x] GDT
 - [x] IDT
-- [x] Keyboard
+- [x] PS2 Keyboard
+- [x] PS2 Mouse
 - [x] PIT
 - [x] RTC
 - [x] Iinitrd
@@ -36,7 +37,9 @@ Contributors are welcome
 - [ ] Sound
 - [ ] Network
 - [ ] USB
-- [ ] GUI
+- [ ] USB Keyboard
+- [ ] USB Mouse
+- [ ] GUI (Window manager)
 
 # Building And Running
 
