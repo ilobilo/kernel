@@ -46,6 +46,8 @@ struct deviceconfig
 extern bool use_xstd;
 extern RSDP* rsdp;
 
+extern mcfg_header* mcfg;
+
 void ACPI_init();
 
 void* findtable(sdt_header* sdthdr, char* signature);

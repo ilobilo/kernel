@@ -99,7 +99,7 @@ void isr_handler(interrupt_registers *regs)
 
     printf("[\033[31mPANIC\033[0m] System halted!\n");
     serial_err("System halted!\n");
-    __asm__ volatile ("cli; hlt");
+    asm volatile ("cli; hlt");
 }
 
 void irq_handler(interrupt_registers *regs)

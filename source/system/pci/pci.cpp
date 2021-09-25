@@ -1,7 +1,8 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/acpi/pcidesc.hpp>
-#include <system/acpi/pci.hpp>
+#include <system/pci/pcidesc.hpp>
+#include <system/acpi/acpi.hpp>
+#include <system/pci/pci.hpp>
 
 void enumfunc(uint64_t deviceaddr, uint64_t func)
 {
@@ -52,8 +53,10 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     }
 }
 
-void enumpci(mcfg_header* mcfg)
+void PCI_init()
 {
+    serial_info("Initializing PCI\n");
+
     int entries = ((mcfg->header.length) - sizeof(mcfg_header)) / sizeof(deviceconfig);
     for (int t = 0; t < entries; t++)
     {
@@ -63,4 +66,7 @@ void enumpci(mcfg_header* mcfg)
             enumbus(newdevconf->baseaddr, bus);
         }
     }
+
+    serial_printf("\n");
+    serial_info("Initialized PCI\n");
 }

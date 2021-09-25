@@ -19,4 +19,4 @@ struct pcideviceheader
     uint8_t bist;
 };
 
-void enumpci(mcfg_header* mcfg);
+void PCI_init();
