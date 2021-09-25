@@ -1,5 +1,5 @@
 #include <drivers/display/serial/serial.hpp>
-#include <system/gdt/gdt.hpp>
+#include <system/cpu/gdt/gdt.hpp>
 
 __attribute__((aligned(0x1000)))
 GDT DefaultGDT = {

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <drivers/display/serial/serial.hpp>
-#include <system/idt/idt.hpp>
+#include <system/cpu/idt/idt.hpp>
 #include <include/io.hpp>
 
 uint64_t tick = 0;
