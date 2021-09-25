@@ -7,10 +7,10 @@
 #include <system/timers/pit/pit.hpp>
 #include <system/timers/rtc/rtc.hpp>
 #include <system/memory/memory.hpp>
+#include <system/cpu/gdt/gdt.hpp>
+#include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <system/gdt/gdt.hpp>
-#include <system/idt/idt.hpp>
 #include <include/string.hpp>
 #include <include/io.hpp>
 #include <misc/kshell.hpp>

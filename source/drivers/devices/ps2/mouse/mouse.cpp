@@ -2,7 +2,7 @@
 #include <drivers/display/drawing/drawing.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/idt/idt.hpp>
+#include <system/cpu/idt/idt.hpp>
 #include <include/io.hpp>
 
 uint8_t cycle = 0;

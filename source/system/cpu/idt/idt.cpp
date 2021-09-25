@@ -1,7 +1,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <include/io.hpp>
-#include <system/idt/idt.hpp>
+#include <system/cpu/idt/idt.hpp>
 
 int_handler_t interrupt_handlers[256];
 
