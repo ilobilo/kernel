@@ -8,6 +8,7 @@
 #include <system/timers/rtc/rtc.hpp>
 #include <system/memory/memory.hpp>
 #include <system/acpi/acpi.hpp>
+#include <system/pci/pci.hpp>
 #include <system/gdt/gdt.hpp>
 #include <system/idt/idt.hpp>
 #include <include/string.hpp>
@@ -51,7 +52,21 @@ void main(struct stivale2_struct *stivale2_struct)
     cmdline = (char *)cmd_tag->cmdline;
 
     serial_init();
+
+    if (frm_tag == NULL)
+    {
+        serial_err("Framebuffer could not be initialized!");
+        serial_err("System halted!\n");
+        while (true) asm volatile ("cli; hlt");
+    }
     drawing_init();
+
+    if (term_tag == NULL)
+    {
+        serial_err("Terminal could not be initialized!");
+        serial_err("System halted!\n");
+        while (true) asm volatile ("cli; hlt");
+    }
     term_init();
 
     term_center("Welcome to kernel project");
@@ -75,19 +90,25 @@ void main(struct stivale2_struct *stivale2_struct)
     ACPI_init();
     term_check(true, "Initializing ACPI...");
 
+    PCI_init();
+    term_check(true, "Initializing PCI...");
+
     PIT_init();
     term_check(true, "Initializing PIT...");
 
     Keyboard_init();
     term_check(true, "Initializing PS2 Keyboard...");
 
-    if (strstr(cmdline, "oldmouse"))
+    if (!strstr(cmdline, "nomouse"))
     {
-        mousebordercol = 0x000000;
-        mouseinsidecol = 0xffffff;
+        if (strstr(cmdline, "oldmouse"))
+        {
+            mousebordercol = 0x000000;
+            mouseinsidecol = 0xffffff;
+        }
+        Mouse_init();
+        term_check(true, "Initializing PS2 Mouse...");
     }
-    Mouse_init();
-    term_check(true, "Initializing PS2 Mouse...");
 
     printf("Current RTC time: ");
     RTC_GetTime();
@@ -95,8 +116,5 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
     serial_info("Starting kernel shell\n");
-    while (true)
-    {
-        shell_run();
-    }
+    while (true) shell_run();
 }

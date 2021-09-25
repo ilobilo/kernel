@@ -1,11 +1,12 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/acpi/acpi.hpp>
-#include <system/acpi/pci.hpp>
 #include <main.hpp>
 
 bool use_xstd;
 RSDP* rsdp;
+
+mcfg_header* mcfg;
 
 void ACPI_init()
 {
@@ -19,21 +20,17 @@ void ACPI_init()
     {
         use_xstd = true;
         rsdt = (sdt_header*)rsdp->xsdtaddr;
-        serial_info("Found XSDT at: 0x%X\n", rsdt);
+        serial_info("Found XSDT at: 0x%X", rsdt);
     }
     else
     {
         use_xstd = false;
         rsdt = (sdt_header*)rsdp->rstdaddr;
-        serial_info("Found RSDT at: 0x%X\n", rsdt);
+        serial_info("Found RSDT at: 0x%X", rsdt);
     }
 
-    mcfg_header* mcfg = (mcfg_header*)findtable(rsdt, (char*)"MCFG");
+    mcfg = (mcfg_header*)findtable(rsdt, (char*)"MCFG");
 
-    enumpci(mcfg);
-
-    serial_printf("\n");
-    
     serial_info("Initialized ACPI\n");
 }
 

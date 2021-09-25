@@ -1,5 +1,5 @@
 #include <drivers/display/terminal/terminal.hpp>
-#include <system/acpi/pcidesc.hpp>
+#include <system/pci/pcidesc.hpp>
 #include <include/string.hpp>
 
 const char* device_classes[20]
@@ -14,7 +14,7 @@ const char* device_classes[20]
     "Simple Communication Controller",
     "Base System Peripheral",
     "Input Device Controller",
-    "Docking Station", 
+    "Docking Station",
     "Processor",
     "Serial Bus Controller",
     "Wireless Controller",
@@ -226,7 +226,7 @@ const char* getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progi
                         case 0xFE:
                             return "USB Device (Not a Host Controller)";
                     }
-            }    
+            }
     }
     static char ret[16];
     sprintf(ret, "%X", progif);
