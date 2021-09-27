@@ -51,8 +51,32 @@ void main(struct stivale2_struct *stivale2_struct)
 
     cmdline = (char *)cmd_tag->cmdline;
 
+    // Initialize serial COM1
     serial_init();
 
+    // Serial welcome message
+    serial_info("Welcome to kernel project");
+
+    // Serial kernel version
+    if (KERNEL_VERSION == "0") serial_info("Git version: %s\n", GIT_VERSION);
+    else serial_info("Version: %s\n", KERNEL_VERSION);
+
+    char buf[10];
+
+    // Serial system info
+    serial_info("CPU cores available: %d", smp_tag->cpu_count);
+    serial_info("Total usable memory: %s\n", humanify(getmemsize(), buf));
+    serial_info("Arguments passed to kernel: %s", cmdline);
+
+    // Modules list
+    serial_info("Available kernel modules:");
+    for (int t = 0; t < mod_tag->module_count; t++)
+    {
+        serial_info("%d) %s", t + 1, mod_tag->modules[t].string);
+    }
+    serial_printf("\n");
+
+    // Check for framebuffer
     if (frm_tag == NULL)
     {
         serial_err("Framebuffer could not be initialized!");
@@ -61,6 +85,7 @@ void main(struct stivale2_struct *stivale2_struct)
     }
     drawing_init();
 
+    // Check for terminal
     if (term_tag == NULL)
     {
         serial_err("Terminal could not be initialized!");
@@ -69,14 +94,18 @@ void main(struct stivale2_struct *stivale2_struct)
     }
     term_init();
 
+    // Display welcome message
     term_center("Welcome to kernel project");
 
+    // Kernel version
     if (KERNEL_VERSION == "0") printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
+    // System info
     printf("CPU cores available: %d\n", smp_tag->cpu_count);
-    printf("Total usable memory: %dMB\n", getmemsize() / 1024 / 1024);
+    printf("Total usable memory: %s\n", humanify(getmemsize(), buf));
 
+    // If initrd found initialize it
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
@@ -84,24 +113,31 @@ void main(struct stivale2_struct *stivale2_struct)
     }
     term_check(initrd, "Initializing Initrd...");
 
+    // Initialize GDT
     GDT_init();
     term_check(true, "Initializing Global Descriptor Table...");
 
+    // Initialize IDT
     IDT_init();
     term_check(true, "Initializing Interrupt Descriptor Table...");
 
+    // Initialize ACPI
     ACPI_init();
     term_check(true, "Initializing ACPI...");
 
+    // Initialize PCI devices
     PCI_init();
     term_check(true, "Initializing PCI...");
 
+    // Initialize PIT timer
     PIT_init();
     term_check(true, "Initializing PIT...");
 
+    // Initialize PS2 keyboard driver
     Keyboard_init();
     term_check(true, "Initializing PS2 Keyboard...");
 
+    // Initialize PS2 mouse driver
     if (!strstr(cmdline, "nomouse"))
     {
         if (strstr(cmdline, "oldmouse"))
@@ -113,11 +149,13 @@ void main(struct stivale2_struct *stivale2_struct)
         term_check(true, "Initializing PS2 Mouse...");
     }
 
+    // Print current bios time
     printf("Current RTC time: ");
     RTC_GetTime();
 
     printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
+    // Start the shell
     serial_info("Starting kernel shell\n");
     while (true) shell_run();
 }
