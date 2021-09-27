@@ -4,6 +4,7 @@ FONT := $(SOURCEDIR)/font.raw
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
+VERSION = 0
 
 LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
@@ -20,8 +21,8 @@ CPP = x86_64-pc-elf-g++
 LD = x86_64-pc-elf-ld
 AS = nasm
 
-CFLAGS = -O3 -pipe -w
-CPPFLAGS = -O3 -pipe -w
+CFLAGS = -O3 -pipe -w -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
+CPPFLAGS = -O3 -pipe -w -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
 LDFLAGS = 
 ASMFLAGS = 
 
