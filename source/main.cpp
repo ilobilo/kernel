@@ -71,6 +71,9 @@ void main(struct stivale2_struct *stivale2_struct)
 
     term_center("Welcome to kernel project");
 
+    if (KERNEL_VERSION == "0") printf("Git version: %s\n", GIT_VERSION);
+    else printf("Version: %s\n", KERNEL_VERSION);
+
     printf("CPU cores available: %d\n", smp_tag->cpu_count);
     printf("Total usable memory: %dMB\n", getmemsize() / 1024 / 1024);
 
