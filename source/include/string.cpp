@@ -6,10 +6,7 @@
 size_t strlen(const char* str)
 {
     size_t length = 0;
-    while(str[length])
-    {
-        length++;
-    }
+    while(str[length]) length++;
     return length;
 }
 
@@ -47,20 +44,24 @@ int strcmp(const char* a, const char* b)
     return (int)(unsigned char)(*a) - (int)(unsigned char)(*b);
 }
 
-char* strstr(const char *str, const char *substring)
+char* strstr(const char* str, const char* substring)
 {
-  const char *a = str, *b = substring;
-  for (;;) {
-    if ( !*b ) return (char *) str;
-    if ( !*a ) return NULL;
-    if ( *a++ != *b++) { a = ++str; b = substring; }
-  }
+    const char *a = str, *b = substring;
+    while (true)
+    {
+        if (!*b) return (char *)str;
+        if (!*a) return NULL;
+        if (*a++ != *b++)
+        {
+            a = ++str;
+            b = substring;
+        }
+    }
 }
 
 char* strchr(const char str[], char ch) 
 {
     while (*str && *str != ch ) ++str;
-
     return (char *)(ch == *str ? str : NULL);  
 }
 
@@ -75,10 +76,10 @@ void memcpy(void* dest, void* src, size_t n)
     }
 }
 
-int memcmp(const void *s1, const void *s2, int len)
+int memcmp(const void* s1, const void* s2, int len)
 {
-    unsigned char *p = (unsigned char*)s1;
-    unsigned char *q = (unsigned char*)s2;
+    unsigned char* p = (unsigned char*)s1;
+    unsigned char* q = (unsigned char*)s2;
     int charstat = 0;
 
     if (s1 == s2)
@@ -89,7 +90,7 @@ int memcmp(const void *s1, const void *s2, int len)
     {
         if (*p != *q)
         {
-            charstat = (*p >*q)?1:-1;
+            charstat = (*p > *q) ? 1 : -1;
             break;
         }
         len--;
@@ -101,9 +102,9 @@ int memcmp(const void *s1, const void *s2, int len)
 
 void memset(void* str, char ch, size_t n)
 {
-  	int i;
-	  char* s = (char *) str;
-	  for(i = 0; i < n; i++)
+    int i;
+    char* s = (char *)str;
+    for(i = 0; i < n; i++)
     {
         s[i] = ch;
     }
@@ -111,14 +112,11 @@ void memset(void* str, char ch, size_t n)
 
 void memmove(void* dest, void* src, size_t n)
 {
-    char *csrc = (char *)src;
-    char *cdest = (char *)dest;
+    char* csrc = (char *)src;
+    char* cdest = (char *)dest;
     char temp[n];
-    for (int i=0; i<n; i++)
-        temp[i] = csrc[i];
-        
-    for (int i=0; i<n; i++)
-        cdest[i] = temp[i];
+    for (int i = 0; i < n; i++) temp[i] = csrc[i];
+    for (int i = 0; i < n; i++) cdest[i] = temp[i];
 }
 
 void reverse(char s[])
@@ -146,7 +144,12 @@ char* int_to_string(int num)
             isMinus = true;
             num = -num;
         }
-        if (num > 0); else { temp[i++] = '8'; num = -(num / 10); }
+        if (num > 0);
+        else
+        {
+            temp[i++] = '8';
+            num = -(num / 10);
+        }
         while (num > 0)
         {
             temp[i++] = num % 10 + '0';
@@ -164,10 +167,7 @@ char* int_to_string(int num)
         }
         return out;
     }
-    else
-    {
-        return "0";
-    }
+    else return "0";
 }
 
 int string_to_int(char* str)
@@ -183,14 +183,12 @@ int string_to_int(char* str)
 long oct_to_dec(int oct)
 {
     int dec = 0, temp = 0;
-
-    while(oct != 0)
+    while (oct != 0)
     {
         dec = dec + (oct % 10) * pow(8, temp);
         temp++;
         oct = oct / 10;
     }
-
     return dec;
 }
 
