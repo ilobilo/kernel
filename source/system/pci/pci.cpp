@@ -55,7 +55,7 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
 
 void PCI_init()
 {
-    serial_info("Initializing PCI\n");
+    serial_info("Initializing PCI");
 
     int entries = ((mcfg->header.length) - sizeof(mcfg_header)) / sizeof(deviceconfig);
     for (int t = 0; t < entries; t++)
@@ -67,6 +67,5 @@ void PCI_init()
         }
     }
 
-    serial_printf("\n");
     serial_info("Initialized PCI\n");
 }
