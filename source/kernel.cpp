@@ -2,7 +2,7 @@
 #include <stivale2.h>
 #include <main.hpp>
 
-static uint8_t stack[4096];
+static uint8_t stack[8192];
 
 static struct stivale2_header_tag_terminal terminal_hdr_tag = {
     .tag = {
@@ -31,36 +31,33 @@ static struct stivale2_header_tag_framebuffer framebuffer_hdr_tag = {
 };
 
 __attribute__((section(".stivale2hdr"), used))
-    static struct stivale2_header stivale_hdr = {
-        .entry_point = 0,
-        .stack = (uintptr_t)stack + sizeof(stack),
-        .flags = (1 << 1),
-        .tags = (uintptr_t)&framebuffer_hdr_tag
+static struct stivale2_header stivale_hdr = {
+    .entry_point = 0,
+    .stack = (uintptr_t)stack + sizeof(stack),
+    .flags = (1 << 1) | (1 << 2),
+    .tags = (uintptr_t)&framebuffer_hdr_tag
 };
 
-void* stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
+void* stivale2_get_tag(stivale2_struct* stivale, uint64_t id)
 {
-	stivale2_tag *current_tag = (stivale2_tag*)stivale->tags;
-	for (;;) {
-		if (current_tag == NULL) {
-			return NULL;
-		}
+    stivale2_tag* current_tag = (stivale2_tag*)stivale->tags;
+    while (true)
+    {
+        if (current_tag == NULL) return NULL;
 
-		if (current_tag->identifier == id) {
-			return current_tag;
-		}
+        if (current_tag->identifier == id) return current_tag;
 
-		current_tag = (stivale2_tag*)current_tag->next;
-	}
+        current_tag = (stivale2_tag*)current_tag->next;
+    }
 }
 
 extern "C" void InitSSE();
 
-extern "C" void _start(struct stivale2_struct *stivale2_struct)
+extern "C" void _start(stivale2_struct* stivale2_struct)
 {
     InitSSE();
 
     main(stivale2_struct);
 
-    for (;;);
+    while (true);
 }
