@@ -11,7 +11,10 @@
             "cStandard": "c11",
             "cppStandard": "c++14",
             "intelliSenseMode": "linux-gcc-x64",
-            "compilerArgs": []
+            "compilerArgs": [
+                "-DGIT_VERSION=0",
+                "-DKERNEL_VERSION=0"
+            ]
         }
     ],
     "version": 4
