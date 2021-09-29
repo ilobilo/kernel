@@ -56,13 +56,14 @@ __attribute__((format(__printf__, (one_based_format_index), (first_arg))))
 # define ATTR_VPRINTF(one_based_format_index)
 #endif
 
+#define PRINTF_ALIAS_STANDARD_FUNCTION_NAMES 
 #ifdef PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
-# define printf_    printf
-# define sprintf_   sprintf
-# define vsprintf_  vsprintf
-# define snprintf_  snprintf
-# define vsnprintf_ vsnprintf
-# define vprintf_   vprintf
+# define printf    printf_
+# define sprintf   sprintf_
+# define vsprintf  vsprintf_
+# define snprintf  snprintf_
+# define vsnprintf vsnprintf_
+# define vprintf   vprintf_
 #endif
 
 
@@ -78,11 +79,11 @@ void _putchar(char character);
  * Tiny printf implementation
  * You have to implement _putchar if you use printf()
  * To avoid conflicts with the regular printf() API it is overridden by macro defines
- * and internal underscore-appended functions like printf() are used
+ * and internal underscore-appended functions like printf_() are used
  * @param format A string that specifies the format of the output
  * @return The number of characters that are written into the array, not counting the terminating null character
  */
-int printf(const char* format, ...) ATTR_PRINTF(1, 2);
+int printf_(const char* format, ...) ATTR_PRINTF(1, 2);
 
 
 /**
@@ -93,8 +94,8 @@ int printf(const char* format, ...) ATTR_PRINTF(1, 2);
  * @param va A value identifying a variable arguments list
  * @return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
  */
-int  sprintf(char* buffer, const char* format, ...) ATTR_PRINTF(2, 3);
-int vsprintf(char* buffer, const char* format, va_list va) ATTR_VPRINTF(2);
+int  sprintf_(char* buffer, const char* format, ...) ATTR_PRINTF(2, 3);
+int vsprintf_(char* buffer, const char* format, va_list va) ATTR_VPRINTF(2);
 
 
 /**
@@ -107,8 +108,8 @@ int vsprintf(char* buffer, const char* format, va_list va) ATTR_VPRINTF(2);
  *         null character. A value equal or larger than count indicates truncation. Only when the returned value
  *         is non-negative and less than count, the string has been completely written.
  */
-int  snprintf(char* buffer, size_t count, const char* format, ...) ATTR_PRINTF(3, 4);
-int vsnprintf(char* buffer, size_t count, const char* format, va_list va) ATTR_VPRINTF(3);
+int  snprintf_(char* buffer, size_t count, const char* format, ...) ATTR_PRINTF(3, 4);
+int vsnprintf_(char* buffer, size_t count, const char* format, va_list va) ATTR_VPRINTF(3);
 
 
 /**
@@ -117,7 +118,7 @@ int vsnprintf(char* buffer, size_t count, const char* format, va_list va) ATTR_V
  * @param va A value identifying a variable arguments list
  * @return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
  */
-int vprintf(const char* format, va_list va) ATTR_VPRINTF(1);
+int vprintf_(const char* format, va_list va) ATTR_VPRINTF(1);
 
 
 /**
@@ -134,6 +135,15 @@ int vfctprintf(void (*out)(char character, void* arg), void* arg, const char* fo
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
+# undef printf_
+# undef sprintf_
+# undef vsprintf_
+# undef snprintf_
+# undef vsnprintf_
+# undef vprintf_
 #endif
 
 #endif  // _PRINTF_H_
