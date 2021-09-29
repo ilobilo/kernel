@@ -1,8 +1,8 @@
 #pragma once
 
+#include <drivers/display/terminal/printf.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <drivers/display/terminal/printf.h>
 
 extern uint16_t columns;
 extern uint16_t rows;

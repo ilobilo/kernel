@@ -52,8 +52,8 @@
 
 // 'ntoa' conversion buffer size, this must be big enough to hold one converted
 // numeric number including padded zeros (dynamically created on stack)
-#ifndef PRINTF_NTOA_BUFFER_SIZE
-#define PRINTF_NTOA_BUFFER_SIZE    32
+#ifndef PRINT_INTEGER_BUFFER_SIZE
+#define PRINT_INTEGER_BUFFER_SIZE    32
 #endif
 
 // 'ftoa' conversion buffer size, this must be big enough to hold one converted
@@ -63,8 +63,8 @@
 #endif
 
 // Support for the decimal notation floating point conversion specifiers (%f, %F)
-#ifndef PRINTF_SUPPORT_FLOAT_SPECIFIERS
-#define PRINTF_SUPPORT_FLOAT_SPECIFIERS 1
+#ifndef PRINTF_SUPPORT_DECIMAL_SPECIFIERS
+#define PRINTF_SUPPORT_DECIMAL_SPECIFIERS 1
 #endif
 
 // Support for the exponential notatin floating point conversion specifiers (%e, %g, %E, %G)
@@ -91,16 +91,12 @@
 #define PRINTF_SUPPORT_LONG_LONG 1
 #endif
 
-// Support for the ptrdiff_t length modifier (%t)
-// ptrdiff_t is normally defined in <stddef.h> as long or long long type
-#ifndef PRINTF_SUPPORT_PTRDIFF_LENGTH_MODIFIER
-#define PRINTF_SUPPORT_PTRDIFF_LENGTH_MODIFIER 1
-#endif
-
 #if PRINTF_SUPPORT_LONG_LONG
-#define NTOA_VALUE_TYPE unsigned long long
+typedef unsigned long long printf_unsigned_value_t;
+typedef long long          printf_signed_value_t;
 #else
-#define NTOA_VALUE_TYPE unsigned long
+typedef unsigned long printf_unsigned_value_t;
+typedef long          printf_signed_value_t;
 #endif
 
 #define PRINTF_PREFER_DECIMAL     false
@@ -136,21 +132,34 @@
 
 typedef uint8_t numeric_base_t;
 
-// import float.h for DBL_MAX
-#if PRINTF_SUPPORT_FLOAT_SPECIFIERS
+#if (PRINTF_SUPPORT_DECIMAL_SPECIFIERS || PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS)
 #include <float.h>
+#if FLT_RADIX != 2
+#error "Non-binary-radix floating-point types are unsupported."
 #endif
 
-// Note in particular the behavior here on LONG_MIN or LLONG_MIN; it is valid
-// and well-defined, but if you're not careful you can easily trigger undefined
-// behavior with -LONG_MIN or -LLONG_MIN
-#define NTOA_ABS(_x) ( (_x) > 0 ? (NTOA_VALUE_TYPE)(_x) : -((NTOA_VALUE_TYPE)_x) )
+#if DBL_MANT_DIG == 24
 
-#define PRINTF_ABS(_x) ( (_x) > 0 ? (_x) : -(_x) )
+#define DOUBLE_SIZE_IN_BITS 32
+typedef uint32_t double_uint_t;
+#define DOUBLE_EXPONENT_MASK 0xFFU
+#define DOUBLE_BASE_EXPONENT 127
+
+#elif DBL_MANT_DIG == 53
+
+#define DOUBLE_SIZE_IN_BITS 64
+typedef uint64_t double_uint_t;
+#define DOUBLE_EXPONENT_MASK 0x7FFU
+#define DOUBLE_BASE_EXPONENT 1023
+
+#else
+#error "Unsupported double type configuration"
+#endif
+#define DOUBLE_STORED_MANTISSA_BITS (DBL_MANT_DIG - 1)
 
 typedef union {
-  uint64_t U;
-  double   F;
+  double_uint_t U;
+  double        F;
 } double_with_bit_access;
 
 // This is unnecessary in C99, since compound initializers can be used,
@@ -165,18 +174,26 @@ static inline double_with_bit_access get_bit_access(double x)
 
 static inline int get_sign(double x)
 {
-  // The sign is in the highest bit, bit 63
-  return get_bit_access(x).U >> 63U;
+  // The sign is stored in the highest bit
+  return get_bit_access(x).U >> (DOUBLE_SIZE_IN_BITS - 1);
 }
 
 static inline int get_exp2(double_with_bit_access x)
 {
-  // The exponent is in bits 52...62 inclusive, but the exponent is signed, not unsigned.
-  // Also, it's not signed like regular signed integers: The range is mapped to -1023..1024
-  // (and -1023 and 1024 are reserved for special use, but we ignore that here).
-  return (int)((x.U >> 52U) & 0x07FFU) - 1023;
+  // The exponent in an IEEE-754 floating-point number occupies a contiguous
+  // sequence of bits (e.g. 52..62 for 64-bit doubles), but with a non-trivial representation: An
+  // unsigned offset from some negative value (with the extremal offset values reserved for
+  // special use).
+  return (int)((x.U >> DOUBLE_STORED_MANTISSA_BITS ) & DOUBLE_EXPONENT_MASK) - DOUBLE_BASE_EXPONENT;
 }
+#define PRINTF_ABS(_x) ( (_x) > 0 ? (_x) : -(_x) )
 
+#endif // (PRINTF_SUPPORT_DECIMAL_SPECIFIERS || PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS)
+
+// Note in particular the behavior here on LONG_MIN or LLONG_MIN; it is valid
+// and well-defined, but if you're not careful you can easily trigger undefined
+// behavior with -LONG_MIN or -LLONG_MIN
+#define ABS_FOR_PRINTING(_x) ((printf_unsigned_value_t) ( (_x) > 0 ? (_x) : -((printf_signed_value_t)_x) ))
 
 // output function type
 typedef void (*out_fct_type)(char character, void* buffer, size_t idx, size_t maxlen);
@@ -283,8 +300,9 @@ static size_t _out_rev(out_fct_type out, char* buffer, size_t idx, size_t maxlen
 }
 
 
-// internal itoa format
-static size_t _ntoa_format(out_fct_type out, char* buffer, size_t idx, size_t maxlen, char* buf, size_t len, bool negative, numeric_base_t base, unsigned int precision, unsigned int width, unsigned int flags)
+// Invoked by print_integer after the actual number has been printed, performing necessary
+// work on the number's prefix (as the number is initially printed in reverse order)
+static size_t print_integer_finalization(out_fct_type out, char* buffer, size_t idx, size_t maxlen, char* buf, size_t len, bool negative, numeric_base_t base, unsigned int precision, unsigned int width, unsigned int flags)
 {
   size_t unpadded_len = len;
 
@@ -294,12 +312,12 @@ static size_t _ntoa_format(out_fct_type out, char* buffer, size_t idx, size_t ma
       if (width && (flags & FLAGS_ZEROPAD) && (negative || (flags & (FLAGS_PLUS | FLAGS_SPACE)))) {
         width--;
       }
-      while ((flags & FLAGS_ZEROPAD) && (len < width) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+      while ((flags & FLAGS_ZEROPAD) && (len < width) && (len < PRINT_INTEGER_BUFFER_SIZE)) {
         buf[len++] = '0';
       }
     }
 
-    while ((len < precision) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    while ((len < precision) && (len < PRINT_INTEGER_BUFFER_SIZE)) {
       buf[len++] = '0';
     }
 
@@ -323,21 +341,21 @@ static size_t _ntoa_format(out_fct_type out, char* buffer, size_t idx, size_t ma
         }
       }
     }
-    if ((base == BASE_HEX) && !(flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    if ((base == BASE_HEX) && !(flags & FLAGS_UPPERCASE) && (len < PRINT_INTEGER_BUFFER_SIZE)) {
       buf[len++] = 'x';
     }
-    else if ((base == BASE_HEX) && (flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    else if ((base == BASE_HEX) && (flags & FLAGS_UPPERCASE) && (len < PRINT_INTEGER_BUFFER_SIZE)) {
       buf[len++] = 'X';
     }
-    else if ((base == BASE_BINARY) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    else if ((base == BASE_BINARY) && (len < PRINT_INTEGER_BUFFER_SIZE)) {
       buf[len++] = 'b';
     }
-    if (len < PRINTF_NTOA_BUFFER_SIZE) {
+    if (len < PRINT_INTEGER_BUFFER_SIZE) {
       buf[len++] = '0';
     }
   }
 
-  if (len < PRINTF_NTOA_BUFFER_SIZE) {
+  if (len < PRINT_INTEGER_BUFFER_SIZE) {
     if (negative) {
       buf[len++] = '-';
     }
@@ -352,11 +370,10 @@ static size_t _ntoa_format(out_fct_type out, char* buffer, size_t idx, size_t ma
   return _out_rev(out, buffer, idx, maxlen, buf, len, width, flags);
 }
 
-
-// internal itoa
-static size_t _ntoa(out_fct_type out, char* buffer, size_t idx, size_t maxlen, NTOA_VALUE_TYPE value, bool negative, numeric_base_t base, unsigned int precision, unsigned int width, unsigned int flags)
+// An internal itoa-like function
+static size_t print_integer(out_fct_type out, char* buffer, size_t idx, size_t maxlen, printf_unsigned_value_t value, bool negative, numeric_base_t base, unsigned int precision, unsigned int width, unsigned int flags)
 {
-  char buf[PRINTF_NTOA_BUFFER_SIZE];
+  char buf[PRINT_INTEGER_BUFFER_SIZE];
   size_t len = 0U;
 
   if (!value) {
@@ -378,13 +395,13 @@ static size_t _ntoa(out_fct_type out, char* buffer, size_t idx, size_t maxlen, N
       const char digit = (char)(value % base);
       buf[len++] = (char)(digit < 10 ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10);
       value /= base;
-    } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
+    } while (value && (len < PRINT_INTEGER_BUFFER_SIZE));
   }
 
-  return _ntoa_format(out, buffer, idx, maxlen, buf, len, negative, base, precision, width, flags);
+  return print_integer_finalization(out, buffer, idx, maxlen, buf, len, negative, base, precision, width, flags);
 }
 
-#if PRINTF_SUPPORT_FLOAT_SPECIFIERS
+#if (PRINTF_SUPPORT_DECIMAL_SPECIFIERS || PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS)
 
 struct double_components {
   int_fast64_t integral;
@@ -481,12 +498,13 @@ struct scaling_factor update_normalization(struct scaling_factor sf, double extr
   return result;
 }
 
+#if PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS
 static struct double_components get_normalized_components(bool negative, unsigned int precision, double non_normalized, struct scaling_factor normalization)
 {
   struct double_components components;
   components.is_negative = negative;
   components.integral = (int_fast64_t) apply_scaling(non_normalized, normalization);
-  double remainder = non_normalized - unapply_scaling(components.integral, normalization);
+  double remainder = non_normalized - unapply_scaling((double) components.integral, normalization);
   double prec_power_of_10 = powers_of_10[precision];
   struct scaling_factor account_for_precision = update_normalization(normalization, prec_power_of_10);
   double scaled_remainder = apply_scaling(remainder, account_for_precision);
@@ -518,7 +536,7 @@ static struct double_components get_normalized_components(bool negative, unsigne
   }
   return components;
 }
-
+#endif
 
 static size_t sprint_broken_up_decimal(
   struct double_components number_, out_fct_type out, char *buffer, size_t idx, size_t maxlen, unsigned int precision,
@@ -635,14 +653,15 @@ static size_t sprint_exponential_number(out_fct_type out, char* buffer, size_t i
     {
       // based on the algorithm by David Gay (https://www.ampl.com/netlib/fp/dtoa.c)
       int exp2 = get_exp2(conv);
-      conv.U = (conv.U & ((1ULL << 52U) - 1U)) | (1023ULL << 52U);  // drop the exp10 so conv.F is now in [1,2)
+	  // drop the exponent, so conv.F comes into the range [1,2)
+      conv.U = (conv.U & (( (double_uint_t)(1) << DOUBLE_STORED_MANTISSA_BITS) - 1U)) | ((double_uint_t) DOUBLE_BASE_EXPONENT << DOUBLE_STORED_MANTISSA_BITS);
       // now approximate log10 from the log2 integer part and an expansion of ln around 1.5
       exp10 = (int)(0.1760912590558 + exp2 * 0.301029995663981 + (conv.F - 1.5) * 0.289529654602168);
       // now we want to compute 10^exp10 but we want to be sure it won't overflow
       exp2 = (int)(exp10 * 3.321928094887362 + 0.5);
       const double z  = exp10 * 2.302585092994046 - exp2 * 0.6931471805599453;
       const double z2 = z * z;
-      conv.U = (uint64_t)(exp2 + 1023) << 52U;
+      conv.U = ((double_uint_t)(exp2) + DOUBLE_BASE_EXPONENT) << DOUBLE_STORED_MANTISSA_BITS;
       // compute exp(z) using continued fractions, see https://en.wikipedia.org/wiki/Exponential_function#Continued_fractions_for_ex
       conv.F *= 1 + 2 * z / (2 - z + (z2 / (6 + (z2 / (10 + z2 / 14)))));
       // correct for rounding errors
@@ -702,9 +721,9 @@ static size_t sprint_exponential_number(out_fct_type out, char* buffer, size_t i
     }
   }
 
-  // the exp10 format is "E%+03d" and largest number is "307", so set aside 4-5 characters
-  unsigned int exp10_part_width = fall_back_to_decimal_only_mode ?
-    0U : ((exp10 < 100) && (exp10 > -100)) ? 4U : 5U;
+  // the exp10 format is "E%+03d" and largest possible exp10 value for a 64-bit double
+  // is "307" (for 2^1023), so we set aside 4-5 characters overall
+  unsigned int exp10_part_width = fall_back_to_decimal_only_mode ? 0U : (PRINTF_ABS(exp10) < 100) ? 4U : 5U;
 
   unsigned int decimal_part_width =
     ((flags & FLAGS_LEFT) && exp10_part_width) ?
@@ -726,8 +745,8 @@ static size_t sprint_exponential_number(out_fct_type out, char* buffer, size_t i
 
   if (! fall_back_to_decimal_only_mode) {
     out((flags & FLAGS_UPPERCASE) ? 'E' : 'e', buffer, idx++, maxlen);
-    idx = _ntoa(out, buffer, idx, maxlen,
-                NTOA_ABS(exp10),
+    idx = print_integer(out, buffer, idx, maxlen,
+                ABS_FOR_PRINTING(exp10),
                 exp10 < 0, 10, 0, exp10_part_width - 1,
                 FLAGS_ZEROPAD | FLAGS_PLUS);
     if (flags & FLAGS_LEFT) {
@@ -775,12 +794,15 @@ static size_t sprint_floating_point(out_fct_type out, char* buffer, size_t idx, 
     precision--;
   }
 
-  return prefer_exponential ?
-         sprint_exponential_number(out, buffer, idx, maxlen, value, precision, width, flags, buf, len) :
-         sprint_decimal_number(out, buffer, idx, maxlen, value, precision, width, flags, buf, len);
+  return
+#if PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS
+    prefer_exponential ?
+      sprint_exponential_number(out, buffer, idx, maxlen, value, precision, width, flags, buf, len) :
+#endif
+      sprint_decimal_number(out, buffer, idx, maxlen, value, precision, width, flags, buf, len);
 }
 
-#endif  // PRINTF_SUPPORT_FLOAT_SPECIFIERS
+#endif  // (PRINTF_SUPPORT_DECIMAL_SPECIFIERS || PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS)
 
 // internal vsnprintf
 static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const char* format, va_list va)
@@ -870,12 +892,10 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
           format++;
         }
         break;
-#if PRINTF_SUPPORT_PTRDIFF_LENGTH_MODIFIER
       case 't' :
         flags |= (sizeof(ptrdiff_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
         format++;
         break;
-#endif
       case 'j' :
         flags |= (sizeof(intmax_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
         format++;
@@ -884,8 +904,8 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
         flags |= (sizeof(size_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
         format++;
         break;
-        default :
-          break;
+      default:
+        break;
     }
 
     // evaluate specifier
@@ -933,43 +953,44 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
           if (flags & FLAGS_LONG_LONG) {
 #if PRINTF_SUPPORT_LONG_LONG
             const long long value = va_arg(va, long long);
-            idx = _ntoa(out, buffer, idx, maxlen, NTOA_ABS(value), value < 0, base, precision, width, flags);
+            idx = print_integer(out, buffer, idx, maxlen, ABS_FOR_PRINTING(value), value < 0, base, precision, width, flags);
 #endif
           }
           else if (flags & FLAGS_LONG) {
             const long value = va_arg(va, long);
-            idx = _ntoa(out, buffer, idx, maxlen, NTOA_ABS(value), value < 0, base, precision, width, flags);
+            idx = print_integer(out, buffer, idx, maxlen, ABS_FOR_PRINTING(value), value < 0, base, precision, width, flags);
           }
           else {
             const int value = (flags & FLAGS_CHAR) ? (signed char)va_arg(va, int) : (flags & FLAGS_SHORT) ? (short int)va_arg(va, int) : va_arg(va, int);
-            idx = _ntoa(out, buffer, idx, maxlen, NTOA_ABS(value), value < 0, base, precision, width, flags);
+            idx = print_integer(out, buffer, idx, maxlen, ABS_FOR_PRINTING(value), value < 0, base, precision, width, flags);
           }
         }
         else {
           // unsigned
           if (flags & FLAGS_LONG_LONG) {
 #if PRINTF_SUPPORT_LONG_LONG
-            idx = _ntoa(out, buffer, idx, maxlen, (NTOA_VALUE_TYPE) va_arg(va, unsigned long long), false, base, precision, width, flags);
+            idx = print_integer(out, buffer, idx, maxlen, (printf_unsigned_value_t) va_arg(va, unsigned long long), false, base, precision, width, flags);
 #endif
           }
           else if (flags & FLAGS_LONG) {
-            idx = _ntoa(out, buffer, idx, maxlen, (NTOA_VALUE_TYPE) va_arg(va, unsigned long), false, base, precision, width, flags);
+            idx = print_integer(out, buffer, idx, maxlen, (printf_unsigned_value_t) va_arg(va, unsigned long), false, base, precision, width, flags);
           }
           else {
             const unsigned int value = (flags & FLAGS_CHAR) ? (unsigned char)va_arg(va, unsigned int) : (flags & FLAGS_SHORT) ? (unsigned short int)va_arg(va, unsigned int) : va_arg(va, unsigned int);
-            idx = _ntoa(out, buffer, idx, maxlen, (NTOA_VALUE_TYPE) value, false, base, precision, width, flags);
+            idx = print_integer(out, buffer, idx, maxlen, (printf_unsigned_value_t) value, false, base, precision, width, flags);
           }
         }
         format++;
         break;
       }
-#if PRINTF_SUPPORT_FLOAT_SPECIFIERS
+#if PRINTF_SUPPORT_DECIMAL_SPECIFIERS
       case 'f' :
       case 'F' :
         if (*format == 'F') flags |= FLAGS_UPPERCASE;
         idx = sprint_floating_point(out, buffer, idx, maxlen, va_arg(va, double), precision, width, flags, PRINTF_PREFER_DECIMAL);
         format++;
         break;
+#endif
 #if PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS
       case 'e':
       case 'E':
@@ -981,7 +1002,6 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
         format++;
         break;
 #endif  // PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS
-#endif  // PRINTF_SUPPORT_FLOAT_SPECIFIERS
       case 'c' : {
         unsigned int l = 1U;
         // pre padding
@@ -1037,23 +1057,9 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
         width = sizeof(void*) * 2U + 2; // 2 hex chars per byte + the "0x" prefix
         flags |= FLAGS_ZEROPAD | FLAGS_POINTER;
         uintptr_t value = (uintptr_t)va_arg(va, void*);
-
-        if (value == (uintptr_t) NULL) {
-          idx = _out_rev(out, buffer, idx, maxlen, ")lin(", 5, width, flags);
-        }
-        else {
-    #if PRINTF_SUPPORT_LONG_LONG
-          const bool is_ll = sizeof(uintptr_t) == sizeof(long long);
-          if (is_ll) {
-            idx = _ntoa(out, buffer, idx, maxlen, (NTOA_VALUE_TYPE) value, false, BASE_HEX, precision, width, flags);
-          }
-          else {
-    #endif
-            idx = _ntoa(out, buffer, idx, maxlen, (NTOA_VALUE_TYPE)((uintptr_t)va_arg(va, void*)), false, BASE_HEX, precision, width, flags);
-    #if PRINTF_SUPPORT_LONG_LONG
-          }
-    #endif
-        }
+        idx = (value == (uintptr_t) NULL) ?
+          _out_rev(out, buffer, idx, maxlen, ")lin(", 5, width, flags) :
+          print_integer(out, buffer, idx, maxlen, (printf_unsigned_value_t) value, false, BASE_HEX, precision, width, flags);
         format++;
         break;
       }
@@ -1080,7 +1086,7 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int printf(const char* format, ...)
+int printf_(const char* format, ...)
 {
   va_list va;
   va_start(va, format);
@@ -1091,7 +1097,7 @@ int printf(const char* format, ...)
 }
 
 
-int sprintf(char* buffer, const char* format, ...)
+int sprintf_(char* buffer, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
@@ -1101,7 +1107,7 @@ int sprintf(char* buffer, const char* format, ...)
 }
 
 
-int snprintf(char* buffer, size_t count, const char* format, ...)
+int snprintf_(char* buffer, size_t count, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
@@ -1111,18 +1117,18 @@ int snprintf(char* buffer, size_t count, const char* format, ...)
 }
 
 
-int vprintf(const char* format, va_list va)
+int vprintf_(const char* format, va_list va)
 {
   char buffer[1];
   return _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
 }
 
-int vsprintf(char* buffer, const char* format, va_list va)
+int vsprintf_(char* buffer, const char* format, va_list va)
 {
   return _vsnprintf(_out_buffer, buffer, (size_t)-1, format, va);
 }
 
-int vsnprintf(char* buffer, size_t count, const char* format, va_list va)
+int vsnprintf_(char* buffer, size_t count, const char* format, va_list va)
 {
   return _vsnprintf(_out_buffer, buffer, count, format, va);
 }
