@@ -181,6 +181,6 @@ void Keyboard_init()
 
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
-    
+
     serial_info("Initialized PS2 keyboard\n");
 }
