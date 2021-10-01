@@ -1,6 +1,7 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/mutex/mutex.hpp>
 #include <stivale2.h>
 #include <main.hpp>
 #include <include/string.hpp>
@@ -24,9 +25,12 @@ void term_init()
     serial_info("Initialized terminal\n");
 }
 
+DEFINE_MUTEX(m_term_write);
 void term_print(const char *string)
 {
+    mutex_lock(&m_term_write);
     term_write(string, strlen(string));
+    mutex_unlock(&m_term_write);
 }
 
 void term_printi(int num)
