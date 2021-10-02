@@ -1,8 +1,10 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
-#include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/display/drawing/drawing.hpp>
+#include <drivers/devices/ps2/mouse/mouse.hpp>
+#include <drivers/display/serial/serial.hpp>
+#include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/mm/bitmap/bitmap.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/timers/pit/pit.hpp>
 #include <system/timers/rtc/rtc.hpp>
@@ -12,8 +14,8 @@
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <include/string.hpp>
-#include <include/io.hpp>
 #include <misc/kshell.hpp>
+#include <include/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
 
@@ -31,10 +33,7 @@ int find_module(char* name)
 {
     for (int i = 0; i < mod_tag->module_count; i++)
     {
-        if (!strcmp(mod_tag->modules[i].string, "initrd"))
-        {
-            return i;
-        }
+        if (!strcmp(mod_tag->modules[i].string, "initrd")) return i;
     }
     return -1;
 }
