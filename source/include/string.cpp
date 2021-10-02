@@ -194,7 +194,7 @@ long oct_to_dec(int oct)
 
 char* humanify(double bytes)
 {
-    static char buf[1024];
+    static char buf[10];
     int i = 0;
     const char* units[] = { "B", "KB", "MB", "GB", "TB" };
     for (i = 0; bytes > 1024; i++)
