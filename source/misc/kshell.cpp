@@ -22,7 +22,7 @@ void shell_parse(char* cmd, char* arg)
         while (true)
         {
             RTC_GetTime();
-            sleep(1);
+            PIT_sleep(1);
             printf("\r\033[2K");
         }
     }

@@ -1,5 +1,7 @@
 #pragma once
 
-uint8_t year(), month(), day(), hour(), minute(), second();
+int RTC_year(), RTC_month(), RTC_day(), RTC_hour(), RTC_minute(), RTC_second();
 
-void RTC_GetTime();
+void RTC_sleep(int sec);
+
+char* RTC_GetTime();
