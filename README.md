@@ -15,26 +15,26 @@ Contributors are welcome
 - [x] Initrd
 - [x] Drawing on framebuffer
 - [x] Serial debugging
-- [ ] VFS
-- [ ] PMM
-- [ ] VMM
+- [ ] Page Frame allocator
+- [ ] Paging
 - [ ] Heap
+- [ ] VFS
+- [ ] AHCI
 - [x] ACPI
 - [ ] Shutdown
 - [ ] Reboot
 - [x] PCI
-- [ ] AHCI
+- [ ] Sound
 - [ ] Real filesystems (ext2, fat...)
 - [ ] Multithreading
 - [ ] TSS
 - [ ] Userspace
 - [ ] System calls
-- [ ] POSIX
 - [ ] ELF execution
 - [ ] Port libc (Newlib)
+- [ ] POSIX
 - [ ] Port apps
 - [ ] FUSE
-- [ ] Sound
 - [ ] Network
 - [ ] USB
 - [ ] USB Keyboard
