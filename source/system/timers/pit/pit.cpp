@@ -5,7 +5,7 @@
 
 uint64_t tick = 0;
 
-void sleep(long sec)
+void PIT_sleep(double sec)
 {
     long start = tick;
     while (tick < start + sec * 100)
