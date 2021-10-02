@@ -28,4 +28,4 @@ int string_to_int(char* str);
 
 long oct_to_dec(int n);
 
-char* humanify(int bytes, char* buf);
+char* humanify(double bytes, char* buf);

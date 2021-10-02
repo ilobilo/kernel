@@ -59,13 +59,13 @@ char* strstr(const char* str, const char* substring)
     }
 }
 
-char* strchr(const char str[], char ch) 
+char* strchr(const char str[], char ch)
 {
     while (*str && *str != ch ) ++str;
-    return (char *)(ch == *str ? str : NULL);  
+    return (char *)(ch == *str ? str : NULL);
 }
 
-void memcpy(void* dest, void* src, size_t n) 
+void memcpy(void* dest, void* src, size_t n)
 {
     int i;
     char* src_char = (char *)src;
@@ -192,7 +192,7 @@ long oct_to_dec(int oct)
     return dec;
 }
 
-char* humanify(int bytes, char* buf)
+char* humanify(double bytes, char* buf)
 {
     int i = 0;
     const char* units[] = { "B", "KB", "MB", "GB", "TB" };
@@ -200,6 +200,6 @@ char* humanify(int bytes, char* buf)
     {
         bytes /= 1024;
     }
-    sprintf(buf, "%d%s", bytes, units[i]);
+    sprintf(buf, "%.2f%s", bytes, units[i]);
     return buf;
 }
