@@ -8,7 +8,7 @@ uint64_t getmemsize()
 
     for (int i = 0; i < mmap_tag->entries; i++)
     {
-        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE && mmap_tag->memmap[i].type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE) continue;// && mmap_tag->memmap[i].type != STIVALE2_MMAP_KERNEL_AND_MODULES) continue;
+        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE && mmap_tag->memmap[i].type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE) continue;
 
         usablememinbytes += mmap_tag->memmap[i].length;
     }
