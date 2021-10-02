@@ -65,8 +65,7 @@ void ustar_list()
         switch (ustar_headers->headers[i]->typeflag[0])
         {
             case REGULAR_FILE:
-                char buf[10];
-                printf("%d) (REGULAR) %s %s\n", i, ustar_headers->headers[i]->name, humanify(oct_to_dec(string_to_int(ustar_headers->headers[i]->size)), buf));
+                printf("%d) (REGULAR) %s %s\n", i, ustar_headers->headers[i]->name, humanify(oct_to_dec(string_to_int(ustar_headers->headers[i]->size))));
                 size += oct_to_dec(string_to_int(ustar_headers->headers[i]->size));
                 break;
             case SYMLINK:
@@ -80,8 +79,7 @@ void ustar_list()
                 break;
         }
     }
-    char buf1[10];
-    printf("--------------------\nTotal size: %s\n", humanify(size, buf1));
+    printf("--------------------\nTotal size: %s\n", humanify(size));
 }
 
 char* ustar_cat(char* name)

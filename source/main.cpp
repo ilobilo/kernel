@@ -60,11 +60,9 @@ void main(struct stivale2_struct *stivale2_struct)
     if (KERNEL_VERSION == "0") serial_info("Git version: %s\n", GIT_VERSION);
     else serial_info("Version: %s\n", KERNEL_VERSION);
 
-    char buf[10];
-
     // Serial system info
     serial_info("CPU cores available: %d", smp_tag->cpu_count);
-    serial_info("Total usable memory: %s\n", humanify(getmemsize(), buf));
+    serial_info("Total usable memory: %s\n", humanify(getmemsize()));
     serial_info("Arguments passed to kernel: %s", cmdline);
 
     // Modules list
@@ -102,7 +100,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     // System info
     printf("CPU cores available: %d\n", smp_tag->cpu_count);
-    printf("Total usable memory: %s\n", humanify(getmemsize(), buf));
+    printf("Total usable memory: %s\n", humanify(getmemsize()));
 
     // If initrd found initialize it
     int i = find_module("initrd");
