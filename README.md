@@ -15,7 +15,7 @@ Contributors are welcome
 - [x] Initrd
 - [x] Drawing on framebuffer
 - [x] Serial debugging
-- [ ] Page Frame allocator
+- [x] Page Frame allocator
 - [ ] Paging
 - [ ] Heap
 - [ ] VFS
