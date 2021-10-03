@@ -20,8 +20,7 @@ void PFAlloc::ReadMemMap()
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
-        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE && mmap_tag->memmap[i].type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE)
-            continue;
+        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
 
         uintptr_t top = mmap_tag->memmap[i].base;
 
@@ -37,10 +36,10 @@ void PFAlloc::ReadMemMap()
     reservePages(0, memsize / 4096 + 1);
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
-        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE && mmap_tag->memmap[i].type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE) continue;
+        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
         unreservePages((void*)mmap_tag->memmap[i].base, mmap_tag->memmap[i].length / 4096);
     }
-    reservePages(0, 0x100); // reserve between 0 and 0x100000
+    reservePages(0, 0x100);
     lockPages(PageBitmap.buffer, PageBitmap.size / 4096 + 1);
 }
 

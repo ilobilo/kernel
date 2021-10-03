@@ -208,18 +208,15 @@ static void Mouse_Handler(interrupt_registers *)
     switch (cycle)
     {
         case 0:
-            if (packetready) break;
             if ((mousedata & 0b00001000) == 0) break;
             packet[0] = mousedata;
             cycle++;
             break;
         case 1:
-            if (packetready) break;
             packet[1] = mousedata;
             cycle++;
             break;
         case 2:
-            if (packetready) break;
             packet[2] = mousedata;
             packetready = true;
             cycle = 0;
