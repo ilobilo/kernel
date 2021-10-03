@@ -14,6 +14,7 @@
 #include <system/memory/memory.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <system/heap/heap.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <include/string.hpp>
@@ -125,6 +126,10 @@ void main(struct stivale2_struct *stivale2_struct)
     PTManager_init();
     term_check(true, "Initializing Page Table Manager...");
 
+    // Initialize Heap
+    Heap_init((void*)0x0000100000000000, 0x10);
+    term_check(true, "Initializing Kernel Heap...");
+
     // Initialize IDT
     IDT_init();
     term_check(true, "Initializing Interrupt Descriptor Table...");
@@ -158,8 +163,7 @@ void main(struct stivale2_struct *stivale2_struct)
     }
 
     // Print current bios time
-    printf("Current RTC time: ");
-    RTC_GetTime();
+    printf("Current RTC time: %s", RTC_GetTime());
 
     printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
