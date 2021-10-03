@@ -3,7 +3,10 @@
 #include <drivers/display/drawing/drawing.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/mm/pmindexer/pmindexer.hpp>
+#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/mm/paging/paging.hpp>
 #include <system/mm/bitmap/bitmap.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/timers/pit/pit.hpp>
@@ -113,6 +116,14 @@ void main(struct stivale2_struct *stivale2_struct)
     // Initialize GDT
     GDT_init();
     term_check(true, "Initializing Global Descriptor Table...");
+
+    // Initialize Page Frame Allocator
+    PFAlloc_init();
+    term_check(true, "Initializing Page Frame Allocator...");
+
+    // Initialize Page Table Manager
+    PTManager_init();
+    term_check(true, "Initializing Page Table Manager...");
 
     // Initialize IDT
     IDT_init();

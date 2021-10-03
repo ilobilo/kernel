@@ -28,3 +28,7 @@ class PFAlloc
     void reservePages(void* address, uint64_t pageCount);
     void unreservePages(void* address, uint64_t pageCount);
 };
+
+extern PFAlloc globalAlloc;
+
+void PFAlloc_init();

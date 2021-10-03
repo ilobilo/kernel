@@ -14,7 +14,8 @@
             "compilerArgs": [
                 "-DGIT_VERSION=0",
                 "-DKERNEL_VERSION=0"
-            ]
+            ],
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],
     "version": 4
