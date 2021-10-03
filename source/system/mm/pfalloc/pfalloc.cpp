@@ -9,6 +9,8 @@ uint64_t reservedMem;
 uint64_t usedMem;
 bool init = false;
 
+PFAlloc globalAlloc;
+
 uintptr_t highest_page = 0;
 
 void PFAlloc::ReadMemMap()
@@ -53,13 +55,14 @@ void PFAlloc::Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr)
     }
 }
 
+uint64_t pageBitmapIndex = 0;
 void* PFAlloc::requestPage()
 {
-    for (uint64_t index = 0; index < PageBitmap.size * 8; index++)
+    for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
     {
-        if (PageBitmap[index] == true) continue;
-        lockPage((void*)(index * 4096));
-        return (void*)(index * 4096);
+        if (PageBitmap[pageBitmapIndex] == true) continue;
+        lockPage((void*)(pageBitmapIndex * 4096));
+        return (void*)(pageBitmapIndex * 4096);
     }
 
     return NULL; // Page frame swap
@@ -69,9 +72,12 @@ void PFAlloc::freePage(void* address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;
-    PageBitmap.Set(index, false);
-    freeMem += 4096;
-    usedMem -= 4096;
+    if (PageBitmap.Set(index, false))
+    {
+        freeMem += 4096;
+        usedMem -= 4096;
+        if (pageBitmapIndex > index) pageBitmapIndex = index;
+    }
 }
 
 void PFAlloc::freePages(void* address, uint64_t pageCount)
@@ -86,9 +92,11 @@ void PFAlloc::lockPage(void* address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == true) return;
-    PageBitmap.Set(index, true);
-    freeMem -= 4096;
-    usedMem += 4096;
+    if (PageBitmap.Set(index, true))
+    {
+        freeMem -= 4096;
+        usedMem += 4096;
+    }
 }
 
 void PFAlloc::lockPages(void* address, uint64_t pageCount)
@@ -103,9 +111,12 @@ void PFAlloc::unreservePage(void* address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;
-    PageBitmap.Set(index, false);
-    freeMem += 4096;
-    reservedMem-= 4096;
+    if (PageBitmap.Set(index, false))
+    {
+        freeMem += 4096;
+        reservedMem-= 4096;
+        if (pageBitmapIndex > index) pageBitmapIndex = index;
+    }
 }
 
 
@@ -121,9 +132,11 @@ void PFAlloc::reservePage(void* address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == true) return;
-    PageBitmap.Set(index, true);
-    freeMem -= 4096;
-    reservedMem += 4096;
+    if (PageBitmap.Set(index, true))
+    {
+        freeMem -= 4096;
+        reservedMem += 4096;
+    }
 }
 
 void PFAlloc::reservePages(void* address, uint64_t pageCount)
@@ -138,11 +151,23 @@ uint64_t PFAlloc::getFreeRam()
 {
     return freeMem;
 }
+
 uint64_t PFAlloc::getUsedRam()
 {
     return usedMem;
 }
+
 uint64_t PFAlloc::getReservedRam()
 {
     return reservedMem;
+}
+
+void PFAlloc_init()
+{
+    serial_info("Initializing Page Frame Allocator");
+
+    globalAlloc = PFAlloc();
+    globalAlloc.ReadMemMap();
+
+    serial_info("Initialized Page Frame Allocator\n");
 }

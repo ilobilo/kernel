@@ -10,7 +10,7 @@ LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS = -M q35 -enable-kvm -cpu max -smp 12 -m 512M -boot d -rtc base=localtime -serial stdio
+QEMUFLAGS = -M q35 -enable-kvm -cpu max -smp 12 -m 512M -boot d -rtc base=localtime -serial stdio -no-reboot -no-shutdown
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
