@@ -16,7 +16,7 @@ Contributors are welcome
 - [x] Drawing on framebuffer
 - [x] Serial debugging
 - [x] Page Frame allocator
-- [ ] Paging
+- [x] Paging
 - [ ] Heap
 - [ ] VFS
 - [ ] AHCI
