@@ -97,5 +97,10 @@ void PTManager_init()
 
     globalPTManager = PTManager(PML4);
 
+    for (int s = 0; s < getmemsize(); s += 0x1000)
+    {
+        globalPTManager.mapMem((void*)(s + 0xffff800000000000), (void*)s);
+    }
+
     serial_info("Initialized Page Table Manager\n");
 }
