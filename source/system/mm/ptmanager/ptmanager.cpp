@@ -7,18 +7,18 @@
 
 PTManager globalPTManager = NULL;
 
-PTManager::PTManager(PTable* PML4Address)
+PTManager::PTManager(PTable *PML4Address)
 {
     this->PML4 = PML4Address;
 }
 
-void PTManager::mapMem(void* virtualMemory, void* physicalMemory)
+void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
 {
     PMIndexer indexer = PMIndexer((uint64_t)virtualMemory);
     PDEntry PDE;
 
     PDE = PML4->entries[indexer.PDP_i];
-    PTable* PDP;
+    PTable *PDP;
     if (!PDE.getflag(PT_Flag::Present))
     {
         PDP = (PTable*)globalAlloc.requestPage();
@@ -34,7 +34,7 @@ void PTManager::mapMem(void* virtualMemory, void* physicalMemory)
     }
 
     PDE = PDP->entries[indexer.PD_i];
-    PTable* PD;
+    PTable *PD;
     if (!PDE.getflag(PT_Flag::Present))
     {
         PD = (PTable*)globalAlloc.requestPage();
@@ -50,7 +50,7 @@ void PTManager::mapMem(void* virtualMemory, void* physicalMemory)
     }
 
     PDE = PD->entries[indexer.PT_i];
-    PTable* PT;
+    PTable *PT;
     if (!PDE.getflag(PT_Flag::Present))
     {
         PT = (PTable*)globalAlloc.requestPage();
@@ -93,7 +93,7 @@ void PTManager_init()
 {
     serial_info("Initializing Page Table Manager");
 
-    PTable* PML4 = (PTable*)getCRs().cr3;
+    PTable *PML4 = (PTable*)getCRs().cr3;
 
     globalPTManager = PTManager(PML4);
 

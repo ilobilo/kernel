@@ -37,23 +37,23 @@ struct ustar_file_header_t
 
 struct ustar_header_t
 {
-    ustar_file_header_t* headers[HEADER_SIZE];
+    ustar_file_header_t *headers[HEADER_SIZE];
     unsigned int address[HEADER_SIZE];
     int count;
 };
 
 extern bool initrd;
 
-extern ustar_header_t* ustar_headers;
+extern ustar_header_t *ustar_headers;
 
-unsigned int getsize(const char* s);
+unsigned int getsize(const char *s);
 
 void ustar_list();
 
-char* ustar_cat(char* name);
+char *ustar_cat(char *name);
 
-int ustar_getid(char* name);
+int ustar_getid(char *name);
 
-int ustar_search(char* filename, char** contents);
+int ustar_search(char *filename, char* *contents);
 
 void initrd_init(unsigned int address);

@@ -38,9 +38,9 @@ static struct stivale2_header stivale_hdr = {
     .tags = (uintptr_t)&framebuffer_hdr_tag
 };
 
-void* stivale2_get_tag(stivale2_struct* stivale, uint64_t id)
+void *stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
 {
-    stivale2_tag* current_tag = (stivale2_tag*)stivale->tags;
+    stivale2_tag *current_tag = (stivale2_tag*)stivale->tags;
     while (true)
     {
         if (current_tag == NULL) return NULL;
@@ -53,7 +53,7 @@ void* stivale2_get_tag(stivale2_struct* stivale, uint64_t id)
 
 extern "C" void InitSSE();
 
-extern "C" void _start(stivale2_struct* stivale2_struct)
+extern "C" void _start(stivale2_struct *stivale2_struct)
 {
     InitSSE();
 

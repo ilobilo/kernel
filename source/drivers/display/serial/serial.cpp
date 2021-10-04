@@ -7,13 +7,13 @@ int is_transmit_empty(void)
     return inb(COM1 + 5) & 0x20;
 }
 
-void serial_printc(char c, void* arg)
+void serial_printc(char c, void *arg)
 {
     while (is_transmit_empty() == 0);
     outb(COM1, c);
 }
 
-void serial_printf(const char* fmt, ...)
+void serial_printf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -21,7 +21,7 @@ void serial_printf(const char* fmt, ...)
     va_end(args);
 }
 
-void serial_info(const char* fmt, ...)
+void serial_info(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -31,7 +31,7 @@ void serial_info(const char* fmt, ...)
     va_end(args);
 }
 
-void serial_err(const char* fmt, ...)
+void serial_err(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

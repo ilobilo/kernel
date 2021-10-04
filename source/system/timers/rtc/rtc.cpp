@@ -4,7 +4,7 @@
 
 int bcdtobin(int value)
 {
-    return (value >> 4) * 10 + (value & 15);
+    return (value >> 4)  *10 + (value & 15);
 }
 
 int RTC_year()
@@ -45,7 +45,7 @@ int RTC_second()
 
 int RTC_time()
 {
-    return RTC_hour() * 3600 + RTC_minute() * 60 + RTC_second();
+    return RTC_hour()  *3600 + RTC_minute()  *60 + RTC_second();
 }
 
 void RTC_sleep(int sec)
@@ -54,7 +54,7 @@ void RTC_sleep(int sec)
     while (lastsec != RTC_time());
 }
 
-char* RTC_GetTime()
+char *RTC_GetTime()
 {
     static char time[30];
     sprintf(time, "20%d/%d/%d %d:%d:%d", RTC_year(), RTC_month(),

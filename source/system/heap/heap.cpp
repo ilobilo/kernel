@@ -4,25 +4,25 @@
 #include <system/heap/heap.hpp>
 #include <include/string.hpp>
 
-void* heapStart;
-void* heapEnd;
-heapSegHdr* lastHdr;
+void *heapStart;
+void *heapEnd;
+heapSegHdr *lastHdr;
 
-void Heap_init(void* heapAddr, size_t pageCount)
+void Heap_init(void *heapAddr, size_t pageCount)
 {
     serial_info("Initializing Kernel Heap");
 
-    void* pos = heapAddr;
+    void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
     {
         globalPTManager.mapMem(pos, globalAlloc.requestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
-    size_t heapLength = pageCount * 0x1000;
+    size_t heapLength = pageCount  *0x1000;
 
     heapStart = heapAddr;
     heapEnd = (void*)((size_t)heapStart + heapLength);
-    heapSegHdr* startSeg = (heapSegHdr*)heapAddr;
+    heapSegHdr *startSeg = (heapSegHdr*)heapAddr;
 
     startSeg->length = heapLength - sizeof(heapSegHdr);
     startSeg->next = NULL;
@@ -33,15 +33,15 @@ void Heap_init(void* heapAddr, size_t pageCount)
     serial_info("Initialized Kernel Heap\n");
 }
 
-void free(void* address)
+void free(void *address)
 {
-    heapSegHdr* segment = (heapSegHdr*)address - 1;
+    heapSegHdr *segment = (heapSegHdr*)address - 1;
     segment->free = true;
     segment->combineForward();
     segment->combineBackward();
 }
 
-void* malloc(size_t size)
+void *malloc(size_t size)
 {
     if (size % 0x08 > 0)
     {
@@ -50,7 +50,7 @@ void* malloc(size_t size)
     }
     if (size == 0) return NULL;
 
-    heapSegHdr* currentSeg = (heapSegHdr*)heapStart;
+    heapSegHdr *currentSeg = (heapSegHdr*)heapStart;
     while (true)
     {
         if (currentSeg->free)
@@ -74,16 +74,16 @@ void* malloc(size_t size)
     return malloc(size);
 }
 
-size_t alloc_getsize(void* ptr)
+size_t alloc_getsize(void *ptr)
 {
-    heapSegHdr* segment = (heapSegHdr*)ptr - 1;
+    heapSegHdr *segment = (heapSegHdr*)ptr - 1;
     return segment->length;
 }
 
-void* calloc(size_t m, size_t n)
+void *calloc(size_t m, size_t n)
 {
-    void* p;
-    size_t* z;
+    void *p;
+    size_t *z;
     if (n && m > (size_t)-1 / n) return NULL;
     n *= m;
     p = malloc(n);
@@ -92,10 +92,10 @@ void* calloc(size_t m, size_t n)
     return p;
 }
 
-void* realloc(void* ptr, size_t size)
+void *realloc(void *ptr, size_t size)
 {
     size_t oldsize = alloc_getsize(ptr);
-    void* newptr;
+    void *newptr;
 
     if (ptr == NULL) return malloc(size);
     if (size <= oldsize) return ptr;
@@ -106,13 +106,13 @@ void* realloc(void* ptr, size_t size)
     return(newptr);
 }
 
-heapSegHdr* heapSegHdr::split(size_t splitLength)
+heapSegHdr *heapSegHdr::split(size_t splitLength)
 {
     if (splitLength < 0x08) return NULL;
     int64_t splitSegLength = length - splitLength - sizeof(heapSegHdr);
     if (splitSegLength < 0x08) return NULL;
 
-    heapSegHdr* newSplitHdr = (heapSegHdr*)((size_t)this + splitLength + sizeof(heapSegHdr));
+    heapSegHdr *newSplitHdr = (heapSegHdr*)((size_t)this + splitLength + sizeof(heapSegHdr));
 
     next->last = newSplitHdr;
     newSplitHdr->next = next;
@@ -134,7 +134,7 @@ void expandHeap(size_t length)
         length += 0x1000;
     }
     size_t pageCount = length / 0x1000;
-    heapSegHdr* newSeg = (heapSegHdr*)heapEnd;
+    heapSegHdr *newSeg = (heapSegHdr*)heapEnd;
 
     for (size_t i = 0; i < pageCount; i++)
     {
