@@ -167,6 +167,32 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
+    int *ptr, l , n1 = 5, n2 = 10;
+    ptr = (int*) malloc(n1 * sizeof(int));
+
+    printf("Previous array:\n");
+    for (l = 0; l < n1; l++)
+    {
+        ptr[l] = l + 1;
+    }
+    for(l = 0; l < n1; ++l)
+    {
+        printf("%d\n",ptr[l]);
+    }
+
+    ptr = (int*)realloc(ptr, n2 * sizeof(int));
+
+    printf("New array:\n");
+    for (l = 0; l < n2; l++)
+    {
+        ptr[l] = l + 10;
+    }
+    for(l = 0; l < n2; ++l)
+    {
+        printf("%d\n", ptr[l]);
+    }
+    free(ptr);
+
     // Start the shell
     getchar();
     serial_info("Starting kernel shell\n");

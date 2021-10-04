@@ -2,6 +2,7 @@
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/heap/heap.hpp>
+#include <include/string.hpp>
 
 void* heapStart;
 void* heapEnd;
@@ -22,7 +23,7 @@ void Heap_init(void* heapAddr, size_t pageCount)
     heapStart = heapAddr;
     heapEnd = (void*)((size_t)heapStart + heapLength);
     heapSegHdr* startSeg = (heapSegHdr*)heapAddr;
-    
+
     startSeg->length = heapLength - sizeof(heapSegHdr);
     startSeg->next = NULL;
     startSeg->last = NULL;
@@ -71,7 +72,26 @@ void* malloc(size_t size)
     }
     expandHeap(size);
     return malloc(size);
-    
+}
+
+size_t getsize(void* ptr)
+{
+    return ((size_t*)ptr)[-1];
+}
+
+void* realloc(void* ptr, size_t size)
+{
+    size_t curSize;
+    void* newPtr;
+
+    if (ptr == NULL) return malloc(size);
+    curSize = getsize(ptr);
+    if (size <= curSize) return ptr;
+
+    newPtr = malloc(size);
+    memcpy(ptr, newPtr, (int)curSize);
+    free(ptr);
+    return(newPtr);
 }
 
 heapSegHdr* heapSegHdr::split(size_t splitLength)

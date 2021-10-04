@@ -24,7 +24,7 @@ AS = nasm
 CFLAGS = -O3 -pipe -w -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
 CPPFLAGS = -O3 -pipe -w -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
 LDFLAGS = 
-ASMFLAGS = 
+ASMFLAGS = -f elf64
 
 INTERNALLDFLAGS :=             \
 	-T$(SOURCEDIR)/linker.ld \
@@ -71,39 +71,42 @@ all: $(KERNEL) initrd iso clean run
 bios: $(KERNEL) initrd iso clean run-bios
 
 $(KERNEL): $(OBJ)
-	echo "Building kernel..."
+	echo "\nLinking the kernel...\n"
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
 
 %.o: %.c
+	printf "Building %s\n" $<
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
 
 %.o: %.cpp
+	printf "Building %s\n" $<
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -c $< -o $@
 
 %_asm.o: %.asm
-	$(AS) $(ASMFLAGS) $^ -f elf64 -o $@
+	printf "Building %s\n" $<
+	$(AS) $(ASMFLAGS) $< -o $@
 
 initrd:
-	echo "\nCreating initrd..."
+	echo "Creating initrd...\n"
 	tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./ --format=ustar 
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
-	echo "\nBuilding iso image..."
+	echo "Building iso image...\n"
 	$(XORRISO) $(XORRISOFLAGS) $(SOURCEDIR)/../iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"
 
-	echo "\nInstaling limine..."
+	echo "Instaling limine...\n"
 	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install limine!\e[0m"
 
 clean:
 	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(SOURCEDIR)/../iso_root/*
 
 run:
-	echo "\nBooting iso in uefi mode..."
+	echo "Booting iso in uefi mode...\n"
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd 2> /dev/null
 
 run-bios:
-	echo "\nBooting iso in bios mode..."
+	echo "Booting iso in bios mode...\n"
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) 2> /dev/null
