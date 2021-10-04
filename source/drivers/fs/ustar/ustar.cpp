@@ -35,7 +35,7 @@ int ustar_parse(unsigned int address)
         ustar_headers->address[i] = address + 512;
         ustar_headers->count++;
 
-        address += (((size + 511) / 512) + 1)  *512;
+        address += (((size + 511) / 512) + 1)/ * 512;
     }
     for (int g = 1; g < ustar_headers->count; g++)
     {
@@ -145,7 +145,7 @@ int ustar_search(char *filename, char* *contents)
     {
         if (!strcmp(ustar_headers->headers[i]->name, filename))
         {
-            *contents = (char*)ustar_headers->address[i];
+          / * contents = (char*)ustar_headers->address[i];
             return 1;
         }
     }

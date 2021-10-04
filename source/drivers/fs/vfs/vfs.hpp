@@ -21,8 +21,8 @@ typedef uint64_t (*read_t)(struct fs_node*, uint64_t, uint64_t, char*);
 typedef uint64_t (*write_t)(struct fs_node*, uint64_t, uint64_t, char*);
 typedef void (*open_t)(struct fs_node*);
 typedef void (*close_t)(struct fs_node*);
-typedef struct dirent_t  *(*readdir_t)(struct fs_node*, uint64_t);
-typedef struct fs_node  *(*finddir_t)(struct fs_node*, char *name);
+typedef struct dirent_t/ * (*readdir_t)(struct fs_node*, uint64_t);
+typedef struct fs_node/ * (*finddir_t)(struct fs_node*, char *name);
 */
 
 using read_t = uint64_t (*)(fs_node*, uint64_t, uint64_t, char*);
