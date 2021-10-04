@@ -60,7 +60,7 @@ void PCI_init()
     int entries = ((mcfg->header.length) - sizeof(mcfg_header)) / sizeof(deviceconfig);
     for (int t = 0; t < entries; t++)
     {
-        deviceconfig *newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(mcfg_header) + (sizeof(deviceconfig)  *t));
+        deviceconfig *newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(mcfg_header) + (sizeof(deviceconfig)/ * t));
         for (uint64_t bus = newdevconf->startbus; bus < newdevconf->endbus; bus++)
         {
             enumbus(newdevconf->baseaddr, bus);

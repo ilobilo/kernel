@@ -42,11 +42,11 @@ void *findtable(sdt_header *sdthdr, char *signature)
         sdt_header *newsdthdr;
         if (use_xstd)
         {
-            newsdthdr = (sdt_header*)*(uint64_t*)((uint64_t)sdthdr + sizeof(sdt_header) + (t  *8));
+            newsdthdr = (sdt_header*)*(uint64_t*)((uint64_t)sdthdr + sizeof(sdt_header) + (t/ * 8));
         }
         else
         {
-            newsdthdr = (sdt_header*)*(uint32_t*)(*((uint32_t*)(&sdthdr)) + sizeof(sdt_header) + (t  *4));
+            newsdthdr = (sdt_header*)*(uint32_t*)(*((uint32_t*)(&sdthdr)) + sizeof(sdt_header) + (t/ * 4));
         }
         for (int i = 0; i < 4; i++)
         {

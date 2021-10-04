@@ -18,7 +18,7 @@ void Heap_init(void *heapAddr, size_t pageCount)
         globalPTManager.mapMem(pos, globalAlloc.requestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
-    size_t heapLength = pageCount  *0x1000;
+    size_t heapLength = pageCount/ * 0x1000;
 
     heapStart = heapAddr;
     heapEnd = (void*)((size_t)heapStart + heapLength);
