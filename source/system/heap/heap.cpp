@@ -74,11 +74,6 @@ void* malloc(size_t size)
     return malloc(size);
 }
 
-size_t getsize(void* ptr)
-{
-    return ((size_t*)ptr)[-1];
-}
-
 void* calloc(size_t m, size_t n)
 {
     void* p;
@@ -87,27 +82,21 @@ void* calloc(size_t m, size_t n)
     n *= m;
     p = malloc(n);
     if (!p) return NULL;
-    if (getsize(p) & 7)
-    {
-        m = (n + sizeof(*z) - 1) / sizeof(*z);
-        for (z = (size_t*)p; m; m--, z++) if (*z) *z = 0;
-    }
+    memset(p, 0, n);
     return p;
 }
 
-void* realloc(void* ptr, size_t size)
+void* realloc(void* ptr, size_t size, size_t oldsize)
 {
-    size_t curSize;
-    void* newPtr;
+    void* newptr;
 
     if (ptr == NULL) return malloc(size);
-    curSize = getsize(ptr);
-    if (size <= curSize) return ptr;
+    if (size <= oldsize) return ptr;
 
-    newPtr = malloc(size);
-    memcpy(newPtr, ptr, curSize);
+    newptr = malloc(size);
+    memcpy(newptr, ptr, oldsize);
     free(ptr);
-    return(newPtr);
+    return(newptr);
 }
 
 heapSegHdr* heapSegHdr::split(size_t splitLength)
