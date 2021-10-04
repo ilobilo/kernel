@@ -43,10 +43,10 @@ void free(void* address)
 
 void* malloc(size_t size)
 {
-    if (size % 0x10 > 0)
+    if (size % 0x08 > 0)
     {
-        size -= (size % 0x10);
-        size += 0x10;
+        size -= (size % 0x08);
+        size += 0x08;
     }
     if (size == 0) return NULL;
 
@@ -74,6 +74,12 @@ void* malloc(size_t size)
     return malloc(size);
 }
 
+size_t alloc_getsize(void* ptr)
+{
+    heapSegHdr* segment = (heapSegHdr*)ptr - 1;
+    return segment->length;
+}
+
 void* calloc(size_t m, size_t n)
 {
     void* p;
@@ -86,8 +92,9 @@ void* calloc(size_t m, size_t n)
     return p;
 }
 
-void* realloc(void* ptr, size_t size, size_t oldsize)
+void* realloc(void* ptr, size_t size)
 {
+    size_t oldsize = alloc_getsize(ptr);
     void* newptr;
 
     if (ptr == NULL) return malloc(size);
@@ -101,9 +108,9 @@ void* realloc(void* ptr, size_t size, size_t oldsize)
 
 heapSegHdr* heapSegHdr::split(size_t splitLength)
 {
-    if (splitLength < 0x10) return NULL;
+    if (splitLength < 0x08) return NULL;
     int64_t splitSegLength = length - splitLength - sizeof(heapSegHdr);
-    if (splitSegLength < 0x10) return NULL;
+    if (splitSegLength < 0x08) return NULL;
 
     heapSegHdr* newSplitHdr = (heapSegHdr*)((size_t)this + splitLength + sizeof(heapSegHdr));
 
