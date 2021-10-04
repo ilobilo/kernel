@@ -127,7 +127,7 @@ void main(struct stivale2_struct *stivale2_struct)
     term_check(true, "Initializing Page Table Manager...");
 
     // Initialize Heap
-    Heap_init((void*)0x0000100000000000, 0x10);
+    Heap_init((void *)0x0000100000000000, 0x10);
     term_check(true, "Initializing Kernel Heap...");
 
     // Initialize IDT

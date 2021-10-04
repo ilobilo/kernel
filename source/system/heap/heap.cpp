@@ -16,12 +16,12 @@ void Heap_init(void *heapAddr, size_t pageCount)
     for (size_t i = 0; i < pageCount; i++)
     {
         globalPTManager.mapMem(pos, globalAlloc.requestPage());
-        pos = (void*)((size_t)pos + 0x1000);
+        pos = (void *)((size_t)pos + 0x1000);
     }
-    size_t heapLength = pageCount/ * 0x1000;
+    size_t heapLength = pageCount * 0x1000;
 
     heapStart = heapAddr;
-    heapEnd = (void*)((size_t)heapStart + heapLength);
+    heapEnd = (void *)((size_t)heapStart + heapLength);
     heapSegHdr *startSeg = (heapSegHdr*)heapAddr;
 
     startSeg->length = heapLength - sizeof(heapSegHdr);
@@ -41,7 +41,7 @@ void free(void *address)
     segment->combineBackward();
 }
 
-void *malloc(size_t size)
+void* malloc(size_t size)
 {
     if (size % 0x08 > 0)
     {
@@ -50,7 +50,7 @@ void *malloc(size_t size)
     }
     if (size == 0) return NULL;
 
-    heapSegHdr *currentSeg = (heapSegHdr*)heapStart;
+    heapSegHdr* currentSeg = (heapSegHdr*)heapStart;
     while (true)
     {
         if (currentSeg->free)
@@ -139,7 +139,7 @@ void expandHeap(size_t length)
     for (size_t i = 0; i < pageCount; i++)
     {
         globalPTManager.mapMem(heapEnd, globalAlloc.requestPage());
-        heapEnd = (void*)((size_t)heapEnd + 0x1000);
+        heapEnd = (void *)((size_t)heapEnd + 0x1000);
     }
 
     newSeg->free = true;

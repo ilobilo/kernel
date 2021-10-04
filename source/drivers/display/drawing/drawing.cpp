@@ -9,19 +9,19 @@ uint16_t frm_pitch;
 uint16_t frm_bpp;
 uint16_t frm_pixperscanline;
 
-uint32_t cursorbuffer[16/ * 19];
-uint32_t cursorbuffersecond[16/ * 19];
+uint32_t cursorbuffer[16 * 19];
+uint32_t cursorbuffersecond[16 * 19];
 
 bool mousedrawn;
 
 void putpix(uint32_t x, uint32_t y, uint32_t colour)
 {
-  / * (uint32_t*)((uint64_t)frm_addr + (x/ * 4) + (y/ * frm_pixperscanline/ * 4)) = colour;
+    *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = colour;
 }
 
 uint32_t getpix(uint32_t x, uint32_t y)
 {
-    return *(uint32_t*)((uint64_t)frm_addr + (x/ * 4) + (y/ * frm_pixperscanline/ * 4));
+    return *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4));
 }
 
 void drawvertline(int x, int y, int dy, uint32_t colour)
@@ -113,7 +113,7 @@ void drawrectangle(int x, int y, int w, int h, uint32_t colour)
     drawline(x, y, x + w, y, colour); // ¯
     drawline(x, y + h - 1, x + w, y + h - 1, colour); // _
     drawline(x, y, x, y + h, colour); // |*
-    drawline(x + w - 1, y, x + w - 1, y + h, colour); //* |
+    drawline(x + w - 1, y, x + w - 1, y + h, colour); // *|
 }
 
 void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour)
@@ -126,7 +126,7 @@ void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour)
 
 void drawcircle(int cx, int cy, int radius, uint32_t colour)
 {
-    int x = -radius, y = 0, err = 2 - 2/ * radius;
+    int x = -radius, y = 0, err = 2 - 2 * radius;
     do
     {
         putpix(abs(cx - x), abs(cy + y), colour);
@@ -134,8 +134,8 @@ void drawcircle(int cx, int cy, int radius, uint32_t colour)
         putpix(abs(cx + x), abs(cy - y), colour);
         putpix(abs(cx + y), abs(cy + x), colour);
         radius = err;
-        if (radius > x) err += ++x/ * 2 + 1;
-        if (radius <= y) err += ++y/ * 2 + 1;
+        if (radius > x) err += ++x * 2 + 1;
+        if (radius <= y) err += ++y * 2 + 1;
     } while (x < 0);
 }
 
@@ -186,11 +186,11 @@ void clearcursor(uint8_t cursor[], point pos)
     {
         for (int x = 0; x < xmax; x++)
         {
-            int bit = y/ * 16 + x;
+            int bit = y * 16 + x;
             int byte = bit / 8;
             if ((cursor[byte] & (0b10000000 >> (x % 8))))
             {
-                putpix(pos.X + x, pos.Y + y, cursorbuffer[y/ * 16 + x]);
+                putpix(pos.X + x, pos.Y + y, cursorbuffer[y * 16 + x]);
             }
         }
     }
@@ -207,13 +207,13 @@ void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
     {
         for (int x = 0; x < xmax; x++)
         {
-            int bit = y/ * 16 + x;
+            int bit = y * 16 + x;
             int byte = bit / 8;
             if ((cursor[byte] & (0b10000000 >> (x % 8))))
             {
-                if (back) cursorbuffer[y/ * 16 + x] = getpix(pos.X + x, pos.Y + y);
+                if (back) cursorbuffer[y * 16 + x] = getpix(pos.X + x, pos.Y + y);
                 putpix(pos.X + x, pos.Y + y, colour);
-                if (back) cursorbuffersecond[y/ * 16 + x] = getpix(pos.X + x, pos.Y + y);
+                if (back) cursorbuffersecond[y * 16 + x] = getpix(pos.X + x, pos.Y + y);
             }
         }
     }
