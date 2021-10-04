@@ -167,30 +167,6 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
 
-    int *ptr;
-
-    //allocating memory for only 1 integer
-    ptr = (int*)malloc(1 * sizeof(int));
-
-    for(i = 0; i < 1; i++)
-          printf("%d\n\n",ptr[i]);
-
-    ptr[0] = 1;
-
-    for(i = 0; i < 1; i++)
-          printf("%d\n\n",ptr[i]);
-
-    //realloc memory size to store 3 integers
-    ptr = (int*)realloc(ptr, 3 * sizeof(int), 1);
-    ptr[1] = 2;
-    ptr[2] = 3;
-
-    //printing values
-    for(i = 0; i < 3; i++)
-          printf("%d\n",ptr[i]);
-
-    free(ptr);
-
     // Start the shell
     getchar();
     serial_info("Starting kernel shell\n");
