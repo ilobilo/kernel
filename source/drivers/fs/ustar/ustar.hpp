@@ -54,6 +54,6 @@ char *ustar_cat(char *name);
 
 int ustar_getid(char *name);
 
-int ustar_search(char *filename, char* *contents);
+int ustar_search(char *filename, char **contents);
 
 void initrd_init(unsigned int address);

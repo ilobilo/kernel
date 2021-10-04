@@ -2,7 +2,7 @@
 
 bool Bitmap::operator[](uint64_t index)
 {
-    if (index > size/ * 8) return false;
+    if (index > size * 8) return false;
     uint64_t bytei = index / 8;
     uint8_t biti = index % 8;
     uint8_t bitindexer = 0b10000000 >> biti;
@@ -12,7 +12,7 @@ bool Bitmap::operator[](uint64_t index)
 
 bool Bitmap::Set(uint64_t index, bool value)
 {
-    if (index > size/ * 8) return false;
+    if (index > size * 8) return false;
     uint64_t bytei = index / 8;
     uint8_t biti = index % 8;
     uint8_t bitindexer = 0b10000000 >> biti;

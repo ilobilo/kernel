@@ -19,11 +19,11 @@ char *strcpy(char *destination, const char *source)
     char *ptr = destination;
     while (*source != '\0')
     {
-      / * destination = *source;
+        *destination = *source;
         destination++;
         source++;
     }
-  / * destination = '\0';
+    *destination = '\0';
     return ptr;
 }
 
@@ -32,9 +32,9 @@ char *strcat(char *destination, const char *source)
     char *ptr = destination + strlen(destination);
     while (*source != '\0')
     {
-      / * ptr++ = *source++;
+        *ptr++ = *source++;
     }
-  / * ptr = '\0';
+    *ptr = '\0';
     return destination;
 }
 
@@ -175,7 +175,7 @@ int string_to_int(char *str)
     int res = 0;
     for (int i = 0; str[i] != '\0'; ++i)
     {
-        res = res/ * 10 + str[i] - '0';
+        res = res * 10 + str[i] - '0';
     }
     return res;
 }
@@ -185,7 +185,7 @@ long oct_to_dec(int oct)
     int dec = 0, temp = 0;
     while (oct != 0)
     {
-        dec = dec + (oct % 10)/ * pow(8, temp);
+        dec = dec + (oct % 10) * pow(8, temp);
         temp++;
         oct = oct / 10;
     }
