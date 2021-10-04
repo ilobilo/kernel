@@ -79,6 +79,22 @@ size_t getsize(void* ptr)
     return ((size_t*)ptr)[-1];
 }
 
+void* calloc(size_t m, size_t n)
+{
+    void* p;
+    size_t* z;
+    if (n && m > (size_t)-1 / n) return NULL;
+    n *= m;
+    p = malloc(n);
+    if (!p) return NULL;
+    if (getsize(p) & 7)
+    {
+        m = (n + sizeof(*z) - 1) / sizeof(*z);
+        for (z = (size_t*)p; m; m--, z++) if (*z) *z = 0;
+    }
+    return p;
+}
+
 void* realloc(void* ptr, size_t size)
 {
     size_t curSize;

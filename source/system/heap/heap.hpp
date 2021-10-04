@@ -18,6 +18,8 @@ void Heap_init(void* heapAddr, size_t pageCount);
 
 void* malloc(size_t size);
 
+void* calloc(size_t m, size_t n);
+
 void* realloc(void* ptr, size_t size);
 
 void free(void* address);
