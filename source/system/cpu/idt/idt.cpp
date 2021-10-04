@@ -5,9 +5,9 @@
 
 int_handler_t interrupt_handlers[256];
 
-void idt_set_descriptor(uint8_t vector, void* isr, uint8_t type_attr)
+void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 {
-    idt_desc_t* descriptor = (idt_desc_t *)&idt[vector];
+    idt_desc_t *descriptor = (idt_desc_t *)&idt[vector];
 
     descriptor->offset_1       = (uint64_t)isr & 0xFFFF;
     descriptor->selector       = 0x28;
@@ -26,7 +26,7 @@ void IDT_init()
     serial_info("Initializing IDT");
 
     idtr.base = (uintptr_t)&idt[0];
-    idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
+    idtr.limit = (uint16_t)sizeof(idt_desc_t)  *256 - 1;
 
     isr_install();
 

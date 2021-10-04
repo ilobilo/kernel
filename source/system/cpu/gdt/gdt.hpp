@@ -28,6 +28,6 @@ __attribute((aligned(0x1000)));
 
 extern GDT DefaultGDT;
 
-extern "C" void LoadGDT(GDTDescriptor* gdtDescriptor);
+extern "C" void LoadGDT(GDTDescriptor *gdtDescriptor);
 
 void GDT_init();

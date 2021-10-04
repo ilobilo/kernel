@@ -5,9 +5,9 @@
 
 bool initrd = false;
 
-ustar_header_t* ustar_headers;
+ustar_header_t *ustar_headers;
 
-unsigned int getsize(const char* s)
+unsigned int getsize(const char *s)
 {
     uint64_t ret = 0;
     while (*s) {
@@ -35,7 +35,7 @@ int ustar_parse(unsigned int address)
         ustar_headers->address[i] = address + 512;
         ustar_headers->count++;
 
-        address += (((size + 511) / 512) + 1) * 512;
+        address += (((size + 511) / 512) + 1)  *512;
     }
     for (int g = 1; g < ustar_headers->count; g++)
     {
@@ -82,14 +82,14 @@ void ustar_list()
     printf("--------------------\nTotal size: %s\n", humanify(size));
 }
 
-char* ustar_cat(char* name)
+char *ustar_cat(char *name)
 {
     if (!initrd)
     {
         not_initialized();
         return 0;
     }
-    char* contents;
+    char *contents;
     int i = 0;
     i = ustar_getid(name);
     switch (ustar_headers->headers[i]->typeflag[0])
@@ -117,7 +117,7 @@ char* ustar_cat(char* name)
     return "Invalid file name!";
 }
 
-int ustar_getid(char* name)
+int ustar_getid(char *name)
 {
     if (!initrd)
     {
@@ -134,7 +134,7 @@ int ustar_getid(char* name)
     return 0;
 }
 
-int ustar_search(char* filename, char** contents)
+int ustar_search(char *filename, char* *contents)
 {
     if (!initrd)
     {

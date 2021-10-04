@@ -23,17 +23,17 @@
 #include <stivale2.h>
 #include <kernel.hpp>
 
-struct stivale2_struct_tag_smp* smp_tag;
-struct stivale2_struct_tag_memmap* mmap_tag;
-struct stivale2_struct_tag_rsdp* rsdp_tag;
-struct stivale2_struct_tag_framebuffer* frm_tag;
-struct stivale2_struct_tag_terminal* term_tag;
-struct stivale2_struct_tag_modules* mod_tag;
-struct stivale2_struct_tag_cmdline* cmd_tag;
+struct stivale2_struct_tag_smp *smp_tag;
+struct stivale2_struct_tag_memmap *mmap_tag;
+struct stivale2_struct_tag_rsdp *rsdp_tag;
+struct stivale2_struct_tag_framebuffer *frm_tag;
+struct stivale2_struct_tag_terminal *term_tag;
+struct stivale2_struct_tag_modules *mod_tag;
+struct stivale2_struct_tag_cmdline *cmd_tag;
 
-char* cmdline;
+char *cmdline;
 
-int find_module(char* name)
+int find_module(char *name)
 {
     for (int i = 0; i < mod_tag->module_count; i++)
     {

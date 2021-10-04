@@ -6,7 +6,7 @@
 #include <system/timers/pit/pit.hpp>
 #include <include/string.hpp>
 
-void shell_parse(char* cmd, char* arg)
+void shell_parse(char *cmd, char *arg)
 {
     if (!strcmp(cmd, "ls"))
     {
@@ -40,9 +40,9 @@ void shell_parse(char* cmd, char* arg)
 void shell_run()
 {
     printf("root@kernel:~# ");
-    char* command = getline();
-    char* arg = command;
-    char* cmd = "\0";
+    char *command = getline();
+    char *arg = command;
+    char *cmd = "\0";
 
     for (int i = 0; i < strlen(cmd); i++)
     {

@@ -37,7 +37,7 @@ void handle_comb(char c)
 }
 
 // Keyboard buffer
-char* buff;
+char *buff;
 char c[10] = "\0";
 
 // Clear keyboard buffer
@@ -154,7 +154,7 @@ char getchar()
     return c[0];
 }
 
-char* getline()
+char *getline()
 {
     static char retstr[1024] = "\0";
     memset(retstr, '\0', 1024);

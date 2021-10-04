@@ -1,8 +1,8 @@
 #include <drivers/fs/vfs/vfs.hpp>
 
-fs_node* fs_root = 0;
+fs_node *fs_root = 0;
 
-uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
+uint64_t read_fs(fs_node *node, uint64_t offset, uint64_t size, char *buffer)
 {
     if (node->read != 0)
     {
@@ -14,7 +14,7 @@ uint64_t read_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
     }
 }
 
-uint64_t write_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
+uint64_t write_fs(fs_node *node, uint64_t offset, uint64_t size, char *buffer)
 {
     if (node->write != 0)
     {
@@ -26,7 +26,7 @@ uint64_t write_fs(fs_node* node, uint64_t offset, uint64_t size, char* buffer)
     }
 }
 
-void open_fs(fs_node* node, uint8_t read, uint8_t write)
+void open_fs(fs_node *node, uint8_t read, uint8_t write)
 {
     if (node->open != 0)
     {
@@ -38,7 +38,7 @@ void open_fs(fs_node* node, uint8_t read, uint8_t write)
     }
 }
 
-void close_fs(fs_node* node)
+void close_fs(fs_node *node)
 {
     if (node->close != 0)
     {
@@ -50,7 +50,7 @@ void close_fs(fs_node* node)
     }
 }
 
-struct dirent_t* readdir_fs(fs_node *node, uint64_t index)
+struct dirent_t *readdir_fs(fs_node *node, uint64_t index)
 {
     if ((node->flags & 0x7) == FS_DIRECTORY && node->readdir != 0)
     {
@@ -62,7 +62,7 @@ struct dirent_t* readdir_fs(fs_node *node, uint64_t index)
     }
 }
 
-fs_node* finddir_fs(fs_node *node, char* name)
+fs_node *finddir_fs(fs_node *node, char *name)
 {
     if ((node->flags & 0x7) == FS_DIRECTORY && node->finddir != 0)
     {
