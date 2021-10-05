@@ -4,9 +4,9 @@
 #include <main.hpp>
 
 bool use_xstd;
-RSDP* rsdp;
+RSDP *rsdp;
 
-mcfg_header* mcfg;
+mcfg_header *mcfg;
 
 void ACPI_init()
 {
@@ -14,7 +14,7 @@ void ACPI_init()
 
     rsdp = (RSDP*)rsdp_tag->rsdp;
 
-    sdt_header* rsdt;
+    sdt_header *rsdt;
 
     if (rsdp->revision >= 2 && rsdp->xsdtaddr)
     {
@@ -34,12 +34,12 @@ void ACPI_init()
     serial_info("Initialized ACPI\n");
 }
 
-void* findtable(sdt_header* sdthdr, char* signature)
+void *findtable(sdt_header *sdthdr, char *signature)
 {
     int entries = (sdthdr->length + sizeof(sdt_header)) / 8;
     for (int t = 0; t < entries; t++)
     {
-        sdt_header* newsdthdr;
+        sdt_header *newsdthdr;
         if (use_xstd)
         {
             newsdthdr = (sdt_header*)*(uint64_t*)((uint64_t)sdthdr + sizeof(sdt_header) + (t * 8));

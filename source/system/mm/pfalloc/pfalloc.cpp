@@ -37,7 +37,7 @@ void PFAlloc::ReadMemMap()
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
         if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
-        unreservePages((void*)mmap_tag->memmap[i].base, mmap_tag->memmap[i].length / 4096);
+        unreservePages((void *)mmap_tag->memmap[i].base, mmap_tag->memmap[i].length / 4096);
     }
     reservePages(0, 0x100);
     lockPages(PageBitmap.buffer, PageBitmap.size / 4096 + 1);
@@ -55,19 +55,19 @@ void PFAlloc::Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr)
 }
 
 uint64_t pageBitmapIndex = 0;
-void* PFAlloc::requestPage()
+void *PFAlloc::requestPage()
 {
     for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
     {
         if (PageBitmap[pageBitmapIndex] == true) continue;
-        lockPage((void*)(pageBitmapIndex * 4096));
-        return (void*)(pageBitmapIndex * 4096);
+        lockPage((void *)(pageBitmapIndex * 4096));
+        return (void *)(pageBitmapIndex * 4096);
     }
 
     return NULL; // Page frame swap
 }
 
-void PFAlloc::freePage(void* address)
+void PFAlloc::freePage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;
@@ -79,15 +79,15 @@ void PFAlloc::freePage(void* address)
     }
 }
 
-void PFAlloc::freePages(void* address, uint64_t pageCount)
+void PFAlloc::freePages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        freePage((void*)((uint64_t)address + (t * 4096)));
+        freePage((void *)((uint64_t)address + (t * 4096)));
     }
 }
 
-void PFAlloc::lockPage(void* address)
+void PFAlloc::lockPage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == true) return;
@@ -98,15 +98,15 @@ void PFAlloc::lockPage(void* address)
     }
 }
 
-void PFAlloc::lockPages(void* address, uint64_t pageCount)
+void PFAlloc::lockPages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        lockPage((void*)((uint64_t)address + (t * 4096)));
+        lockPage((void *)((uint64_t)address + (t * 4096)));
     }
 }
 
-void PFAlloc::unreservePage(void* address)
+void PFAlloc::unreservePage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;
@@ -119,15 +119,15 @@ void PFAlloc::unreservePage(void* address)
 }
 
 
-void PFAlloc::unreservePages(void* address, uint64_t pageCount)
+void PFAlloc::unreservePages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        unreservePage((void*)((uint64_t)address + (t * 4096)));
+        unreservePage((void *)((uint64_t)address + (t * 4096)));
     }
 }
 
-void PFAlloc::reservePage(void* address)
+void PFAlloc::reservePage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == true) return;
@@ -138,11 +138,11 @@ void PFAlloc::reservePage(void* address)
     }
 }
 
-void PFAlloc::reservePages(void* address, uint64_t pageCount)
+void PFAlloc::reservePages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        reservePage((void*)((uint64_t)address + (t * 4096)));
+        reservePage((void *)((uint64_t)address + (t * 4096)));
     }
 }
 

@@ -5,9 +5,9 @@
 class PTManager
 {
     public:
-    PTManager(PTable* PML4Address);
-    PTable* PML4;
-    void mapMem(void* virtualMemory, void* physicalMemory);
+    PTManager(PTable *PML4Address);
+    PTable *PML4;
+    void mapMem(void *virtualMemory, void *physicalMemory);
 };
 
 struct CRs

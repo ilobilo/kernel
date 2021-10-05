@@ -10,12 +10,12 @@ struct kbd_mod_t
     int scrolllock : 1;
 };
 
-extern char* buff;
+extern char *buff;
 
 void clearbuff();
 
 char getchar();
 
-char* getline();
+char *getline();
 
 void Keyboard_init();

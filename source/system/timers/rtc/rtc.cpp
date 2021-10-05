@@ -54,7 +54,7 @@ void RTC_sleep(int sec)
     while (lastsec != RTC_time());
 }
 
-char* RTC_GetTime()
+char *RTC_GetTime()
 {
     static char time[30];
     sprintf(time, "20%d/%d/%d %d:%d:%d", RTC_year(), RTC_month(),
