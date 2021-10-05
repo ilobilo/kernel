@@ -44,10 +44,10 @@ struct deviceconfig
 } __attribute__((packed));
 
 extern bool use_xstd;
-extern RSDP* rsdp;
+extern RSDP *rsdp;
 
-extern mcfg_header* mcfg;
+extern mcfg_header *mcfg;
 
 void ACPI_init();
 
-void* findtable(sdt_header* sdthdr, char* signature);
+void *findtable(sdt_header *sdthdr, char *signature);

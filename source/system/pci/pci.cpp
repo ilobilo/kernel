@@ -10,7 +10,7 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
 
     uint64_t funcaddr = deviceaddr + offset;
 
-    pcideviceheader* pcidevice = (pcideviceheader*)funcaddr;
+    pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
 
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
@@ -27,7 +27,7 @@ void enumdevice(uint64_t busaddr, uint64_t device)
 
     uint64_t deviceaddr = busaddr + offset;
 
-    pcideviceheader* pcidevice = (pcideviceheader*)deviceaddr;
+    pcideviceheader *pcidevice = (pcideviceheader*)deviceaddr;
 
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
@@ -43,7 +43,7 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
 
     uint64_t busaddr = baseaddr + offset;
 
-    pcideviceheader* pcidevice = (pcideviceheader*)busaddr;
+    pcideviceheader *pcidevice = (pcideviceheader*)busaddr;
 
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
@@ -60,7 +60,7 @@ void PCI_init()
     int entries = ((mcfg->header.length) - sizeof(mcfg_header)) / sizeof(deviceconfig);
     for (int t = 0; t < entries; t++)
     {
-        deviceconfig* newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(mcfg_header) + (sizeof(deviceconfig) * t));
+        deviceconfig *newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(mcfg_header) + (sizeof(deviceconfig) * t));
         for (uint64_t bus = newdevconf->startbus; bus < newdevconf->endbus; bus++)
         {
             enumbus(newdevconf->baseaddr, bus);

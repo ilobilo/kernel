@@ -3,20 +3,20 @@
 #include <stddef.h>
 #include <include/math.hpp>
 
-size_t strlen(const char* str)
+size_t strlen(const char *str)
 {
     size_t length = 0;
     while(str[length]) length++;
     return length;
 }
 
-char* strcpy(char* destination, const char* source)
+char *strcpy(char *destination, const char *source)
 {
     if (destination == NULL)
     {
         return NULL;
     }
-    char* ptr = destination;
+    char *ptr = destination;
     while (*source != '\0')
     {
         *destination = *source;
@@ -27,9 +27,9 @@ char* strcpy(char* destination, const char* source)
     return ptr;
 }
 
-char* strcat(char* destination, const char* source)
+char *strcat(char *destination, const char *source)
 {
-    char* ptr = destination + strlen(destination);
+    char *ptr = destination + strlen(destination);
     while (*source != '\0')
     {
         *ptr++ = *source++;
@@ -38,13 +38,13 @@ char* strcat(char* destination, const char* source)
     return destination;
 }
 
-int strcmp(const char* a, const char* b)
+int strcmp(const char *a, const char *b)
 {
     while (*a && *a == *b) { ++a; ++b; }
     return (int)(unsigned char)(*a) - (int)(unsigned char)(*b);
 }
 
-char* strstr(const char* str, const char* substring)
+char *strstr(const char *str, const char *substring)
 {
     const char *a = str, *b = substring;
     while (true)
@@ -59,27 +59,27 @@ char* strstr(const char* str, const char* substring)
     }
 }
 
-char* strchr(const char str[], char ch)
+char *strchr(const char str[], char ch)
 {
     while (*str && *str != ch ) ++str;
     return (char *)(ch == *str ? str : NULL);
 }
 
-void memcpy(void* dest, void* src, size_t n)
+void memcpy(void *dest, void *src, size_t n)
 {
     int i;
-    char* src_char = (char *)src;
-    char* dest_char = (char *)dest;
+    char *src_char = (char *)src;
+    char *dest_char = (char *)dest;
     for (i = 0; i < n; i++)
     {
         dest_char[i] = src_char[i];
     }
 }
 
-int memcmp(const void* s1, const void* s2, int len)
+int memcmp(const void *s1, const void *s2, int len)
 {
-    unsigned char* p = (unsigned char*)s1;
-    unsigned char* q = (unsigned char*)s2;
+    unsigned char *p = (unsigned char*)s1;
+    unsigned char *q = (unsigned char*)s2;
     int charstat = 0;
 
     if (s1 == s2)
@@ -100,20 +100,20 @@ int memcmp(const void* s1, const void* s2, int len)
     return charstat;
 }
 
-void memset(void* str, char ch, size_t n)
+void memset(void *str, char ch, size_t n)
 {
     int i;
-    char* s = (char *)str;
+    char *s = (char *)str;
     for(i = 0; i < n; i++)
     {
         s[i] = ch;
     }
 }
 
-void memmove(void* dest, void* src, size_t n)
+void memmove(void *dest, void *src, size_t n)
 {
-    char* csrc = (char *)src;
-    char* cdest = (char *)dest;
+    char *csrc = (char *)src;
+    char *cdest = (char *)dest;
     char temp[n];
     for (int i = 0; i < n; i++) temp[i] = csrc[i];
     for (int i = 0; i < n; i++) cdest[i] = temp[i];
@@ -130,7 +130,7 @@ void reverse(char s[])
     }
 }
 
-char* int_to_string(int num)
+char *int_to_string(int num)
 {
     bool isMinus = false;
     static char out[10];
@@ -170,7 +170,7 @@ char* int_to_string(int num)
     else return "0";
 }
 
-int string_to_int(char* str)
+int string_to_int(char *str)
 {
     int res = 0;
     for (int i = 0; str[i] != '\0'; ++i)
@@ -192,11 +192,11 @@ long oct_to_dec(int oct)
     return dec;
 }
 
-char* humanify(double bytes)
+char *humanify(double bytes)
 {
     static char buf[10];
     int i = 0;
-    const char* units[] = { "B", "KB", "MB", "GB", "TB" };
+    const char *units[] = { "B", "KB", "MB", "GB", "TB" };
     for (i = 0; bytes > 1024; i++)
     {
         bytes /= 1024;
