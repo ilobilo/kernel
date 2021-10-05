@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#define FILENAME_LENGTH 128
+
 enum fs_filetypes
 {
     FS_FILE = 0x01,
@@ -34,7 +36,7 @@ using finddir_t = fs_node *(*)(fs_node*, char*);
 
 struct fs_node
 {
-    char name[128];
+    char name[FILENAME_LENGTH];
     uint64_t mask;
     uint64_t uid;
     uint64_t gid;
@@ -48,12 +50,12 @@ struct fs_node
     close_t close;
     readdir_t readdir;
     finddir_t finddir;
-    struct fs_node *ptr;
+    fs_node *ptr;
 };
 
 struct dirent_t
 {
-    char name[128];
+    char name[FILENAME_LENGTH];
     uint64_t ino;
 };
 
