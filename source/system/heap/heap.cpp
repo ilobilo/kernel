@@ -37,6 +37,7 @@ void free(void *address)
 {
     heapSegHdr *segment = (heapSegHdr*)address - 1;
     segment->free = true;
+    serial_info("Free: Freeing %zu Bytes", segment->length);
     segment->combineForward();
     segment->combineBackward();
 }
@@ -59,18 +60,27 @@ void* malloc(size_t size)
             {
                 currentSeg->split(size);
                 currentSeg->free = false;
+                serial_info("Malloc: Allocated %zu Bytes", size);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
             if (currentSeg->length == size)
             {
                 currentSeg->free = false;
+                serial_info("Malloc: Allocated %zu Bytes", size);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
         }
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
+    volatile bool expanded = false;
+    if (expanded)
+    {
+        serial_err("Out of memory!");
+        return NULL;
+    }
     expandHeap(size);
+    expanded = true;
     return malloc(size);
 }
 
@@ -149,6 +159,8 @@ void expandHeap(size_t length)
     newSeg->next = NULL;
     newSeg->length = length - sizeof(heapSegHdr);
     newSeg->combineBackward();
+
+    serial_info("Heap: Expanded heap with %zu Bytes", length);
 }
 
 void heapSegHdr::combineForward()
