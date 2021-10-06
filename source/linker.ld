@@ -16,6 +16,8 @@ SECTIONS
 {
     . = 0xffffffff80200000;
 
+    __kernelstart = .;
+
     .text : {
         *(.text*)
     } :text
@@ -44,4 +46,6 @@ SECTIONS
         *(COMMON)
         *(.bss*)
     } :data
+
+    __kernelend = .;
 }

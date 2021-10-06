@@ -89,9 +89,16 @@ CRs getCRs()
     return {cr0, cr2, cr3};
 }
 
+extern "C" uint64_t __kernelstart;
+extern "C" uint64_t __kernelend;
 void PTManager_init()
 {
     serial_info("Initialising Page Table Manager\n");
+
+    uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
+    uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
+
+    globalAlloc.lockPages((void*)&__kernelstart, kernelpagecount);
 
     PTable *PML4 = (PTable*)getCRs().cr3;
 
