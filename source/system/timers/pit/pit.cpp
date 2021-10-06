@@ -26,9 +26,7 @@ static void PIT_Handler(interrupt_registers *)
 
 void PIT_init()
 {
-    serial_info("Initializing PIT");
-
-    register_interrupt_handler(IRQ0, PIT_Handler);
+    serial_info("Initialising PIT\n");
 
     uint64_t divisor = 1193180 / 100;
 
@@ -40,5 +38,5 @@ void PIT_init()
     outb(0x40, l);
     outb(0x40, h);
 
-    serial_info("Initialized PIT\n");
+    register_interrupt_handler(IRQ0, PIT_Handler);
 }

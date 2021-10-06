@@ -10,7 +10,7 @@ mcfg_header *mcfg;
 
 void ACPI_init()
 {
-    serial_info("Initializing ACPI");
+    serial_info("Initialising ACPI");
 
     rsdp = (RSDP*)rsdp_tag->rsdp;
 
@@ -20,18 +20,16 @@ void ACPI_init()
     {
         use_xstd = true;
         rsdt = (sdt_header*)rsdp->xsdtaddr;
-        serial_info("Found XSDT at: 0x%X", rsdt);
+        serial_info("Found XSDT at: 0x%X\n", rsdt);
     }
     else
     {
         use_xstd = false;
         rsdt = (sdt_header*)rsdp->rstdaddr;
-        serial_info("Found RSDT at: 0x%X", rsdt);
+        serial_info("Found RSDT at: 0x%X\n", rsdt);
     }
 
     mcfg = (mcfg_header*)findtable(rsdt, (char*)"MCFG");
-
-    serial_info("Initialized ACPI\n");
 }
 
 void *findtable(sdt_header *sdthdr, char *signature)

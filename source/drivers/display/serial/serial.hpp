@@ -10,4 +10,6 @@ void serial_info(const char *fmt, ...);
 
 void serial_err(const char *fmt, ...);
 
+void serial_newline();
+
 void serial_init();

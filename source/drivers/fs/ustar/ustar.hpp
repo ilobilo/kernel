@@ -37,13 +37,12 @@ struct ustar_file_header_t
 
 struct ustar_header_t
 {
-    ustar_file_header_t *headers[HEADER_SIZE];
-    unsigned int address[HEADER_SIZE];
-    int count;
+    ustar_file_header_t *header;
+    unsigned int address;
 };
 
 extern bool initrd;
-
+extern uint64_t ustar_filecount;
 extern ustar_header_t *ustar_headers;
 
 unsigned int getsize(const char *s);

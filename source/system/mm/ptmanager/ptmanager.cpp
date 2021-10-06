@@ -91,7 +91,7 @@ CRs getCRs()
 
 void PTManager_init()
 {
-    serial_info("Initializing Page Table Manager");
+    serial_info("Initialising Page Table Manager\n");
 
     PTable *PML4 = (PTable*)getCRs().cr3;
 
@@ -99,8 +99,6 @@ void PTManager_init()
 
     for (int s = 0; s < getmemsize(); s += 0x1000)
     {
-        globalPTManager.mapMem((void *)(s + 0xffff800000000000), (void *)s);
+        globalPTManager.mapMem((void *)(s + 0xFFFF800000000000), (void *)s);
     }
-
-    serial_info("Initialized Page Table Manager\n");
 }

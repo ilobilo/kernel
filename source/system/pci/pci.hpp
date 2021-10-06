@@ -1,6 +1,6 @@
 #pragma once
 
-#include <system/acpi/acpi.hpp>
+#include <system/pci/pcidesc.hpp>
 #include <stdint.h>
 
 struct pcideviceheader
@@ -18,5 +18,8 @@ struct pcideviceheader
     uint8_t headertype;
     uint8_t bist;
 };
+
+extern pcideviceheader *pcidevices;
+extern uint64_t pcidevcount;
 
 void PCI_init();

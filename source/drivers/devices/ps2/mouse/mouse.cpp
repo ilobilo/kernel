@@ -11,8 +11,8 @@ bool packetready = false;
 point mousepos;
 point mouseposold;
 
-uint32_t mousebordercol = 0xffffff;
-uint32_t mouseinsidecol = 0x2d2d2d;
+uint32_t mousebordercol = 0xFFFFFF;
+uint32_t mouseinsidecol = 0x2D2D2D;
 
 uint8_t cursorborder[]
 {
@@ -226,9 +226,9 @@ static void Mouse_Handler(interrupt_registers *)
 
 void Mouse_init()
 {
-    serial_info("Initializing PS2 mouse");
+    serial_info("Initialising PS2 mouse\n");
 
-    register_interrupt_handler(IRQ12, Mouse_Handler);
+    asm volatile ("cli");
 
     outb(0x64, 0xA8);
 
@@ -248,6 +248,8 @@ void Mouse_init()
     mouseread();
     mousewrite(0xF4);
     mouseread();
-    
-    serial_info("Initialized PS2 mouse\n");
+
+    asm volatile ("sti");
+
+    register_interrupt_handler(IRQ12, Mouse_Handler);
 }

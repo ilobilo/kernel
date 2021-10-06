@@ -41,6 +41,11 @@ void serial_err(const char *fmt, ...)
     va_end(args);
 }
 
+void serial_newline()
+{
+    serial_printf("\n");
+}
+
 void serial_init()
 {
     outb(COM1 + 1, 0x00);

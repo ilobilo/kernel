@@ -54,7 +54,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     cmdline = (char *)cmd_tag->cmdline;
 
-    // Initialize serial COM1
+    // Initialise serial COM1
     serial_init();
 
     // Serial welcome message
@@ -75,12 +75,12 @@ void main(struct stivale2_struct *stivale2_struct)
     {
         serial_info("%d) %s", t + 1, mod_tag->modules[t].string);
     }
-    serial_printf("\n");
+    serial_newline();
 
     // Check for framebuffer
     if (frm_tag == NULL)
     {
-        serial_err("Framebuffer could not be initialized!");
+        serial_err("Framebuffer has not been initialised!");
         serial_err("System halted!\n");
         while (true) asm volatile ("cli; hlt");
     }
@@ -89,7 +89,7 @@ void main(struct stivale2_struct *stivale2_struct)
     // Check for terminal
     if (term_tag == NULL)
     {
-        serial_err("Terminal could not be initialized!");
+        serial_err("Terminal has not been initialised!");
         serial_err("System halted!\n");
         while (true) asm volatile ("cli; hlt");
     }
@@ -106,60 +106,60 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("CPU cores available: %d\n", smp_tag->cpu_count);
     printf("Total usable memory: %s\n", humanify(getmemsize()));
 
-    // If initrd found initialize it
+    // If initrd is found, initialise it
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
         initrd_init(mod_tag->modules[i].begin);
     }
-    term_check(initrd, "Initializing Initrd...");
+    term_check(initrd, "Initialising Initrd...");
 
-    // Initialize GDT
+    // Initialise GDT
     GDT_init();
-    term_check(true, "Initializing Global Descriptor Table...");
+    term_check(true, "Initialising Global Descriptor Table...");
 
-    // Initialize Page Frame Allocator
+    // Initialise Page Frame Allocator
     PFAlloc_init();
-    term_check(true, "Initializing Page Frame Allocator...");
+    term_check(true, "Initialising Page Frame Allocator...");
 
-    // Initialize Page Table Manager
+    // Initialise Page Table Manager
     PTManager_init();
-    term_check(true, "Initializing Page Table Manager...");
+    term_check(true, "Initialising Page Table Manager...");
 
-    // Initialize Heap
-    Heap_init((void *)0x0000100000000000, 0x10);
-    term_check(true, "Initializing Kernel Heap...");
+    // Initialise Heap
+    Heap_init((void*)0x0000100000000000, 0x10);
+    term_check(true, "Initialising Kernel Heap...");
 
-    // Initialize IDT
+    // Initialise IDT
     IDT_init();
-    term_check(true, "Initializing Interrupt Descriptor Table...");
+    term_check(true, "Initialising Interrupt Descriptor Table...");
 
-    // Initialize ACPI
+    // Initialise ACPI
     ACPI_init();
-    term_check(true, "Initializing ACPI...");
+    term_check(true, "Initialising ACPI...");
 
-    // Initialize PCI devices
+    // Initialise PCI devices
     PCI_init();
-    term_check(true, "Initializing PCI...");
+    term_check(true, "Initialising PCI...");
 
-    // Initialize PIT timer
+    // Initialise PIT timer
     PIT_init();
-    term_check(true, "Initializing PIT...");
+    term_check(true, "Initialising PIT...");
 
-    // Initialize PS2 keyboard driver
+    // Initialise PS2 keyboard driver
     Keyboard_init();
-    term_check(true, "Initializing PS2 Keyboard...");
+    term_check(true, "Initialising PS2 Keyboard...");
 
-    // Initialize PS2 mouse driver
+    // Initialise PS2 mouse driver
     if (!strstr(cmdline, "nomouse"))
     {
         if (strstr(cmdline, "oldmouse"))
         {
             mousebordercol = 0x000000;
-            mouseinsidecol = 0xffffff;
+            mouseinsidecol = 0xFFFFFF;
         }
         Mouse_init();
-        term_check(true, "Initializing PS2 Mouse...");
+        term_check(true, "Initialising PS2 Mouse...");
     }
 
     // Print current bios time

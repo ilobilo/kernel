@@ -4,26 +4,52 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/timers/rtc/rtc.hpp>
 #include <system/timers/pit/pit.hpp>
+#include <system/pci/pci.hpp>
 #include <include/string.hpp>
 
 void shell_parse(char *cmd, char *arg)
 {
-    if (!strcmp(cmd, "ls"))
+    if (!strcmp(cmd, "help"))
+    {
+        printf("Supported commands:\n");
+        printf("- help\t-- This\n");
+        printf("- ls\t-- List files in initrd\n");
+        printf("- time\t-- Get current RTC time\n");
+        printf("- timef\t-- Get current RTC time (Forever loop)\n");
+        printf("- tick\t-- Get current PIT tick\n");
+        printf("- pci\t-- List PCI devices\n");
+        printf("- crash\t-- Crash whole system\n");
+    }
+    else if (!strcmp(cmd, "ls"))
     {
         ustar_list();
     }
     else if (!strcmp(cmd, "time"))
     {
-        RTC_GetTime();
-        printf("\n");
+        printf("%s\n", RTC_GetTime());
     }
     else if (!strcmp(cmd, "timef"))
     {
         while (true)
         {
-            RTC_GetTime();
+            printf("%s", RTC_GetTime());
             PIT_sleep(1);
             printf("\r\033[2K");
+        }
+    }
+    else if (!strcmp(cmd, "tick"))
+    {
+        printf("%d\n", get_tick());
+    }
+    else if (!strcmp(cmd, "pci"))
+    {
+        for (uint64_t i = 0; i < pcidevcount; i++)
+        {
+            printf("%s / %s / %s / %s / %s\n", getvendorname(pcidevices[i].vendorid),
+                getdevicename(pcidevices[i].vendorid, pcidevices[i].deviceid),
+                device_classes[pcidevices[i].Class],
+                getsubclassname(pcidevices[i].Class, pcidevices[i].subclass),
+                getprogifname(pcidevices[i].Class, pcidevices[i].subclass, pcidevices[i].progif));
         }
     }
     else if (!strcmp(cmd, "crash"))
