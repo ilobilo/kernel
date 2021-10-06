@@ -223,7 +223,7 @@ void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
 
 void drawing_init()
 {
-    serial_info("Initializing drawing functions");
+    serial_info("Initialising drawing functions\n");
 
     frm_addr = frm_tag->framebuffer_addr;
     frm_width = frm_tag->framebuffer_width;
@@ -231,6 +231,4 @@ void drawing_init()
     frm_pitch = frm_tag->framebuffer_pitch;
     frm_bpp = frm_tag->framebuffer_bpp;
     frm_pixperscanline = frm_pitch / 4;
-
-    serial_info("Initialized drawing functions\n");
 }

@@ -177,10 +177,8 @@ char *getline()
 
 void Keyboard_init()
 {
-    serial_info("Initializing PS2 keyboard");
+    serial_info("Initialising PS2 keyboard\n");
 
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
-
-    serial_info("Initialized PS2 keyboard\n");
 }

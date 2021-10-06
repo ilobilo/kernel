@@ -37,7 +37,7 @@ void PFAlloc::ReadMemMap()
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
         if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
-        unreservePages((void *)mmap_tag->memmap[i].base, mmap_tag->memmap[i].length / 4096);
+        unreservePages((void*)mmap_tag->memmap[i].base, mmap_tag->memmap[i].length / 4096);
     }
     reservePages(0, 0x100);
     lockPages(PageBitmap.buffer, PageBitmap.size / 4096 + 1);
@@ -60,8 +60,8 @@ void *PFAlloc::requestPage()
     for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
     {
         if (PageBitmap[pageBitmapIndex] == true) continue;
-        lockPage((void *)(pageBitmapIndex * 4096));
-        return (void *)(pageBitmapIndex * 4096);
+        lockPage((void*)(pageBitmapIndex * 4096));
+        return (void*)(pageBitmapIndex * 4096);
     }
 
     return NULL; // Page frame swap
@@ -83,7 +83,7 @@ void PFAlloc::freePages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        freePage((void *)((uint64_t)address + (t * 4096)));
+        freePage((void*)((uint64_t)address + (t * 4096)));
     }
 }
 
@@ -102,7 +102,7 @@ void PFAlloc::lockPages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        lockPage((void *)((uint64_t)address + (t * 4096)));
+        lockPage((void*)((uint64_t)address + (t * 4096)));
     }
 }
 
@@ -123,7 +123,7 @@ void PFAlloc::unreservePages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        unreservePage((void *)((uint64_t)address + (t * 4096)));
+        unreservePage((void*)((uint64_t)address + (t * 4096)));
     }
 }
 
@@ -142,7 +142,7 @@ void PFAlloc::reservePages(void *address, uint64_t pageCount)
 {
     for (int t = 0; t < pageCount; t++)
     {
-        reservePage((void *)((uint64_t)address + (t * 4096)));
+        reservePage((void*)((uint64_t)address + (t * 4096)));
     }
 }
 
@@ -163,10 +163,8 @@ uint64_t PFAlloc::getReservedRam()
 
 void PFAlloc_init()
 {
-    serial_info("Initializing Page Frame Allocator");
+    serial_info("Initialising Page Frame Allocator\n");
 
     globalAlloc = PFAlloc();
     globalAlloc.ReadMemMap();
-
-    serial_info("Initialized Page Frame Allocator\n");
 }
