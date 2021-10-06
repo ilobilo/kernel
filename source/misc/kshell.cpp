@@ -13,6 +13,7 @@ void shell_parse(char *cmd, char *arg)
     {
         printf("Supported commands:\n");
         printf("- help\t-- This\n");
+        printf("- clear\t-- Clear terminal\n");
         printf("- ls\t-- List files in initrd\n");
         printf("- time\t-- Get current RTC time\n");
         printf("- timef\t-- Get current RTC time (Forever loop)\n");
@@ -20,14 +21,10 @@ void shell_parse(char *cmd, char *arg)
         printf("- pci\t-- List PCI devices\n");
         printf("- crash\t-- Crash whole system\n");
     }
-    else if (!strcmp(cmd, "ls"))
-    {
-        ustar_list();
-    }
-    else if (!strcmp(cmd, "time"))
-    {
-        printf("%s\n", RTC_GetTime());
-    }
+    else if (!strcmp(cmd, "clear")) term_clear();
+    else if (!strcmp(cmd, "ls")) ustar_list();
+    else if (!strcmp(cmd, "time")) printf("%s\n", RTC_GetTime());
+    else if (!strcmp(cmd, "tick")) printf("%d\n", get_tick());
     else if (!strcmp(cmd, "timef"))
     {
         while (true)
@@ -36,10 +33,6 @@ void shell_parse(char *cmd, char *arg)
             PIT_sleep(1);
             printf("\r\033[2K");
         }
-    }
-    else if (!strcmp(cmd, "tick"))
-    {
-        printf("%d\n", get_tick());
     }
     else if (!strcmp(cmd, "pci"))
     {
@@ -57,10 +50,7 @@ void shell_parse(char *cmd, char *arg)
         asm volatile ("int $0x3");
         asm volatile ("int $0x4");
     }
-    else if (strcmp(cmd, ""))
-    {
-        printf("\033[31mCommand not found!\033[0m\n");
-    }
+    else if (strcmp(cmd, "")) printf("\033[31mCommand not found!\033[0m\n");
 }
 
 void shell_run()
