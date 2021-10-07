@@ -3,7 +3,7 @@
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
-#include <include/io.hpp>
+#include <lib/io.hpp>
 
 uint8_t cycle = 0;
 uint8_t packet[4];

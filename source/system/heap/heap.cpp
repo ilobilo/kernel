@@ -2,7 +2,7 @@
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/heap/heap.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 
 void *heapStart;
 void *heapEnd;

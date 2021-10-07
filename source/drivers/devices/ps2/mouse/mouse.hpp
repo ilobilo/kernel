@@ -1,6 +1,6 @@
 #pragma once
 
-#include <include/math.hpp>
+#include <lib/math.hpp>
 #include <stdint.h>
 
 #define PS2_X_SIGN 0b00010000

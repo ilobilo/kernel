@@ -1,6 +1,6 @@
 #pragma once
 
-#include <include/math.hpp>
+#include <lib/math.hpp>
 #include <stivale2.h>
 
 extern uint64_t frm_addr;

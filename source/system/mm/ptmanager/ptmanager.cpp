@@ -3,7 +3,7 @@
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/memory/memory.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 
 PTManager globalPTManager = NULL;
 
