@@ -33,7 +33,7 @@ void ACPI_init()
     else
     {
         use_xstd = false;
-        rsdt = (sdt_header*)rsdp->rstdaddr;
+        rsdt = (sdt_header*)rsdp->rsdtaddr;
         serial_info("Found RSDT at: 0x%X", rsdt);
     }
 

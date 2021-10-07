@@ -8,7 +8,7 @@ struct RSDP
     uint8_t chksum;
     uint8_t oemid[6];
     uint8_t revision;
-    uint32_t rstdaddr;
+    uint32_t rsdtaddr;
     uint32_t length;
     uint64_t xsdtaddr;
     uint8_t extchksum;
