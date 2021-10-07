@@ -39,7 +39,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "printf.h"
+#include <drivers/display/terminal/printf.h>
 
 
 // Define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
