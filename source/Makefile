@@ -57,9 +57,9 @@ INTERNALCPPFLAGS  :=         \
 	-mno-3dnow           \
 	-mno-red-zone
 
-CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initramfs/*")
-CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initramfs/*")
-ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initramfs/*")
+CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
+CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
+ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")
 OBJ = $(CFILES:.c=.o)
 OBJ += $(CPPFILES:.cpp=.o)
 OBJ += $(ASMFILES:.asm=_asm.o)
@@ -86,9 +86,10 @@ $(KERNEL): $(OBJ)
 	printf "Building %s\n" $<
 	$(AS) $(ASMFLAGS) $< -o $@
 
+.PHONY: initrd
 initrd:
 	echo "Creating initrd...\n"
-	tar czf $(INITRD) -C $(SOURCEDIR)/initramfs/ ./ --format=ustar 
+	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar 
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
