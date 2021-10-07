@@ -1,6 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/timers/rtc/rtc.hpp>
-#include <include/io.hpp>
+#include <lib/io.hpp>
 
 int bcdtobin(int value)
 {

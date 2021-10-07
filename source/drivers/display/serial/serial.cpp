@@ -1,6 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <include/io.hpp>
+#include <lib/io.hpp>
 
 int is_transmit_empty(void)
 {

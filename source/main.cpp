@@ -17,9 +17,9 @@
 #include <system/heap/heap.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 #include <misc/kshell.hpp>
-#include <include/io.hpp>
+#include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
 

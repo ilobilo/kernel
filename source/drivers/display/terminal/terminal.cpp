@@ -4,7 +4,7 @@
 #include <system/mutex/mutex.hpp>
 #include <stivale2.h>
 #include <main.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 
 uint16_t columns;
 uint16_t rows;

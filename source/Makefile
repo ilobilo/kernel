@@ -36,7 +36,7 @@ INTERNALLDFLAGS :=             \
 	-ztext
 
 INTERNALCFLAGS  :=           \
-	-I$(SOURCEDIR)       \
+	-I$(SOURCEDIR)/include   \
 	-std=gnu11           \
 	-ffreestanding       \
 	-fno-stack-protector \
@@ -47,7 +47,7 @@ INTERNALCFLAGS  :=           \
 	-mno-red-zone
 
 INTERNALCPPFLAGS  :=         \
-	-I$(SOURCEDIR)       \
+	-I$(SOURCEDIR)/include   \
 	-std=c++14           \
 	-ffreestanding       \
 	-fno-stack-protector \

@@ -5,7 +5,7 @@
 #include <system/timers/rtc/rtc.hpp>
 #include <system/timers/pit/pit.hpp>
 #include <system/pci/pci.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 
 void shell_parse(char *cmd, char *arg)
 {

@@ -1,6 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/pci/pcidesc.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 
 const char *device_classes[20]
 {

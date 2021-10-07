@@ -2,7 +2,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/heap/heap.hpp>
-#include <include/string.hpp>
+#include <lib/string.hpp>
 
 bool initrd = false;
 uint64_t ustar_filecount;

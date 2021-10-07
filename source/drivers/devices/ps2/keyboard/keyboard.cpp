@@ -3,8 +3,8 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
-#include <include/string.hpp>
-#include <include/io.hpp>
+#include <lib/string.hpp>
+#include <lib/io.hpp>
 
 static kbd_mod_t kbd_mod;
 
