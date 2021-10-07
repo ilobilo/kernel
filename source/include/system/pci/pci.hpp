@@ -19,6 +19,8 @@ struct pcideviceheader
     uint8_t bist;
 };
 
+extern bool pci_initialised;
+
 extern pcideviceheader *pcidevices;
 extern uint64_t pcidevcount;
 

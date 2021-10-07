@@ -4,10 +4,11 @@
 #include <stivale2.h>
 #include <main.hpp>
 
+bool pfalloc_initialised = false;
+
 uint64_t freeMem;
 uint64_t reservedMem;
 uint64_t usedMem;
-bool init = false;
 
 PFAlloc globalAlloc;
 
@@ -15,8 +16,7 @@ uintptr_t highest_page = 0;
 
 void PFAlloc::ReadMemMap()
 {
-    if (init) return;
-    init = true;
+    if (pfalloc_initialised) return;
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
@@ -163,8 +163,18 @@ uint64_t PFAlloc::getReservedRam()
 
 void PFAlloc_init()
 {
-    serial_info("Initialising Page Frame Allocator\n");
+    serial_info("Initialising Page Frame Allocator");
+
+    if (pfalloc_initialised)
+    {
+        serial_info("Page frame allocator has already been initialised!");
+        return;
+    }
 
     globalAlloc = PFAlloc();
     globalAlloc.ReadMemMap();
+    
+    pfalloc_initialised = true;
+
+    serial_newline();
 }

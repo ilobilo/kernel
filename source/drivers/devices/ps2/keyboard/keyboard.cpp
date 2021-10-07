@@ -6,6 +6,8 @@
 #include <lib/string.hpp>
 #include <lib/io.hpp>
 
+bool kbd_initialised = false;
+
 static kbd_mod_t kbd_mod;
 
 // Scancode to ascii
@@ -177,8 +179,24 @@ char *getline()
 
 void Keyboard_init()
 {
-    serial_info("Initialising PS2 keyboard\n");
+    serial_info("Initialising PS2 keyboard");
+
+    if (kbd_initialised)
+    {
+        serial_info("Keyboard driver has already been initialised!");
+        return;
+    }
+
+    if (!idt_initialised)
+    {
+        serial_info("IDT has not been initialised!");
+        IDT_init();
+    }
 
     register_interrupt_handler(IRQ1, Keyboard_Handler);
     buff[0] = '\0';
+
+    kbd_initialised = true;
+
+    serial_newline();
 }

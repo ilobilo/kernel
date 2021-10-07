@@ -16,6 +16,8 @@ enum mousestate
     ps2_right = 0b00000010,
 };
 
+extern bool mouse_initialised;
+
 extern point mousepos;
 
 extern uint32_t mousebordercol;

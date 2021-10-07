@@ -4,7 +4,7 @@
 #include <system/heap/heap.hpp>
 #include <lib/string.hpp>
 
-bool initrd = false;
+bool initrd_initialised = false;
 uint64_t ustar_filecount;
 ustar_header_t *ustar_headers;
 
@@ -55,18 +55,20 @@ int ustar_parse(unsigned int address)
     return i;
 }
 
-void not_initialised()
+bool check_initrd()
 {
-    printf("\033[31mInitrd has not been initialised!\033[0m\n");
+    if (!initrd_initialised)
+    {
+        printf("\033[31mInitrd has not been initialised!\033[0m\n");
+        return false;
+    }
+    return true;
 }
 
 void ustar_list()
 {
-    if (!initrd)
-    {
-        not_initialised();
-        return;
-    }
+    if (!check_initrd()) return;
+
     int size = 0;
     printf("Total %d items:\n--------------------\n", ustar_filecount);
     for (int i = 1; i < ustar_filecount + 1; i++)
@@ -93,11 +95,8 @@ void ustar_list()
 
 char *ustar_cat(char *name)
 {
-    if (!initrd)
-    {
-        not_initialised();
-        return 0;
-    }
+    if (!check_initrd()) return "";
+
     char *contents;
     int i = 0;
     i = ustar_getid(name);
@@ -128,11 +127,8 @@ char *ustar_cat(char *name)
 
 int ustar_getid(char *name)
 {
-    if (!initrd)
-    {
-        not_initialised();
-        return 0;
-    }
+    if (!check_initrd()) return 0;
+
     for (int i = 0; i < ustar_filecount; ++i)
     {
         if(!strcmp(ustar_headers[i].header->name, name))
@@ -145,11 +141,8 @@ int ustar_getid(char *name)
 
 int ustar_search(char *filename, char **contents)
 {
-    if (!initrd)
-    {
-        not_initialised();
-        return 0;
-    }
+    if (!check_initrd()) return 0;
+
     for (int i = 1; i < ustar_filecount + 1; i++)
     {
         if (!strcmp(ustar_headers[i].header->name, filename))
@@ -165,10 +158,17 @@ void initrd_init(unsigned int address)
 {
     serial_info("Initialising initrd");
 
+    if (initrd_initialised)
+    {
+        serial_info("Initrd has already been initialised!");
+        return;
+    }
+
     ustar_headers = (ustar_header_t*)malloc(allocated * sizeof(ustar_header_t));
 
     ustar_parse(address);
-    initrd = true;
+    
+    initrd_initialised = true;
 
     serial_newline();
 }
