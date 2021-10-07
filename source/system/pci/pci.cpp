@@ -111,7 +111,14 @@ void PCI_init()
         return;
     }
 
-    if (acpi_initialised)
+    if (mcfg == NULL)
+    {
+        serial_err("Could not initialise PCI devices!");
+        serial_err("Possible reasons: MCFG was not found\n");
+        return;
+    }
+
+    if (!acpi_initialised)
     {
         serial_info("ACPI has not been initialised!");
         ACPI_init();
