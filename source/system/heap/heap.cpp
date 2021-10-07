@@ -4,13 +4,27 @@
 #include <system/heap/heap.hpp>
 #include <lib/string.hpp>
 
+bool heap_initialised = false;
+
 void *heapStart;
 void *heapEnd;
 heapSegHdr *lastHdr;
 
 void Heap_init(void *heapAddr, size_t pageCount)
 {
-    serial_info("Initialising Kernel Heap\n");
+    serial_info("Initialising Kernel Heap");
+
+    if (heap_initialised)
+    {
+        serial_info("Heap has already been initialised!");
+        return;
+    }
+
+    if (!ptmanager_initialised)
+    {
+        serial_info("Page table manager has not been initialised!");
+        PTManager_init();
+    }
 
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
@@ -29,10 +43,25 @@ void Heap_init(void *heapAddr, size_t pageCount)
     startSeg->last = NULL;
     startSeg->free = true;
     lastHdr = startSeg;
+
+    heap_initialised = true;
+
+    serial_newline();
+}
+
+void check_heap()
+{
+    if (!heap_initialised)
+    {
+        serial_info("Heap has not been initialised!");
+        Heap_init();
+    }
 }
 
 void free(void *address)
 {
+    check_heap();
+
     heapSegHdr *segment = (heapSegHdr*)address - 1;
     segment->free = true;
     serial_info("Free: Freeing %zu Bytes", segment->length);
@@ -42,6 +71,8 @@ void free(void *address)
 
 void* malloc(size_t size)
 {
+    check_heap();
+
     if (size % 0x08 > 0)
     {
         size -= (size % 0x08);
@@ -90,6 +121,8 @@ size_t alloc_getsize(void *ptr)
 
 void *calloc(size_t m, size_t n)
 {
+    check_heap();
+
     void *p;
     size_t *z;
     if (n && m > (size_t)-1 / n) return NULL;
@@ -102,6 +135,8 @@ void *calloc(size_t m, size_t n)
 
 void *realloc(void *ptr, size_t size)
 {
+    check_heap();
+
     size_t oldsize = alloc_getsize(ptr);
     void *newptr;
 

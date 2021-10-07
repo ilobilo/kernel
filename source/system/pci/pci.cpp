@@ -1,10 +1,11 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/heap/heap.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 
-#include <system/mm/ptmanager/ptmanager.hpp>
+bool pci_initialised = false;
 
 pcideviceheader *pcidevices;
 uint64_t pciAllocate = 10;
@@ -35,6 +36,7 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     uint64_t offset = func << 12;
 
     uint64_t funcaddr = deviceaddr + offset;
+    globalPTManager.mapMem((void*)(funcaddr + 0xFFFF800000000000), (void*)funcaddr);
 
     pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
 
@@ -70,6 +72,7 @@ void enumdevice(uint64_t busaddr, uint64_t device)
     uint64_t offset = device << 15;
 
     uint64_t deviceaddr = busaddr + offset;
+    globalPTManager.mapMem((void*)(deviceaddr + 0xFFFF800000000000), (void*)deviceaddr);
 
     pcideviceheader *pcidevice = (pcideviceheader*)deviceaddr;
 
@@ -86,6 +89,7 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     uint64_t offset = bus << 20;
 
     uint64_t busaddr = baseaddr + offset;
+    globalPTManager.mapMem((void*)(busaddr + 0xFFFF800000000000), (void*)busaddr);
 
     pcideviceheader *pcidevice = (pcideviceheader*)busaddr;
 
@@ -101,6 +105,18 @@ void PCI_init()
 {
     serial_info("Initialising PCI");
 
+    if (pci_initialised)
+    {
+        serial_info("PCI has already been initialised!");
+        return;
+    }
+
+    if (acpi_initialised)
+    {
+        serial_info("ACPI has not been initialised!");
+        ACPI_init();
+    }
+
     pcidevices = (pcideviceheader*)malloc(pciAllocate * sizeof(pcideviceheader));
 
     int entries = ((mcfg->header.length) - sizeof(mcfg_header)) / sizeof(deviceconfig);
@@ -112,6 +128,8 @@ void PCI_init()
             enumbus(newdevconf->baseaddr, bus);
         }
     }
+
+    pci_initialised = true;
 
     serial_newline();
 }

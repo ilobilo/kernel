@@ -19,4 +19,6 @@ struct CRs
 
 extern PTManager globalPTManager;
 
+extern bool ptmanager_initialised;
+
 void PTManager_init();

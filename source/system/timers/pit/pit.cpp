@@ -3,6 +3,8 @@
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
+bool pit_initialised = false;
+
 uint64_t tick = 0;
 
 void PIT_sleep(double sec)
@@ -26,7 +28,19 @@ static void PIT_Handler(interrupt_registers *)
 
 void PIT_init()
 {
-    serial_info("Initialising PIT\n");
+    serial_info("Initialising PIT");
+
+    if (pit_initialised)
+    {
+        serial_info("PIT has already been initialised!");
+        return;
+    }
+
+    if (!idt_initialised)
+    {
+        serial_info("IDT has not been initialised!");
+        IDT_init();
+    }
 
     uint64_t divisor = 1193180 / 100;
 
@@ -39,4 +53,8 @@ void PIT_init()
     outb(0x40, h);
 
     register_interrupt_handler(IRQ0, PIT_Handler);
+
+    pit_initialised = true;
+
+    serial_newline();
 }

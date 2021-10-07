@@ -10,6 +10,8 @@ struct kbd_mod_t
     int scrolllock : 1;
 };
 
+extern bool kbd_initialised;
+
 extern char *buff;
 
 void clearbuff();

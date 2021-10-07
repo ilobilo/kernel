@@ -6,6 +6,7 @@
 #include <lib/string.hpp>
 
 PTManager globalPTManager = NULL;
+bool ptmanager_initialised = false;
 
 PTManager::PTManager(PTable *PML4Address)
 {
@@ -93,7 +94,19 @@ extern "C" uint64_t __kernelstart;
 extern "C" uint64_t __kernelend;
 void PTManager_init()
 {
-    serial_info("Initialising Page Table Manager\n");
+    serial_info("Initialising Page Table Manager");
+
+    if (ptmanager_initialised)
+    {
+        serial_info("Page table manager has already been initialised!");
+        return;
+    }
+
+    if (!pfalloc_initialised)
+    {
+        serial_info("Page frame allocator has not been initialised!");
+        PFAlloc_init();
+    }
 
     uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
     uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
@@ -108,4 +121,8 @@ void PTManager_init()
     {
         globalPTManager.mapMem((void *)(s + 0xFFFF800000000000), (void *)s);
     }
+
+    ptmanager_initialised = true;
+
+    serial_newline();
 }

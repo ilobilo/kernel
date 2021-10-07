@@ -1,7 +1,9 @@
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <lib/io.hpp>
+#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <lib/io.hpp>
+
+bool idt_initialised = false;
 
 int_handler_t interrupt_handlers[256];
 
@@ -22,7 +24,13 @@ void isr_install();
 
 void IDT_init()
 {
-    serial_info("Initialising IDT\n");
+    serial_info("Initialising IDT");
+
+    if (idt_initialised)
+    {
+        serial_info("IDT has already been initialised!");
+        return;
+    }
 
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
@@ -31,6 +39,9 @@ void IDT_init()
 
     asm volatile ("lidt %0" : : "memory"(idtr));
     asm volatile ("sti");
+
+    idt_initialised = true;
+    serial_newline();
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)

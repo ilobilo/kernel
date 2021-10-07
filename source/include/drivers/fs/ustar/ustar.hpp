@@ -41,7 +41,7 @@ struct ustar_header_t
     unsigned int address;
 };
 
-extern bool initrd;
+extern bool initrd_initialised;
 extern uint64_t ustar_filecount;
 extern ustar_header_t *ustar_headers;
 

@@ -43,6 +43,8 @@ struct deviceconfig
     uint32_t reserved;
 } __attribute__((packed));
 
+extern bool acpi_initialised;
+
 extern bool use_xstd;
 extern RSDP *rsdp;
 

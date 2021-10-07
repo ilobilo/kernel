@@ -3,6 +3,8 @@
 #include <system/acpi/acpi.hpp>
 #include <main.hpp>
 
+bool acpi_initialised = false;
+
 bool use_xstd;
 RSDP *rsdp;
 
@@ -12,6 +14,12 @@ void ACPI_init()
 {
     serial_info("Initialising ACPI");
 
+    if (acpi_initialised)
+    {
+        serial_info("ACPI has already been initialised!");
+        return;
+    }
+
     rsdp = (RSDP*)rsdp_tag->rsdp;
 
     sdt_header *rsdt;
@@ -20,16 +28,20 @@ void ACPI_init()
     {
         use_xstd = true;
         rsdt = (sdt_header*)rsdp->xsdtaddr;
-        serial_info("Found XSDT at: 0x%X\n", rsdt);
+        serial_info("Found XSDT at: 0x%X", rsdt);
     }
     else
     {
         use_xstd = false;
         rsdt = (sdt_header*)rsdp->rstdaddr;
-        serial_info("Found RSDT at: 0x%X\n", rsdt);
+        serial_info("Found RSDT at: 0x%X", rsdt);
     }
 
     mcfg = (mcfg_header*)findtable(rsdt, (char*)"MCFG");
+
+    acpi_initialised = true;
+
+    serial_newline();
 }
 
 void *findtable(sdt_header *sdthdr, char *signature)

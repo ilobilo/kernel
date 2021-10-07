@@ -117,6 +117,8 @@ static idt_entry_t idt[256];
 
 static idtr_t idtr;
 
+extern bool idt_initialised;
+
 void IDT_init();
 
 typedef void (*int_handler_t) (interrupt_registers *registers);

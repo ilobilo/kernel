@@ -5,6 +5,8 @@
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
+bool mouse_initialised = false;;
+
 uint8_t cycle = 0;
 uint8_t packet[4];
 bool packetready = false;
@@ -226,7 +228,19 @@ static void Mouse_Handler(interrupt_registers *)
 
 void Mouse_init()
 {
-    serial_info("Initialising PS2 mouse\n");
+    serial_info("Initialising PS2 mouse");
+
+    if (mouse_initialised)
+    {
+        serial_info("Mouse driver has already been initialised!");
+        return;
+    }
+
+    if (!idt_initialised)
+    {
+        serial_info("IDT has not been initialised!");
+        IDT_init();
+    }
 
     asm volatile ("cli");
 
@@ -252,4 +266,8 @@ void Mouse_init()
     asm volatile ("sti");
 
     register_interrupt_handler(IRQ12, Mouse_Handler);
+
+    mouse_initialised = true;
+
+    serial_newline();
 }

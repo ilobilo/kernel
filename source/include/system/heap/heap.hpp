@@ -14,7 +14,9 @@ struct heapSegHdr
     heapSegHdr *split(size_t splitLength);
 };
 
-void Heap_init(void *heapAddr, size_t pageCount);
+extern bool heap_initialised;
+
+void Heap_init(void *heapAddr = (void*)0x0000100000000000, size_t pageCount = 0x10);
 
 void *malloc(size_t size);
 

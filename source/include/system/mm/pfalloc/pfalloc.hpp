@@ -31,4 +31,6 @@ class PFAlloc
 
 extern PFAlloc globalAlloc;
 
+extern bool pfalloc_initialised;
+
 void PFAlloc_init();
