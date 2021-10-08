@@ -1,6 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/acpi/acpi.hpp>
+#include <system/power/acpi/acpi.hpp>
 #include <main.hpp>
 
 bool acpi_initialised = false;
