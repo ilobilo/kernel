@@ -119,7 +119,8 @@ void PTManager_init()
 
     for (int s = 0; s < getmemsize(); s += 0x1000)
     {
-        globalPTManager.mapMem((void*)s, (void*)s);
+        // This results in UEFI qemu corruption
+        //globalPTManager.mapMem((void*)s, (void*)s);
     }
 
     ptmanager_initialised = true;
