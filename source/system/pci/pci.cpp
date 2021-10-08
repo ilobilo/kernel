@@ -1,8 +1,8 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
+#include <system/power/acpi/acpi.hpp>
 #include <system/heap/heap.hpp>
-#include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 
 bool pci_initialised = false;

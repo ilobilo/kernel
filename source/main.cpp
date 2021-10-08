@@ -8,6 +8,7 @@
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/mm/paging/paging.hpp>
 #include <system/mm/bitmap/bitmap.hpp>
+#include <system/power/acpi/acpi.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/timers/pit/pit.hpp>
 #include <system/timers/rtc/rtc.hpp>
@@ -15,7 +16,6 @@
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/heap/heap.hpp>
-#include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 #include <misc/kshell.hpp>
@@ -54,10 +54,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     cmdline = (char *)cmd_tag->cmdline;
 
-    if (!strstr(cmdline, "nocom"))
-    {
-        serial_init();
-    }
+    serial_init();
 
     serial_info("Welcome to kernel project");
 
