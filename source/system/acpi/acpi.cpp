@@ -16,7 +16,7 @@ void ACPI_init()
 
     if (acpi_initialised)
     {
-        serial_info("ACPI has already been initialised!");
+        serial_info("ACPI has already been initialised!\n");
         return;
     }
 

@@ -12,17 +12,17 @@ heapSegHdr *lastHdr;
 
 void Heap_init(void *heapAddr, size_t pageCount)
 {
-    serial_info("Initialising Kernel Heap");
+    serial_info("Initialising Kernel Heap\n");
 
     if (heap_initialised)
     {
-        serial_info("Heap has already been initialised!");
+        serial_info("Heap has already been initialised!\n");
         return;
     }
 
     if (!ptmanager_initialised)
     {
-        serial_info("Page table manager has not been initialised!");
+        serial_info("Page table manager has not been initialised!\n");
         PTManager_init();
     }
 
@@ -45,15 +45,13 @@ void Heap_init(void *heapAddr, size_t pageCount)
     lastHdr = startSeg;
 
     heap_initialised = true;
-
-    serial_newline();
 }
 
 void check_heap()
 {
     if (!heap_initialised)
     {
-        serial_info("Heap has not been initialised!");
+        serial_info("Heap has not been initialised!\n");
         Heap_init();
     }
 }

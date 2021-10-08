@@ -228,17 +228,17 @@ static void Mouse_Handler(interrupt_registers *)
 
 void Mouse_init()
 {
-    serial_info("Initialising PS2 mouse");
+    serial_info("Initialising PS2 mouse\n");
 
     if (mouse_initialised)
     {
-        serial_info("Mouse driver has already been initialised!");
+        serial_info("Mouse driver has already been initialised!\n");
         return;
     }
 
     if (!idt_initialised)
     {
-        serial_info("IDT has not been initialised!");
+        serial_info("IDT has not been initialised!\n");
         IDT_init();
     }
 
@@ -268,6 +268,4 @@ void Mouse_init()
     register_interrupt_handler(IRQ12, Mouse_Handler);
 
     mouse_initialised = true;
-
-    serial_newline();
 }

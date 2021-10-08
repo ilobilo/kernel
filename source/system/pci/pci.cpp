@@ -103,11 +103,11 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
 
 void PCI_init()
 {
-    serial_info("Initialising PCI");
+    serial_info("Initialising PCI\n");
 
     if (pci_initialised)
     {
-        serial_info("PCI has already been initialised!");
+        serial_info("PCI has already been initialised!\n");
         return;
     }
 
@@ -120,7 +120,7 @@ void PCI_init()
 
     if (!acpi_initialised)
     {
-        serial_info("ACPI has not been initialised!");
+        serial_info("ACPI has not been initialised!\n");
         ACPI_init();
     }
 
@@ -137,6 +137,4 @@ void PCI_init()
     }
 
     pci_initialised = true;
-
-    serial_newline();
 }

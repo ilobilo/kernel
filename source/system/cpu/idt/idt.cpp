@@ -24,11 +24,11 @@ void isr_install();
 
 void IDT_init()
 {
-    serial_info("Initialising IDT");
+    serial_info("Initialising IDT\n");
 
     if (idt_initialised)
     {
-        serial_info("IDT has already been initialised!");
+        serial_info("IDT has already been initialised!\n");
         return;
     }
 
@@ -41,7 +41,6 @@ void IDT_init()
     asm volatile ("sti");
 
     idt_initialised = true;
-    serial_newline();
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)

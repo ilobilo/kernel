@@ -102,7 +102,7 @@ void main(struct stivale2_struct *stivale2_struct)
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
-        initrd_init(mod_tag->modules[i].begin);
+        initrd_init(mod_tag->modules[i].begin + 0xFFFF800000000000);
     }
     term_check(initrd_initialised, "Initialising USTAR Initrd...");
 
@@ -146,7 +146,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("Current RTC time: %s", RTC_GetTime());
 
-    printf("\n\nUserspace not implemented yet! dropping to kernel shell...\n\n");
+    printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     getchar();
     serial_info("Starting kernel shell\n");

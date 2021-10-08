@@ -28,17 +28,17 @@ static void PIT_Handler(interrupt_registers *)
 
 void PIT_init()
 {
-    serial_info("Initialising PIT");
+    serial_info("Initialising PIT\n");
 
     if (pit_initialised)
     {
-        serial_info("PIT has already been initialised!");
+        serial_info("PIT has already been initialised!\n");
         return;
     }
 
     if (!idt_initialised)
     {
-        serial_info("IDT has not been initialised!");
+        serial_info("IDT has not been initialised!\n");
         IDT_init();
     }
 
@@ -55,6 +55,4 @@ void PIT_init()
     register_interrupt_handler(IRQ0, PIT_Handler);
 
     pit_initialised = true;
-
-    serial_newline();
 }
