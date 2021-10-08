@@ -179,17 +179,17 @@ char *getline()
 
 void Keyboard_init()
 {
-    serial_info("Initialising PS2 keyboard");
+    serial_info("Initialising PS2 keyboard\n");
 
     if (kbd_initialised)
     {
-        serial_info("Keyboard driver has already been initialised!");
+        serial_info("Keyboard driver has already been initialised!\n");
         return;
     }
 
     if (!idt_initialised)
     {
-        serial_info("IDT has not been initialised!");
+        serial_info("IDT has not been initialised!\n");
         IDT_init();
     }
 
@@ -197,6 +197,4 @@ void Keyboard_init()
     buff[0] = '\0';
 
     kbd_initialised = true;
-
-    serial_newline();
 }

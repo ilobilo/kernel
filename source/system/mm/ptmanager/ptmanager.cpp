@@ -94,17 +94,17 @@ extern "C" uint64_t __kernelstart;
 extern "C" uint64_t __kernelend;
 void PTManager_init()
 {
-    serial_info("Initialising Page Table Manager");
+    serial_info("Initialising Page Table Manager\n");
 
     if (ptmanager_initialised)
     {
-        serial_info("Page table manager has already been initialised!");
+        serial_info("Page table manager has already been initialised!\n");
         return;
     }
 
     if (!pfalloc_initialised)
     {
-        serial_info("Page frame allocator has not been initialised!");
+        serial_info("Page frame allocator has not been initialised!\n");
         PFAlloc_init();
     }
 
@@ -119,10 +119,8 @@ void PTManager_init()
 
     for (int s = 0; s < getmemsize(); s += 0x1000)
     {
-        globalPTManager.mapMem((void *)(s + 0xFFFF800000000000), (void *)s);
+        globalPTManager.mapMem((void*)s, (void*)s);
     }
 
     ptmanager_initialised = true;
-
-    serial_newline();
 }

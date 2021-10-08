@@ -156,12 +156,18 @@ int ustar_search(char *filename, char **contents)
 
 void initrd_init(unsigned int address)
 {
-    serial_info("Initialising initrd");
+    serial_info("Initialising initrd\n");
 
     if (initrd_initialised)
     {
-        serial_info("Initrd has already been initialised!");
+        serial_info("Initrd has already been initialised!\n");
         return;
+    }
+
+    if (!heap_initialised)
+    {
+        serial_info("Heap has not been initialised!\n");
+        Heap_init();
     }
 
     ustar_headers = (ustar_header_t*)malloc(allocated * sizeof(ustar_header_t));

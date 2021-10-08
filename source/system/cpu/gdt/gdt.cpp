@@ -16,11 +16,11 @@ bool gdt_initialised = false;
 
 void GDT_init()
 {
-    serial_info("Initialising GDT");
+    serial_info("Initialising GDT\n");
 
     if (gdt_initialised)
     {
-        serial_info("GDT has already been initialised!");
+        serial_info("GDT has already been initialised!\n");
         return;
     }
 
@@ -30,6 +30,4 @@ void GDT_init()
     LoadGDT(&gdtDescriptor);
 
     gdt_initialised = true;
-
-    serial_newline();
 }

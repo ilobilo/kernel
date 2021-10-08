@@ -163,11 +163,11 @@ uint64_t PFAlloc::getReservedRam()
 
 void PFAlloc_init()
 {
-    serial_info("Initialising Page Frame Allocator");
+    serial_info("Initialising Page Frame Allocator\n");
 
     if (pfalloc_initialised)
     {
-        serial_info("Page frame allocator has already been initialised!");
+        serial_info("Page frame allocator has already been initialised!\n");
         return;
     }
 
@@ -175,6 +175,4 @@ void PFAlloc_init()
     globalAlloc.ReadMemMap();
     
     pfalloc_initialised = true;
-
-    serial_newline();
 }
