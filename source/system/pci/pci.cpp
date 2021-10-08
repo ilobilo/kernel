@@ -36,7 +36,6 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     uint64_t offset = func << 12;
 
     uint64_t funcaddr = deviceaddr + offset;
-    globalPTManager.mapMem((void*)(funcaddr + 0xFFFF800000000000), (void*)funcaddr);
 
     pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
 
@@ -44,7 +43,7 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
 
     if (pcidevcount >= (alloc_getsize(pcidevices) / sizeof(pcideviceheader)))
     {
-        pciAllocate += 5;
+        pciAllocate += 10;
         pcidevices = (pcideviceheader*)realloc(pcidevices, pciAllocate * sizeof(pcideviceheader));
     }
 
@@ -72,7 +71,6 @@ void enumdevice(uint64_t busaddr, uint64_t device)
     uint64_t offset = device << 15;
 
     uint64_t deviceaddr = busaddr + offset;
-    globalPTManager.mapMem((void*)(deviceaddr + 0xFFFF800000000000), (void*)deviceaddr);
 
     pcideviceheader *pcidevice = (pcideviceheader*)deviceaddr;
 
@@ -89,7 +87,6 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     uint64_t offset = bus << 20;
 
     uint64_t busaddr = baseaddr + offset;
-    globalPTManager.mapMem((void*)(busaddr + 0xFFFF800000000000), (void*)busaddr);
 
     pcideviceheader *pcidevice = (pcideviceheader*)busaddr;
 

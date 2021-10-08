@@ -2,6 +2,8 @@
 
 #define COM1 0x3F8
 
+extern bool serial_initialised;
+
 void serial_printc(char c, void *arg);
 
 void serial_printf(const char *fmt, ...);
