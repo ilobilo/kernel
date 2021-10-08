@@ -54,7 +54,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     cmdline = (char *)cmd_tag->cmdline;
 
-    serial_init();
+    if (!strstr(cmdline, "nocom")) serial_init();
 
     serial_info("Welcome to kernel project");
 
@@ -145,7 +145,6 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    getchar();
     serial_info("Starting kernel shell\n");
     while (true) shell_run();
 }

@@ -2,6 +2,14 @@
 #include <drivers/display/serial/serial.hpp>
 #include <lib/io.hpp>
 
+bool serial_initialised = false;
+
+bool check_serial()
+{
+    if (serial_initialised) return true;
+    else return false;
+}
+
 int is_transmit_empty()
 {
     return inb(COM1 + 5) & 0x20;
@@ -9,6 +17,10 @@ int is_transmit_empty()
 
 void serial_printc(char c, void *arg)
 {
+    if (!check_serial())
+    {
+        return;
+    }
     while (is_transmit_empty() == 0);
     outb(COM1, c);
 }
@@ -48,6 +60,18 @@ void serial_newline()
 
 void serial_init()
 {
+    if (serial_initialised) return;
+
+    outb(COM1 + 1, 0x00);
+    outb(COM1 + 3, 0x80);
+    outb(COM1 + 0, 0x03);
+    outb(COM1 + 1, 0x00);
+    outb(COM1 + 3, 0x03);
+    outb(COM1 + 2, 0xC7);
+    outb(COM1 + 4, 0x0B);
+
     //serial_printf("\033[H\033[0m\033[2J");
     serial_printf("\033[0m");
+
+    serial_initialised = true;
 }
