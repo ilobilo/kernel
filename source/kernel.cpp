@@ -59,5 +59,5 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
 
     main(stivale2_struct);
 
-    while (true);
+    while (true) asm volatile ("hlt");
 }
