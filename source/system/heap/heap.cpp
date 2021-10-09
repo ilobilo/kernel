@@ -67,9 +67,16 @@ void free(void *address)
     segment->combineBackward();
 }
 
+volatile bool expanded = false;
 void* malloc(size_t size)
 {
     check_heap();
+
+    if (size > globalAlloc.getFreeRam())
+    {
+        serial_err("Malloc: requested more memory than available!");
+        return NULL;
+    }
 
     if (size % 0x08 > 0)
     {
@@ -88,19 +95,20 @@ void* malloc(size_t size)
                 currentSeg->split(size);
                 currentSeg->free = false;
                 serial_info("Malloc: Allocated %zu Bytes", size);
+                expanded = false;
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
             if (currentSeg->length == size)
             {
                 currentSeg->free = false;
                 serial_info("Malloc: Allocated %zu Bytes", size);
+                expanded = false;
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
         }
         if (currentSeg->next == NULL) break;
         currentSeg = currentSeg->next;
     }
-    volatile bool expanded = false;
     if (expanded)
     {
         serial_err("Out of memory!");
@@ -142,6 +150,7 @@ void *realloc(void *ptr, size_t size)
     if (size <= oldsize) return ptr;
 
     newptr = malloc(size);
+    if (!newptr) return ptr;
     memcpy(newptr, ptr, oldsize);
     free(ptr);
     return(newptr);
@@ -203,9 +212,9 @@ void heapSegHdr::combineForward()
 
     if (next->next != NULL) next->next->last = this;
 
-    next = next->next;
-
     length = length + next->length + sizeof(heapSegHdr);
+
+    next = next->next;
 }
 
 void heapSegHdr::combineBackward()

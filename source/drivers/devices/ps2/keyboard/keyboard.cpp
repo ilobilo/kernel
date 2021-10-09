@@ -8,7 +8,13 @@
 
 bool kbd_initialised = false;
 
-static kbd_mod_t kbd_mod;
+char retstr[1024] = "\0";
+bool reading = false;
+
+volatile bool pressed = false;
+volatile bool enter = false;
+
+kbd_mod_t kbd_mod;
 
 // Scancode to ascii
 char get_ascii_char(uint8_t key_code)
@@ -32,10 +38,25 @@ char get_ascii_char(uint8_t key_code)
 }
 
 // Handle key combinations
-void handle_comb(char c)
+void handle_comb(uint8_t scancode)
 {
-    // Example: ctrl + alt + w
-    if (kbd_mod.ctrl && kbd_mod.alt && (c == 'w') || (c == 'W')) printf("It works! ");
+    char ch = get_ascii_char(scancode);
+
+    // Crash the os: CTRL + ALT + DEL
+    if (kbd_mod.ctrl && kbd_mod.alt && scancode == keys::DELETE)
+    {
+        asm volatile ("int $0x3");
+        asm volatile ("int $0x4");
+    }
+    else if (kbd_mod.ctrl && (ch == 'l') || (ch == 'L'))
+    {
+        term_clear();
+        if (reading)
+        {
+            memset(retstr, '\0', 1024);
+            enter = true;
+        }
+    }
 }
 
 // Keyboard buffer
@@ -51,9 +72,6 @@ void clearbuff()
     }
 }
 
-volatile bool pressed = false;
-volatile bool enter = false;
-
 // Main keyboard handler
 static void Keyboard_Handler(interrupt_registers *)
 {
@@ -63,14 +81,14 @@ static void Keyboard_Handler(interrupt_registers *)
     {
         switch (scancode)
         {
-            case L_SHIFT_UP:
-            case R_SHIFT_UP:
+            case keys::L_SHIFT_UP:
+            case keys::R_SHIFT_UP:
                 kbd_mod.shift = 0;
                 break;
-            case CTRL_UP:
+            case keys::CTRL_UP:
                 kbd_mod.ctrl = 0;
                 break;
-            case ALT_UP:
+            case keys::ALT_UP:
                 kbd_mod.alt = 0;
                 break;
         }
@@ -79,38 +97,38 @@ static void Keyboard_Handler(interrupt_registers *)
     {
         switch (scancode)
         {
-            case L_SHIFT_DOWN:
-            case R_SHIFT_DOWN:
+            case keys::L_SHIFT_DOWN:
+            case keys::R_SHIFT_DOWN:
                 kbd_mod.shift = 1;
                 break;
-            case CTRL_DOWN:
+            case keys::CTRL_DOWN:
                 kbd_mod.ctrl = 1;
                 break;
-            case ALT_DOWN:
+            case keys::ALT_DOWN:
                 kbd_mod.alt = 1;
                 break;
-            case CAPSLOCK:
+            case keys::CAPSLOCK:
                 kbd_mod.capslock = (!kbd_mod.capslock) ? 1 : 0;
                 break;
-            case NUMLOCK:
+            case keys::NUMLOCK:
                 kbd_mod.numlock = (!kbd_mod.numlock) ? 1 : 0;
                 break;
-            case SCROLLLOCK:
+            case keys::SCROLLLOCK:
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
                 break;
-            case UP:
+            case keys::UP:
                 strcpy(c, "\033[A");
                 term_print(c);
                 break;
-            case DOWN:
+            case keys::DOWN:
                 strcpy(c, "\033[B");
                 term_print(c);
                 break;
-            case RIGHT:
+            case keys::RIGHT:
                 strcpy(c, "\033[C");
                 term_print(c);
                 break;
-            case LEFT:
+            case keys::LEFT:
                 strcpy(c, "\033[D");
                 term_print(c);
                 break;
@@ -119,7 +137,7 @@ static void Keyboard_Handler(interrupt_registers *)
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
-                    handle_comb(c[0]);
+                    handle_comb(scancode);
                 }
                 else
                 {
@@ -158,7 +176,7 @@ char getchar()
 
 char *getline()
 {
-    static char retstr[1024] = "\0";
+    reading = true;
     memset(retstr, '\0', 1024);
     int i = 0;
     while (!enter)
@@ -174,6 +192,7 @@ char *getline()
         }
     }
     enter = false;
+    reading = false;
     return retstr;
 }
 
