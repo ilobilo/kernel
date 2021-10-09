@@ -4,13 +4,18 @@ FONT := $(SOURCEDIR)/font.raw
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
+DISK = $(SOURCEDIR)/../disk.img
 VERSION = 0
 
 LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS = -M q35 -enable-kvm -cpu max -smp 12 -m 512M -boot d -rtc base=localtime -serial stdio -no-reboot -no-shutdown
+QEMUFLAGS = -M q35 -enable-kvm \
+	-cpu max -smp 12 -m 512M \
+	-boot d -rtc base=localtime \
+	-serial stdio -no-reboot -no-shutdown
+
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
@@ -44,7 +49,8 @@ INTERNALCFLAGS  :=           \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
-	-mno-red-zone
+	-mno-red-zone        \
+	-fno-exceptions
 
 INTERNALCPPFLAGS  :=         \
 	-I$(SOURCEDIR)/include   \
@@ -55,7 +61,8 @@ INTERNALCPPFLAGS  :=         \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
-	-mno-red-zone
+	-mno-red-zone        \
+	-fno-exceptions
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
 CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")

@@ -76,7 +76,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
 CRs getCRs()
 {
     uint64_t cr0, cr2, cr3;
-    __asm__ __volatile__ (
+    asm volatile (
         "mov %%cr0, %%rax\n\t"
         "mov %%eax, %0\n\t"
         "mov %%cr2, %%rax\n\t"

@@ -2,6 +2,11 @@
 
 bool Bitmap::operator[](uint64_t index)
 {
+    return Get(index);
+}
+
+bool Bitmap::Get(uint64_t index)
+{
     if (index > size * 8) return false;
     uint64_t bytei = index / 8;
     uint8_t biti = index % 8;
