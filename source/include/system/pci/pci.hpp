@@ -47,4 +47,6 @@ extern bool pci_initialised;
 extern pcideviceheader *pcidevices;
 extern uint64_t pcidevcount;
 
+pcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif);
+
 void PCI_init();
