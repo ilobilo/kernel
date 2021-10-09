@@ -11,6 +11,33 @@ pcideviceheader *pcidevices;
 uint64_t pciAllocate = 10;
 uint64_t pcidevcount = 0;
 
+pcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif)
+{
+    pcideviceheader null;
+    if (!pci_initialised)
+    {
+        serial_info("PCI has not been initialised!\n");
+        return null;
+    }
+    for (int i = 0; i < pcidevcount; i++)
+    {
+        if (pcidevices[i].Class == Class)
+        {
+            if (pcidevices[i].subclass == subclass)
+            {
+                if (pcidevices[i].progif == progif)
+                {
+                    return pcidevices[i];
+                }
+                else continue;
+            }
+            else continue;
+        }
+        else continue;
+    }
+    return null;
+}
+
 pcideviceheader PCI_translate(pcideviceheader* device)
 {
     pcideviceheader pcidevice = 
