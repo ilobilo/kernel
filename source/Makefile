@@ -78,43 +78,43 @@ all: $(KERNEL) initrd iso clean run
 bios: $(KERNEL) initrd iso clean run-bios
 
 $(KERNEL): $(OBJ)
-	echo "\nLinking the kernel...\n"
+	@printf "LD\t%s\n" $(lastword $(subst /, ,$(KERNEL)))
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
 
 %.o: %.c
-	printf "Building %s\n" $<
+	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
 
 %.o: %.cpp
-	printf "Building %s\n" $<
+	@printf "CPP\t%s\n" $(lastword $(subst /, ,$<))
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -c $< -o $@
 
 %_asm.o: %.asm
-	printf "Building %s\n" $<
+	@printf "AS\t%s\n" $(lastword $(subst /, ,$<))
 	$(AS) $(ASMFLAGS) $< -o $@
 
 .PHONY: initrd
 initrd:
-	echo "Creating initrd...\n"
+	@printf "TAR\t%s\n" $(lastword $(subst /, ,$(INITRD)))
 	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar 
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
 		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
 
-	echo "Building iso image...\n"
+	@printf "XORRISO\t%s\n" $(lastword $(subst /, ,$(ISO)))
 	$(XORRISO) $(XORRISOFLAGS) $(SOURCEDIR)/../iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"
 
-	echo "Instaling limine...\n"
+	@printf "LIMINE\t%s\n" $(lastword $(subst /, ,$(ISO)))
 	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install limine!\e[0m"
 
 clean:
 	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(SOURCEDIR)/../iso_root/*
 
 run:
-	echo "Booting iso in uefi mode...\n"
+	echo "\nBooting iso in uefi mode...\n"
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd 2> /dev/null
 
 run-bios:
-	echo "Booting iso in bios mode...\n"
+	echo "\nBooting iso in bios mode...\n"
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) 2> /dev/null
