@@ -9,6 +9,7 @@ bool use_xstd;
 RSDP *rsdp;
 
 MCFGHeader *mcfg;
+FADTHeader *fadt;
 
 void ACPI_init()
 {
@@ -38,6 +39,7 @@ void ACPI_init()
     }
 
     mcfg = (MCFGHeader*)findtable(rsdt, (char*)"MCFG");
+    fadt = (FADTHeader*)findtable(rsdt, (char*)"FACP");
 
     acpi_initialised = true;
 
