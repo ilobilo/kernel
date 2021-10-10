@@ -113,8 +113,8 @@ clean:
 
 run:
 	echo "\nBooting iso in uefi mode...\n"
-	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd > /dev/null
+	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd 2> /dev/null
 
 run-bios:
 	echo "\nBooting iso in bios mode...\n"
-	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) > /dev/null
+	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) 2> /dev/null

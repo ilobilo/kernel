@@ -145,6 +145,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
+    getchar();
     serial_info("Starting kernel shell\n");
     while (true) shell_run();
 }
