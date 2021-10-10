@@ -15,7 +15,7 @@ struct RSDP
     uint8_t reserved[3];
 } __attribute__((packed));
 
-struct sdt_header
+struct SDTHeader
 {
     unsigned char signature[4];
     uint32_t length;
@@ -28,9 +28,9 @@ struct sdt_header
     uint32_t creatrevision;
 } __attribute__((packed));
 
-struct mcfg_header
+struct MCFGHeader
 {
-    sdt_header header;
+    SDTHeader header;
     uint64_t reserved;
 } __attribute__((packed));
 
@@ -48,8 +48,8 @@ extern bool acpi_initialised;
 extern bool use_xstd;
 extern RSDP *rsdp;
 
-extern mcfg_header *mcfg;
+extern MCFGHeader *mcfg;
 
 void ACPI_init();
 
-void *findtable(sdt_header *sdthdr, char *signature);
+void *findtable(SDTHeader *sdthdr, char *signature);
