@@ -1,4 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
+#include <system/heap/heap.hpp>
+#include <lib/string.hpp>
 #include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
@@ -93,6 +95,39 @@ int lstrstr(const char *str, const char *substring, int skip)
         }
         if (*str == '\n') count++;
     }
+    return -1;
+}
+
+char *getline(const char *str, const char *substring, int skip)
+{
+    int i = 0;
+    const char *strbck = str;
+    const char *a = str, *b = substring;
+    while (true)
+    {
+        if (!*b)
+        {
+            if (skip == 0)
+            {
+                int t = i;
+                while (strbck[i] != '\n') i--;
+                while (strbck[t] != '\n') t++;
+                int size = t - i;
+                char *retstr = (char*)malloc(size * sizeof(char));
+                memcpy(retstr, (void*)&strbck[i], size);
+                return retstr;
+            }
+            else skip--;
+        }
+        if (!*a) return 0;
+        if (*a++ != *b++)
+        {
+            a = ++str;
+            b = substring;
+            i++;
+        }
+    }
+    return 0;
 }
 
 void memcpy(void *dest, void *src, size_t n)

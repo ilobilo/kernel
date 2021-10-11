@@ -86,25 +86,11 @@ void term_resetcolour()
 void term_clear(char *ansii_colour)
 {
     clearbuff();
+    term_colour = ansii_colour;
     term_print("\033[H");
     for (uint16_t i = 0; i < rows; i++)
     {
         for (uint16_t i = 0; i < columns; i++)
-        {
-            term_print(ansii_colour);
-            term_print(" ");
-        }
-    }
-    term_print("\033[H");
-}
-
-void term_clear()
-{
-    clearbuff();
-    term_print("\033[H");
-    for (uint16_t i = 0; i < columns; i++)
-    {
-        for (uint16_t i = 0; i < rows; i++)
         {
             term_print(term_colour);
             term_print(" ");

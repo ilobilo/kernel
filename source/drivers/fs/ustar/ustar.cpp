@@ -1,5 +1,5 @@
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/heap/heap.hpp>
 #include <lib/string.hpp>
@@ -13,7 +13,8 @@ uint64_t allocated = 10;
 unsigned int getsize(const char *s)
 {
     uint64_t ret = 0;
-    while (*s) {
+    while (*s)
+    {
         ret *= 8;
         ret += *s - '0';
         s++;
@@ -59,7 +60,7 @@ bool check_initrd()
 {
     if (!initrd_initialised)
     {
-        printf("\033[31mInitrd has not been initialised!\033[0m\n");
+        printf("\033[31mInitrd has not been initialised!%s\n", term_colour);
         return false;
     }
     return true;
@@ -80,13 +81,13 @@ void ustar_list()
                 size += oct_to_dec(string_to_int(ustar_headers[i].header->size));
                 break;
             case SYMLINK:
-                printf("%ld) \033[96m(SYMLINK) %s --> %s\033[0m\n", i, ustar_headers[i].header->name, ustar_headers[i].header->link);
+                printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i, ustar_headers[i].header->name, ustar_headers[i].header->link, term_colour);
                 break;
             case DIRECTORY:
-                printf("%ld) \033[35m(DIRECTORY) %s\033[0m\n", i, ustar_headers[i].header->name);
+                printf("%ld) \033[35m(DIRECTORY) %s%s\n", i, ustar_headers[i].header->name, term_colour);
                 break;
             default:
-                printf("%ld) \033[31m(File type not supported!) %s\033[0m\n", i, ustar_headers[i].header->name);
+                printf("%ld) \033[31m(File type not supported!) %s%s\n", i, ustar_headers[i].header->name, term_colour);
                 break;
         }
     }
@@ -116,7 +117,7 @@ char *ustar_cat(char *name)
             break;
         default:
             contents = "";
-            printf("\033[31m\"%s\" is not a regular file!\033[0m\n", name);
+            printf("\033[31m\"%s\" is not a regular file!%s\n", name, term_colour);
             break;
     }
     return contents;
