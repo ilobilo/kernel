@@ -117,7 +117,7 @@ void PTManager_init()
 
     globalPTManager = PTManager(PML4);
 
-    for (int s = 0; s < getmemsize(); s += 0x1000)
+    for (uint64_t s = 0; s < getmemsize(); s += 0x1000)
     {
         // This results in UEFI qemu corruption
         //globalPTManager.mapMem((void*)s, (void*)s);

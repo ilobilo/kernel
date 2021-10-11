@@ -17,8 +17,8 @@ void shell_parse(char *cmd, char *arg)
         printf("- help\t-- This\n");
         printf("- clear\t-- Clear terminal\n");
         printf("- ls\t-- List files in initrd\n");
-        printf("- free\t-- Get memory info in bytes");
-        printf("- free -h\t-- Get memory info in MB");
+        printf("- free\t-- Get memory info in bytes\n");
+        printf("-  -h\t-- Get memory info in MB\n");
         printf("- time\t-- Get current RTC time\n");
         printf("- timef\t-- Get current RTC time (Forever loop)\n");
         printf("- tick\t-- Get current PIT tick\n");
@@ -40,7 +40,7 @@ void shell_parse(char *cmd, char *arg)
         else printf("Usable memory: %.0f Bytes\nFree memory: %.0f Bytes\nUsed memory: %.0f Bytes\n", usable, free, usable - free);
     }
     else if (!strcmp(cmd, "time")) printf("%s\n", RTC_GetTime());
-    else if (!strcmp(cmd, "tick")) printf("%d\n", get_tick());
+    else if (!strcmp(cmd, "tick")) printf("%ld\n", get_tick());
     else if (!strcmp(cmd, "timef"))
     {
         while (true)
@@ -76,14 +76,14 @@ void shell_run()
     char *arg = "\0";
     char *cmd = "\0";
 
-    for (int i = 0; i < strlen(cmd); i++)
+    for (size_t i = 0; i < strlen(cmd); i++)
     {
         cmd[i] = '\0';
     }
     arg = command;
 
     // Get cmd string
-    for (int i = 0; i < strlen(command); i++)
+    for (size_t i = 0; i < strlen(command); i++)
     {
         if (command[i] != ' ' && command[i] != '\0')
         {
@@ -99,7 +99,7 @@ void shell_run()
     // Remove cmd from arg
     if (strlen(cmd) != strlen(command))
     {
-        for (int i = 0; i < strlen(cmd) + 1; i++)
+        for (size_t i = 0; i < strlen(cmd) + 1; i++)
         {
             arg++;
         }

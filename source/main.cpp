@@ -35,9 +35,9 @@ char *cmdline;
 
 int find_module(char *name)
 {
-    for (int i = 0; i < mod_tag->module_count; i++)
+    for (uint64_t i = 0; i < mod_tag->module_count; i++)
     {
-        if (!strcmp(mod_tag->modules[i].string, "initrd")) return i;
+        if (!strcmp(mod_tag->modules[i].string, name)) return i;
     }
     return -1;
 }
@@ -58,7 +58,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     serial_info("Welcome to kernel project");
 
-    if (KERNEL_VERSION == "0") serial_info("Git version: %s\n", GIT_VERSION);
+    if (!strcmp(KERNEL_VERSION, "0")) serial_info("Git version: %s\n", GIT_VERSION);
     else serial_info("Version: %s\n", KERNEL_VERSION);
 
     serial_info("CPU cores available: %d", smp_tag->cpu_count);
@@ -66,7 +66,7 @@ void main(struct stivale2_struct *stivale2_struct)
     serial_info("Arguments passed to kernel: %s", cmdline);
 
     serial_info("Available kernel modules:");
-    for (int t = 0; t < mod_tag->module_count; t++)
+    for (uint64_t t = 0; t < mod_tag->module_count; t++)
     {
         serial_info("%d) %s", t + 1, mod_tag->modules[t].string);
     }
@@ -90,10 +90,10 @@ void main(struct stivale2_struct *stivale2_struct)
 
     term_center("Welcome to kernel project");
 
-    if (KERNEL_VERSION == "0") printf("Git version: %s\n", GIT_VERSION);
+    if (!strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
-    printf("CPU cores available: %d\n", smp_tag->cpu_count);
+    printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %s\n", humanify(getmemsize()));
 
     int i = find_module("initrd");

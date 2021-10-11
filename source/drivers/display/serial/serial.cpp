@@ -15,7 +15,7 @@ int is_transmit_empty()
     return inb(COM1 + 5) & 0x20;
 }
 
-void serial_printc(char c, void *arg)
+void serial_printc(char c, __attribute__((unused)) void *arg)
 {
     if (!check_serial())
     {

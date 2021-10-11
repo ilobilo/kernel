@@ -19,7 +19,7 @@ pcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif)
         serial_info("PCI has not been initialised!\n");
         return null;
     }
-    for (int i = 0; i < pcidevcount; i++)
+    for (uint64_t i = 0; i < pcidevcount; i++)
     {
         if (pcidevices[i].Class == Class)
         {

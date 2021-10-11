@@ -26,7 +26,7 @@ uint64_t write_fs(fs_node *node, uint64_t offset, uint64_t size, char *buffer)
     }
 }
 
-void open_fs(fs_node *node, uint8_t read, uint8_t write)
+void open_fs(fs_node *node, __attribute__((unused)) uint8_t read, __attribute__((unused)) uint8_t write)
 {
     if (node->open != 0)
     {

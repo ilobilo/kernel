@@ -130,7 +130,6 @@ void *calloc(size_t m, size_t n)
     check_heap();
 
     void *p;
-    size_t *z;
     if (n && m > (size_t)-1 / n) return NULL;
     n *= m;
     p = malloc(n);

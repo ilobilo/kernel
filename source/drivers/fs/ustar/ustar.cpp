@@ -46,7 +46,7 @@ int ustar_parse(unsigned int address)
 
         address += (((size + 511) / 512) + 1) * 512;
     }
-    for (int g = 1; g < ustar_filecount; g++)
+    for (uint64_t g = 1; g < ustar_filecount; g++)
     {
         memmove(ustar_headers[g].header->name, ustar_headers[g].header->name + 1, strlen(ustar_headers[g].header->name));
     }
@@ -70,23 +70,23 @@ void ustar_list()
     if (!check_initrd()) return;
 
     int size = 0;
-    printf("Total %d items:\n--------------------\n", ustar_filecount);
-    for (int i = 1; i < ustar_filecount + 1; i++)
+    printf("Total %ld items:\n--------------------\n", ustar_filecount);
+    for (uint64_t i = 1; i < ustar_filecount + 1; i++)
     {
         switch (ustar_headers[i].header->typeflag[0])
         {
             case REGULAR_FILE:
-                printf("%d) (REGULAR) %s %s\n", i, ustar_headers[i].header->name, humanify(oct_to_dec(string_to_int(ustar_headers[i].header->size))));
+                printf("%ld) (REGULAR) %s %s\n", i, ustar_headers[i].header->name, humanify(oct_to_dec(string_to_int(ustar_headers[i].header->size))));
                 size += oct_to_dec(string_to_int(ustar_headers[i].header->size));
                 break;
             case SYMLINK:
-                printf("%d) \033[96m(SYMLINK) %s --> %s\033[0m\n", i, ustar_headers[i].header->name, ustar_headers[i].header->link);
+                printf("%ld) \033[96m(SYMLINK) %s --> %s\033[0m\n", i, ustar_headers[i].header->name, ustar_headers[i].header->link);
                 break;
             case DIRECTORY:
-                printf("%d) \033[35m(DIRECTORY) %s\033[0m\n", i, ustar_headers[i].header->name);
+                printf("%ld) \033[35m(DIRECTORY) %s\033[0m\n", i, ustar_headers[i].header->name);
                 break;
             default:
-                printf("%d) \033[31m(File type not supported!) %s\033[0m\n", i, ustar_headers[i].header->name);
+                printf("%ld) \033[31m(File type not supported!) %s\033[0m\n", i, ustar_headers[i].header->name);
                 break;
         }
     }
@@ -129,7 +129,7 @@ int ustar_getid(char *name)
 {
     if (!check_initrd()) return 0;
 
-    for (int i = 0; i < ustar_filecount; ++i)
+    for (uint64_t i = 0; i < ustar_filecount; ++i)
     {
         if(!strcmp(ustar_headers[i].header->name, name))
         {
@@ -143,7 +143,7 @@ int ustar_search(char *filename, char **contents)
 {
     if (!check_initrd()) return 0;
 
-    for (int i = 1; i < ustar_filecount + 1; i++)
+    for (uint64_t i = 1; i < ustar_filecount + 1; i++)
     {
         if (!strcmp(ustar_headers[i].header->name, filename))
         {

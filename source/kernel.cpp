@@ -9,7 +9,8 @@ static struct stivale2_header_tag_terminal terminal_hdr_tag = {
         .identifier = STIVALE2_HEADER_TAG_TERMINAL_ID,
         .next = 0
     },
-    .flags = 0
+    .flags = 0,
+    .callback = 0
 };
 
 static struct stivale2_header_tag_smp smp_hdr_tag = {
@@ -25,9 +26,10 @@ static struct stivale2_header_tag_framebuffer framebuffer_hdr_tag = {
         .identifier = STIVALE2_HEADER_TAG_FRAMEBUFFER_ID,
         .next = (uint64_t)&smp_hdr_tag
     },
-    .framebuffer_width  = 0,
+    .framebuffer_width = 0,
     .framebuffer_height = 0,
-    .framebuffer_bpp    = 0
+    .framebuffer_bpp = 0,
+    .unused = 0
 };
 
 __attribute__((section(".stivale2hdr"), used))
