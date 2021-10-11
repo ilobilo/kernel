@@ -185,6 +185,8 @@ void proccesspacket()
                 drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xdd56f5);
             }
             break;
+        default:
+            break;
     }
 
     drawovercursor(cursorinside, mousepos, mouseinsidecol, true);

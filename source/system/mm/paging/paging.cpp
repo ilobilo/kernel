@@ -10,7 +10,7 @@ void PDEntry::setflag(PT_Flag flag, bool enabled)
 bool PDEntry::getflag(PT_Flag flag)
 {
     uint64_t bitSel = (uint64_t)1 << flag;
-    return (value & bitSel > 0) ? true : false;
+    return (value & (bitSel > 0)) ? true : false;
 }
 
 uint64_t PDEntry::getAddr()

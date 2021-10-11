@@ -26,8 +26,10 @@ CPP = x86_64-pc-elf-g++
 LD = x86_64-pc-elf-ld
 AS = nasm
 
-CFLAGS = -O3 -pipe -w -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
-CPPFLAGS = -O3 -pipe -w -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
+CW = -Wall -Wextra -Werror
+CPPW = -Wall -Wextra -Werror -Wno-write-strings -Wno-sized-deallocation -Wno-int-to-pointer-cast -Wno-strict-aliasing
+CFLAGS = -O3 -pipe $(CW) -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
+CPPFLAGS = -O3 -pipe $(CPPW) -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
 LDFLAGS = 
 ASMFLAGS = -f elf64
 
@@ -113,8 +115,8 @@ clean:
 
 run:
 	echo "\nBooting iso in uefi mode...\n"
-	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd 2> /dev/null
+	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
 
 run-bios:
 	echo "\nBooting iso in bios mode...\n"
-	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) 2> /dev/null
+	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO)

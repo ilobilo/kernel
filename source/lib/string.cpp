@@ -67,7 +67,7 @@ char *strchr(const char str[], char ch)
 
 void memcpy(void *dest, void *src, size_t n)
 {
-    int i;
+    size_t i;
     char *src_char = (char *)src;
     char *dest_char = (char *)dest;
     for (i = 0; i < n; i++)
@@ -102,7 +102,7 @@ int memcmp(const void *s1, const void *s2, int len)
 
 void memset(void *str, char ch, size_t n)
 {
-    int i;
+    size_t i;
     char *s = (char *)str;
     for(i = 0; i < n; i++)
     {
@@ -115,13 +115,13 @@ void memmove(void *dest, void *src, size_t n)
     char *csrc = (char *)src;
     char *cdest = (char *)dest;
     char temp[n];
-    for (int i = 0; i < n; i++) temp[i] = csrc[i];
-    for (int i = 0; i < n; i++) cdest[i] = temp[i];
+    for (size_t i = 0; i < n; i++) temp[i] = csrc[i];
+    for (size_t i = 0; i < n; i++) cdest[i] = temp[i];
 }
 
 void reverse(char s[])
 {
-    int c, i, j;
+    size_t c, j, i;
     for (i = 0, j = strlen(s) - 1; i < j; i++, j--)
     {
         c = s[i];
@@ -167,7 +167,7 @@ char *int_to_string(int num)
         }
         return out;
     }
-    else return "0";
+    else return 0;
 }
 
 int string_to_int(char *str)

@@ -112,10 +112,9 @@ struct __attribute__((packed)) interrupt_registers
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, int_no, error_code, rip, cs, rflags, rsp, ss;
 };
 
-__attribute__((aligned(0x10)))
-static idt_entry_t idt[256];
+extern idt_entry_t idt[];
 
-static idtr_t idtr;
+extern idtr_t idtr;
 
 extern bool idt_initialised;
 

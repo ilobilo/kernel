@@ -150,12 +150,12 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
 
     while (x >= y)
     {
-        for (uint32_t i = cx - x; i <= cx + x; i++)
+        for (int i = cx - x; i <= cx + x; i++)
         {
             putpix(i, cy + y, colour);
             putpix(i, cy - y, colour);
         }
-        for (uint32_t i = cx - y; i <= cx + y; i++)
+        for (int i = cx - y; i <= cx + y; i++)
         {
             putpix(i, cy + x, colour);
             putpix(i, cy - x, colour);

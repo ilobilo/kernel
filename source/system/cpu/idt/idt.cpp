@@ -5,6 +5,10 @@
 
 bool idt_initialised = false;
 
+__attribute__((aligned(0x10)))
+idt_entry_t idt[256];
+idtr_t idtr;
+
 int_handler_t interrupt_handlers[256];
 
 void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
@@ -99,8 +103,8 @@ void isr_handler(interrupt_registers *regs)
         case 12:
         case 13:
         case 14:
-            printf("[\033[31mPANIC\033[0m] Error code: 0x%llX\n", regs->error_code);
-            serial_err("Error code: 0x%llX", regs->error_code);
+            printf("[\033[31mPANIC\033[0m] Error code: 0x%lX\n", regs->error_code);
+            serial_err("Error code: 0x%lX", regs->error_code);
             break;
     }
 

@@ -48,7 +48,7 @@ void PFAlloc::Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr)
     PageBitmap.size = bitmapSize;
     PageBitmap.buffer = (uint8_t*)bufferAddr;
 
-    for (int i = 0; i < bitmapSize; i++)
+    for (size_t i = 0; i < bitmapSize; i++)
     {
         *(uint8_t*)(PageBitmap.buffer + i) = 0;
     }
@@ -81,7 +81,7 @@ void PFAlloc::freePage(void *address)
 
 void PFAlloc::freePages(void *address, uint64_t pageCount)
 {
-    for (int t = 0; t < pageCount; t++)
+    for (size_t t = 0; t < pageCount; t++)
     {
         freePage((void*)((uint64_t)address + (t * 4096)));
     }
@@ -100,7 +100,7 @@ void PFAlloc::lockPage(void *address)
 
 void PFAlloc::lockPages(void *address, uint64_t pageCount)
 {
-    for (int t = 0; t < pageCount; t++)
+    for (uint64_t t = 0; t < pageCount; t++)
     {
         lockPage((void*)((uint64_t)address + (t * 4096)));
     }
@@ -121,7 +121,7 @@ void PFAlloc::unreservePage(void *address)
 
 void PFAlloc::unreservePages(void *address, uint64_t pageCount)
 {
-    for (int t = 0; t < pageCount; t++)
+    for (uint64_t t = 0; t < pageCount; t++)
     {
         unreservePage((void*)((uint64_t)address + (t * 4096)));
     }
@@ -140,7 +140,7 @@ void PFAlloc::reservePage(void *address)
 
 void PFAlloc::reservePages(void *address, uint64_t pageCount)
 {
-    for (int t = 0; t < pageCount; t++)
+    for (uint64_t t = 0; t < pageCount; t++)
     {
         reservePage((void*)((uint64_t)address + (t * 4096)));
     }

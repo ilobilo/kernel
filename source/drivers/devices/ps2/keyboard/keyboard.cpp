@@ -35,6 +35,7 @@ char get_ascii_char(uint8_t key_code)
     {
         return kbdus_capsshft[key_code];
     }
+    return 0;
 }
 
 // Handle key combinations
@@ -48,7 +49,7 @@ void handle_comb(uint8_t scancode)
         asm volatile ("int $0x3");
         asm volatile ("int $0x4");
     }
-    else if (kbd_mod.ctrl && (ch == 'l') || (ch == 'L'))
+    else if (kbd_mod.ctrl && ((ch == 'l') || (ch == 'L')))
     {
         term_clear();
         if (reading)
@@ -66,7 +67,7 @@ char c[10] = "\0";
 // Clear keyboard buffer
 void clearbuff()
 {
-    for (int i = 0; i < strlen(buff); i++)
+    for (size_t i = 0; i < strlen(buff); i++)
     {
         buff[i] = '\0';
     }
