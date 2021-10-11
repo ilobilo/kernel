@@ -74,6 +74,27 @@ char *strstr(const char *str, const char *substring)
     }
 }
 
+int lstrstr(const char *str, const char *substring, int skip)
+{
+    int count = 0;
+    const char *a = str, *b = substring;
+    while (true)
+    {
+        if (!*b)
+        {
+            if (skip == 0) return count;
+            else skip--;
+        }
+        if (!*a) return -1;
+        if (*a++ != *b++)
+        {
+            a = ++str;
+            b = substring;
+        }
+        if (*str == '\n') count++;
+    }
+}
+
 void memcpy(void *dest, void *src, size_t n)
 {
     size_t i;
