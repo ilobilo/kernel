@@ -18,6 +18,8 @@ char *strstr(const char *str, const char *substring);
 
 int lstrstr(const char *str, const char *substring, int skip = 0);
 
+char *getline(const char *str, const char *substring, int skip = 0);
+
 void memcpy(void *dest, void *src, size_t n);
 
 int memcmp(const void *s1, const void *s2, int len);
