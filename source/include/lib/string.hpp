@@ -8,11 +8,13 @@ char *strcpy(char *destination, const char *source);
 
 char *strcat(char *destination, const char *source);
 
+char *strchr(const char str[], char ch);
+
 int strcmp(const char *a, const char *b);
 
-char *strstr(const char *str, const char *substring);
+int strncmp(const char *a, const char *b, size_t n);
 
-char *strchr(const char str[], char ch);
+char *strstr(const char *str, const char *substring);
 
 void memcpy(void *dest, void *src, size_t n);
 

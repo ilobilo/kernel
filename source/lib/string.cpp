@@ -1,7 +1,7 @@
 #include <drivers/display/terminal/terminal.hpp>
+#include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
-#include <lib/math.hpp>
 
 size_t strlen(const char *str)
 {
@@ -38,10 +38,25 @@ char *strcat(char *destination, const char *source)
     return destination;
 }
 
+char *strchr(const char str[], char ch)
+{
+    while (*str && *str != ch ) ++str;
+    return (char *)(ch == *str ? str : NULL);
+}
+
 int strcmp(const char *a, const char *b)
 {
     while (*a && *a == *b) { ++a; ++b; }
     return (int)(unsigned char)(*a) - (int)(unsigned char)(*b);
+}
+
+int strncmp(const char *a, const char *b, size_t n)
+{
+    for (size_t i = 0; i < n; i++)
+    {
+        if (a[i] != b[i]) return 1;
+    }
+    return 0;
 }
 
 char *strstr(const char *str, const char *substring)
@@ -57,12 +72,6 @@ char *strstr(const char *str, const char *substring)
             b = substring;
         }
     }
-}
-
-char *strchr(const char str[], char ch)
-{
-    while (*str && *str != ch ) ++str;
-    return (char *)(ch == *str ? str : NULL);
 }
 
 void memcpy(void *dest, void *src, size_t n)
