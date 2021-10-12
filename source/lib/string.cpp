@@ -61,6 +61,21 @@ int strncmp(const char *a, const char *b, size_t n)
     return 0;
 }
 
+char *strrm(char *str, const char *substring)
+{
+    char *p, *q, *r;
+    if (*substring && (q = r = strstr(str, substring)) != NULL)
+    {
+        size_t len = strlen(substring);
+        while ((r = strstr(p = r + len, substring)) != NULL)
+        {
+            while (p < r) *q++ = *p++;
+        }
+        while ((*q++ = *p++) != '\0') continue;
+    }
+    return str;
+}
+
 char *strstr(const char *str, const char *substring)
 {
     const char *a = str, *b = substring;
@@ -98,7 +113,7 @@ int lstrstr(const char *str, const char *substring, int skip)
     return -1;
 }
 
-char *getline(const char *str, const char *substring, int skip)
+char *getline(const char *str, const char *substring, char *buffer, int skip)
 {
     int i = 0;
     const char *strbck = str;
@@ -110,12 +125,11 @@ char *getline(const char *str, const char *substring, int skip)
             if (skip == 0)
             {
                 int t = i;
-                while (strbck[i] != '\n') i--;
+                while (strbck[i - 1] != '\n') i--;
                 while (strbck[t] != '\n') t++;
                 int size = t - i;
-                char *retstr = (char*)malloc(size * sizeof(char));
-                memcpy(retstr, (void*)&strbck[i], size);
-                return retstr;
+                memcpy(buffer, (void*)&strbck[i], size);
+                return buffer;
             }
             else skip--;
         }
