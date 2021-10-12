@@ -11,18 +11,19 @@ uint16_t rows;
 
 char *term_colour = "\033[0m";
 
-void (*term_write)(const char *string, int length);
+void (*term_write)(const char *string, uint64_t length);
 
 void term_init()
 {
     serial_info("Initialising terminal\n");
 
     void *term_write_ptr = (void*)term_tag->term_write;
-    term_write = (void (*)(const char *string, int length))term_write_ptr;
+    term_write = (void (*)(const char *string, uint64_t length))term_write_ptr;
     columns = term_tag->cols;
     rows = term_tag->rows;
 }
 
+#pragma region Print
 DEFINE_MUTEX(m_term_write);
 void term_print(const char *string)
 {
@@ -70,7 +71,9 @@ void _putchar(char character)
 {
     term_printc(character);
 }
+#pragma endregion Print
 
+#pragma region Colour
 void term_setcolour(char *ascii_colour)
 {
     term_colour = ascii_colour;
@@ -82,23 +85,24 @@ void term_resetcolour()
     term_colour = "\033[0m";
     term_print(term_colour);
 }
+#pragma endregion Colour
+
+#pragma region Clear
+void term_reset()
+{
+    term_write("", STIVALE2_TERM_FULL_REFRESH);
+}
 
 void term_clear(char *ansii_colour)
 {
     clearbuff();
-    term_colour = ansii_colour;
-    term_print("\033[H");
-    for (uint16_t i = 0; i < rows; i++)
-    {
-        for (uint16_t i = 0; i < columns; i++)
-        {
-            term_print(term_colour);
-            term_print(" ");
-        }
-    }
-    term_print("\033[H");
+    term_setcolour(ansii_colour);
+    term_print("\033[H\033[2J");
+    term_reset();
 }
+#pragma endregion Clear
 
+#pragma region CursorCtrl
 void cursor_up(int lines = 1)
 {
     printf("\033[%dA", lines);
@@ -115,7 +119,9 @@ void cursor_left(int lines = 1)
 {
     printf("\033[%dD", lines);
 }
+#pragma endregion CursorCtrl
 
+#pragma region Misc
 void term_center(char *text)
 {
     for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
@@ -152,7 +158,9 @@ void term_check(bool ok, char *message)
         term_print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
     }
 }
-/*
+#pragma endregion Misc
+
+/* Printf
 void printf(char *c, ...)
 {
     char *s;

@@ -128,6 +128,7 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
                 while (strbck[i - 1] != '\n') i--;
                 while (strbck[t] != '\n') t++;
                 int size = t - i;
+                memset(buffer, '\0', size);
                 memcpy(buffer, (void*)&strbck[i], size);
                 return buffer;
             }
@@ -269,6 +270,22 @@ long oct_to_dec(int oct)
         oct = oct / 10;
     }
     return dec;
+}
+
+int intlen(int n)
+{
+    int digits = 0;
+    if (n <= 0)
+    {
+        n = -n;
+        ++digits;
+    }
+    while (n)
+    {
+        n /= 10;
+        ++digits;
+    }
+    return digits;
 }
 
 char *humanify(double bytes)

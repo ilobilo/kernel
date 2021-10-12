@@ -7,13 +7,13 @@
 
 bool pci_initialised = false;
 
-pcideviceheader *pcidevices;
+translatedpcideviceheader *pcidevices;
 uint64_t pciAllocate = 10;
 uint64_t pcidevcount = 0;
 
-pcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif)
+translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif)
 {
-    pcideviceheader null;
+    translatedpcideviceheader null;
     if (!pci_initialised)
     {
         serial_info("PCI has not been initialised!\n");
@@ -38,23 +38,28 @@ pcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif)
     return null;
 }
 
-pcideviceheader PCI_translate(pcideviceheader* device)
+translatedpcideviceheader PCI_translate(pcideviceheader* device)
 {
-    pcideviceheader pcidevice = 
-    {
-        .vendorid = device->vendorid,
-        .deviceid = device->deviceid,
-        .command = device->command,
-        .status = device->status,
-        .revisionid = device->revisionid,
-        .progif = device->progif,
-        .subclass = device->subclass,
-        .Class = device->Class,
-        .cachelinesize = device->cachelinesize,
-        .latencytimer = device->latencytimer,
-        .headertype = device->headertype,
-        .bist = device->bist
-    };
+    translatedpcideviceheader pcidevice;
+
+    pcidevice.vendorid = device->vendorid;
+    pcidevice.vendorstr = (char*)getvendorname(device->vendorid);
+    pcidevice.deviceid = device->deviceid;
+    pcidevice.devicestr = (char*)getdevicename(device->vendorid, device->deviceid);
+    pcidevice.command = device->command;
+    pcidevice.status = device->status;
+    pcidevice.revisionid = device->revisionid;
+    pcidevice.progif = device->progif;
+    pcidevice.progifstr = (char*)getprogifname(device->Class, device->subclass, device->progif);
+    pcidevice.subclass = device->subclass;
+    pcidevice.subclassStr = (char*)getsubclassname(device->Class, device->subclass);
+    pcidevice.Class = device->Class;
+    pcidevice.ClassStr = (char*)device_classes[device->Class];
+    pcidevice.cachelinesize = device->cachelinesize;
+    pcidevice.latencytimer = device->latencytimer;
+    pcidevice.headertype = device->headertype;
+    pcidevice.bist = device->bist;
+
     return pcidevice;
 }
 
@@ -68,22 +73,14 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
 
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
-    if (pcidevcount >= (alloc_getsize(pcidevices) / sizeof(pcideviceheader)))
+    if (pcidevcount >= (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
         pciAllocate += 10;
-        pcidevices = (pcideviceheader*)realloc(pcidevices, pciAllocate * sizeof(pcideviceheader));
+        pcidevices = (translatedpcideviceheader*)realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader));
     }
-
-    serial_info("%s / %s / %s / %s / %s", getvendorname(pcidevice->vendorid),
-        getdevicename(pcidevice->vendorid, pcidevice->deviceid),
-        device_classes[pcidevice->Class],
-        getsubclassname(pcidevice->Class, pcidevice->subclass),
-        getprogifname(pcidevice->Class, pcidevice->subclass, pcidevice->progif));
-
-    if (pcidevcount < (alloc_getsize(pcidevices) / sizeof(pcideviceheader)))
+    if (pcidevcount < (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
         pcidevices[pcidevcount] = PCI_translate(pcidevice);
-        pcidevcount++;
     }
     else
     {
@@ -91,6 +88,15 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
         serial_err("Could not add pci device to the list!");
         serial_err("Possible reason: Could not allocate memory\n");
     }
+
+    serial_info("%s / %s / %s / %s / %s",
+        pcidevices[pcidevcount].vendorstr,
+        pcidevices[pcidevcount].devicestr,
+        pcidevices[pcidevcount].ClassStr,
+        pcidevices[pcidevcount].subclassStr,
+        pcidevices[pcidevcount].progifstr);
+
+    pcidevcount++;
 }
 
 void enumdevice(uint64_t busaddr, uint64_t device)
@@ -148,7 +154,10 @@ void PCI_init()
         ACPI_init();
     }
 
-    pcidevices = (pcideviceheader*)malloc(pciAllocate * sizeof(pcideviceheader));
+    bool temp = alloc_debug;
+    alloc_debug = false;
+
+    pcidevices = (translatedpcideviceheader*)malloc(pciAllocate * sizeof(translatedpcideviceheader));
 
     int entries = ((mcfg->header.length) - sizeof(MCFGHeader)) / sizeof(deviceconfig);
     for (int t = 0; t < entries; t++)
@@ -159,6 +168,8 @@ void PCI_init()
             enumbus(newdevconf->baseaddr, bus);
         }
     }
+
+    alloc_debug = temp;
 
     pci_initialised = true;
 }

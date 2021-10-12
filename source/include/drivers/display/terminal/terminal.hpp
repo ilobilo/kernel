@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+#define STIVALE2_TERM_CTX_SIZE ((uint64_t)(-1))
+#define STIVALE2_TERM_CTX_SAVE ((uint64_t)(-2))
+#define STIVALE2_TERM_CTX_RESTORE ((uint64_t)(-3))
+#define STIVALE2_TERM_FULL_REFRESH ((uint64_t)(-4))
+
 extern uint16_t columns;
 extern uint16_t rows;
 
