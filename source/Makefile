@@ -27,7 +27,13 @@ LD = x86_64-pc-elf-ld
 AS = nasm
 
 CW = -Wall -Wextra -Werror
-CPPW = -Wall -Wextra -Werror -Wno-write-strings -Wno-sized-deallocation -Wno-int-to-pointer-cast -Wno-strict-aliasing
+CPPW = -Wall -Wextra -Werror \
+	-Wno-write-strings -Wno-sized-deallocation \
+	-Wno-int-to-pointer-cast -Wno-strict-aliasing \
+	-Wno-unused-but-set-variable \
+	-Wno-unused-variable -Wno-unused-parameter \
+	-Wno-unknown-pragmas
+
 CFLAGS = -O3 -pipe $(CW) -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
 CPPFLAGS = -O3 -pipe $(CPPW) -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
 LDFLAGS = 

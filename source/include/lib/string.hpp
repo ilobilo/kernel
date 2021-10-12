@@ -34,6 +34,8 @@ char *int_to_string(int num);
 
 int string_to_int(char *str);
 
+int intlen(int n);
+
 long oct_to_dec(int n);
 
 char *humanify(double bytes);
