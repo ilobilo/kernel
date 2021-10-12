@@ -14,11 +14,13 @@ int strcmp(const char *a, const char *b);
 
 int strncmp(const char *a, const char *b, size_t n);
 
+char *strrm(char *str, const char *substring);
+
 char *strstr(const char *str, const char *substring);
 
 int lstrstr(const char *str, const char *substring, int skip = 0);
 
-char *getline(const char *str, const char *substring, int skip = 0);
+char *getline(const char *str, const char *substring, char *buffer, int skip = 0);
 
 void memcpy(void *dest, void *src, size_t n);
 
