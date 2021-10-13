@@ -17,8 +17,8 @@
 #include <system/cpu/idt/idt.hpp>
 #include <system/heap/heap.hpp>
 #include <system/pci/pci.hpp>
+#include <apps/kshell.hpp>
 #include <lib/string.hpp>
-#include <misc/kshell.hpp>
 #include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
