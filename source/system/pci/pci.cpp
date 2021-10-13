@@ -4,6 +4,7 @@
 #include <system/power/acpi/acpi.hpp>
 #include <system/heap/heap.hpp>
 #include <system/pci/pci.hpp>
+#include <lib/string.hpp>
 
 bool pci_initialised = false;
 
@@ -43,18 +44,18 @@ translatedpcideviceheader PCI_translate(pcideviceheader* device)
     translatedpcideviceheader pcidevice;
 
     pcidevice.vendorid = device->vendorid;
-    pcidevice.vendorstr = (char*)getvendorname(device->vendorid);
+    pcidevice.vendorstr = getvendorname(device->vendorid);
     pcidevice.deviceid = device->deviceid;
-    pcidevice.devicestr = (char*)getdevicename(device->vendorid, device->deviceid);
+    pcidevice.devicestr = getdevicename(device->vendorid, device->deviceid);
     pcidevice.command = device->command;
     pcidevice.status = device->status;
     pcidevice.revisionid = device->revisionid;
     pcidevice.progif = device->progif;
-    pcidevice.progifstr = (char*)getprogifname(device->Class, device->subclass, device->progif);
+    pcidevice.progifstr = getprogifname(device->Class, device->subclass, device->progif);
     pcidevice.subclass = device->subclass;
-    pcidevice.subclassStr = (char*)getsubclassname(device->Class, device->subclass);
+    pcidevice.subclassStr = getsubclassname(device->Class, device->subclass);
     pcidevice.Class = device->Class;
-    pcidevice.ClassStr = (char*)device_classes[device->Class];
+    pcidevice.ClassStr = device_classes[device->Class];
     pcidevice.cachelinesize = device->cachelinesize;
     pcidevice.latencytimer = device->latencytimer;
     pcidevice.headertype = device->headertype;

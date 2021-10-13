@@ -76,6 +76,14 @@ char *strrm(char *str, const char *substring)
     return str;
 }
 
+char *strdup(const char *src)
+{
+    size_t len = strlen(src) + 1;
+    char *s = (char*)malloc(len);
+    if (s == NULL) return NULL;
+    return (char*)memcpy(s, (void*)src, len);
+}
+
 char *strstr(const char *str, const char *substring)
 {
     const char *a = str, *b = substring;
@@ -128,8 +136,8 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
                 while (strbck[i - 1] != '\n') i--;
                 while (strbck[t] != '\n') t++;
                 int size = t - i;
-                memset(buffer, '\0', size);
                 memcpy(buffer, (void*)&strbck[i], size);
+                buffer[size] = 0;
                 return buffer;
             }
             else skip--;
@@ -145,7 +153,7 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
     return 0;
 }
 
-void memcpy(void *dest, void *src, size_t n)
+void *memcpy(void *dest, void *src, size_t n)
 {
     size_t i;
     char *src_char = (char *)src;
@@ -154,6 +162,7 @@ void memcpy(void *dest, void *src, size_t n)
     {
         dest_char[i] = src_char[i];
     }
+    return dest_char;
 }
 
 int memcmp(const void *s1, const void *s2, int len)
