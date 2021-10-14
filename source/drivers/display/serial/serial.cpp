@@ -1,5 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
 bool serial_initialised = false;
@@ -15,13 +16,21 @@ int is_transmit_empty()
     return inb(COM1 + 5) & 0x20;
 }
 
+int serial_received()
+{
+    return inb(COM1 + 5) & 1;
+}
+
+char serial_read()
+{
+    while (!serial_received());
+    return inb(COM1);
+}
+
 void serial_printc(char c, __attribute__((unused)) void *arg)
 {
-    if (!check_serial())
-    {
-        return;
-    }
-    while (is_transmit_empty() == 0);
+    if (!check_serial()) return;
+    while (!is_transmit_empty());
     outb(COM1, c);
 }
 
@@ -58,6 +67,25 @@ void serial_newline()
     serial_printf("\n");
 }
 
+static void COM1_Handler(interrupt_registers *)
+{
+    char c = serial_read();
+    switch (c)
+    {
+        case 13:
+            c = '\n';
+            break;
+        case 8:
+        case 127:
+            printf("\b ");
+            serial_printf("\b ");
+            c = '\b';
+            break;
+    }
+    printf("%c", c);
+    serial_printf("%c", c);
+}
+
 void serial_init()
 {
     if (serial_initialised) return;
@@ -72,6 +100,9 @@ void serial_init()
 
     //serial_printf("\033[H\033[0m\033[2J");
     serial_printf("\033[0m");
+
+    register_interrupt_handler(IRQ4, COM1_Handler);
+    outb(COM1 + 1, 0x01);
 
     serial_initialised = true;
 }
