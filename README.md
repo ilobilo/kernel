@@ -68,10 +68,8 @@ Make sure you have following programs installed:
 ``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
 
 6. Go to kernel directory and run:<br />
-``make`` For UEFI<br />
-``make bios`` For BIOS<br />
-<br />
-Note: You can also add ``-j$(CPU_COUNT)`` option to make for faster build
+``make -j$(nproc --all)`` For UEFI<br />
+``make bios -j$(nproc --all)`` For BIOS<br />
 
 This command will download limine installer, compile it, build the kernel, create iso file and run it in qemu.
 
@@ -84,5 +82,4 @@ https://discord.gg/fM5GK3RpS7
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
-* FaruOS (colours): https://github.com/leapofazzam123/faruos
 * And of course Google
