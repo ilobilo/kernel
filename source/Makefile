@@ -104,7 +104,7 @@ $(KERNEL): $(OBJ)
 .PHONY: initrd
 initrd:
 	@printf "TAR\t%s\n" $(lastword $(subst /, ,$(INITRD)))
-	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar 
+	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
@@ -117,7 +117,9 @@ iso:
 	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install limine!\e[0m"
 
 clean:
+ifndef NOCLEAN
 	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(SOURCEDIR)/../iso_root/*
+endif
 
 run:
 	echo "\nBooting iso in uefi mode...\n"
