@@ -70,6 +70,8 @@ Make sure you have following programs installed:
 6. Go to kernel directory and run:<br />
 ``make`` For UEFI<br />
 ``make bios`` For BIOS<br />
+<br />
+Note: You can also add ``-j$(CPU_COUNT)`` option to make for faster build
 
 This command will download limine installer, compile it, build the kernel, create iso file and run it in qemu.
 
