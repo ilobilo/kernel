@@ -81,11 +81,16 @@ OBJ += $(ASMFILES:.asm=_asm.o)
 
 .PHONY: all
 
-all: $(KERNEL) initrd iso clean run
+all: $(KERNEL) initrd
+	$(MAKE) iso
+	$(MAKE) clean run
 
-bios: $(KERNEL) initrd iso clean run-bios
+bios: $(KERNEL) initrd
+	$(MAKE) iso
+	$(MAKE) clean run-bios
 
-$(KERNEL): $(OBJ)
+$(KERNEL):
+	$(MAKE) $(OBJ)
 	@printf "LD\t%s\n" $(lastword $(subst /, ,$(KERNEL)))
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
 
