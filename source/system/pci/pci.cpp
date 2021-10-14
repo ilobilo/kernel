@@ -2,7 +2,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/power/acpi/acpi.hpp>
-#include <system/heap/heap.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 

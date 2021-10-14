@@ -1,7 +1,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
-#include <system/heap/heap.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
 
 bool initrd_initialised = false;
