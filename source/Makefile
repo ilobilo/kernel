@@ -1,6 +1,6 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKGROUND := $(SOURCEDIR)/bg.bmp
-FONT := $(SOURCEDIR)/font.raw
+FONT := $(SOURCEDIR)/font.bin
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
