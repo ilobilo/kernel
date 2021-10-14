@@ -2,7 +2,7 @@
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/memory/memory.hpp>
+#include <system/mm/memory/memory.hpp>
 #include <lib/string.hpp>
 
 PTManager globalPTManager = NULL;

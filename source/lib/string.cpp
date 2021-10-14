@@ -1,5 +1,5 @@
 #include <drivers/display/terminal/terminal.hpp>
-#include <system/heap/heap.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
 #include <lib/math.hpp>
 #include <stdint.h>
