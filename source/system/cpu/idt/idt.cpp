@@ -121,7 +121,7 @@ void irq_handler(interrupt_registers *regs)
         handler(regs);
     }
 
-    if(regs->int_no >= IRQ8)
+    if(regs->int_no >= IRQS::IRQ8)
     {
         outb(PIC2_COMMAND, PIC_EOI);
     }
@@ -174,20 +174,20 @@ void isr_install()
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    idt_set_descriptor(IRQ0, (void*)irq0, 0x8E);
-    idt_set_descriptor(IRQ1, (void*)irq1, 0x8E);
-    idt_set_descriptor(IRQ2, (void*)irq2, 0x8E);
-    idt_set_descriptor(IRQ3, (void*)irq3, 0x8E);
-    idt_set_descriptor(IRQ4, (void*)irq4, 0x8E);
-    idt_set_descriptor(IRQ5, (void*)irq5, 0x8E);
-    idt_set_descriptor(IRQ6, (void*)irq6, 0x8E);
-    idt_set_descriptor(IRQ7, (void*)irq7, 0x8E);
-    idt_set_descriptor(IRQ8, (void*)irq8, 0x8E);
-    idt_set_descriptor(IRQ9, (void*)irq9, 0x8E);
-    idt_set_descriptor(IRQ10, (void*)irq10, 0x8E);
-    idt_set_descriptor(IRQ11, (void*)irq11, 0x8E);
-    idt_set_descriptor(IRQ12, (void*)irq12, 0x8E);
-    idt_set_descriptor(IRQ13, (void*)irq13, 0x8E);
-    idt_set_descriptor(IRQ14, (void*)irq14, 0x8E);
-    idt_set_descriptor(IRQ15, (void*)irq15, 0x8E);
+    idt_set_descriptor(IRQS::IRQ0, (void*)irq0, 0x8E);
+    idt_set_descriptor(IRQS::IRQ1, (void*)irq1, 0x8E);
+    idt_set_descriptor(IRQS::IRQ2, (void*)irq2, 0x8E);
+    idt_set_descriptor(IRQS::IRQ3, (void*)irq3, 0x8E);
+    idt_set_descriptor(IRQS::IRQ4, (void*)irq4, 0x8E);
+    idt_set_descriptor(IRQS::IRQ5, (void*)irq5, 0x8E);
+    idt_set_descriptor(IRQS::IRQ6, (void*)irq6, 0x8E);
+    idt_set_descriptor(IRQS::IRQ7, (void*)irq7, 0x8E);
+    idt_set_descriptor(IRQS::IRQ8, (void*)irq8, 0x8E);
+    idt_set_descriptor(IRQS::IRQ9, (void*)irq9, 0x8E);
+    idt_set_descriptor(IRQS::IRQ10, (void*)irq10, 0x8E);
+    idt_set_descriptor(IRQS::IRQ11, (void*)irq11, 0x8E);
+    idt_set_descriptor(IRQS::IRQ12, (void*)irq12, 0x8E);
+    idt_set_descriptor(IRQS::IRQ13, (void*)irq13, 0x8E);
+    idt_set_descriptor(IRQS::IRQ14, (void*)irq14, 0x8E);
+    idt_set_descriptor(IRQS::IRQ15, (void*)irq15, 0x8E);
 }
