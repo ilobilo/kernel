@@ -62,22 +62,29 @@ extern "C" void irq13();
 extern "C" void irq14();
 extern "C" void irq15();
 
-#define IRQ0 32
-#define IRQ1 33
-#define IRQ2 34
-#define IRQ3 35
-#define IRQ4 36
-#define IRQ5 37
-#define IRQ6 38
-#define IRQ7 39
-#define IRQ8 40
-#define IRQ9 41
-#define IRQ10 42
-#define IRQ11 43
-#define IRQ12 44
-#define IRQ13 45
-#define IRQ14 46
-#define IRQ15 47
+extern "C" void syscall();
+
+enum IRQS
+{
+    IRQ0 = 32,
+    IRQ1 = 33,
+    IRQ2 = 34,
+    IRQ3 = 35,
+    IRQ4 = 36,
+    IRQ5 = 37,
+    IRQ6 = 38,
+    IRQ7 = 39,
+    IRQ8 = 40,
+    IRQ9 = 41,
+    IRQ10 = 42,
+    IRQ11 = 43,
+    IRQ12 = 44,
+    IRQ13 = 45,
+    IRQ14 = 46,
+    IRQ15 = 47,
+
+    SYSCALL = 0x80
+};
 
 struct idt_desc_t
 {
@@ -112,18 +119,15 @@ struct __attribute__((packed)) interrupt_registers
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, int_no, error_code, rip, cs, rflags, rsp, ss;
 };
 
-extern idt_entry_t idt[];
+using int_handler_t = void (*)(interrupt_registers *registers);
 
+extern idt_entry_t idt[];
 extern idtr_t idtr;
 
 extern bool idt_initialised;
 
 void IDT_init();
-
-typedef void (*int_handler_t) (interrupt_registers *registers);
-
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
 
 extern "C" void isr_handler(interrupt_registers *regs);
-
 extern "C" void irq_handler(interrupt_registers *regs);
