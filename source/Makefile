@@ -83,11 +83,11 @@ OBJ += $(ASMFILES:.asm=_asm.o)
 
 all: $(KERNEL) initrd
 	$(MAKE) iso
-	$(MAKE) run clean
+	$(MAKE) clean run
 
 bios: $(KERNEL) initrd
 	$(MAKE) iso
-	$(MAKE) run-bios clean
+	$(MAKE) clean run-bios
 
 $(KERNEL):
 	$(MAKE) $(OBJ)

@@ -1,6 +1,10 @@
 #pragma once
 
-#define COM1 0x3F8
+enum COMS
+{
+    COM1 = 0x3F8,
+    COM2 = 0x2F8
+};
 
 extern bool serial_initialised;
 
