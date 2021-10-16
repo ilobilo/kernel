@@ -7,6 +7,11 @@ ISO := $(SOURCEDIR)/../image.iso
 DISK = $(SOURCEDIR)/../disk.img
 VERSION = 0
 
+CC = x86_64-pc-elf-gcc
+CPP = x86_64-pc-elf-g++
+LD = x86_64-pc-elf-ld
+AS = nasm
+
 LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
@@ -21,11 +26,6 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CC = x86_64-pc-elf-gcc
-CPP = x86_64-pc-elf-g++
-LD = x86_64-pc-elf-ld
-AS = nasm
-
 CW = -Wall -Wextra -Werror
 CPPW = -Wall -Wextra -Werror \
 	-Wno-write-strings -Wno-sized-deallocation \
@@ -34,12 +34,18 @@ CPPW = -Wall -Wextra -Werror \
 	-Wno-unused-variable -Wno-unused-parameter \
 	-Wno-unknown-pragmas
 
-CFLAGS = -O3 -pipe $(CW) -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
-CPPFLAGS = -O3 -pipe $(CPPW) -DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" -DKERNEL_VERSION=\"$(VERSION)\"
+CFLAGS = -O3 -pipe $(CW) \
+	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
+	-DKERNEL_VERSION=\"$(VERSION)\"
+
+CPPFLAGS = -O3 -pipe $(CPPW) \
+	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
+	-DKERNEL_VERSION=\"$(VERSION)\"
+
 LDFLAGS = 
 ASMFLAGS = -f elf64
 
-INTERNALLDFLAGS :=             \
+INTERNALLDFLAGS :=         \
 	-T$(SOURCEDIR)/linker.ld \
 	-nostdlib              \
 	-zmax-page-size=0x1000 \
@@ -48,39 +54,44 @@ INTERNALLDFLAGS :=             \
 	--no-dynamic-linker    \
 	-ztext
 
-INTERNALCFLAGS  :=           \
-	-I$(SOURCEDIR)/include   \
+INTERNALCFLAGS  :=        \
+	-I$(SOURCEDIR)/include \
 	-std=gnu11           \
 	-ffreestanding       \
 	-fno-stack-protector \
-	-fno-pic -fpie       \
+	-fpie                \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
 	-mno-red-zone        \
-	-fno-exceptions
+	-fno-exceptions      \
+	-MMD
 
-INTERNALCPPFLAGS  :=         \
-	-I$(SOURCEDIR)/include   \
+INTERNALCPPFLAGS  :=     \
+	-I$(SOURCEDIR)/include \
 	-std=c++14           \
 	-ffreestanding       \
 	-fno-stack-protector \
-	-fno-pic -fpie       \
+	-fpie                \
 	-mno-80387           \
 	-mno-mmx             \
 	-mno-3dnow           \
 	-mno-red-zone        \
-	-fno-exceptions
+	-fno-exceptions      \
+	-MMD
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
 CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
 ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")
+
 OBJ = $(CFILES:.c=.o)
 OBJ += $(CPPFILES:.cpp=.o)
 OBJ += $(ASMFILES:.asm=_asm.o)
 
-.PHONY: all
+HDR_DEPS = $(CFILES:.c=.d)
+HDR_DEPS += $(CPPFILES:.cpp=.d)
 
+.PHONY: all
 all: $(KERNEL) initrd
 	$(MAKE) iso
 	$(MAKE) clean run
@@ -93,6 +104,8 @@ $(KERNEL):
 	$(MAKE) $(OBJ)
 	@printf "LD\t%s\n" $(lastword $(subst /, ,$(KERNEL)))
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
+
+-include $(HDR_DEPS)
 
 %.o: %.c
 	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
@@ -123,7 +136,7 @@ iso:
 
 clean:
 ifndef NOCLEAN
-	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(SOURCEDIR)/../iso_root/*
+	rm -rf $(KERNEL) $(OBJ) $(HDR_DEPS) $(INITRD) $(SOURCEDIR)/../iso_root/*
 endif
 
 run:

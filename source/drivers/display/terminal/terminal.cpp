@@ -91,7 +91,9 @@ void term_resetcolour()
 #pragma region Clear
 void term_reset()
 {
+    acquire_lock(&term_lock);
     term_write("", STIVALE2_TERM_FULL_REFRESH);
+    release_lock(&term_lock);
 }
 
 void term_clear(char *ansii_colour)
