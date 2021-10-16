@@ -103,26 +103,22 @@ char *ustar_cat(char *name)
     i = ustar_getid(name);
     switch (ustar_headers[i].header->typeflag[0])
     {
-        case REGULAR_FILE:
+        case ustar_filetypes::REGULAR_FILE:
             if (ustar_search(name, &contents) != 0)
             {
                 printf("--BEGIN-- %s\n", name);
                 printf("%s", contents);
                 printf("--END-- %s\n", name);
             }
-            else
-            {
-                goto Error;
-            }
+            else goto Error;
             break;
         default:
-            contents = "";
-            printf("\033[31m\"%s\" is not a regular file!%s\n", name, term_colour);
+            goto Error;
             break;
     }
     return contents;
     Error:
-    printf("Invalid file name!");
+    printf("\033[31mInvalid file name!%s\n", term_colour);
     return "Invalid file name!";
 }
 
