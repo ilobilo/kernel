@@ -10,6 +10,7 @@ bool kbd_initialised = false;
 
 char retstr[1024] = "\0";
 bool reading = false;
+int gi = 0;
 
 volatile bool pressed = false;
 volatile bool enter = false;
@@ -153,6 +154,7 @@ static void Keyboard_Handler(interrupt_registers *)
                             if (buff[0] != '\0')
                             {
                                 buff[strlen(buff) - 1] = '\0';
+                                if (reading) retstr[--gi] = 0;
                                 printf("\b \b");
                             }
                             break;
@@ -179,21 +181,21 @@ char *getline()
 {
     reading = true;
     memset(retstr, '\0', 1024);
-    int i = 0;
     while (!enter)
     {
         if (pressed)
         {
-            if (i >= 1024 - 1)
+            if (gi >= 1024 - 1)
             {
                 printf("\nBuffer Overflow");
             }
-            retstr[i] = getchar();
-            i++;
+            retstr[gi] = getchar();
+            gi++;
         }
     }
     enter = false;
     reading = false;
+    gi = 0;
     return retstr;
 }
 
