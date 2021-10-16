@@ -2,6 +2,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+unsigned constexpr hash(char const *input)
+{
+    return *input ? static_cast<unsigned int>(*input) + 33 * hash(input + 1) : 5381;
+}
+
 size_t strlen(const char *str);
 
 char *strcpy(char *destination, const char *source);

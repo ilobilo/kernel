@@ -6,6 +6,7 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 
@@ -27,6 +28,7 @@ void shell_parse(char *cmd, char *arg)
     }
     else if (!strcmp(cmd, "clear")) term_clear();
     else if (!strcmp(cmd, "ls")) ustar_list();
+    else if (!strcmp(cmd, "cat")) ustar_cat(arg);
     else if (!strcmp(cmd, "free"))
     {
         double usable = getmemsize();
