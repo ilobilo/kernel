@@ -130,16 +130,8 @@ void main(struct stivale2_struct *stivale2_struct)
     Keyboard_init();
     term_check(kbd_initialised, "Initialising PS2 Keyboard...");
 
-    if (!strstr(cmdline, "nomouse"))
-    {
-        if (strstr(cmdline, "oldmouse"))
-        {
-            mousebordercol = 0x000000;
-            mouseinsidecol = 0xFFFFFF;
-        }
-        Mouse_init();
-        term_check(mouse_initialised, "Initialising PS2 Mouse...");
-    }
+    if (!strstr(cmdline, "nomouse")) Mouse_init();
+    term_check(mouse_initialised, "Initialising PS2 Mouse...");
 
     printf("Current RTC time: %s", RTC_GetTime());
 

@@ -88,7 +88,7 @@ uint8_t mouseread()
     return inb(0x60);
 }
 
-mousestate get_mousestate()
+mousestate getmousestate()
 {
     if (packet[0] & ps2_left) return ps2_left;
     else if (packet[0] & ps2_middle) return ps2_middle;
@@ -157,37 +157,6 @@ void proccesspacket()
     if (mousepos.Y > frm_height - 1) mousepos.Y = frm_height - 1;
 
     clearcursor(cursorinside, mouseposold);
-
-    static bool circle = false;
-    switch(get_mousestate())
-    {
-        case ps2_left:
-            if (circle)
-            {
-                drawfilledcircle(mousepos.X, mousepos.Y, 5, 0xff0000);   
-            }
-            else
-            {
-                drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xff0000);
-            }
-            break;
-        case ps2_middle:
-            if (circle) circle = false;
-            else circle = true;
-            break;
-        case ps2_right:
-            if (circle)
-            {
-                drawfilledcircle(mousepos.X, mousepos.Y, 5, 0xdd56f5);   
-            }
-            else
-            {
-                drawfilledrectangle(mousepos.X, mousepos.Y, 10, 10, 0xdd56f5);
-            }
-            break;
-        default:
-            break;
-    }
 
     drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
     drawovercursor(cursorborder, mousepos, mousebordercol, false);
