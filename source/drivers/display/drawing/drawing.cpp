@@ -1,5 +1,7 @@
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/display/drawing/drawing.hpp>
+#include <drivers/display/serial/serial.hpp>
+#include <system/mm/heap/heap.hpp>
+#include <lib/string.hpp>
 #include <main.hpp>
 
 uint64_t frm_addr;
@@ -8,6 +10,7 @@ uint16_t frm_height;
 uint16_t frm_pitch;
 uint16_t frm_bpp;
 uint16_t frm_pixperscanline;
+uint32_t frm_size;
 
 uint32_t cursorbuffer[16 * 19];
 uint32_t cursorbuffersecond[16 * 19];
@@ -22,6 +25,19 @@ void putpix(uint32_t x, uint32_t y, uint32_t colour)
 uint32_t getpix(uint32_t x, uint32_t y)
 {
     return *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4));
+}
+
+void framebuffer_restore(uint32_t *frm)
+{
+    memcpy((void*)frm_addr, frm, frm_height * frm_pitch);
+    free(frm);
+}
+
+uint32_t *framebuffer_backup()
+{
+    uint32_t *frm = (uint32_t*)malloc(frm_height * frm_pitch);
+    memcpy(frm, (void*)frm_addr, frm_height * frm_pitch);
+    return frm;
 }
 
 void drawvertline(int x, int y, int dy, uint32_t colour)
@@ -231,4 +247,6 @@ void drawing_init()
     frm_pitch = frm_tag->framebuffer_pitch;
     frm_bpp = frm_tag->framebuffer_bpp;
     frm_pixperscanline = frm_pitch / 4;
+
+    frm_size = frm_height * frm_pitch;
 }
