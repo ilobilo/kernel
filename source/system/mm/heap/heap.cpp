@@ -1,6 +1,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
 
@@ -11,6 +12,8 @@ bool alloc_debug = true;
 void *heapStart;
 void *heapEnd;
 heapSegHdr *lastHdr;
+
+DEFINE_LOCK(heap_lock)
 
 void Heap_init(void *heapAddr, size_t pageCount)
 {
@@ -62,11 +65,13 @@ void free(void *address)
 {
     check_heap();
 
+    acquire_lock(&heap_lock);
     heapSegHdr *segment = (heapSegHdr*)address - 1;
     segment->free = true;
     if (alloc_debug) serial_info("Free: Freeing %zu Bytes", segment->length);
     segment->combineForward();
     segment->combineBackward();
+    release_lock(&heap_lock);
 }
 
 volatile bool expanded = false;
@@ -74,6 +79,7 @@ void* malloc(size_t size)
 {
     check_heap();
 
+    acquire_lock(&heap_lock);
     if (size > globalAlloc.getFreeRam())
     {
         serial_err("Malloc: requested more memory than available!");
@@ -98,6 +104,7 @@ void* malloc(size_t size)
                 currentSeg->free = false;
                 if (alloc_debug) serial_info("Malloc: Allocated %zu Bytes", size);
                 expanded = false;
+                release_lock(&heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
             if (currentSeg->length == size)
@@ -105,6 +112,7 @@ void* malloc(size_t size)
                 currentSeg->free = false;
                 if (alloc_debug) serial_info("Malloc: Allocated %zu Bytes", size);
                 expanded = false;
+                release_lock(&heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
         }
@@ -118,6 +126,7 @@ void* malloc(size_t size)
     }
     expandHeap(size);
     expanded = true;
+    release_lock(&heap_lock);
     return malloc(size);
 }
 
@@ -127,17 +136,15 @@ size_t alloc_getsize(void *ptr)
     return segment->length;
 }
 
-void *calloc(size_t m, size_t n)
+void *calloc(size_t num, size_t size)
 {
     check_heap();
 
-    void *p;
-    if (n && m > (size_t)-1 / n) return NULL;
-    n *= m;
-    p = malloc(n);
-    if (!p) return NULL;
-    memset(p, 0, n);
-    return p;
+    void *ptr = malloc(num * size);
+    if (!ptr) return NULL;
+
+    memset(ptr, 0, num * size);
+    return ptr;
 }
 
 void *realloc(void *ptr, size_t size)
@@ -145,13 +152,18 @@ void *realloc(void *ptr, size_t size)
     check_heap();
 
     size_t oldsize = alloc_getsize(ptr);
-    void *newptr;
 
-    if (ptr == NULL) return malloc(size);
+    if (!size)
+    {
+        free(ptr);
+        return NULL;
+    }
+    if (!ptr) return malloc(size);
     if (size <= oldsize) return ptr;
 
-    newptr = malloc(size);
+    void *newptr = malloc(size);
     if (!newptr) return ptr;
+
     memcpy(newptr, ptr, oldsize);
     free(ptr);
     return(newptr);

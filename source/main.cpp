@@ -96,13 +96,6 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %s\n", humanify(getmemsize()));
 
-    int i = find_module("initrd");
-    if (i != -1 && strstr(cmdline, "initrd"))
-    {
-        initrd_init(mod_tag->modules[i].begin + 0xFFFF800000000000);
-    }
-    term_check(initrd_initialised, "Initialising USTAR Initrd...");
-
     GDT_init();
     term_check(gdt_initialised, "Initialising Global Descriptor Table...");
 
@@ -114,6 +107,13 @@ void main(struct stivale2_struct *stivale2_struct)
 
     Heap_init();
     term_check(heap_initialised, "Initialising Kernel Heap...");
+
+    int i = find_module("initrd");
+    if (i != -1 && strstr(cmdline, "initrd"))
+    {
+        initrd_init(mod_tag->modules[i].begin + 0xFFFF800000000000);
+    }
+    term_check(initrd_initialised, "Initialising USTAR Initrd...");
 
     IDT_init();
     term_check(idt_initialised, "Initialising Interrupt Descriptor Table...");
