@@ -3,6 +3,8 @@
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
+uint64_t pit_frequency = 100;
+
 bool pit_initialised = false;
 
 uint64_t tick = 0;
@@ -26,7 +28,21 @@ static void PIT_Handler(interrupt_registers *)
     tick++;
 }
 
-void PIT_init()
+void PIT_setfreq(uint64_t freq)
+{
+    if (freq == pit_frequency) return;
+    uint64_t divisor = 1193180 / pit_frequency;
+
+    outb(0x43, 0x36);
+
+    uint8_t l = (uint8_t)(divisor & 0xFF);
+    uint8_t h = (uint8_t)((divisor >> 8) & 0xFF );
+
+    outb(0x40, l);
+    outb(0x40, h);
+}
+
+void PIT_init(uint64_t freq)
 {
     serial_info("Initialising PIT\n");
 
@@ -42,15 +58,9 @@ void PIT_init()
         IDT_init();
     }
 
-    uint64_t divisor = 1193180 / 100;
+    if (freq != pit_frequency) pit_frequency = freq;
 
-    outb(0x43, 0x36);
-
-    uint8_t l = (uint8_t)(divisor & 0xFF);
-    uint8_t h = (uint8_t)((divisor >> 8) & 0xFF );
-
-    outb(0x40, l);
-    outb(0x40, h);
+    PIT_setfreq(pit_frequency);
 
     register_interrupt_handler(IRQ0, PIT_Handler);
 

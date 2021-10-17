@@ -136,7 +136,7 @@ iso:
 
 clean:
 ifndef NOCLEAN
-	rm -rf $(KERNEL) $(OBJ) $(HDR_DEPS) $(INITRD) $(SOURCEDIR)/../iso_root/*
+	rm -rf $(KERNEL) $(OBJ) $(HDR_DEPS) $(INITRD) $(SOURCEDIR)/../iso_root/* $(SOURCEDIR)/../null.d
 endif
 
 run:
