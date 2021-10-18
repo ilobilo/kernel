@@ -5,14 +5,16 @@
 #include <system/mm/heap/heap.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
+#include <lib/io.hpp>
 
 bool pci_initialised = false;
+bool pci_legacy = false;
 
 translatedpcideviceheader *pcidevices;
 uint64_t pciAllocate = 10;
 uint64_t pcidevcount = 0;
 
-translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif)
+translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
     translatedpcideviceheader null;
     if (!pci_initialised)
@@ -28,7 +30,12 @@ translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t pr
             {
                 if (pcidevices[i].progif == progif)
                 {
-                    return pcidevices[i];
+                    if (skip > 0)
+                    {
+                        skip--;
+                        continue;
+                    }
+                    else return pcidevices[i];
                 }
                 else continue;
             }
@@ -64,16 +71,8 @@ translatedpcideviceheader PCI_translate(pcideviceheader* device)
     return pcidevice;
 }
 
-void enumfunc(uint64_t deviceaddr, uint64_t func)
+void PCI_add(pcideviceheader *device)
 {
-    uint64_t offset = func << 12;
-
-    uint64_t funcaddr = deviceaddr + offset;
-
-    pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
-
-    if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
-
     if (pcidevcount >= (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
         pciAllocate += 10;
@@ -81,7 +80,8 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     }
     if (pcidevcount < (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
-        pcidevices[pcidevcount] = PCI_translate(pcidevice);
+        pcidevices[pcidevcount] = PCI_translate(device);
+        pcidevcount++; 
     }
     else
     {
@@ -89,25 +89,65 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
         serial_err("Could not add pci device to the list!");
         serial_err("Possible reason: Could not allocate memory\n");
     }
+}
 
+uint16_t PCI_read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
+{
+	uint64_t address;
+    uint64_t lbus = (uint64_t)bus;
+    uint64_t lslot = (uint64_t)slot;
+    uint64_t lfunc = (uint64_t)func;
+    uint16_t tmp = 0;
+    address = (uint64_t)((lbus << 16) | (lslot << 11) | (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
+    outl(0xCF8, address);
+    tmp = (uint16_t)((inl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
+    return (tmp);
+}
+
+uint16_t PCI_getvenid(uint16_t bus, uint16_t dev, uint16_t func)
+{
+    uint32_t r0 = PCI_read(bus, dev, func, 0);
+    return r0;
+}
+uint16_t PCI_getdevid(uint16_t bus, uint16_t dev, uint16_t func)
+{
+    uint32_t r0 = PCI_read(bus, dev, func, 2);
+    return r0;
+}
+uint16_t PCI_getclassid(uint16_t bus, uint16_t dev, uint16_t func)
+{
+    uint32_t r0 = PCI_read(bus, dev, func, 0xA);
+    return (r0 & ~0x00FF) >> 8;
+}
+uint16_t PCI_getsubclassid(uint16_t bus, uint16_t dev, uint16_t func)
+{
+    uint32_t r0 = PCI_read(bus, dev, func, 0xA);
+    return (r0 & ~0xFF00);
+}
+
+void enumfunc(uint64_t deviceaddr, uint64_t func)
+{
+    uint64_t offset = func << 12;
+    uint64_t funcaddr = deviceaddr + offset;
+
+    pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
+    if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
+
+    PCI_add(pcidevice);
     serial_info("%s / %s / %s / %s / %s",
-        pcidevices[pcidevcount].vendorstr,
-        pcidevices[pcidevcount].devicestr,
-        pcidevices[pcidevcount].ClassStr,
-        pcidevices[pcidevcount].subclassStr,
-        pcidevices[pcidevcount].progifstr);
-
-    pcidevcount++;
+        pcidevices[pcidevcount - 1].vendorstr,
+        pcidevices[pcidevcount - 1].devicestr,
+        pcidevices[pcidevcount - 1].ClassStr,
+        pcidevices[pcidevcount - 1].subclassStr,
+        pcidevices[pcidevcount - 1].progifstr);
 }
 
 void enumdevice(uint64_t busaddr, uint64_t device)
 {
     uint64_t offset = device << 15;
-
     uint64_t deviceaddr = busaddr + offset;
 
     pcideviceheader *pcidevice = (pcideviceheader*)deviceaddr;
-
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
     for (uint64_t func = 0; func < 8; func++)
@@ -119,11 +159,9 @@ void enumdevice(uint64_t busaddr, uint64_t device)
 void enumbus(uint64_t baseaddr, uint64_t bus)
 {
     uint64_t offset = bus << 20;
-
     uint64_t busaddr = baseaddr + offset;
 
     pcideviceheader *pcidevice = (pcideviceheader*)busaddr;
-
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
     for (uint64_t device = 0; device < 32; device++)
@@ -141,14 +179,12 @@ void PCI_init()
         serial_info("PCI has already been initialised!\n");
         return;
     }
-
     if (mcfg == NULL)
     {
-        serial_err("Could not initialise PCI devices!");
-        serial_err("Possible reasons: MCFG was not found\n");
-        return;
+        serial_err("MCFG was not found");
+        serial_info("Using legacy way");
+        pci_legacy = true;
     }
-
     if (!acpi_initialised)
     {
         serial_info("ACPI has not been initialised!\n");
@@ -160,17 +196,48 @@ void PCI_init()
 
     pcidevices = (translatedpcideviceheader*)malloc(pciAllocate * sizeof(translatedpcideviceheader));
 
-    int entries = ((mcfg->header.length) - sizeof(MCFGHeader)) / sizeof(deviceconfig);
-    for (int t = 0; t < entries; t++)
+    if (!pci_legacy)
     {
-        deviceconfig *newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(MCFGHeader) + (sizeof(deviceconfig) * t));
-        for (uint64_t bus = newdevconf->startbus; bus < newdevconf->endbus; bus++)
+        int entries = ((mcfg->header.length) - sizeof(MCFGHeader)) / sizeof(deviceconfig);
+        for (int t = 0; t < entries; t++)
         {
-            enumbus(newdevconf->baseaddr, bus);
+            deviceconfig *newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(MCFGHeader) + (sizeof(deviceconfig) * t));
+            for (uint64_t bus = newdevconf->startbus; bus < newdevconf->endbus; bus++)
+            {
+                enumbus(newdevconf->baseaddr, bus);
+            }
+        }
+    }
+    else
+    {
+        for (int bus = 0; bus < 256; bus++)
+        {
+            for (int dev = 0; dev < 32; dev++)
+            {
+                for (int func = 0; func < 8; func++)
+                {
+                    pcideviceheader *device = (pcideviceheader*)malloc(sizeof(pcideviceheader));
+                    uint16_t vendorid = PCI_getvenid(bus, dev, func);
+                    if (vendorid == 0 || vendorid == 0xFFFF) continue;
+
+                    device->vendorid = vendorid;
+                    device->deviceid = PCI_getdevid(bus, dev, func);
+                    device->Class = PCI_getclassid(bus, dev, func);
+                    device->subclass = PCI_getsubclassid(bus, dev, func);
+
+                    PCI_add(device);
+                    serial_info("%s / %s / %s / %s / %s",
+                        pcidevices[pcidevcount - 1].vendorstr,
+                        pcidevices[pcidevcount - 1].devicestr,
+                        pcidevices[pcidevcount - 1].ClassStr,
+                        pcidevices[pcidevcount - 1].subclassStr,
+                        pcidevices[pcidevcount - 1].progifstr);
+                    free(device);
+                }
+            }
         }
     }
 
     alloc_debug = temp;
-
     pci_initialised = true;
 }

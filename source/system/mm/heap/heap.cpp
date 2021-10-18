@@ -64,6 +64,7 @@ void check_heap()
 void free(void *address)
 {
     check_heap();
+    if (!address) return;
 
     acquire_lock(&heap_lock);
     heapSegHdr *segment = (heapSegHdr*)address - 1;

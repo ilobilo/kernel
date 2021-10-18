@@ -30,8 +30,7 @@ static void PIT_Handler(interrupt_registers *)
 
 void PIT_setfreq(uint64_t freq)
 {
-    if (freq == pit_frequency) return;
-    uint64_t divisor = 1193180 / pit_frequency;
+    uint64_t divisor = 1193180 / freq;
 
     outb(0x43, 0x36);
 
