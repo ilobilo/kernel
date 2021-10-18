@@ -34,11 +34,11 @@ CPPW = -Wall -Wextra -Werror \
 	-Wno-unused-variable -Wno-unused-parameter \
 	-Wno-unknown-pragmas
 
-CFLAGS = -O3 -pipe $(CW) \
+CFLAGS = -Ofast -pipe $(CW) \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 
-CPPFLAGS = -O3 -pipe $(CPPW) \
+CPPFLAGS = -Ofast -pipe $(CPPW) \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 

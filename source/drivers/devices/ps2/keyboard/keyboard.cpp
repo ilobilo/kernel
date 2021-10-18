@@ -2,6 +2,7 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/string.hpp>
 #include <lib/io.hpp>
@@ -177,8 +178,10 @@ char getchar()
     return c[0];
 }
 
+DEFINE_LOCK(getline_lock)
 char *getline()
 {
+    acquire_lock(&getline_lock);
     reading = true;
     memset(retstr, '\0', 1024);
     while (!enter)
@@ -196,6 +199,7 @@ char *getline()
     enter = false;
     reading = false;
     gi = 0;
+    release_lock(&getline_lock);
     return retstr;
 }
 
