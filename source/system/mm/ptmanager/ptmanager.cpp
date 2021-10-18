@@ -119,7 +119,7 @@ void PTManager_init()
 
     for (uint64_t s = 0; s < getmemsize(); s += 0x1000)
     {
-        // This results in UEFI qemu corruption
+        // This results in UEFI qemu framebuffer corruption
         //globalPTManager.mapMem((void*)s, (void*)s);
     }
 

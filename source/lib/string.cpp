@@ -155,14 +155,16 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
 
 void *memcpy(void *dest, void *src, size_t n)
 {
-    size_t i;
-    char *src_char = (char *)src;
-    char *dest_char = (char *)dest;
-    for (i = 0; i < n; i++)
-    {
-        dest_char[i] = src_char[i];
-    }
-    return dest_char;
+    long d0, d1, d2; 
+    asm volatile (
+        "rep ; movsq\n\t movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),
+        "=&D" (d1),
+        "=&S" (d2): "0" (n >> 3), 
+        "g" (n & 7), 
+        "1" (dest),
+        "2" (src): "memory"
+    );
+    return dest;
 }
 
 int memcmp(const void *s1, const void *s2, int len)

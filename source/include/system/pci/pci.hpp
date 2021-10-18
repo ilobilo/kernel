@@ -64,10 +64,11 @@ struct pciheader0
 };
 
 extern bool pci_initialised;
+extern bool pci_legacy;
 
 extern translatedpcideviceheader *pcidevices;
 extern uint64_t pcidevcount;
 
-translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif);
+translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 
 void PCI_init();
