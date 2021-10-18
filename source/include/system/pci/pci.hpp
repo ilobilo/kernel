@@ -65,6 +65,7 @@ struct pciheader0
 
 extern bool pci_initialised;
 extern bool pci_legacy;
+extern bool use_pciids;
 
 extern translatedpcideviceheader *pcidevices;
 extern uint64_t pcidevcount;

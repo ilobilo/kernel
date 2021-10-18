@@ -1,6 +1,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
+#include <drivers/fs/ustar/ustar.hpp>
 #include <system/power/acpi/acpi.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/pci/pci.hpp>
@@ -9,6 +10,7 @@
 
 bool pci_initialised = false;
 bool pci_legacy = false;
+bool use_pciids = false;
 
 translatedpcideviceheader *pcidevices;
 uint64_t pciAllocate = 10;
@@ -49,11 +51,24 @@ translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t pr
 translatedpcideviceheader PCI_translate(pcideviceheader* device)
 {
     translatedpcideviceheader pcidevice;
-
+    
     pcidevice.vendorid = device->vendorid;
-    pcidevice.vendorstr = getvendorname(device->vendorid);
     pcidevice.deviceid = device->deviceid;
-    pcidevice.devicestr = getdevicename(device->vendorid, device->deviceid);
+    if (use_pciids)
+    {
+        char *buffer = (char*)malloc(100 * sizeof(char));
+        pcidevice.vendorstr = strdup(getvendorname(device->vendorid, buffer));
+        if (!strcmp(pcidevice.vendorstr, "")) pcidevice.vendorstr = strdup(getvendorname(device->vendorid));
+
+        pcidevice.devicestr = strdup(getdevicename(device->vendorid, device->deviceid, buffer));
+        if (!strcmp(pcidevice.devicestr, "")) pcidevice.devicestr = strdup(getvendorname(device->deviceid));
+        free(buffer);
+    }
+    else
+    {
+        pcidevice.vendorstr = getvendorname(device->vendorid);
+        pcidevice.devicestr = getdevicename(device->vendorid, device->deviceid);
+    }
     pcidevice.command = device->command;
     pcidevice.status = device->status;
     pcidevice.revisionid = device->revisionid;
@@ -193,6 +208,8 @@ void PCI_init()
 
     bool temp = alloc_debug;
     alloc_debug = false;
+
+    if (use_pciids) ustar_search("/pci.ids", &PCIids);
 
     pcidevices = (translatedpcideviceheader*)malloc(pciAllocate * sizeof(translatedpcideviceheader));
 
