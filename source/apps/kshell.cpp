@@ -57,11 +57,11 @@ void shell_parse(char *cmd, char *arg)
         for (uint64_t i = 0; i < pcidevcount; i++)
         {
             printf("%s / %s / %s / %s / %s\n",
-                pcidevices[i].vendorstr,
-                pcidevices[i].devicestr,
-                pcidevices[i].ClassStr,
-                pcidevices[i].subclassStr,
-                pcidevices[i].progifstr);
+                pcidevices[i]->vendorstr,
+                pcidevices[i]->devicestr,
+                pcidevices[i]->ClassStr,
+                pcidevices[i]->subclassStr,
+                pcidevices[i]->progifstr);
         }
     }
     else if (!strcmp(cmd, "crash"))

@@ -111,7 +111,7 @@ void main(struct stivale2_struct *stivale2_struct)
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
-        initrd_init(mod_tag->modules[i].begin + 0xFFFF800000000000);
+        initrd_init(mod_tag->modules[i].begin);
     }
     term_check(initrd_initialised, "Initialising USTAR Initrd...");
 

@@ -67,9 +67,9 @@ extern bool pci_initialised;
 extern bool pci_legacy;
 extern bool use_pciids;
 
-extern translatedpcideviceheader *pcidevices;
+extern translatedpcideviceheader **pcidevices;
 extern uint64_t pcidevcount;
 
-translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
+translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 
 void PCI_init();
