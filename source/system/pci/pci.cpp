@@ -12,25 +12,24 @@ bool pci_initialised = false;
 bool pci_legacy = false;
 bool use_pciids = false;
 
-translatedpcideviceheader *pcidevices;
+translatedpcideviceheader **pcidevices;
 uint64_t pciAllocate = 10;
 uint64_t pcidevcount = 0;
 
-translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
+translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
-    translatedpcideviceheader null;
     if (!pci_initialised)
     {
         serial_info("PCI has not been initialised!\n");
-        return null;
+        return NULL;
     }
     for (uint64_t i = 0; i < pcidevcount; i++)
     {
-        if (pcidevices[i].Class == Class)
+        if (pcidevices[i]->Class == Class)
         {
-            if (pcidevices[i].subclass == subclass)
+            if (pcidevices[i]->subclass == subclass)
             {
-                if (pcidevices[i].progif == progif)
+                if (pcidevices[i]->progif == progif)
                 {
                     if (skip > 0)
                     {
@@ -45,43 +44,43 @@ translatedpcideviceheader PCI_search(uint8_t Class, uint8_t subclass, uint8_t pr
         }
         else continue;
     }
-    return null;
+    return NULL;
 }
 
-translatedpcideviceheader PCI_translate(pcideviceheader* device)
+translatedpcideviceheader *PCI_translate(pcideviceheader* device)
 {
-    translatedpcideviceheader pcidevice;
-    
-    pcidevice.vendorid = device->vendorid;
-    pcidevice.deviceid = device->deviceid;
+    translatedpcideviceheader *pcidevice = (translatedpcideviceheader*)malloc(sizeof(translatedpcideviceheader));
+
+    pcidevice->vendorid = device->vendorid;
+    pcidevice->deviceid = device->deviceid;
     if (use_pciids)
     {
         char *buffer = (char*)malloc(100 * sizeof(char));
-        pcidevice.vendorstr = strdup(getvendorname(device->vendorid, buffer));
-        if (!strcmp(pcidevice.vendorstr, "")) pcidevice.vendorstr = strdup(getvendorname(device->vendorid));
+        pcidevice->vendorstr = strdup(getvendorname(device->vendorid, buffer));
+        if (!strcmp(pcidevice->vendorstr, "")) pcidevice->vendorstr = strdup(getvendorname(device->vendorid));
 
-        pcidevice.devicestr = strdup(getdevicename(device->vendorid, device->deviceid, buffer));
-        if (!strcmp(pcidevice.devicestr, "")) pcidevice.devicestr = strdup(getvendorname(device->deviceid));
+        pcidevice->devicestr = strdup(getdevicename(device->vendorid, device->deviceid, buffer));
+        if (!strcmp(pcidevice->devicestr, "")) pcidevice->devicestr = strdup(getvendorname(device->deviceid));
         free(buffer);
     }
     else
     {
-        pcidevice.vendorstr = getvendorname(device->vendorid);
-        pcidevice.devicestr = getdevicename(device->vendorid, device->deviceid);
+        pcidevice->vendorstr = getvendorname(device->vendorid);
+        pcidevice->devicestr = getdevicename(device->vendorid, device->deviceid);
     }
-    pcidevice.command = device->command;
-    pcidevice.status = device->status;
-    pcidevice.revisionid = device->revisionid;
-    pcidevice.progif = device->progif;
-    pcidevice.progifstr = getprogifname(device->Class, device->subclass, device->progif);
-    pcidevice.subclass = device->subclass;
-    pcidevice.subclassStr = getsubclassname(device->Class, device->subclass);
-    pcidevice.Class = device->Class;
-    pcidevice.ClassStr = device_classes[device->Class];
-    pcidevice.cachelinesize = device->cachelinesize;
-    pcidevice.latencytimer = device->latencytimer;
-    pcidevice.headertype = device->headertype;
-    pcidevice.bist = device->bist;
+    pcidevice->command = device->command;
+    pcidevice->status = device->status;
+    pcidevice->revisionid = device->revisionid;
+    pcidevice->progif = device->progif;
+    pcidevice->progifstr = getprogifname(device->Class, device->subclass, device->progif);
+    pcidevice->subclass = device->subclass;
+    pcidevice->subclassStr = getsubclassname(device->Class, device->subclass);
+    pcidevice->Class = device->Class;
+    pcidevice->ClassStr = device_classes[device->Class];
+    pcidevice->cachelinesize = device->cachelinesize;
+    pcidevice->latencytimer = device->latencytimer;
+    pcidevice->headertype = device->headertype;
+    pcidevice->bist = device->bist;
 
     return pcidevice;
 }
@@ -91,12 +90,12 @@ void PCI_add(pcideviceheader *device)
     if (pcidevcount >= (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
         pciAllocate += 10;
-        pcidevices = (translatedpcideviceheader*)realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader));
+        pcidevices = (translatedpcideviceheader**)realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader));
     }
     if (pcidevcount < (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
         pcidevices[pcidevcount] = PCI_translate(device);
-        pcidevcount++; 
+        pcidevcount++;
     }
     else
     {
@@ -108,7 +107,7 @@ void PCI_add(pcideviceheader *device)
 
 uint16_t PCI_read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
 {
-	uint64_t address;
+    uint64_t address;
     uint64_t lbus = (uint64_t)bus;
     uint64_t lslot = (uint64_t)slot;
     uint64_t lfunc = (uint64_t)func;
@@ -150,11 +149,11 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
 
     PCI_add(pcidevice);
     serial_info("%s / %s / %s / %s / %s",
-        pcidevices[pcidevcount - 1].vendorstr,
-        pcidevices[pcidevcount - 1].devicestr,
-        pcidevices[pcidevcount - 1].ClassStr,
-        pcidevices[pcidevcount - 1].subclassStr,
-        pcidevices[pcidevcount - 1].progifstr);
+        pcidevices[pcidevcount - 1]->vendorstr,
+        pcidevices[pcidevcount - 1]->devicestr,
+        pcidevices[pcidevcount - 1]->ClassStr,
+        pcidevices[pcidevcount - 1]->subclassStr,
+        pcidevices[pcidevcount - 1]->progifstr);
 }
 
 void enumdevice(uint64_t busaddr, uint64_t device)
@@ -197,7 +196,7 @@ void PCI_init()
     if (mcfg == NULL)
     {
         serial_err("MCFG was not found");
-        serial_info("Using legacy way");
+        serial_info("Using legacy way\n");
         pci_legacy = true;
     }
     if (!acpi_initialised)
@@ -211,7 +210,7 @@ void PCI_init()
 
     if (use_pciids) ustar_search("/pci.ids", &PCIids);
 
-    pcidevices = (translatedpcideviceheader*)malloc(pciAllocate * sizeof(translatedpcideviceheader));
+    pcidevices = (translatedpcideviceheader**)malloc(pciAllocate * sizeof(translatedpcideviceheader));
 
     if (!pci_legacy)
     {
@@ -244,11 +243,11 @@ void PCI_init()
 
                     PCI_add(device);
                     serial_info("%s / %s / %s / %s / %s",
-                        pcidevices[pcidevcount - 1].vendorstr,
-                        pcidevices[pcidevcount - 1].devicestr,
-                        pcidevices[pcidevcount - 1].ClassStr,
-                        pcidevices[pcidevcount - 1].subclassStr,
-                        pcidevices[pcidevcount - 1].progifstr);
+                        pcidevices[pcidevcount - 1]->vendorstr,
+                        pcidevices[pcidevcount - 1]->devicestr,
+                        pcidevices[pcidevcount - 1]->ClassStr,
+                        pcidevices[pcidevcount - 1]->subclassStr,
+                        pcidevices[pcidevcount - 1]->progifstr);
                     free(device);
                 }
             }
