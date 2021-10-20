@@ -1,5 +1,7 @@
 #pragma once
 
+#define SYSCALL 0x80
+
 enum PIC
 {
     PIC1 = 0x20,
@@ -82,8 +84,6 @@ enum IRQS
     IRQ13 = 45,
     IRQ14 = 46,
     IRQ15 = 47,
-
-    SYSCALL = 0x30
 };
 
 struct idt_desc_t
