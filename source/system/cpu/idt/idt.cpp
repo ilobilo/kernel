@@ -190,4 +190,6 @@ void isr_install()
     idt_set_descriptor(IRQS::IRQ13, (void*)irq13, 0x8E);
     idt_set_descriptor(IRQS::IRQ14, (void*)irq14, 0x8E);
     idt_set_descriptor(IRQS::IRQ15, (void*)irq15, 0x8E);
+
+    idt_set_descriptor(IRQS::SYSCALL, (void*)syscall, 0x8E);
 }

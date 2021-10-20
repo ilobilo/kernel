@@ -83,7 +83,7 @@ enum IRQS
     IRQ14 = 46,
     IRQ15 = 47,
 
-    SYSCALL = 0x80
+    SYSCALL = 0x30
 };
 
 struct idt_desc_t

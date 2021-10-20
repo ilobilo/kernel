@@ -30,7 +30,8 @@ static void PIT_Handler(interrupt_registers *)
 
 void PIT_setfreq(uint64_t freq)
 {
-    uint64_t divisor = 1193180 / freq;
+    pit_frequency = freq;
+    uint64_t divisor = 1193180 / pit_frequency;
 
     outb(0x43, 0x36);
 
@@ -57,11 +58,11 @@ void PIT_init(uint64_t freq)
         IDT_init();
     }
 
-    if (freq != pit_frequency) pit_frequency = freq;
+    pit_frequency = freq;
 
     PIT_setfreq(pit_frequency);
 
-    register_interrupt_handler(IRQ0, PIT_Handler);
+    register_interrupt_handler(IRQS::IRQ0, PIT_Handler);
 
     pit_initialised = true;
 }

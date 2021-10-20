@@ -236,7 +236,7 @@ void Mouse_init()
 
     asm volatile ("sti");
 
-    register_interrupt_handler(IRQ12, Mouse_Handler);
+    register_interrupt_handler(IRQS::IRQ12, Mouse_Handler);
 
     mouse_initialised = true;
 }

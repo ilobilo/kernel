@@ -10,6 +10,6 @@ void PIT_sleep(double sec);
 
 uint64_t get_tick();
 
-void PIT_setfreq(uint64_t freq = pit_frequency);
+void PIT_setfreq(uint64_t freq = 100);
 
-void PIT_init(uint64_t freq = pit_frequency);
+void PIT_init(uint64_t freq = 100);
