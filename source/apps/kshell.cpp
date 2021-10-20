@@ -17,7 +17,7 @@ void shell_parse(char *cmd, char *arg)
         printf("Supported commands:\n");
         printf("- help\t-- This\n");
         printf("- clear\t-- Clear terminal\n");
-        printf("- ls\t-- List files in initrd\n");
+        printf("- ls\t-- List files\n");
         printf("- free\t-- Get memory info in bytes\n");
         printf("-  -h\t-- Get memory info in MB\n");
         printf("- time\t-- Get current RTC time\n");
