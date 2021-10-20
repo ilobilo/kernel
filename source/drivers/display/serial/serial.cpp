@@ -101,7 +101,7 @@ void serial_init()
     //serial_printf("\033[H\033[0m\033[2J");
     serial_printf("\033[0m");
 
-    register_interrupt_handler(IRQ4, COM1_Handler);
+    register_interrupt_handler(IRQS::IRQ4, COM1_Handler);
     outb(COM1 + 1, 0x01);
 
     serial_initialised = true;

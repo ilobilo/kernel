@@ -5,6 +5,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
+#include <system/cpu/syscall/syscall.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/mm/paging/paging.hpp>
 #include <system/mm/bitmap/bitmap.hpp>

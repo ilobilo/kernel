@@ -54,4 +54,3 @@ bool are_interrupts_enabled(bool should_print)
     }
     return flags & (1 << 9);
 }
-

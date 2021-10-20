@@ -42,7 +42,7 @@ struct translatedpcideviceheader
 
 struct pciheader0
 {
-    pcideviceheader *header;
+    pcideviceheader header;
     uint32_t BAR0;
     uint32_t BAR1;
     uint32_t BAR2;

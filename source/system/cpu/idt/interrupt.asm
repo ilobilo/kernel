@@ -36,6 +36,7 @@
 
 [extern isr_handler]
 [extern irq_handler]
+[extern syscall_handler]
 
 isr_common_stub:
     __pusha
@@ -52,6 +53,16 @@ irq_common_stub:
     mov rdi, rsp
 
     call irq_handler
+
+    __popa
+    add rsp, 16
+    iretq
+
+syscall_stub:
+    __pusha
+    mov rdi, rsp
+
+    call syscall_handler
 
     __popa
     add rsp, 16
@@ -374,3 +385,9 @@ irq15:
 	push byte 15
 	push byte 47
 	jmp irq_common_stub
+
+global syscall
+syscall:
+    push byte 0
+    push byte 0x30
+    jmp syscall_stub

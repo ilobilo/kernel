@@ -219,7 +219,7 @@ void Keyboard_init()
         IDT_init();
     }
 
-    register_interrupt_handler(IRQ1, Keyboard_Handler);
+    register_interrupt_handler(IRQS::IRQ1, Keyboard_Handler);
     buff[0] = '\0';
 
     kbd_initialised = true;
