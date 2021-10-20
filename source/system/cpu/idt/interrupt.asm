@@ -389,5 +389,5 @@ irq15:
 global syscall
 syscall:
     push byte 0
-    push byte 0x30
+    push dword 0x80
     jmp syscall_stub
