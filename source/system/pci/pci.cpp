@@ -253,6 +253,7 @@ void PCI_init()
             }
         }
     }
+    serial_newline();
 
     alloc_debug = temp;
     pci_initialised = true;

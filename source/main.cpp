@@ -112,9 +112,9 @@ void main(struct stivale2_struct *stivale2_struct)
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
-        initrd_init(mod_tag->modules[i].begin);
+        ustar_init(mod_tag->modules[i].begin);
     }
-    term_check(initrd_initialised, "Initialising USTAR Initrd...");
+    term_check(ustar_initialised, "Initialising USTAR filesystem...");
 
     IDT_init();
     term_check(idt_initialised, "Initialising Interrupt Descriptor Table...");

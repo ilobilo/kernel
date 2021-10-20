@@ -41,7 +41,7 @@ struct ustar_header_t
     unsigned int address;
 };
 
-extern bool initrd_initialised;
+extern bool ustar_initialised;
 extern uint64_t ustar_filecount;
 extern ustar_header_t *ustar_headers;
 
@@ -55,4 +55,4 @@ int ustar_getid(char *name);
 
 int ustar_search(char *filename, char **contents);
 
-void initrd_init(unsigned int address);
+void ustar_init(unsigned int address);
