@@ -133,6 +133,31 @@ void PTManager::unmapMem(void *virtualMemory)
     PT->entries[indexer.P_i] = PDE;
 }
 
+void PTManager::mapUserMem(void *virtualMemory)
+{
+    PMIndexer indexer = PMIndexer((uint64_t)virtualMemory);
+    PDEntry PDE;
+
+    PDE = PML4->entries[indexer.PDP_i];
+    PDE.setflag(PT_Flag::UserSuper, true);
+    PML4->entries[indexer.PDP_i] = PDE;
+
+    PTable *L3 = (PTable*)((uint64_t)PDE.getAddr() << 12);
+    PDE = L3->entries[indexer.PD_i];
+    PDE.setflag(PT_Flag::UserSuper, true);
+    L3->entries[indexer.PD_i] = PDE;
+
+    PTable *L2 = (PTable*)((uint64_t)PDE.getAddr() << 12);
+    PDE = L2->entries[indexer.PT_i];
+    PDE.setflag(PT_Flag::UserSuper, true);
+    L2->entries[indexer.PT_i] = PDE;
+
+    PTable *L1 = (PTable*)((uint64_t)PDE.getAddr() << 12);
+    PDE = L1->entries[indexer.P_i];
+    PDE.setflag(PT_Flag::UserSuper, true);
+    L1->entries[indexer.P_i] = PDE;
+}
+
 CRs getCRs()
 {
     uint64_t cr0, cr2, cr3;

@@ -9,20 +9,20 @@ char *syscall_read(int length)
 {
     char *string = (char*)malloc((length + 1) * sizeof(char));
     char *ret;
-    asm volatile ("int $0x80" : "=a" (ret) : "0"(0), "D"(1), "S"(string), "d"(5) : "rcx", "r11", "memory");
+    asm volatile ("int $0x80" : "=a" (ret) : "0"(0), "D"(1), "S"(string), "d"(length) : "rcx", "r11", "memory");
     return string;
 }
 void syscall_write(char *string)
 {
     char *ret;
     int length = strlen(string);
-    asm volatile ("int $0x80" : "=a" (ret) : "0"(1), "D"(0), "S"(string), "d"(5) : "rcx", "r11", "memory");
+    asm volatile ("int $0x80" : "=a" (ret) : "0"(1), "D"(0), "S"(string), "d"(length) : "rcx", "r11", "memory");
 }
 void syscall_err(char *string)
 {
     char *ret;
     int length = strlen(string);
-    asm volatile ("int $0x80" : "=a" (ret) : "0"(1), "D"(2), "S"(string), "d"(5) : "rcx", "r11", "memory");
+    asm volatile ("int $0x80" : "=a" (ret) : "0"(1), "D"(2), "S"(string), "d"(length) : "rcx", "r11", "memory");
 }
 
 void syscall_handler(interrupt_registers *regs)
@@ -54,8 +54,14 @@ void syscall_handler(interrupt_registers *regs)
             switch (regs->rdi)
             {
                 case 0:
-                    printf("%s", (char*)regs->rsi);
+                {
+                    char *str = (char*)malloc(regs->rdx * sizeof(char));
+                    memcpy(str, (void*)regs->rsi, regs->rdx);
+                    str[regs->rdx + 1] = 0;
+                    printf("%s", str);
+                    free(str);
                     break;
+                }
                 case 1:
                     break;
                 case 2:
