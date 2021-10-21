@@ -13,8 +13,8 @@
 
 using syscall_t = void (*)(interrupt_registers *);
 
-char *s_read(int length, char *string);
-void s_write(char *string);
-void s_err(char *string);
+char *s_read(char *string, int length);
+void s_write(char *string, int length);
+void s_err(char *string, int length);
 
 extern "C" void syscall_handler(interrupt_registers *regs);
