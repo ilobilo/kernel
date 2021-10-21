@@ -73,6 +73,66 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     PT->entries[indexer.P_i] = PDE;
 }
 
+void PTManager::unmapMem(void *virtualMemory)
+{
+    PMIndexer indexer = PMIndexer((uint64_t)virtualMemory);
+    PDEntry PDE;
+
+    PDE = PML4->entries[indexer.PDP_i];
+    PTable *PDP;
+    if (!PDE.getflag(PT_Flag::Present))
+    {
+        PDP = (PTable*)globalAlloc.requestPage();
+        memset(PDP, 0, 4096);
+        PDE.setAddr((uint64_t)PDP >> 12);
+        PDE.setflag(PT_Flag::Present, true);
+        PDE.setflag(PT_Flag::ReadWrite, true);
+        PML4->entries[indexer.PDP_i] = PDE;
+    }
+    else
+    {
+        PDP = (PTable*)((uint64_t)PDE.getAddr() << 12);
+    }
+
+    PDE = PDP->entries[indexer.PD_i];
+    PTable *PD;
+    if (!PDE.getflag(PT_Flag::Present))
+    {
+        PD = (PTable*)globalAlloc.requestPage();
+        memset(PD, 0, 4096);
+        PDE.setAddr((uint64_t)PD >> 12);
+        PDE.setflag(PT_Flag::Present, true);
+        PDE.setflag(PT_Flag::ReadWrite, true);
+        PDP->entries[indexer.PD_i] = PDE;
+    }
+    else
+    {
+        PD = (PTable*)((uint64_t)PDE.getAddr() << 12);
+    }
+
+    PDE = PD->entries[indexer.PT_i];
+    PTable *PT;
+    if (!PDE.getflag(PT_Flag::Present))
+    {
+        PT = (PTable*)globalAlloc.requestPage();
+        memset(PT, 0, 4096);
+        PDE.setAddr((uint64_t)PT >> 12);
+        PDE.setflag(PT_Flag::Present, true);
+        PDE.setflag(PT_Flag::ReadWrite, true);
+        PD->entries[indexer.PT_i] = PDE;
+    }
+    else
+    {
+        PT = (PTable*)((uint64_t)PDE.getAddr() << 12);
+    }
+
+    PDE = PT->entries[indexer.P_i];
+    PDE.setAddr(0);
+    PDE.setflag(PT_Flag::Present, false);
+    PDE.setflag(PT_Flag::ReadWrite, false);
+    PT->entries[indexer.P_i] = PDE;
+}
+
 CRs getCRs()
 {
     uint64_t cr0, cr2, cr3;

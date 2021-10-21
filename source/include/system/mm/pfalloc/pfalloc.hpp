@@ -16,6 +16,7 @@ class PFAlloc
     void lockPages(void *address, uint64_t pageCount);
 
     void *requestPage();
+    void *requestPages(uint64_t count);
 
     uint64_t getFreeRam();
     uint64_t getUsedRam();
