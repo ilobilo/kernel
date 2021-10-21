@@ -8,6 +8,7 @@ class PTManager
     PTManager(PTable *PML4Address);
     PTable *PML4;
     void mapMem(void *virtualMemory, void *physicalMemory);
+    void unmapMem(void *virtualMemory);
 };
 
 struct CRs

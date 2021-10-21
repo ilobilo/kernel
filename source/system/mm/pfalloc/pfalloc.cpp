@@ -63,8 +63,25 @@ void *PFAlloc::requestPage()
         lockPage((void*)(pageBitmapIndex * 4096));
         return (void*)(pageBitmapIndex * 4096);
     }
+    return NULL;
+}
 
-    return NULL; // Page frame swap
+void *PFAlloc::requestPages(uint64_t count)
+{
+    for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
+    {
+        for (uint64_t i = 0; i < count; i++)
+        {
+            if (PageBitmap[pageBitmapIndex + i] == true)
+            {
+                pageBitmapIndex += 1;
+                continue;
+            }
+        }
+        lockPages((void*)(pageBitmapIndex * 4096), count);
+        return (void*)(pageBitmapIndex * 4096);
+    }
+    return NULL;
 }
 
 void PFAlloc::freePage(void *address)
