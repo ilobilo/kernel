@@ -54,16 +54,16 @@ void syscall_handler(interrupt_registers *regs)
 char *s_read(char *string, int length)
 {
     char *ret;
-    asm volatile ("int $0x80" : "=a" (ret) : "0"(0), "D"(1), "S"(string), "d"(length) : "rcx", "r11", "memory");
+    SYSCALL3(0, 1, (uint64_t)string, (uint64_t)length);
     return string;
 }
 void s_write(char *string, int length)
 {
     char *ret;
-    asm volatile ("int $0x80" : "=a" (ret) : "0"(1), "D"(0), "S"(string), "d"(length) : "rcx", "r11", "memory");
+    SYSCALL3(1, 0, (uint64_t)string, (uint64_t)length);
 }
 void s_err(char *string, int length)
 {
     char *ret;
-    asm volatile ("int $0x80" : "=a" (ret) : "0"(1), "D"(2), "S"(string), "d"(length) : "rcx", "r11", "memory");
+    SYSCALL3(1, 2, (uint64_t)string, (uint64_t)length);
 }

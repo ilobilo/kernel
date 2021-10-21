@@ -11,6 +11,26 @@
 #define S_ARG4_R8 regs->r8
 #define S_ARG5_R9 regs->r9
 
+#define SYSCALL0(NUM) \
+({ \
+    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM) : "rcx", "r11", "memory"); \
+})
+
+#define SYSCALL1(NUM, ARG0) \
+({ \
+    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0) : "rcx", "r11", "memory"); \
+})
+
+#define SYSCALL2(NUM, ARG0, ARG1) \
+({ \
+    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1) : "rcx", "r11", "memory"); \
+})
+
+#define SYSCALL3(NUM, ARG0, ARG1, ARG2) \
+({ \
+    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2) : "rcx", "r11", "memory"); \
+})
+
 using syscall_t = void (*)(interrupt_registers *);
 
 char *s_read(char *string, int length);
