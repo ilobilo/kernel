@@ -16,7 +16,7 @@ LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS = -M q35 -enable-kvm \
+QEMUFLAGS = -M q35 \
 	-cpu max -smp 12 -m 512M \
 	-boot d -rtc base=localtime \
 	-serial stdio -no-reboot -no-shutdown
@@ -90,9 +90,15 @@ all: $(KERNEL) initrd
 	$(MAKE) iso
 	$(MAKE) clean run
 
+.PHONY: bios
 bios: $(KERNEL) initrd
 	$(MAKE) iso
 	$(MAKE) clean run-bios
+
+.PHONY: test
+test: $(KERNEL) initrd
+	$(MAKE) iso
+	$(MAKE) clean run-test
 
 $(KERNEL):
 	$(MAKE) $(OBJ)
@@ -135,8 +141,23 @@ endif
 
 run:
 	echo "\nBooting iso in uefi mode...\n"
-	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
+ifndef DEBUG
+	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
+else
+	$(QEMU) $(QEMUFLAGS) -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
+endif
 
 run-bios:
 	echo "\nBooting iso in bios mode...\n"
+ifndef DEBUG
+	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO)
+else
+	$(QEMU) $(QEMUFLAGS) -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO)
+endif
+
+run-test:
+ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO)
+else
+	$(QEMU) $(QEMUFLAGS) -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO)
+endif

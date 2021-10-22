@@ -6,6 +6,9 @@ all: limine stivale2.h
 bios: limine stivale2.h
 	@$(MAKE) -s -C $(KERNELDIR)/source bios
 
+test: limine stivale2.h
+	@$(MAKE) -s -C $(KERNELDIR)/source test
+
 stivale2.h:
 	@wget -nc https://github.com/stivale/stivale/raw/master/stivale2.h -P $(KERNELDIR)/source/include/
 
