@@ -29,7 +29,7 @@ Contributors are welcome
 - [ ] Multithreading
 - [ ] TSS
 - [ ] Userspace
-- [ ] System calls
+- [x] System calls
 - [ ] ELF execution
 - [ ] Port libc (Newlib)
 - [ ] POSIX
@@ -44,8 +44,8 @@ Contributors are welcome
 # Building And Running
 
 Make sure you have following programs installed:
-* GCC
-* G++
+* Clang
+* lld
 * Make
 * Nasm
 * Qemu x86-64
@@ -53,33 +53,20 @@ Make sure you have following programs installed:
 * Wget
 * Tar
 
-1. Download the toolchain from releases page
-
-2. Extract it in /opt directory with:<br />
-``cd /opt && sudo tar xpJf <Downloaded toolchain.tar.xz>``<br />
-(bin directory should be /opt/x86_64-pc-elf/bin/)
-
-3. Add this line to your ~/.bashrc:<br />
-``export PATH="/opt/x86_64-pc-elf/bin:$PATH"``
-
-4. Run<br />``source ~/.bashrc``
-
-5. Clone this repo with:<br />
+1. Clone this repo with:<br />
 ``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
 
-6. Go to kernel directory and run:<br />
+2. Go to kernel directory and run:<br />
 ``make -j$(nproc --all)`` For UEFI<br />
 ``make bios -j$(nproc --all)`` For BIOS<br />
-
-This command will download limine installer, compile it, build the kernel, create iso file and run it in qemu.
 
 # Discord server
 https://discord.gg/fM5GK3RpS7
 
 # Resources used:
 * Printf: https://github.com/eyalroz/printf
-* Osdev wiki: https://wiki.osdev.org/
+* Osdev wiki: https://wiki.osdev.org
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
-* And of course Google
+* LyreOS: https://github.com/lyre-os/lyre
