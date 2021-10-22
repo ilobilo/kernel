@@ -57,13 +57,12 @@ INTERNALCFLAGS  :=       \
 	-mno-mmx             \
 	-mno-3dnow           \
 	-mno-red-zone        \
-	-fno-exceptions      \
-	-MMD
+	-fno-exceptions
 
 INTERNALCPPFLAGS  :=     \
 	-target x86_64-linux \
 	-I$(SOURCEDIR)/include \
-	-std=c++17           \
+	-std=c++20           \
 	-ffreestanding       \
 	-fno-stack-protector \
 	-fpie                \
@@ -71,8 +70,7 @@ INTERNALCPPFLAGS  :=     \
 	-mno-mmx             \
 	-mno-3dnow           \
 	-mno-red-zone        \
-	-fno-exceptions      \
-	-MMD
+	-fno-exceptions
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
 CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
@@ -81,9 +79,6 @@ ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCE
 OBJ = $(CFILES:.c=.o)
 OBJ += $(CPPFILES:.cpp=.o)
 OBJ += $(ASMFILES:.asm=_asm.o)
-
-HDR_DEPS = $(CFILES:.c=.d)
-HDR_DEPS += $(CPPFILES:.cpp=.d)
 
 .PHONY: all
 all: $(KERNEL) initrd
@@ -104,8 +99,6 @@ $(KERNEL):
 	$(MAKE) $(OBJ)
 	@printf "LD\t%s\n" $(lastword $(subst /, ,$(KERNEL)))
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
-
--include $(HDR_DEPS)
 
 %.o: %.c
 	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
