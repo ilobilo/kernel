@@ -3,18 +3,17 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/source/include/**",
-                "/opt/x86_64-pc-elf/x86_64-pc-elf/include/"
+                "${workspaceFolder}/source/include/"
             ],
-            "defines": [],
-            "compilerPath": "/opt/x86_64-pc-elf/bin/x86_64-pc-elf-gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++14",
-            "intelliSenseMode": "linux-gcc-x64",
-            "compilerArgs": [
-                "-DGIT_VERSION=0",
-                "-DKERNEL_VERSION=0"
+            "defines": [
+                "GIT_VERSION=0",
+                "KERNEL_VERSION=0"
             ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64",
+            "compilerArgs": [],
             "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],

@@ -40,30 +40,29 @@ static void syscall_write(interrupt_registers *regs)
     }
 }
 
-uint64_t syscall_count = 2;
 syscall_t syscalls[] = {
-    syscall_read,
-    syscall_write,
+    [0] = syscall_read,
+    [1] = syscall_write
 };
 
 void syscall_handler(interrupt_registers *regs)
 {
-    if (S_RAX >= ZERO && S_RAX < syscall_count) syscalls[S_RAX](regs);
+    if (S_RAX >= ZERO && syscalls[S_RAX]) syscalls[S_RAX](regs);
 }
 
 char *s_read(char *string, int length)
 {
-    char *ret;
+    uint64_t ret;
     SYSCALL3(0, 1, (uint64_t)string, (uint64_t)length);
     return string;
 }
 void s_write(char *string, int length)
 {
-    char *ret;
+    uint64_t ret;
     SYSCALL3(1, 0, (uint64_t)string, (uint64_t)length);
 }
 void s_err(char *string, int length)
 {
-    char *ret;
+    uint64_t ret;
     SYSCALL3(1, 2, (uint64_t)string, (uint64_t)length);
 }

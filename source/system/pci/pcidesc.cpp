@@ -1,7 +1,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
-#include <inttypes.h>
 
 char *device_classes[20]
 {
@@ -33,7 +32,7 @@ char *PCIids;
 char *getvendorname(uint16_t vendorid, char *buffer)
 {
     char vid[10];
-    sprintf(vid, "%" PRIX16 "  ", vendorid);
+    sprintf(vid, "%X  ", vendorid);
     int i = 0;
     memset(buffer, '\0', strlen(buffer));
     do {
@@ -49,7 +48,7 @@ int getvendorline(uint16_t vendorid)
 {
     char *buffer = (char*)malloc(50 * sizeof(char));
     char vid[10];
-    sprintf(vid, "%" PRIX16 "  ", vendorid);
+    sprintf(vid, "%X  ", vendorid);
     int i = 0;
     do {
         if (i >= MAX_TRIES) return 0;
@@ -64,7 +63,7 @@ int getvendorline(uint16_t vendorid)
 char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
 {
     char did[10];
-    sprintf(did, "\t%" PRIx16 "  ", deviceid);
+    sprintf(did, "\t%X  ", deviceid);
     int i = 0, vl = getvendorline(vendorid), dl = 0;
     do {
         if (i >= MAX_TRIES) return buffer;

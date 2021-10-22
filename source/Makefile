@@ -7,9 +7,9 @@ ISO := $(SOURCEDIR)/../image.iso
 DISK = $(SOURCEDIR)/../disk.img
 VERSION = 0
 
-CC = x86_64-pc-elf-gcc
-CPP = x86_64-pc-elf-g++
-LD = x86_64-pc-elf-ld
+CC = clang
+CPP = clang++
+LD = ld.lld
 AS = nasm
 
 LIMINE = $(SOURCEDIR)/../limine/limine-install
@@ -26,19 +26,11 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CW = -Wall -Wextra -Werror
-CPPW = -Wall -Wextra -Werror \
-	-Wno-write-strings -Wno-sized-deallocation \
-	-Wno-int-to-pointer-cast -Wno-strict-aliasing \
-	-Wno-unused-but-set-variable \
-	-Wno-unused-variable -Wno-unused-parameter \
-	-Wno-unknown-pragmas
-
-CFLAGS = -Ofast -pipe $(CW) \
+CFLAGS = -Ofast -pipe -Wno-everything -Wsign-compare -Werror \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 
-CPPFLAGS = -Ofast -pipe $(CPPW) \
+CPPFLAGS = -Ofast -pipe -Wno-everything -Wsign-compare -Werror \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 
@@ -54,9 +46,10 @@ INTERNALLDFLAGS :=         \
 	--no-dynamic-linker    \
 	-ztext
 
-INTERNALCFLAGS  :=        \
+INTERNALCFLAGS  :=       \
+	-target x86_64-linux \
 	-I$(SOURCEDIR)/include \
-	-std=gnu11           \
+	-std=c17             \
 	-ffreestanding       \
 	-fno-stack-protector \
 	-fpie                \
@@ -68,8 +61,9 @@ INTERNALCFLAGS  :=        \
 	-MMD
 
 INTERNALCPPFLAGS  :=     \
+	-target x86_64-linux \
 	-I$(SOURCEDIR)/include \
-	-std=c++14           \
+	-std=c++17           \
 	-ffreestanding       \
 	-fno-stack-protector \
 	-fpie                \
