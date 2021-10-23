@@ -56,7 +56,7 @@ Make sure you have following programs installed:
 1. Clone this repo with:<br />
 ``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
 
-2. Go to kernel directory and run:<br />
+2. Go to the root directory of cloned repo and run:<br />
 ``make -j$(nproc --all)`` For UEFI<br />
 ``make bios -j$(nproc --all)`` For BIOS<br />
 
