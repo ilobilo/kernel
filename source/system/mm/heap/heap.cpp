@@ -38,7 +38,7 @@ void init(void *heapAddr, size_t pageCount)
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
     {
-        ptmanager::globalPTManager.mapMem(pos, pfalloc::globalAlloc.requestPage());
+        ptmanager::globalPTManager.mapMem(pos, pfalloc::requestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
     size_t heapLength = pageCount * 0x1000;
@@ -85,7 +85,7 @@ void* malloc(size_t size)
     check();
 
     acquire_lock(&heap_lock);
-    if (size > pfalloc::globalAlloc.getFreeRam())
+    if (size > pfalloc::getFreeRam())
     {
         serial::err("Malloc: requested more memory than available!\n");
         return NULL;
@@ -206,7 +206,7 @@ void expandHeap(size_t length)
 
     for (size_t i = 0; i < pageCount; i++)
     {
-        ptmanager::globalPTManager.mapMem(heapEnd, pfalloc::globalAlloc.requestPage());
+        ptmanager::globalPTManager.mapMem(heapEnd, pfalloc::requestPage());
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
 

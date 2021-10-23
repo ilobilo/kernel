@@ -14,6 +14,7 @@ using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
 using namespace kernel::drivers;
 using namespace kernel::system::sched;
+using namespace kernel::system::mm;
 using namespace kernel::system;
 using namespace kernel::lib;
 
@@ -41,7 +42,7 @@ void shell_parse(char *cmd, char *arg)
     else if (!string::strcmp(cmd, "free"))
     {
         double usable = memory::getmemsize();
-        double free = system::mm::pfalloc::globalAlloc.getFreeRam();
+        double free = pfalloc::getFreeRam();
         if (!string::strcmp(arg, "-h"))
         {
             usable = usable / 1024 / 1024;

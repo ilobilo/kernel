@@ -27,7 +27,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     paging::PTable *PDP;
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
-        PDP = (paging::PTable*)pfalloc::globalAlloc.requestPage();
+        PDP = (paging::PTable*)pfalloc::requestPage();
         memory::memset(PDP, 0, 4096);
         PDE.setAddr((uint64_t)PDP >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
@@ -43,7 +43,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     paging::PTable *PD;
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
-        PD = (paging::PTable*)pfalloc::globalAlloc.requestPage();
+        PD = (paging::PTable*)pfalloc::requestPage();
         memory::memset(PD, 0, 4096);
         PDE.setAddr((uint64_t)PD >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
@@ -59,7 +59,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     paging::PTable *PT;
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
-        PT = (paging::PTable*)pfalloc::globalAlloc.requestPage();
+        PT = (paging::PTable*)pfalloc::requestPage();
         memory::memset(PT, 0, 4096);
         PDE.setAddr((uint64_t)PT >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
@@ -87,7 +87,7 @@ void PTManager::unmapMem(void *virtualMemory)
     paging::PTable *PDP;
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
-        PDP = (paging::PTable*)pfalloc::globalAlloc.requestPage();
+        PDP = (paging::PTable*)pfalloc::requestPage();
         memory::memset(PDP, 0, 4096);
         PDE.setAddr((uint64_t)PDP >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
@@ -103,7 +103,7 @@ void PTManager::unmapMem(void *virtualMemory)
     paging::PTable *PD;
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
-        PD = (paging::PTable*)pfalloc::globalAlloc.requestPage();
+        PD = (paging::PTable*)pfalloc::requestPage();
         memory::memset(PD, 0, 4096);
         PDE.setAddr((uint64_t)PD >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
@@ -119,7 +119,7 @@ void PTManager::unmapMem(void *virtualMemory)
     paging::PTable *PT;
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
-        PT = (paging::PTable*)pfalloc::globalAlloc.requestPage();
+        PT = (paging::PTable*)pfalloc::requestPage();
         memory::memset(PT, 0, 4096);
         PDE.setAddr((uint64_t)PT >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
@@ -201,7 +201,7 @@ void init()
     uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
     uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
 
-    pfalloc::globalAlloc.lockPages((void*)&__kernelstart, kernelpagecount);
+    pfalloc::lockPages((void*)&__kernelstart, kernelpagecount);
 
     paging::PTable *PML4 = (paging::PTable*)getCRs().cr3;
 
