@@ -3,6 +3,7 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 
 bool ustar_initialised = false;
 uint64_t ustar_filecount;

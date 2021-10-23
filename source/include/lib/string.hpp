@@ -31,14 +31,6 @@ int lstrstr(const char *str, const char *substring, int skip = 0);
 
 char *getline(const char *str, const char *substring, char *buffer, int skip = 0);
 
-void *memcpy(void *dest, void *src, size_t n);
-
-int memcmp(const void *s1, const void *s2, int len);
-
-void memset(void *str, char ch, size_t n);
-
-void memmove(void *dest, void *src, size_t n);
-
 char *int_to_string(int num);
 
 int string_to_int(char *str);

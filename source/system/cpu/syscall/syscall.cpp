@@ -3,6 +3,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <lib/memory.hpp>
 #include <lib/string.hpp>
 
 static void syscall_read(interrupt_registers *regs)

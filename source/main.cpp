@@ -9,7 +9,6 @@
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/mm/paging/paging.hpp>
 #include <system/mm/bitmap/bitmap.hpp>
-#include <system/mm/memory/memory.hpp>
 #include <system/power/acpi/acpi.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/mm/heap/heap.hpp>
@@ -20,6 +19,7 @@
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 #include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
