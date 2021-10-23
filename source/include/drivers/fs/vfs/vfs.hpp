@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+namespace kernel::drivers::fs::vfs {
+
 #define FILENAME_LENGTH 128
 
 enum fs_filetypes
@@ -17,15 +19,6 @@ enum fs_filetypes
 
 struct fs_node;
 struct dirent_t;
-
-/*
-typedef uint64_t (*read_t)(struct fs_node*, uint64_t, uint64_t, char*);
-typedef uint64_t (*write_t)(struct fs_node*, uint64_t, uint64_t, char*);
-typedef void (*open_t)(struct fs_node*);
-typedef void (*close_t)(struct fs_node*);
-typedef struct dirent_t * (*readdir_t)(struct fs_node*, uint64_t);
-typedef struct fs_node * (*finddir_t)(struct fs_node*, char *name);
-*/
 
 using read_t = uint64_t (*)(fs_node*, uint64_t, uint64_t, char*);
 using write_t = uint64_t (*)(fs_node*, uint64_t, uint64_t, char*);
@@ -67,3 +60,4 @@ void open_fs(fs_node *node, uint8_t read, uint8_t write);
 void close_fs(fs_node *node);
 dirent_t *readdir_fs(fs_node *node, uint64_t index);
 fs_node *finddir_fs(fs_node *node, char *name);
+}

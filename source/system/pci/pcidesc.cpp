@@ -3,6 +3,10 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 
+using namespace kernel::lib;
+
+namespace kernel::system::pci {
+
 char *device_classes[20]
 {
     "Unclassified",
@@ -35,30 +39,30 @@ char *getvendorname(uint16_t vendorid, char *buffer)
     char vid[10];
     sprintf(vid, "%X  ", vendorid);
     int i = 0;
-    memset(buffer, '\0', strlen(buffer));
+    memory::memset(buffer, '\0', string::strlen(buffer));
     do {
         if (i >= MAX_TRIES) return buffer;
-        buffer = getline(PCIids, vid, buffer, i);
+        buffer = string::getline(PCIids, vid, buffer, i);
         i++;
     } while (buffer[0] == '\t' || buffer[0] == '\0');
-    strrm(buffer, vid);
+    string::strrm(buffer, vid);
     return buffer;
 }
 
 int getvendorline(uint16_t vendorid)
 {
-    char *buffer = (char*)malloc(50 * sizeof(char));
+    char *buffer = (char*)heap::malloc(50 * sizeof(char));
     char vid[10];
     sprintf(vid, "%X  ", vendorid);
     int i = 0;
     do {
         if (i >= MAX_TRIES) return 0;
-        buffer = getline(PCIids, vid, buffer, i);
+        buffer = string::getline(PCIids, vid, buffer, i);
         i++;
     } while (buffer[0] == '\t' || buffer[0] == '\0');
-    free(buffer);
+    heap::free(buffer);
     i--;
-    return lstrstr(PCIids, vid, i);
+    return string::lstrstr(PCIids, vid, i);
 }
 
 char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
@@ -68,12 +72,12 @@ char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
     int i = 0, vl = getvendorline(vendorid), dl = 0;
     do {
         if (i >= MAX_TRIES) return buffer;
-        memset(buffer, '\0', strlen(buffer));
-        dl = lstrstr(PCIids, did, i);
-        buffer = getline(PCIids, did, buffer, i);
+        memory::memset(buffer, '\0', string::strlen(buffer));
+        dl = string::lstrstr(PCIids, did, i);
+        buffer = string::getline(PCIids, did, buffer, i);
         i++;
     } while (buffer[1] == '\t' || buffer[0] == '\0' || vl > dl);
-    strrm(buffer, did);
+    string::strrm(buffer, did);
     return buffer;
 }
 
@@ -882,4 +886,5 @@ char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
     static char ret[16];
     sprintf(ret, "%X", progif);
     return ret;
+}
 }

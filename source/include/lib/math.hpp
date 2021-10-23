@@ -1,5 +1,7 @@
 #pragma once
 
+namespace kernel::lib::math {
+
 struct point
 {
     long X;
@@ -11,3 +13,4 @@ int pow(int base, int exponent);
 int abs(int num);
 
 int sign(int num);
+}

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace kernel::drivers::ps2::kbd {
+
 enum keys
 {
     CAPSLOCK = 0x3A,
@@ -191,3 +193,4 @@ unsigned char kbdus_capsshft[128] =
     0,  /* F12 Key */
     0,  /* All other keys are undefined */
 };
+}

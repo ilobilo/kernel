@@ -2,11 +2,13 @@
 
 #include <system/mm/paging/paging.hpp>
 
+namespace kernel::system::mm::ptmanager {
+
 class PTManager
 {
     public:
-    PTManager(PTable *PML4Address);
-    PTable *PML4;
+    PTManager(paging::PTable *PML4Address);
+    paging::PTable *PML4;
     void mapMem(void *virtualMemory, void *physicalMemory);
     void unmapMem(void *virtualMemory);
     void mapUserMem(void *virtualMemory);
@@ -21,6 +23,7 @@ struct CRs
 
 extern PTManager globalPTManager;
 
-extern bool ptmanager_initialised;
+extern bool initialised;
 
-void PTManager_init();
+void init();
+}

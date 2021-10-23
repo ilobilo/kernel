@@ -8,8 +8,16 @@
 #include <lib/string.hpp>
 #include <lib/io.hpp>
 
-bool pci_initialised = false;
-bool pci_legacy = false;
+using namespace kernel::drivers::display;
+using namespace kernel::drivers::fs;
+using namespace kernel::system::power;
+using namespace kernel::system::mm;
+using namespace kernel::lib;
+
+namespace kernel::system::pci {
+
+bool initialised = false;
+bool legacy = false;
 bool use_pciids = false;
 
 translatedpcideviceheader **pcidevices;
@@ -18,9 +26,9 @@ uint64_t pcidevcount = 0;
 
 translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
-    if (!pci_initialised)
+    if (!initialised)
     {
-        serial_info("PCI has not been initialised!\n");
+        serial::info("PCI has not been initialised!\n");
         return NULL;
     }
     for (uint64_t i = 0; i < pcidevcount; i++)
@@ -47,21 +55,21 @@ translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t p
     return NULL;
 }
 
-translatedpcideviceheader *PCI_translate(pcideviceheader* device)
+translatedpcideviceheader *translate(pcideviceheader* device)
 {
-    translatedpcideviceheader *pcidevice = (translatedpcideviceheader*)malloc(sizeof(translatedpcideviceheader));
+    translatedpcideviceheader *pcidevice = (translatedpcideviceheader*)heap::malloc(sizeof(translatedpcideviceheader));
 
     pcidevice->vendorid = device->vendorid;
     pcidevice->deviceid = device->deviceid;
     if (use_pciids)
     {
-        char *buffer = (char*)malloc(100 * sizeof(char));
-        pcidevice->vendorstr = strdup(getvendorname(device->vendorid, buffer));
-        if (!strcmp(pcidevice->vendorstr, "")) pcidevice->vendorstr = strdup(getvendorname(device->vendorid));
+        char *buffer = (char*)heap::malloc(100 * sizeof(char));
+        pcidevice->vendorstr = string::strdup(getvendorname(device->vendorid, buffer));
+        if (!string::strcmp(pcidevice->vendorstr, "")) pcidevice->vendorstr = string::strdup(getvendorname(device->vendorid));
 
-        pcidevice->devicestr = strdup(getdevicename(device->vendorid, device->deviceid, buffer));
-        if (!strcmp(pcidevice->devicestr, "")) pcidevice->devicestr = strdup(getvendorname(device->deviceid));
-        free(buffer);
+        pcidevice->devicestr = string::strdup(getdevicename(device->vendorid, device->deviceid, buffer));
+        if (!string::strcmp(pcidevice->devicestr, "")) pcidevice->devicestr = string::strdup(getvendorname(device->deviceid));
+        heap::free(buffer);
     }
     else
     {
@@ -85,27 +93,27 @@ translatedpcideviceheader *PCI_translate(pcideviceheader* device)
     return pcidevice;
 }
 
-void PCI_add(pcideviceheader *device)
+void add(pcideviceheader *device)
 {
-    if (pcidevcount >= (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
+    if (pcidevcount >= (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
         pciAllocate += 10;
-        pcidevices = (translatedpcideviceheader**)realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader));
+        pcidevices = (translatedpcideviceheader**)heap::realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader));
     }
-    if (pcidevcount < (alloc_getsize(pcidevices) / sizeof(translatedpcideviceheader)))
+    if (pcidevcount < (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader)))
     {
-        pcidevices[pcidevcount] = PCI_translate(device);
+        pcidevices[pcidevcount] = translate(device);
         pcidevcount++;
     }
     else
     {
-        serial_newline();
-        serial_err("Could not add pci device to the list!");
-        serial_err("Possible reason: Could not allocate memory\n");
+        serial::newline();
+        serial::err("Could not add pci device to the list!");
+        serial::err("Possible reason: Could not allocate memory\n");
     }
 }
 
-uint16_t PCI_read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
+uint16_t read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
 {
     uint64_t address;
     uint64_t lbus = (uint64_t)bus;
@@ -113,29 +121,29 @@ uint16_t PCI_read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
     uint64_t lfunc = (uint64_t)func;
     uint16_t tmp = 0;
     address = (uint64_t)((lbus << 16) | (lslot << 11) | (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
-    outl(0xCF8, address);
-    tmp = (uint16_t)((inl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
+    io::outl(0xCF8, address);
+    tmp = (uint16_t)((io::inl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
     return (tmp);
 }
 
-uint16_t PCI_getvenid(uint16_t bus, uint16_t dev, uint16_t func)
+uint16_t getvenid(uint16_t bus, uint16_t dev, uint16_t func)
 {
-    uint32_t r0 = PCI_read(bus, dev, func, 0);
+    uint32_t r0 = read(bus, dev, func, 0);
     return r0;
 }
-uint16_t PCI_getdevid(uint16_t bus, uint16_t dev, uint16_t func)
+uint16_t getdevid(uint16_t bus, uint16_t dev, uint16_t func)
 {
-    uint32_t r0 = PCI_read(bus, dev, func, 2);
+    uint32_t r0 = read(bus, dev, func, 2);
     return r0;
 }
-uint16_t PCI_getclassid(uint16_t bus, uint16_t dev, uint16_t func)
+uint16_t getclassid(uint16_t bus, uint16_t dev, uint16_t func)
 {
-    uint32_t r0 = PCI_read(bus, dev, func, 0xA);
+    uint32_t r0 = read(bus, dev, func, 0xA);
     return (r0 & ~0x00FF) >> 8;
 }
-uint16_t PCI_getsubclassid(uint16_t bus, uint16_t dev, uint16_t func)
+uint16_t getsubclassid(uint16_t bus, uint16_t dev, uint16_t func)
 {
-    uint32_t r0 = PCI_read(bus, dev, func, 0xA);
+    uint32_t r0 = read(bus, dev, func, 0xA);
     return (r0 & ~0xFF00);
 }
 
@@ -147,8 +155,8 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
-    PCI_add(pcidevice);
-    serial_info("%s / %s / %s / %s / %s",
+    add(pcidevice);
+    serial::info("%s / %s / %s / %s / %s",
         pcidevices[pcidevcount - 1]->vendorstr,
         pcidevices[pcidevcount - 1]->devicestr,
         pcidevices[pcidevcount - 1]->ClassStr,
@@ -184,40 +192,40 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     }
 }
 
-void PCI_init()
+void init()
 {
-    serial_info("Initialising PCI\n");
+    serial::info("Initialising PCI\n");
 
-    if (pci_initialised)
+    if (initialised)
     {
-        serial_info("PCI has already been initialised!\n");
+        serial::info("PCI has already been initialised!\n");
         return;
     }
-    if (mcfg == NULL)
+    if (acpi::mcfg == NULL)
     {
-        serial_err("MCFG was not found");
-        serial_info("Using legacy way\n");
-        pci_legacy = true;
+        serial::err("MCFG was not found");
+        serial::info("Using legacy way\n");
+        legacy = true;
     }
-    if (!acpi_initialised)
+    if (!acpi::initialised)
     {
-        serial_info("ACPI has not been initialised!\n");
-        ACPI_init();
+        serial::info("ACPI has not been initialised!\n");
+        acpi::init();
     }
 
-    bool temp = alloc_debug;
-    alloc_debug = false;
+    bool temp = heap::debug;
+    heap::debug = false;
 
-    if (use_pciids) ustar_search("/pci.ids", &PCIids);
+    if (use_pciids) ustar::search("/pci.ids", &PCIids);
 
-    pcidevices = (translatedpcideviceheader**)malloc(pciAllocate * sizeof(translatedpcideviceheader));
+    pcidevices = (translatedpcideviceheader**)heap::malloc(pciAllocate * sizeof(translatedpcideviceheader));
 
-    if (!pci_legacy)
+    if (!legacy)
     {
-        int entries = ((mcfg->header.length) - sizeof(MCFGHeader)) / sizeof(deviceconfig);
+        int entries = ((acpi::mcfg->header.length) - sizeof(acpi::MCFGHeader)) / sizeof(acpi::deviceconfig);
         for (int t = 0; t < entries; t++)
         {
-            deviceconfig *newdevconf = (deviceconfig*)((uint64_t)mcfg + sizeof(MCFGHeader) + (sizeof(deviceconfig) * t));
+            acpi::deviceconfig *newdevconf = (acpi::deviceconfig*)((uint64_t)acpi::mcfg + sizeof(acpi::MCFGHeader) + (sizeof(acpi::deviceconfig) * t));
             for (uint64_t bus = newdevconf->startbus; bus < newdevconf->endbus; bus++)
             {
                 enumbus(newdevconf->baseaddr, bus);
@@ -232,29 +240,30 @@ void PCI_init()
             {
                 for (int func = 0; func < 8; func++)
                 {
-                    pcideviceheader *device = (pcideviceheader*)malloc(sizeof(pcideviceheader));
-                    uint16_t vendorid = PCI_getvenid(bus, dev, func);
+                    pcideviceheader *device = (pcideviceheader*)heap::malloc(sizeof(pcideviceheader));
+                    uint16_t vendorid = getvenid(bus, dev, func);
                     if (vendorid == 0 || vendorid == 0xFFFF) continue;
 
                     device->vendorid = vendorid;
-                    device->deviceid = PCI_getdevid(bus, dev, func);
-                    device->Class = PCI_getclassid(bus, dev, func);
-                    device->subclass = PCI_getsubclassid(bus, dev, func);
+                    device->deviceid = getdevid(bus, dev, func);
+                    device->Class = getclassid(bus, dev, func);
+                    device->subclass = getsubclassid(bus, dev, func);
 
-                    PCI_add(device);
-                    serial_info("%s / %s / %s / %s / %s",
+                    add(device);
+                    serial::info("%s / %s / %s / %s / %s",
                         pcidevices[pcidevcount - 1]->vendorstr,
                         pcidevices[pcidevcount - 1]->devicestr,
                         pcidevices[pcidevcount - 1]->ClassStr,
                         pcidevices[pcidevcount - 1]->subclassStr,
                         pcidevices[pcidevcount - 1]->progifstr);
-                    free(device);
+                    heap::free(device);
                 }
             }
         }
     }
-    serial_newline();
+    serial::newline();
 
-    alloc_debug = temp;
-    pci_initialised = true;
+    heap::debug = temp;
+    initialised = true;
+}
 }

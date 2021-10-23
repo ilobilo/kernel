@@ -3,6 +3,8 @@
 #include <system/pci/pcidesc.hpp>
 #include <stdint.h>
 
+namespace kernel::system::pci {
+
 struct pcideviceheader
 {
     uint16_t vendorid;
@@ -63,13 +65,14 @@ struct pciheader0
     uint8_t maxLatency;
 };
 
-extern bool pci_initialised;
-extern bool pci_legacy;
+extern bool initialised;
+extern bool legacy;
 extern bool use_pciids;
 
 extern translatedpcideviceheader **pcidevices;
 extern uint64_t pcidevcount;
 
-translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
+translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 
-void PCI_init();
+void init();
+}

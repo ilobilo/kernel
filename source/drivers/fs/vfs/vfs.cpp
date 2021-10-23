@@ -1,5 +1,7 @@
 #include <drivers/fs/vfs/vfs.hpp>
 
+namespace kernel::drivers::fs::vfs {
+
 fs_node *fs_root = 0;
 
 uint64_t read_fs(fs_node *node, uint64_t offset, uint64_t size, char *buffer)
@@ -72,4 +74,5 @@ fs_node *finddir_fs(fs_node *node, char *name)
     {
         return 0;
     }
+}
 }

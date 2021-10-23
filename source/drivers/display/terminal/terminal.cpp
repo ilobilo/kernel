@@ -6,34 +6,38 @@
 #include <stivale2.h>
 #include <main.hpp>
 
-DEFINE_LOCK(term_lock);
+using namespace kernel::lib;
+
+namespace kernel::drivers::display::terminal {
+
+DEFINE_LOCK(lock);
 
 uint16_t columns;
 uint16_t rows;
 
-char *term_colour = "\033[0m";
+char *colour = "\033[0m";
 
-void (*term_write)(const char *string, uint64_t length);
+void (*write)(const char *string, uint64_t length);
 
-void term_init()
+void init()
 {
-    serial_info("Initialising terminal\n");
+    serial::info("Initialising terminal\n");
 
-    void *term_write_ptr = (void*)term_tag->term_write;
-    term_write = (void (*)(const char *string, uint64_t length))term_write_ptr;
+    void *write_ptr = (void*)term_tag->term_write;
+    write = (void (*)(const char *string, uint64_t length))write_ptr;
     columns = term_tag->cols;
     rows = term_tag->rows;
 }
 
 #pragma region Print
-void term_print(const char *string)
+void print(const char *string)
 {
-    acquire_lock(&term_lock);
-    term_write(string, strlen(string));
-    release_lock(&term_lock);
+    acquire_lock(&lock);
+    write(string, string::strlen(string));
+    release_lock(&lock);
 }
 
-void term_printi(int num)
+void printi(int num)
 {
     if (num != 0)
     {
@@ -41,7 +45,7 @@ void term_printi(int num)
         int i = 0;
         if (num < 0)
         {
-            term_print("-");
+            print("-");
             num = -num;
         }
         if (num > 0); else { temp[i++] = '8'; num = -(num / 10); }
@@ -52,56 +56,52 @@ void term_printi(int num)
         }
         while (--i >= 0)
         {
-            term_printc(temp[i]);
+            printc(temp[i]);
         }
     }
     else
     {
-        term_print("0");
+        print("0");
     }
 }
 
-void term_printc(char c)
+void printc(char c)
 {
     char cs[2] = "\0";
     cs[0] = c;
-    term_print(cs);
+    print(cs);
 }
 
-void _putchar(char character)
-{
-    term_printc(character);
-}
 #pragma endregion Print
 
 #pragma region Colour
-void term_setcolour(char *ascii_colour)
+void setcolour(char *ascii_colour)
 {
-    term_colour = ascii_colour;
-    term_print(term_colour);
+    colour = ascii_colour;
+    print(colour);
 }
 
-void term_resetcolour()
+void resetcolour()
 {
-    term_colour = "\033[0m";
-    term_print(term_colour);
+    colour = "\033[0m";
+    print(colour);
 }
 #pragma endregion Colour
 
 #pragma region Clear
-void term_reset()
+void reset()
 {
-    acquire_lock(&term_lock);
-    term_write("", STIVALE2_TERM_FULL_REFRESH);
-    release_lock(&term_lock);
+    acquire_lock(&lock);
+    write("", STIVALE2_TERM_FULL_REFRESH);
+    release_lock(&lock);
 }
 
-void term_clear(char *ansii_colour)
+void clear(char *ansii_colour)
 {
-    clearbuff();
-    term_setcolour(ansii_colour);
-    term_print("\033[H\033[2J");
-    term_reset();
+    ps2::kbd::clearbuff();
+    setcolour(ansii_colour);
+    print("\033[H\033[2J");
+    reset();
 }
 #pragma endregion Clear
 
@@ -125,40 +125,40 @@ void cursor_left(int lines = 1)
 #pragma endregion CursorCtrl
 
 #pragma region Misc
-void term_center(char *text)
+void center(char *text)
 {
-    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
+    for (uint64_t i = 0; i < columns / 2 - string::strlen(text) / 2; i++)
     {
-        term_print(" ");
+        print(" ");
     }
-    term_print(text);
-    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
+    print(text);
+    for (uint64_t i = 0; i < columns / 2 - string::strlen(text) / 2; i++)
     {
-        term_print(" ");
+        print(" ");
     }
 }
 
-void term_check(bool ok, char *message)
+void check(bool ok, char *message)
 {
     if (ok)
     {
-        term_print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
-        term_print(message);
-        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
+        print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
+        print(message);
+        for (uint16_t i = 0; i < columns - (10 + string::strlen(message)); i++)
         {
-            term_print(" ");
+            print(" ");
         }
-        term_print("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
+        print("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
     }
     else
     {
-        term_print("\033[1m[\033[21m\033[31m*\033[0m\033[1m]\033[21m ");
-        term_print(message);
-        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
+        print("\033[1m[\033[21m\033[31m*\033[0m\033[1m]\033[21m ");
+        print(message);
+        for (uint16_t i = 0; i < columns - (10 + string::strlen(message)); i++)
         {
-            term_print(" ");
+            print(" ");
         }
-        term_print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
+        print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
     }
 }
 #pragma endregion Misc
@@ -173,7 +173,7 @@ void printf(char *c, ...)
     {
         if(*c != '%')
         {
-            term_printc(*c);
+            printc(*c);
             c++;
             continue;
         }
@@ -187,11 +187,17 @@ void printf(char *c, ...)
 
         switch(*c)
         {
-            case 's': term_print(va_arg(lst, char *)); break;
-            case 'c': term_printc(va_arg(lst, int)); break;
-            case 'd': case 'i': term_printi(va_arg(lst, int)); break;
+            case 's': print(va_arg(lst, char *)); break;
+            case 'c': printc(va_arg(lst, int)); break;
+            case 'd': case 'i': printi(va_arg(lst, int)); break;
         }
         c++;
     }
 }
 */
+}
+
+void _putchar(char character)
+{
+    kernel::drivers::display::terminal::printc(character);
+}

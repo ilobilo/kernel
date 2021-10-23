@@ -1,6 +1,8 @@
+#include <main.hpp>
 #include <stdint.h>
 #include <stddef.h>
-#include <main.hpp>
+
+namespace kernel::lib::memory {
 
 uint64_t getmemsize()
 {
@@ -16,6 +18,7 @@ uint64_t getmemsize()
 
     return meminbytes;
 }
+
 
 void *memcpy(void *dest, void *src, size_t n)
 {
@@ -72,4 +75,6 @@ void memmove(void *dest, void *src, size_t n)
     char temp[n];
     for (size_t i = 0; i < n; i++) temp[i] = csrc[i];
     for (size_t i = 0; i < n; i++) cdest[i] = temp[i];
+}
+
 }

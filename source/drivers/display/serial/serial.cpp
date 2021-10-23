@@ -3,73 +3,79 @@
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
-bool serial_initialised = false;
+using namespace kernel::lib;
 
-bool check_serial()
+using namespace kernel::system::cpu;
+
+namespace kernel::drivers::display::serial {
+
+bool initialised = false;
+
+bool check()
 {
-    if (serial_initialised) return true;
+    if (initialised) return true;
     else return false;
 }
 
 int is_transmit_empty()
 {
-    return inb(COM1 + 5) & 0x20;
+    return io::inb(COMS::COM1 + 5) & 0x20;
 }
 
-int serial_received()
+int received()
 {
-    return inb(COM1 + 5) & 1;
+    return io::inb(COMS::COM1 + 5) & 1;
 }
 
-char serial_read()
+char read()
 {
-    while (!serial_received());
-    return inb(COM1);
+    while (!received());
+    return io::inb(COMS::COM1);
 }
 
-void serial_printc(char c, __attribute__((unused)) void *arg)
+void printc(char c, __attribute__((unused)) void *arg)
 {
-    if (!check_serial()) return;
+    if (!check()) return;
     while (!is_transmit_empty());
-    outb(COM1, c);
+    io::outb(COMS::COM1, c);
 }
 
 void serial_printf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vfctprintf(&serial_printc, nullptr, fmt, args);
+    vfctprintf(&printc, nullptr, fmt, args);
     va_end(args);
 }
 
-void serial_info(const char *fmt, ...)
+void info(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vfctprintf(&serial_printc, nullptr, "[\033[33mINFO\033[0m] ", args);
-    vfctprintf(&serial_printc, nullptr, fmt, args);
-    vfctprintf(&serial_printc, nullptr, "\n", args);
+    vfctprintf(&printc, nullptr, "[\033[33mINFO\033[0m] ", args);
+    vfctprintf(&printc, nullptr, fmt, args);
+    vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
 }
 
-void serial_err(const char *fmt, ...)
+void err(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vfctprintf(&serial_printc, nullptr, "[\033[31mERROR\033[0m] ", args);
-    vfctprintf(&serial_printc, nullptr, fmt, args);
-    vfctprintf(&serial_printc, nullptr, "\n", args);
+    vfctprintf(&printc, nullptr, "[\033[31mERROR\033[0m] ", args);
+    vfctprintf(&printc, nullptr, fmt, args);
+    vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
 }
 
-void serial_newline()
+void newline()
 {
     serial_printf("\n");
 }
 
-static void COM1_Handler(interrupt_registers *)
+static void COM1_Handler(idt::interrupt_registers *)
 {
-    char c = serial_read();
+    char c = read();
     switch (c)
     {
         case 13:
@@ -86,23 +92,24 @@ static void COM1_Handler(interrupt_registers *)
     serial_printf("%c", c);
 }
 
-void serial_init()
+void init()
 {
-    if (serial_initialised) return;
+    if (initialised) return;
 
-    outb(COM1 + 1, 0x00);
-    outb(COM1 + 3, 0x80);
-    outb(COM1 + 0, 0x03);
-    outb(COM1 + 1, 0x00);
-    outb(COM1 + 3, 0x03);
-    outb(COM1 + 2, 0xC7);
-    outb(COM1 + 4, 0x0B);
+    io::outb(COMS::COM1 + 1, 0x00);
+    io::outb(COMS::COM1 + 3, 0x80);
+    io::outb(COMS::COM1 + 0, 0x03);
+    io::outb(COMS::COM1 + 1, 0x00);
+    io::outb(COMS::COM1 + 3, 0x03);
+    io::outb(COMS::COM1 + 2, 0xC7);
+    io::outb(COMS::COM1 + 4, 0x0B);
 
     //serial_printf("\033[H\033[0m\033[2J");
     serial_printf("\033[0m");
 
-    register_interrupt_handler(IRQS::IRQ4, COM1_Handler);
-    outb(COM1 + 1, 0x01);
+    register_interrupt_handler(idt::IRQS::IRQ4, COM1_Handler);
+    io::outb(COMS::COM1 + 1, 0x01);
 
-    serial_initialised = true;
+    initialised = true;
+}
 }

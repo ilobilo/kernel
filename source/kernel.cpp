@@ -59,7 +59,7 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
 {
     InitSSE();
 
-    main(stivale2_struct);
+    kernel::main(stivale2_struct);
 
     while (true) asm volatile ("hlt");
 }

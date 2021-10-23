@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 
+namespace kernel::system::cpu::gdt {
+
 struct GDTDescriptor {
     uint16_t Size;
     uint64_t Offset;
@@ -28,8 +30,9 @@ __attribute((aligned(0x1000)));
 
 extern GDT DefaultGDT;
 
-extern bool gdt_initialised;
+extern bool initialised;
 
 extern "C" void LoadGDT(GDTDescriptor *gdtDescriptor);
 
-void GDT_init();
+void init();
+}

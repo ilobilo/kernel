@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+namespace kernel::system::mm::heap {
+
 struct heapSegHdr
 {
     size_t length;
@@ -14,13 +16,13 @@ struct heapSegHdr
     heapSegHdr *split(size_t splitLength);
 };
 
-extern bool heap_initialised;
+extern bool initialised;
 
-extern bool alloc_debug;
+extern bool debug;
 
-void Heap_init(void *heapAddr = (void*)0x0000100000000000, size_t pageCount = 0x10);
+void init(void *heapAddr = (void*)0x0000100000000000, size_t pageCount = 0x10);
 
-size_t alloc_getsize(void *ptr);
+size_t getsize(void *ptr);
 
 void *malloc(size_t size);
 void *calloc(size_t m, size_t n);
@@ -28,18 +30,21 @@ void *realloc(void *ptr, size_t size);
 void free(void *address);
 
 void expandHeap(size_t length);
+}
+
+using namespace kernel::system::mm;
 
 inline void* operator new(size_t size)
 {
-    return malloc(size);
+    return heap::malloc(size);
 }
 
 inline void* operator new[](size_t size)
 {
-    return malloc(size);
+    return heap::malloc(size);
 }
 
 inline void operator delete(void* ptr)
 {
-    free(ptr);
+    heap::free(ptr);
 }

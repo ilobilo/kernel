@@ -4,34 +4,28 @@
 #include <stdint.h>
 #include <main.hpp>
 
-class PFAlloc
-{
-    public:
-    void ReadMemMap();
-    Bitmap PageBitmap;
-    
-    void freePage(void *address);
-    void lockPage(void *address);
-    void freePages(void *address, uint64_t pageCount);
-    void lockPages(void *address, uint64_t pageCount);
+namespace kernel::system::mm::pfalloc {
 
-    void *requestPage();
-    void *requestPages(uint64_t count);
+extern Bitmap PageBitmap;
+extern bool initialised;
 
-    uint64_t getFreeRam();
-    uint64_t getUsedRam();
-    uint64_t getReservedRam();
+void freePage(void *address);
+void lockPage(void *address);
+void freePages(void *address, uint64_t pageCount);
+void lockPages(void *address, uint64_t pageCount);
 
-    private:
-    void Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr);
-    void reservePage(void *address);
-    void unreservePage(void *address);
-    void reservePages(void *address, uint64_t pageCount);
-    void unreservePages(void *address, uint64_t pageCount);
-};
+void *requestPage();
+void *requestPages(uint64_t count);
 
-extern PFAlloc globalAlloc;
+uint64_t getFreeRam();
+uint64_t getUsedRam();
+uint64_t getReservedRam();
 
-extern bool pfalloc_initialised;
+void Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr);
+void reservePage(void *address);
+void unreservePage(void *address);
+void reservePages(void *address, uint64_t pageCount);
+void unreservePages(void *address, uint64_t pageCount);
 
-void PFAlloc_init();
+void init();
+}
