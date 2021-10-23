@@ -44,11 +44,10 @@ int parse(unsigned int address)
             headers = (header_t*)heap::realloc(headers, allocated * sizeof(header_t));
         }
 
-        uintptr_t size = heap::getsize(header->size);
+        uintptr_t size = getsize(header->size);
         headers[i].header = header;
         headers[i].address = address + 512;
         filecount++;
-        printf("%s\n", headers[i].header->name);
 
         address += (((size + 511) / 512) + 1) * 512;
     }

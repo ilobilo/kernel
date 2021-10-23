@@ -85,13 +85,8 @@ void run()
 {
     printf("root@kernel:~# ");
     char *command = ps2::kbd::getline();
-    char *arg = "\0";
-    char *cmd = "\0";
+    char cmd[10] = "\0";
 
-    for (size_t i = 0; i < string::strlen(cmd); i++) cmd[i] = '\0';
-    arg = command;
-
-    // Get cmd string
     for (size_t i = 0; i < string::strlen(command); i++)
     {
         if (command[i] != ' ' && command[i] != '\0')
@@ -102,11 +97,8 @@ void run()
         }
         else break;
     }
-    // Remove cmd from arg
-    if (string::strlen(cmd) != string::strlen(command))
-    {
-        for (size_t i = 0; i < string::strlen(cmd) + 1; i++) arg++;
-    }
+    char *arg = string::strrm(command, cmd);
+    arg = string::strrm(arg, " ");
 
     shell_parse(cmd, arg);
 }
