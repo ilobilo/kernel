@@ -2,8 +2,8 @@
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/mm/memory/memory.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 
 PTManager globalPTManager = NULL;
 bool ptmanager_initialised = false;

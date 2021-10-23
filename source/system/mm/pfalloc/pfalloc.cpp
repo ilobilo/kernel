@@ -1,6 +1,6 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/mm/memory/memory.hpp>
+#include <lib/memory.hpp>
 #include <stivale2.h>
 #include <main.hpp>
 

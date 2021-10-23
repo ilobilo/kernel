@@ -1,6 +1,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 
 char *device_classes[20]
 {

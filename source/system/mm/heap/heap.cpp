@@ -4,6 +4,7 @@
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 
 bool heap_initialised = false;
 

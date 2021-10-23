@@ -1,7 +1,7 @@
 #include <drivers/display/drawing/drawing.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/heap/heap.hpp>
-#include <lib/string.hpp>
+#include <lib/memory.hpp>
 #include <main.hpp>
 
 uint64_t frm_addr;

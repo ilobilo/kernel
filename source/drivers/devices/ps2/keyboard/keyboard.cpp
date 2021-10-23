@@ -5,6 +5,7 @@
 #include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 #include <lib/io.hpp>
 
 bool kbd_initialised = false;

@@ -2,13 +2,13 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/mm/memory/memory.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 
 void shell_parse(char *cmd, char *arg)
 {
