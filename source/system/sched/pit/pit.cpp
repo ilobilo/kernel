@@ -1,15 +1,20 @@
-#include <stdint.h>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
-uint64_t pit_frequency = 100;
+using namespace kernel::drivers::display;
+using namespace kernel::system::cpu;
+using namespace kernel::lib;
 
-bool pit_initialised = false;
+namespace kernel::system::sched::pit {
+
+uint64_t frequency = 100;
+
+bool initialised = false;
 
 uint64_t tick = 0;
 
-void PIT_sleep(double sec)
+void sleep(double sec)
 {
     long start = tick;
     while (tick < start + sec * 100)
@@ -23,46 +28,47 @@ uint64_t get_tick()
     return tick;
 }
 
-static void PIT_Handler(interrupt_registers *)
+static void PIT_Handler(idt::interrupt_registers *)
 {
     tick++;
 }
 
-void PIT_setfreq(uint64_t freq)
+void setfreq(uint64_t freq)
 {
-    pit_frequency = freq;
-    uint64_t divisor = 1193180 / pit_frequency;
+    frequency = freq;
+    uint64_t divisor = 1193180 / frequency;
 
-    outb(0x43, 0x36);
+    io::outb(0x43, 0x36);
 
     uint8_t l = (uint8_t)(divisor & 0xFF);
     uint8_t h = (uint8_t)((divisor >> 8) & 0xFF );
 
-    outb(0x40, l);
-    outb(0x40, h);
+    io::outb(0x40, l);
+    io::outb(0x40, h);
 }
 
-void PIT_init(uint64_t freq)
+void init(uint64_t freq)
 {
-    serial_info("Initialising PIT\n");
+    serial::info("Initialising PIT\n");
 
-    if (pit_initialised)
+    if (initialised)
     {
-        serial_info("PIT has already been initialised!\n");
+        serial::info("PIT has already been initialised!\n");
         return;
     }
 
-    if (!idt_initialised)
+    if (!idt::initialised)
     {
-        serial_info("IDT has not been initialised!\n");
-        IDT_init();
+        serial::info("IDT has not been initialised!\n");
+        idt::init();
     }
 
-    pit_frequency = freq;
+    frequency = freq;
 
-    PIT_setfreq(pit_frequency);
+    setfreq(frequency);
 
-    register_interrupt_handler(IRQS::IRQ0, PIT_Handler);
+    register_interrupt_handler(idt::IRQS::IRQ0, PIT_Handler);
 
-    pit_initialised = true;
+    initialised = true;
+}
 }

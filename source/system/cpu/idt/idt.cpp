@@ -3,7 +3,12 @@
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
-bool idt_initialised = false;
+using namespace kernel::drivers::display;
+using namespace kernel::lib;
+
+namespace kernel::system::cpu::idt {
+
+bool initialised = false;
 
 __attribute__((aligned(0x10)))
 idt_entry_t idt[256];
@@ -26,13 +31,13 @@ void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 
 void isr_install();
 
-void IDT_init()
+void init()
 {
-    serial_info("Initialising IDT\n");
+    serial::info("Initialising IDT\n");
 
-    if (idt_initialised)
+    if (initialised)
     {
-        serial_info("IDT has already been initialised!\n");
+        serial::info("IDT has already been initialised!\n");
         return;
     }
 
@@ -44,7 +49,7 @@ void IDT_init()
     asm volatile ("lidt %0" : : "memory"(idtr));
     asm volatile ("sti");
 
-    idt_initialised = true;
+    initialised = true;
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)
@@ -92,8 +97,8 @@ void isr_handler(interrupt_registers *regs)
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
     printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
 
-    serial_err("System exception!");
-    serial_err("Exception: %s", (char*)exception_messages[regs->int_no & 0xff]);
+    serial::err("System exception!");
+    serial::err("Exception: %s", (char*)exception_messages[regs->int_no & 0xff]);
 
     switch (regs->int_no)
     {
@@ -104,12 +109,12 @@ void isr_handler(interrupt_registers *regs)
         case 13:
         case 14:
             printf("[\033[31mPANIC\033[0m] Error code: 0x%lX\n", regs->error_code);
-            serial_err("Error code: 0x%lX", regs->error_code);
+            serial::err("Error code: 0x%lX", regs->error_code);
             break;
     }
 
     printf("[\033[31mPANIC\033[0m] System halted!\n");
-    serial_err("System halted!\n");
+    serial::err("System halted!\n");
     asm volatile ("cli; hlt");
 }
 
@@ -123,9 +128,9 @@ void irq_handler(interrupt_registers *regs)
 
     if(regs->int_no >= IRQS::IRQ8)
     {
-        outb(PIC2_COMMAND, PIC_EOI);
+        io::outb(PIC2_COMMAND, PIC_EOI);
     }
-    outb(PIC1_COMMAND, PIC_EOI);
+    io::outb(PIC1_COMMAND, PIC_EOI);
 }
 
 void isr_install()
@@ -163,16 +168,16 @@ void isr_install()
     idt_set_descriptor(30, (void*)isr30, 0x8E);
     idt_set_descriptor(31, (void*)isr31, 0x8E);
 
-    outb(0x20, 0x11);
-    outb(0xA0, 0x11);
-    outb(0x21, 0x20);
-    outb(0xA1, 0x28);
-    outb(0x21, 0x04);
-    outb(0xA1, 0x02);
-    outb(0x21, 0x01);
-    outb(0xA1, 0x01);
-    outb(0x21, 0x0);
-    outb(0xA1, 0x0);
+    io::outb(0x20, 0x11);
+    io::outb(0xA0, 0x11);
+    io::outb(0x21, 0x20);
+    io::outb(0xA1, 0x28);
+    io::outb(0x21, 0x04);
+    io::outb(0xA1, 0x02);
+    io::outb(0x21, 0x01);
+    io::outb(0xA1, 0x01);
+    io::outb(0x21, 0x0);
+    io::outb(0xA1, 0x0);
 
     idt_set_descriptor(IRQS::IRQ0, (void*)irq0, 0x8E);
     idt_set_descriptor(IRQS::IRQ1, (void*)irq1, 0x8E);
@@ -192,4 +197,5 @@ void isr_install()
     idt_set_descriptor(IRQS::IRQ15, (void*)irq15, 0x8E);
 
     idt_set_descriptor(SYSCALL, (void*)syscall, 0x8E);
+}
 }

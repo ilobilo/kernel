@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+namespace kernel::system::power::acpi {
+
 struct RSDP
 {
     unsigned char signature[8];
@@ -108,7 +110,7 @@ struct deviceconfig
     uint32_t reserved;
 } __attribute__((packed));
 
-extern bool acpi_initialised;
+extern bool initialised;
 
 extern bool use_xstd;
 extern RSDP *rsdp;
@@ -116,6 +118,7 @@ extern RSDP *rsdp;
 extern MCFGHeader *mcfg;
 extern FADTHeader *fadt;
 
-void ACPI_init();
+void init();
 
 void *findtable(SDTHeader *sdthdr, char *signature);
+}

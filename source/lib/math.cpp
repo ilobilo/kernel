@@ -1,3 +1,5 @@
+namespace kernel::lib::math {
+
 int pow(int base, int exp)
 {
     int result = 1;
@@ -16,4 +18,5 @@ int abs(int num)
 int sign(int num)
 {
     return (num > 0) ? 1 : ((num < 0) ? -1 : 0);
+}
 }

@@ -3,7 +3,11 @@
 #include <system/power/acpi/acpi.hpp>
 #include <main.hpp>
 
-bool acpi_initialised = false;
+using namespace kernel::drivers::display;
+
+namespace kernel::system::power::acpi {
+
+bool initialised = false;
 
 bool use_xstd;
 RSDP *rsdp;
@@ -11,13 +15,13 @@ RSDP *rsdp;
 MCFGHeader *mcfg;
 FADTHeader *fadt;
 
-void ACPI_init()
+void init()
 {
-    serial_info("Initialising ACPI");
+    serial::info("Initialising ACPI");
 
-    if (acpi_initialised)
+    if (initialised)
     {
-        serial_info("ACPI has already been initialised!\n");
+        serial::info("ACPI has already been initialised!\n");
         return;
     }
 
@@ -29,21 +33,21 @@ void ACPI_init()
     {
         use_xstd = true;
         rsdt = (SDTHeader*)rsdp->xsdtaddr;
-        serial_info("Found XSDT at: 0x%X", rsdt);
+        serial::info("Found XSDT at: 0x%X", rsdt);
     }
     else
     {
         use_xstd = false;
         rsdt = (SDTHeader*)rsdp->rsdtaddr;
-        serial_info("Found RSDT at: 0x%X", rsdt);
+        serial::info("Found RSDT at: 0x%X", rsdt);
     }
 
-    mcfg = (MCFGHeader*)findtable(rsdt, (char*)"MCFG");
-    fadt = (FADTHeader*)findtable(rsdt, (char*)"FACP");
+    mcfg = (MCFGHeader*)acpi::findtable(rsdt, (char*)"MCFG");
+    fadt = (FADTHeader*)acpi::findtable(rsdt, (char*)"FACP");
 
-    acpi_initialised = true;
+    initialised = true;
 
-    serial_newline();
+    serial::newline();
 }
 
 void *findtable(SDTHeader *sdthdr, char *signature)
@@ -71,4 +75,5 @@ void *findtable(SDTHeader *sdthdr, char *signature)
     }
 
     return 0;
+}
 }

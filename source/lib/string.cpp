@@ -1,10 +1,12 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/mm/heap/heap.hpp>
-#include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/string.hpp>
 #include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
+
+namespace kernel::lib::string {
 
 size_t strlen(const char *str)
 {
@@ -80,9 +82,9 @@ char *strrm(char *str, const char *substring)
 char *strdup(const char *src)
 {
     size_t len = strlen(src) + 1;
-    char *s = (char*)malloc(len);
+    char *s = (char*)heap::malloc(len);
     if (s == NULL) return NULL;
-    return (char*)memcpy(s, (void*)src, len);
+    return (char*)memory::memcpy(s, (void*)src, len);
 }
 
 char *strstr(const char *str, const char *substring)
@@ -137,7 +139,7 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
                 while (strbck[i - 1] != '\n') i--;
                 while (strbck[t] != '\n') t++;
                 int size = t - i;
-                memcpy(buffer, (void*)&strbck[i], size);
+                memory::memcpy(buffer, (void*)&strbck[i], size);
                 buffer[size] = 0;
                 return buffer;
             }
@@ -220,7 +222,7 @@ long oct_to_dec(int oct)
     int dec = 0, temp = 0;
     while (oct != 0)
     {
-        dec = dec + (oct % 10) * pow(8, temp);
+        dec = dec + (oct % 10) * math::pow(8, temp);
         temp++;
         oct = oct / 10;
     }
@@ -254,4 +256,5 @@ char *humanify(double bytes)
     }
     sprintf(buf, "%.2f%s", bytes, units[i]);
     return buf;
+}
 }

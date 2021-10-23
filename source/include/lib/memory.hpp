@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+namespace kernel::lib::memory {
+
 uint64_t getmemsize();
 
 void *memcpy(void *dest, void *src, size_t n);
@@ -12,3 +14,4 @@ int memcmp(const void *s1, const void *s2, int len);
 void memset(void *str, char ch, size_t n);
 
 void memmove(void *dest, void *src, size_t n);
+}

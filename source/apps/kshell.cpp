@@ -10,9 +10,19 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 
+using namespace kernel::drivers::display;
+using namespace kernel::drivers::fs;
+using namespace kernel::drivers;
+using namespace kernel::system::sched;
+using namespace kernel::system::mm;
+using namespace kernel::system;
+using namespace kernel::lib;
+
+namespace kernel::apps::kshell {
+
 void shell_parse(char *cmd, char *arg)
 {
-    if (!strcmp(cmd, "help"))
+    if (!string::strcmp(cmd, "help"))
     {
         printf("Supported commands:\n");
         printf("- help\t-- This\n");
@@ -26,14 +36,14 @@ void shell_parse(char *cmd, char *arg)
         printf("- pci\t-- List PCI devices\n");
         printf("- crash\t-- Crash whole system\n");
     }
-    else if (!strcmp(cmd, "clear")) term_clear();
-    else if (!strcmp(cmd, "ls")) ustar_list();
-    else if (!strcmp(cmd, "cat")) ustar_cat(arg);
-    else if (!strcmp(cmd, "free"))
+    else if (!string::strcmp(cmd, "clear")) terminal::clear();
+    else if (!string::strcmp(cmd, "ls")) ustar::list();
+    else if (!string::strcmp(cmd, "cat")) ustar::cat(arg);
+    else if (!string::strcmp(cmd, "free"))
     {
-        double usable = getmemsize();
-        double free = globalAlloc.getFreeRam();
-        if (!strcmp(arg, "-h"))
+        double usable = memory::getmemsize();
+        double free = pfalloc::getFreeRam();
+        if (!string::strcmp(arg, "-h"))
         {
             usable = usable / 1024 / 1024;
             free = free / 1024 / 1024;
@@ -41,72 +51,56 @@ void shell_parse(char *cmd, char *arg)
         }
         else printf("Usable memory: %.0f Bytes\nFree memory: %.0f Bytes\nUsed memory: %.0f Bytes\n", usable, free, usable - free);
     }
-    else if (!strcmp(cmd, "time")) printf("%s\n", RTC_GetTime());
-    else if (!strcmp(cmd, "tick")) printf("%ld\n", get_tick());
-    else if (!strcmp(cmd, "timef"))
+    else if (!string::strcmp(cmd, "time")) printf("%s\n", rtc::getTime());
+    else if (!string::strcmp(cmd, "tick")) printf("%ld\n", pit::get_tick());
+    else if (!string::strcmp(cmd, "timef"))
     {
         while (true)
         {
-            printf("%s", RTC_GetTime());
-            PIT_sleep(1);
+            printf("%s", rtc::getTime());
+            pit::sleep(1);
             printf("\r\033[2K");
         }
     }
-    else if (!strcmp(cmd, "pci"))
+    else if (!string::strcmp(cmd, "pci"))
     {
-        for (uint64_t i = 0; i < pcidevcount; i++)
+        for (uint64_t i = 0; i < pci::pcidevcount; i++)
         {
             printf("%s / %s / %s / %s / %s\n",
-                pcidevices[i]->vendorstr,
-                pcidevices[i]->devicestr,
-                pcidevices[i]->ClassStr,
-                pcidevices[i]->subclassStr,
-                pcidevices[i]->progifstr);
+                pci::pcidevices[i]->vendorstr,
+                pci::pcidevices[i]->devicestr,
+                pci::pcidevices[i]->ClassStr,
+                pci::pcidevices[i]->subclassStr,
+                pci::pcidevices[i]->progifstr);
         }
     }
-    else if (!strcmp(cmd, "crash"))
+    else if (!string::strcmp(cmd, "crash"))
     {
         asm volatile ("int $0x3");
         asm volatile ("int $0x4");
     }
-    else if (strcmp(cmd, "")) printf("\033[31mCommand not found!\033[0m\n");
+    else if (string::strcmp(cmd, "")) printf("\033[31mCommand not found!\033[0m\n");
 }
 
-void shell_run()
+void run()
 {
     printf("root@kernel:~# ");
-    char *command = getline();
-    char *arg = "\0";
-    char *cmd = "\0";
+    char *command = ps2::kbd::getline();
+    char cmd[10] = "\0";
 
-    for (size_t i = 0; i < strlen(cmd); i++)
-    {
-        cmd[i] = '\0';
-    }
-    arg = command;
-
-    // Get cmd string
-    for (size_t i = 0; i < strlen(command); i++)
+    for (size_t i = 0; i < string::strlen(command); i++)
     {
         if (command[i] != ' ' && command[i] != '\0')
         {
             char c[2] = "\0";
             c[0] = command[i];
-            strcat(cmd, c);
+            string::strcat(cmd, c);
         }
-        else
-        {
-            break;
-        }
+        else break;
     }
-    // Remove cmd from arg
-    if (strlen(cmd) != strlen(command))
-    {
-        for (size_t i = 0; i < strlen(cmd) + 1; i++)
-        {
-            arg++;
-        }
-    }
+    char *arg = string::strrm(command, cmd);
+    arg = string::strrm(arg, " ");
 
     shell_parse(cmd, arg);
+}
 }

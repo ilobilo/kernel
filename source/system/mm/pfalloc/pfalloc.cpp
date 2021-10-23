@@ -4,19 +4,29 @@
 #include <stivale2.h>
 #include <main.hpp>
 
-bool pfalloc_initialised = false;
+using namespace kernel::drivers::display;
+using namespace kernel::lib;
+
+namespace kernel::system::mm::pfalloc {
+
+Bitmap PageBitmap;
+bool initialised = false;
 
 uint64_t freeMem;
 uint64_t reservedMem;
 uint64_t usedMem;
 
-PFAlloc globalAlloc;
-
 uintptr_t highest_page = 0;
 
-void PFAlloc::ReadMemMap()
+void init()
 {
-    if (pfalloc_initialised) return;
+    serial::info("Initialising Page Frame Allocator\n");
+
+    if (initialised)
+    {
+        serial::info("Page frame allocator has already been initialised!\n");
+        return;
+    }
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
@@ -27,7 +37,7 @@ void PFAlloc::ReadMemMap()
         if (top > highest_page) highest_page = top;
     }
 
-    uint64_t memsize = getmemsize();
+    uint64_t memsize = memory::getmemsize();
     freeMem = memsize;
     uint64_t bitmapSize = memsize / 4096 / 8 + 1;
 
@@ -41,9 +51,11 @@ void PFAlloc::ReadMemMap()
     }
     reservePages(0, 0x100);
     lockPages(PageBitmap.buffer, PageBitmap.size / 4096 + 1);
+
+    initialised = true;
 }
 
-void PFAlloc::Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr)
+void Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr)
 {
     PageBitmap.size = bitmapSize;
     PageBitmap.buffer = (uint8_t*)bufferAddr;
@@ -55,7 +67,7 @@ void PFAlloc::Bitmap_init(size_t bitmapSize, uintptr_t bufferAddr)
 }
 
 uint64_t pageBitmapIndex = 0;
-void *PFAlloc::requestPage()
+void *requestPage()
 {
     for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
     {
@@ -66,7 +78,7 @@ void *PFAlloc::requestPage()
     return NULL;
 }
 
-void *PFAlloc::requestPages(uint64_t count)
+void *requestPages(uint64_t count)
 {
     for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
     {
@@ -84,7 +96,7 @@ void *PFAlloc::requestPages(uint64_t count)
     return NULL;
 }
 
-void PFAlloc::freePage(void *address)
+void freePage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;
@@ -96,7 +108,7 @@ void PFAlloc::freePage(void *address)
     }
 }
 
-void PFAlloc::freePages(void *address, uint64_t pageCount)
+void freePages(void *address, uint64_t pageCount)
 {
     for (size_t t = 0; t < pageCount; t++)
     {
@@ -104,7 +116,7 @@ void PFAlloc::freePages(void *address, uint64_t pageCount)
     }
 }
 
-void PFAlloc::lockPage(void *address)
+void lockPage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == true) return;
@@ -115,7 +127,7 @@ void PFAlloc::lockPage(void *address)
     }
 }
 
-void PFAlloc::lockPages(void *address, uint64_t pageCount)
+void lockPages(void *address, uint64_t pageCount)
 {
     for (uint64_t t = 0; t < pageCount; t++)
     {
@@ -123,7 +135,7 @@ void PFAlloc::lockPages(void *address, uint64_t pageCount)
     }
 }
 
-void PFAlloc::unreservePage(void *address)
+void unreservePage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;
@@ -136,7 +148,7 @@ void PFAlloc::unreservePage(void *address)
 }
 
 
-void PFAlloc::unreservePages(void *address, uint64_t pageCount)
+void unreservePages(void *address, uint64_t pageCount)
 {
     for (uint64_t t = 0; t < pageCount; t++)
     {
@@ -144,7 +156,7 @@ void PFAlloc::unreservePages(void *address, uint64_t pageCount)
     }
 }
 
-void PFAlloc::reservePage(void *address)
+void reservePage(void *address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == true) return;
@@ -155,7 +167,7 @@ void PFAlloc::reservePage(void *address)
     }
 }
 
-void PFAlloc::reservePages(void *address, uint64_t pageCount)
+void reservePages(void *address, uint64_t pageCount)
 {
     for (uint64_t t = 0; t < pageCount; t++)
     {
@@ -163,33 +175,18 @@ void PFAlloc::reservePages(void *address, uint64_t pageCount)
     }
 }
 
-uint64_t PFAlloc::getFreeRam()
+uint64_t getFreeRam()
 {
     return freeMem;
 }
 
-uint64_t PFAlloc::getUsedRam()
+uint64_t getUsedRam()
 {
     return usedMem;
 }
 
-uint64_t PFAlloc::getReservedRam()
+uint64_t getReservedRam()
 {
     return reservedMem;
 }
-
-void PFAlloc_init()
-{
-    serial_info("Initialising Page Frame Allocator\n");
-
-    if (pfalloc_initialised)
-    {
-        serial_info("Page frame allocator has already been initialised!\n");
-        return;
-    }
-
-    globalAlloc = PFAlloc();
-    globalAlloc.ReadMemMap();
-    
-    pfalloc_initialised = true;
 }

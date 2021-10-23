@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdbool.h>
+
+namespace kernel::lib::io {
 
 void outb(uint16_t port, uint8_t val);
 
@@ -18,3 +19,4 @@ uint32_t inl(uint16_t port);
 void io_wait(void);
 
 bool are_interrupts_enabled(bool should_print);
+}

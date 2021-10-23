@@ -1,5 +1,7 @@
 #include <system/mm/pmindexer/pmindexer.hpp>
 
+namespace kernel::system::mm::pmindexer {
+
 PMIndexer::PMIndexer(uint64_t virtualAddress)
 {
     virtualAddress >>= 12;
@@ -10,4 +12,6 @@ PMIndexer::PMIndexer(uint64_t virtualAddress)
     PD_i = virtualAddress & 0x1FF;
     virtualAddress >>= 9;
     PDP_i = virtualAddress & 0x1FF;
+}
+
 }

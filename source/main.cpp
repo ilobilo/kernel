@@ -24,6 +24,18 @@
 #include <stivale2.h>
 #include <kernel.hpp>
 
+using namespace kernel::drivers::display;
+using namespace kernel::drivers::fs;
+using namespace kernel::drivers;
+using namespace kernel::system::power;
+using namespace kernel::system::sched;
+using namespace kernel::system::cpu;
+using namespace kernel::system::mm;
+using namespace kernel::system;
+using namespace kernel::lib;
+
+namespace kernel {
+
 struct stivale2_struct_tag_smp *smp_tag;
 struct stivale2_struct_tag_memmap *mmap_tag;
 struct stivale2_struct_tag_rsdp *rsdp_tag;
@@ -38,7 +50,7 @@ int find_module(char *name)
 {
     for (uint64_t i = 0; i < mod_tag->module_count; i++)
     {
-        if (!strcmp(mod_tag->modules[i].string, name)) return i;
+        if (!string::strcmp(mod_tag->modules[i].string, name)) return i;
     }
     return -1;
 }
@@ -55,89 +67,90 @@ void main(struct stivale2_struct *stivale2_struct)
 
     cmdline = (char *)cmd_tag->cmdline;
 
-    if (!strstr(cmdline, "nocom")) serial_init();
+    if (!string::strstr(cmdline, "nocom")) serial::init();
 
-    serial_info("Welcome to kernel project");
+    serial::info("Welcome to kernel project");
 
-    if (!strcmp(KERNEL_VERSION, "0")) serial_info("Git version: %s\n", GIT_VERSION);
-    else serial_info("Version: %s\n", KERNEL_VERSION);
+    if (!string::strcmp(KERNEL_VERSION, "0")) serial::info("Git version: %s\n", GIT_VERSION);
+    else serial::info("Version: %s\n", KERNEL_VERSION);
 
-    serial_info("CPU cores available: %d", smp_tag->cpu_count);
-    serial_info("Total usable memory: %s\n", humanify(getmemsize()));
-    serial_info("Arguments passed to kernel: %s", cmdline);
+    serial::info("CPU cores available: %d", smp_tag->cpu_count);
+    serial::info("Total usable memory: %s\n", string::humanify(memory::getmemsize()));
+    serial::info("Arguments passed to kernel: %s", cmdline);
 
-    serial_info("Available kernel modules:");
+    serial::info("Available kernel modules:");
     for (uint64_t t = 0; t < mod_tag->module_count; t++)
     {
-        serial_info("%d) %s", t + 1, mod_tag->modules[t].string);
+        serial::info("%d) %s", t + 1, mod_tag->modules[t].string);
     }
-    serial_newline();
+    serial::newline();
 
     if (frm_tag == NULL)
     {
-        serial_err("Framebuffer has not been initialised!");
-        serial_err("System halted!\n");
+        serial::err("Framebuffer has not been initialised!");
+        serial::err("System halted!\n");
         while (true) asm volatile ("cli; hlt");
     }
-    drawing_init();
+    drawing::init();
 
     if (term_tag == NULL)
     {
-        serial_err("Terminal has not been initialised!");
-        serial_err("System halted!\n");
+        serial::err("Terminal has not been initialised!");
+        serial::err("System halted!\n");
         while (true) asm volatile ("cli; hlt");
     }
-    term_init();
+    terminal::init();
 
-    term_center("Welcome to kernel project");
+    terminal::center("Welcome to kernel project");
 
-    if (!strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
+    if (!string::strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
-    printf("Total usable memory: %s\n", humanify(getmemsize()));
+    printf("Total usable memory: %s\n", string::humanify(memory::getmemsize()));
 
-    GDT_init();
-    term_check(gdt_initialised, "Initialising Global Descriptor Table...");
+    gdt::init();
+    terminal::check(gdt::initialised, "Initialising Global Descriptor Table...");
 
-    PFAlloc_init();
-    term_check(pfalloc_initialised, "Initialising Page Frame Allocator...");
+    pfalloc::init();
+    terminal::check(pfalloc::initialised, "Initialising Page Frame Allocator...");
 
-    PTManager_init();
-    term_check(ptmanager_initialised, "Initialising Page Table Manager...");
+    ptmanager::init();
+    terminal::check(ptmanager::initialised, "Initialising Page Table Manager...");
 
-    Heap_init();
-    term_check(heap_initialised, "Initialising Kernel Heap...");
+    heap::init();
+    terminal::check(heap::initialised, "Initialising Kernel Heap...");
 
     int i = find_module("initrd");
-    if (i != -1 && strstr(cmdline, "initrd"))
+    if (i != -1 && string::strstr(cmdline, "initrd"))
     {
-        ustar_init(mod_tag->modules[i].begin);
+        ustar::init(mod_tag->modules[i].begin);
     }
-    term_check(ustar_initialised, "Initialising USTAR filesystem...");
+    terminal::check(ustar::initialised, "Initialising USTAR filesystem...");
 
-    IDT_init();
-    term_check(idt_initialised, "Initialising Interrupt Descriptor Table...");
+    idt::init();
+    terminal::check(idt::initialised, "Initialising Interrupt Descriptor Table...");
 
-    ACPI_init();
-    term_check(acpi_initialised, "Initialising ACPI...");
+    acpi::init();
+    terminal::check(acpi::initialised, "Initialising ACPI...");
 
-    PCI_init();
-    term_check(pci_initialised, "Initialising PCI...");
+    pci::init();
+    terminal::check(pci::initialised, "Initialising PCI...");
 
-    PIT_init();
-    term_check(pit_initialised, "Initialising PIT...");
+    pit::init();
+    terminal::check(pit::initialised, "Initialising PIT...");
 
-    Keyboard_init();
-    term_check(kbd_initialised, "Initialising PS2 Keyboard...");
+    ps2::kbd::init();
+    terminal::check(ps2::kbd::initialised, "Initialising PS2 Keyboard...");
 
-    if (!strstr(cmdline, "nomouse")) Mouse_init();
-    term_check(mouse_initialised, "Initialising PS2 Mouse...");
+    if (!string::strstr(cmdline, "nomouse")) ps2::mouse::init();
+    terminal::check(ps2::mouse::initialised, "Initialising PS2 Mouse...");
 
-    printf("Current RTC time: %s", RTC_GetTime());
+    printf("Current RTC time: %s", rtc::getTime());
 
     printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    serial_info("Starting kernel shell\n");
-    while (true) shell_run();
+    serial::info("Starting kernel shell\n");
+    while (true) apps::kshell::run();
+}
 }

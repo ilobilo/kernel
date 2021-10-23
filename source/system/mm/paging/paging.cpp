@@ -1,5 +1,7 @@
 #include <system/mm/paging/paging.hpp>
 
+namespace kernel::system::mm::paging {
+
 void PDEntry::setflag(PT_Flag flag, bool enabled)
 {
     uint64_t bitSel = (uint64_t)1 << flag;
@@ -23,4 +25,6 @@ void PDEntry::setAddr(uint64_t address)
     address &= 0x000000FFFFFFFFFF;
     value &= 0xFFF0000000000FFF;
     value |= (address << 12);
+}
+
 }

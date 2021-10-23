@@ -3,6 +3,8 @@
 #include <system/cpu/idt/idt.hpp>
 #include <stdint.h>
 
+namespace kernel::system::cpu::syscall {
+
 #define S_RAX regs->rax
 #define S_ARG0_RDI regs->rdi
 #define S_ARG1_RSI regs->rsi
@@ -31,10 +33,11 @@
     asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2) : "rcx", "r11", "memory"); \
 })
 
-using syscall_t = void (*)(interrupt_registers *);
+using syscall_t = void (*)(idt::interrupt_registers *);
 
-char *s_read(char *string, int length);
-void s_write(char *string, int length);
-void s_err(char *string, int length);
+char *read(char *string, int length);
+void write(char *string, int length);
+void err(char *string, int length);
 
-extern "C" void syscall_handler(interrupt_registers *regs);
+extern "C" void syscall_handler(idt::interrupt_registers *regs);
+}

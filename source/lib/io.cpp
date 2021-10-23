@@ -1,6 +1,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <stdint.h>
-#include <stdbool.h>
+
+namespace kernel::lib::io {
 
 void outb(uint16_t port, uint8_t val)
 {
@@ -53,4 +54,5 @@ bool are_interrupts_enabled(bool should_print)
         else printf("Interrupts are not enabled!\n");
     }
     return flags & (1 << 9);
+}
 }

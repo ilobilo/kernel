@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+namespace kernel::system::mm::pmindexer {
+
 class PMIndexer
 {
     public:
@@ -11,3 +13,5 @@ class PMIndexer
     uint64_t PT_i;
     uint64_t P_i;
 };
+
+}
