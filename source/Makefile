@@ -149,8 +149,9 @@ else
 endif
 
 run-test:
+	echo "\nBooting iso in bios mode... (testing)\n"
 ifndef DEBUG
-	$(QEMU) $(QEMUFLAGS) -cdrom $(ISO)
+	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO)
 else
-	$(QEMU) $(QEMUFLAGS) -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO)
+	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO)
 endif
