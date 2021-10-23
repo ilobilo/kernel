@@ -2,9 +2,11 @@
 
 #include <drivers/fs/vfs/vfs.hpp>
 
+namespace kernel::drivers::fs::ustar {
+
 #define HEADER_SIZE 128
 
-enum ustar_filetypes
+enum filetypes
 {
     REGULAR_FILE = '0',
     HARDLINK = '1',
@@ -15,7 +17,7 @@ enum ustar_filetypes
     FIFO = '6'
 };
 
-struct ustar_file_header_t
+struct file_header_t
 {
     char name[100];
     char mode[8];
@@ -35,24 +37,25 @@ struct ustar_file_header_t
     char prefix[155];
 };
 
-struct ustar_header_t
+struct header_t
 {
-    ustar_file_header_t *header;
+    file_header_t *header;
     unsigned int address;
 };
 
-extern bool ustar_initialised;
-extern uint64_t ustar_filecount;
-extern ustar_header_t *ustar_headers;
+extern bool initialised;
+extern uint64_t filecount;
+extern header_t *headers;
 
 unsigned int getsize(const char *s);
 
-void ustar_list();
+void list();
 
-char *ustar_cat(char *name);
+char *cat(char *name);
 
-int ustar_getid(char *name);
+int getid(char *name);
 
-int ustar_search(char *filename, char **contents);
+int search(char *filename, char **contents);
 
-void ustar_init(unsigned int address);
+void init(unsigned int address);
+}

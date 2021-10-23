@@ -5,13 +5,18 @@
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
-bool mouse_initialised = false;;
+using namespace kernel::drivers::display;
+using namespace kernel::system::cpu;
+
+namespace kernel::drivers::ps2::mouse {
+
+bool initialised = false;;
 
 uint8_t cycle = 0;
 uint8_t packet[4];
 bool packetready = false;
-point mousepos;
-point mouseposold;
+math::point mousepos;
+math::point mouseposold;
 
 uint32_t mousebordercol = 0xFFFFFF;
 uint32_t mouseinsidecol = 0x2D2D2D;
@@ -65,27 +70,27 @@ uint8_t cursorinside[]
 void mousewait()
 {
     uint64_t timeout = 100000;
-    while (timeout--) if ((inb(0x64) & 0b10) == 0) return;
+    while (timeout--) if ((io::inb(0x64) & 0b10) == 0) return;
 }
 
 void mousewait_input()
 {
     uint64_t timeout = 100000;
-    while (timeout--) if (inb(0x64) & 0b1) return;
+    while (timeout--) if (io::inb(0x64) & 0b1) return;
 }
 
 void mousewrite(uint8_t value)
 {
     mousewait();
-    outb(0x64, 0xD4);
+    io::outb(0x64, 0xD4);
     mousewait();
-    outb(0x60, value);
+    io::outb(0x60, value);
 }
 
 uint8_t mouseread()
 {
     mousewait_input();
-    return inb(0x60);
+    return io::inb(0x60);
 }
 
 mousestate getmousestate()
@@ -151,23 +156,23 @@ void proccesspacket()
     }
 
     if (mousepos.X < 0) mousepos.X = 0;
-    if (mousepos.X > frm_width - 1) mousepos.X = frm_width - 1;
+    if (mousepos.X > drawing::frm_width - 1) mousepos.X = drawing::frm_width - 1;
 
     if (mousepos.Y < 0) mousepos.Y = 0;
-    if (mousepos.Y > frm_height - 1) mousepos.Y = frm_height - 1;
+    if (mousepos.Y > drawing::frm_height - 1) mousepos.Y = drawing::frm_height - 1;
 
-    clearcursor(cursorinside, mouseposold);
+    drawing::clearcursor(cursorinside, mouseposold);
 
-    drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
-    drawovercursor(cursorborder, mousepos, mousebordercol, false);
+    drawing::drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
+    drawing::drawovercursor(cursorborder, mousepos, mousebordercol, false);
     
     packetready = false;
     mouseposold = mousepos;
 }
 
-static void Mouse_Handler(interrupt_registers *)
+static void Mouse_Handler(idt::interrupt_registers *)
 {
-    uint8_t mousedata = inb(0x60);
+    uint8_t mousedata = io::inb(0x60);
 
     proccesspacket();
 
@@ -197,37 +202,37 @@ static void Mouse_Handler(interrupt_registers *)
     }
 }
 
-void Mouse_init()
+void init()
 {
-    serial_info("Initialising PS2 mouse\n");
+    serial::info("Initialising PS2 mouse\n");
 
-    if (mouse_initialised)
+    if (initialised)
     {
-        serial_info("Mouse driver has already been initialised!\n");
+        serial::info("Mouse driver has already been initialised!\n");
         return;
     }
 
-    if (!idt_initialised)
+    if (!idt::initialised)
     {
-        serial_info("IDT has not been initialised!\n");
-        IDT_init();
+        serial::info("IDT has not been initialised!\n");
+        idt::init();
     }
 
     asm volatile ("cli");
 
-    outb(0x64, 0xA8);
+    io::outb(0x64, 0xA8);
 
     mousewait();
-    outb(0x64, 0x20);
+    io::outb(0x64, 0x20);
     mousewait_input();
 
-    uint8_t status = inb(0x60);
+    uint8_t status = io::inb(0x60);
     status |= 0b10;
     mousewait();
 
-    outb(0x64, 0x60);
+    io::outb(0x64, 0x60);
     mousewait();
-    outb(0x60, status);
+    io::outb(0x60, status);
 
     mousewrite(0xF6);
     mouseread();
@@ -236,7 +241,9 @@ void Mouse_init()
 
     asm volatile ("sti");
 
-    register_interrupt_handler(IRQS::IRQ12, Mouse_Handler);
+    register_interrupt_handler(idt::IRQS::IRQ12, Mouse_Handler);
 
-    mouse_initialised = true;
+    initialised = true;
+}
+
 }

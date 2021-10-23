@@ -3,10 +3,17 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 
-bool ustar_initialised = false;
-uint64_t ustar_filecount;
-ustar_header_t *ustar_headers;
+using namespace kernel::drivers::display;
+using namespace kernel::system::mm;
+using namespace kernel::lib;
+
+namespace kernel::drivers::fs::ustar {
+
+bool initialised = false;
+uint64_t filecount;
+header_t *headers;
 
 uint64_t allocated = 10;
 
@@ -22,89 +29,87 @@ unsigned int getsize(const char *s)
     return ret;
 }
 
-int ustar_parse(unsigned int address)
+int parse(unsigned int address)
 {
     unsigned int i;
     for (i = 0; ; i++)
     {
-        ustar_file_header_t *header = (ustar_file_header_t*)address;
+        file_header_t *header = (file_header_t*)address;
 
-        if (strcmp(header->signature, "ustar"))
-        {
-            break;
-        }
+        if (string::strcmp(header->signature, "ustar")) break;
 
-        if (ustar_filecount >= (alloc_getsize(ustar_headers) / sizeof(ustar_header_t)))
+        if (filecount >= (heap::getsize(headers) / sizeof(header_t)))
         {
             allocated += 5;
-            ustar_headers = (ustar_header_t*)realloc(ustar_headers, allocated * sizeof(ustar_header_t));
+            headers = (header_t*)heap::realloc(headers, allocated * sizeof(header_t));
         }
 
-        uintptr_t size = getsize(header->size);
-        ustar_headers[i].header = header;
-        ustar_headers[i].address = address + 512;
-        ustar_filecount++;
+        uintptr_t size = heap::getsize(header->size);
+        headers[i].header = header;
+        headers[i].address = address + 512;
+        filecount++;
+        printf("%s\n", headers[i].header->name);
 
         address += (((size + 511) / 512) + 1) * 512;
     }
-    for (uint64_t g = 1; g < ustar_filecount; g++)
+    for (uint64_t g = 1; g < filecount; g++)
     {
-        memmove(ustar_headers[g].header->name, ustar_headers[g].header->name + 1, strlen(ustar_headers[g].header->name));
+        memory::memmove(headers[g].header->name, headers[g].header->name + 1, string::strlen(headers[g].header->name));
     }
-    ustar_filecount--;
+    filecount--;
     i--;
     return i;
 }
 
-bool check_ustar()
+bool check()
 {
-    if (!ustar_initialised)
+    if (!initialised)
     {
-        printf("\033[31mUSTAR filesystem has not been initialised!%s\n", term_colour);
+        printf("\033[31mUSTAR filesystem has not been initialised!%s\n", terminal::colour);
         return false;
     }
     return true;
 }
 
-void ustar_list()
+void list()
 {
-    if (!check_ustar()) return;
+    if (!check()) return;
 
     int size = 0;
-    printf("Total %ld items:\n--------------------\n", ustar_filecount);
-    for (uint64_t i = 1; i < ustar_filecount + 1; i++)
+    printf("Total %ld items:\n--------------------\n", filecount);
+    for (uint64_t i = 1; i < filecount + 1; i++)
     {
-        switch (ustar_headers[i].header->typeflag[0])
+        switch (headers[i].header->typeflag[0])
         {
             case REGULAR_FILE:
-                printf("%ld) (REGULAR) %s %s\n", i, ustar_headers[i].header->name, humanify(oct_to_dec(string_to_int(ustar_headers[i].header->size))));
-                size += oct_to_dec(string_to_int(ustar_headers[i].header->size));
+                printf("%ld) (REGULAR) %s %s\n", i, headers[i].header->name, string::humanify(string::oct_to_dec(string::string_to_int(headers[i].header->size))));
+                size += string::oct_to_dec(string::string_to_int(headers[i].header->size));
                 break;
             case SYMLINK:
-                printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i, ustar_headers[i].header->name, ustar_headers[i].header->link, term_colour);
+                printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i, headers[i].header->name, headers[i].header->link, terminal::colour);
                 break;
             case DIRECTORY:
-                printf("%ld) \033[35m(DIRECTORY) %s%s\n", i, ustar_headers[i].header->name, term_colour);
+                printf("%ld) \033[35m(DIRECTORY) %s%s\n", i, headers[i].header->name, terminal::colour);
                 break;
             default:
-                printf("%ld) \033[31m(File type not supported!) %s%s\n", i, ustar_headers[i].header->name, term_colour);
+                printf("%ld) \033[31m(File type not supported!) %s%s\n", i, headers[i].header->name, terminal::colour);
                 break;
         }
     }
-    printf("--------------------\nTotal size: %s\n", humanify(size));
+    printf("--------------------\nTotal size: %s\n", string::humanify(size));
 }
 
-char *ustar_cat(char *name)
+char *cat(char *name)
 {
-    if (!check_ustar()) return "";
+    if (!check()) return "";
 
     char *contents;
     int i = 0;
-    i = ustar_getid(name);
-    switch (ustar_headers[i].header->typeflag[0])
+    i = getid(name);
+    switch (headers[i].header->typeflag[0])
     {
-        case ustar_filetypes::REGULAR_FILE:
-            if (ustar_search(name, &contents) != 0)
+        case filetypes::REGULAR_FILE:
+            if (search(name, &contents) != 0)
             {
                 printf("--BEGIN-- %s\n", name);
                 printf("%s", contents);
@@ -118,17 +123,17 @@ char *ustar_cat(char *name)
     }
     return contents;
     Error:
-    printf("\033[31mInvalid file name!%s\n", term_colour);
+    printf("\033[31mInvalid file name!%s\n", terminal::colour);
     return "Invalid file name!";
 }
 
-int ustar_getid(char *name)
+int getid(char *name)
 {
-    if (!check_ustar()) return 0;
+    if (!check()) return 0;
 
-    for (uint64_t i = 0; i < ustar_filecount; ++i)
+    for (uint64_t i = 0; i < filecount; ++i)
     {
-        if(!strcmp(ustar_headers[i].header->name, name))
+        if(!string::strcmp(headers[i].header->name, name))
         {
             return i;
         }
@@ -136,42 +141,43 @@ int ustar_getid(char *name)
     return 0;
 }
 
-int ustar_search(char *filename, char **contents)
+int search(char *filename, char **contents)
 {
-    if (!check_ustar()) return 0;
+    if (!check()) return 0;
 
-    for (uint64_t i = 1; i < ustar_filecount + 1; i++)
+    for (uint64_t i = 1; i < filecount + 1; i++)
     {
-        if (!strcmp(ustar_headers[i].header->name, filename))
+        if (!string::strcmp(headers[i].header->name, filename))
         {
-            *contents = (char*)ustar_headers[i].address;
+            *contents = (char*)headers[i].address;
             return 1;
         }
     }
     return 0;
 }
 
-void ustar_init(unsigned int address)
+void init(unsigned int address)
 {
-    serial_info("Initialising USTAR filesystem\n");
+    serial::info("Initialising USTAR filesystem\n");
 
-    if (ustar_initialised)
+    if (initialised)
     {
-        serial_info("USTAR filesystem has already been initialised!\n");
+        serial::info("USTAR filesystem has already been initialised!\n");
         return;
     }
 
-    if (!heap_initialised)
+    if (!heap::initialised)
     {
-        serial_info("Heap has not been initialised!\n");
-        Heap_init();
+        serial::info("Heap has not been initialised!\n");
+        heap::init();
     }
 
-    ustar_headers = (ustar_header_t*)malloc(allocated * sizeof(ustar_header_t));
+    headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
 
-    ustar_parse(address);
+    parse(address);
     
-    ustar_initialised = true;
+    initialised = true;
 
-    serial_newline();
+    serial::newline();
+}
 }

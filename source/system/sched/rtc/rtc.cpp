@@ -2,63 +2,68 @@
 #include <system/sched/rtc/rtc.hpp>
 #include <lib/io.hpp>
 
+using namespace kernel::lib;
+
+namespace kernel::system::sched::rtc {
+
 int bcdtobin(int value)
 {
     return (value >> 4) * 10 + (value & 15);
 }
 
-int RTC_year()
+int year()
 {
-    outb(0x70, 0x09);
-    return bcdtobin(inb(0x71));
+    io::outb(0x70, 0x09);
+    return bcdtobin(io::inb(0x71));
 }
 
-int RTC_month()
+int month()
 {
-    outb(0x70, 0x08);
-    return bcdtobin(inb(0x71));
+    io::outb(0x70, 0x08);
+    return bcdtobin(io::inb(0x71));
 }
 
-int RTC_day()
+int day()
 {
-    outb(0x70, 0x07);
-    return bcdtobin(inb(0x71));
+    io::outb(0x70, 0x07);
+    return bcdtobin(io::inb(0x71));
 }
 
-int RTC_hour()
+int hour()
 {
-    outb(0x70, 0x04);
-    return bcdtobin(inb(0x71));
+    io::outb(0x70, 0x04);
+    return bcdtobin(io::inb(0x71));
 }
 
-int RTC_minute()
+int minute()
 {
-    outb(0x70, 0x02);
-    return bcdtobin(inb(0x71));
+    io::outb(0x70, 0x02);
+    return bcdtobin(io::inb(0x71));
 }
 
-int RTC_second()
+int second()
 {
-    outb(0x70, 0x00);
-    return bcdtobin(inb(0x71));
+    io::outb(0x70, 0x00);
+    return bcdtobin(io::inb(0x71));
 }
 
-int RTC_time()
+int time()
 {
-    return RTC_hour() * 3600 + RTC_minute() * 60 + RTC_second();
+    return hour() * 3600 + minute() * 60 + second();
 }
 
-void RTC_sleep(int sec)
+void sleep(int sec)
 {
-    int lastsec = RTC_time() + sec;
-    while (lastsec != RTC_time());
+    int lastsec = time() + sec;
+    while (lastsec != time());
 }
 
-char *RTC_GetTime()
+char *getTime()
 {
     static char time[30];
-    sprintf(time, "20%d/%d/%d %d:%d:%d", RTC_year(), RTC_month(),
-        RTC_day(), RTC_hour(),
-        RTC_minute(), RTC_second());
+    sprintf(time, "20%d/%d/%d %d:%d:%d", year(), month(),
+        day(), hour(),
+        minute(), second());
     return time;
+}
 }

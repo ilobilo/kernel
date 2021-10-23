@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+namespace kernel::system::mm::paging {
+
 enum PT_Flag
 {
     Present = 0,
@@ -30,3 +32,5 @@ struct PTable
 {
     PDEntry entries[512];
 } __attribute__((aligned(0x1000)));
+
+}

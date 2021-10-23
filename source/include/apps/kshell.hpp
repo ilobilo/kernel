@@ -1,3 +1,5 @@
 #pragma once
 
-void shell_run();
+namespace kernel::apps::kshell {
+void run();
+}

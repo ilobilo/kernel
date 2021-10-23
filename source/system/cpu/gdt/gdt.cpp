@@ -1,6 +1,10 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 
+using namespace kernel::drivers::display;
+
+namespace kernel::system::cpu::gdt {
+
 __attribute__((aligned(0x1000)))
 GDT DefaultGDT = {
     {0, 0, 0, 0x00, 0x00, 0},
@@ -12,15 +16,15 @@ GDT DefaultGDT = {
     {0, 0, 0, 0x92, 0xa0, 0},
 };
 
-bool gdt_initialised = false;
+bool initialised = false;
 
-void GDT_init()
+void init()
 {
-    serial_info("Initialising GDT\n");
+    serial::info("Initialising GDT\n");
 
-    if (gdt_initialised)
+    if (initialised)
     {
-        serial_info("GDT has already been initialised!\n");
+        serial::info("GDT has already been initialised!\n");
         return;
     }
 
@@ -29,5 +33,6 @@ void GDT_init()
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
     LoadGDT(&gdtDescriptor);
 
-    gdt_initialised = true;
+    initialised = true;
+}
 }

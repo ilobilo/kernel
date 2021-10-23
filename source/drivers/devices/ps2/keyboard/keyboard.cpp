@@ -5,9 +5,16 @@
 #include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 #include <lib/io.hpp>
 
-bool kbd_initialised = false;
+using namespace kernel::drivers::display;
+using namespace kernel::system::cpu;
+using namespace kernel::lib;
+
+namespace kernel::drivers::ps2::kbd {
+
+bool initialised = false;
 
 char retstr[1024] = "\0";
 bool reading = false;
@@ -53,10 +60,10 @@ void handle_comb(uint8_t scancode)
     }
     else if (kbd_mod.ctrl && ((ch == 'l') || (ch == 'L')))
     {
-        term_clear();
+        terminal::clear();
         if (reading)
         {
-            memset(retstr, '\0', 1024);
+            memory::memset(retstr, '\0', 1024);
             enter = true;
         }
     }
@@ -69,16 +76,16 @@ char c[10] = "\0";
 // Clear keyboard buffer
 void clearbuff()
 {
-    for (size_t i = 0; i < strlen(buff); i++)
+    for (size_t i = 0; i < string::strlen(buff); i++)
     {
         buff[i] = '\0';
     }
 }
 
 // Main keyboard handler
-static void Keyboard_Handler(interrupt_registers *)
+static void Keyboard_Handler(idt::interrupt_registers *)
 {
-    uint8_t scancode = inb(0x60);
+    uint8_t scancode = io::inb(0x60);
 
     if (scancode & 0x80)
     {
@@ -120,23 +127,23 @@ static void Keyboard_Handler(interrupt_registers *)
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
                 break;
             case keys::UP:
-                strcpy(c, "\033[A");
-                term_print(c);
+                string::strcpy(c, "\033[A");
+                terminal::print(c);
                 break;
             case keys::DOWN:
-                strcpy(c, "\033[B");
-                term_print(c);
+                string::strcpy(c, "\033[B");
+                terminal::print(c);
                 break;
             case keys::RIGHT:
-                strcpy(c, "\033[C");
-                term_print(c);
+                string::strcpy(c, "\033[C");
+                terminal::print(c);
                 break;
             case keys::LEFT:
-                strcpy(c, "\033[D");
-                term_print(c);
+                string::strcpy(c, "\033[D");
+                terminal::print(c);
                 break;
             default:
-                memset(c, 0, strlen(c));
+                memory::memset(c, 0, string::strlen(c));
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
@@ -154,15 +161,15 @@ static void Keyboard_Handler(interrupt_registers *)
                         case '\b':
                             if (buff[0] != '\0')
                             {
-                                buff[strlen(buff) - 1] = '\0';
+                                buff[string::strlen(buff) - 1] = '\0';
                                 if (reading) retstr[--gi] = 0;
                                 printf("\b \b");
                             }
                             break;
                         default:
                             pressed = true;
-                            term_print(c);
-                            strcat(buff, c);
+                            terminal::print(c);
+                            string::strcat(buff, c);
                             break;
                     }
                 }
@@ -183,7 +190,7 @@ char *getline()
 {
     acquire_lock(&getline_lock);
     reading = true;
-    memset(retstr, '\0', 1024);
+    memory::memset(retstr, '\0', 1024);
     while (!enter)
     {
         if (pressed)
@@ -203,24 +210,25 @@ char *getline()
     return retstr;
 }
 
-void Keyboard_init()
+void init()
 {
-    serial_info("Initialising PS2 keyboard\n");
+    serial::info("Initialising PS2 keyboard\n");
 
-    if (kbd_initialised)
+    if (initialised)
     {
-        serial_info("Keyboard driver has already been initialised!\n");
+        serial::info("Keyboard driver has already been initialised!\n");
         return;
     }
 
-    if (!idt_initialised)
+    if (!idt::initialised)
     {
-        serial_info("IDT has not been initialised!\n");
-        IDT_init();
+        serial::info("IDT has not been initialised!\n");
+        idt::init();
     }
 
-    register_interrupt_handler(IRQS::IRQ1, Keyboard_Handler);
+    register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
     buff[0] = '\0';
 
-    kbd_initialised = true;
+    initialised = true;
+}
 }

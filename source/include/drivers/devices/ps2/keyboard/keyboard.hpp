@@ -1,5 +1,7 @@
 #pragma once
 
+namespace kernel::drivers::ps2::kbd {
+
 struct kbd_mod_t
 {
     int shift : 1;
@@ -10,7 +12,7 @@ struct kbd_mod_t
     int scrolllock : 1;
 };
 
-extern bool kbd_initialised;
+extern bool initialised;
 
 extern char *buff;
 
@@ -20,4 +22,5 @@ char getchar();
 
 char *getline();
 
-void Keyboard_init();
+void init();
+}

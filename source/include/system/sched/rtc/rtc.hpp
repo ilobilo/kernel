@@ -1,7 +1,10 @@
 #pragma once
 
-int RTC_year(), RTC_month(), RTC_day(), RTC_hour(), RTC_minute(), RTC_second();
+namespace kernel::system::sched::rtc {
 
-void RTC_sleep(int sec);
+int year(), month(), day(), hour(), minute(), second();
 
-char *RTC_GetTime();
+void sleep(int sec);
+
+char *getTime();
+}

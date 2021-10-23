@@ -3,11 +3,15 @@
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
-#include <lib/string.hpp>
+#include <lib/memory.hpp>
 
-bool heap_initialised = false;
+using namespace kernel::drivers::display;
+using namespace kernel::lib;
 
-bool alloc_debug = true;
+namespace kernel::system::mm::heap {
+
+bool initialised = false;
+bool debug = true;
 
 void *heapStart;
 void *heapEnd;
@@ -15,26 +19,26 @@ heapSegHdr *lastHdr;
 
 DEFINE_LOCK(heap_lock)
 
-void Heap_init(void *heapAddr, size_t pageCount)
+void init(void *heapAddr, size_t pageCount)
 {
-    serial_info("Initialising Kernel Heap\n");
+    serial::info("Initialising Kernel Heap\n");
 
-    if (heap_initialised)
+    if (initialised)
     {
-        serial_info("Heap has already been initialised!\n");
+        serial::info("Heap has already been initialised!\n");
         return;
     }
 
-    if (!ptmanager_initialised)
+    if (!ptmanager::initialised)
     {
-        serial_info("Page table manager has not been initialised!\n");
-        PTManager_init();
+        serial::info("Page table manager has not been initialised!\n");
+        ptmanager::init();
     }
 
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
     {
-        globalPTManager.mapMem(pos, globalAlloc.requestPage());
+        ptmanager::globalPTManager.mapMem(pos, pfalloc::globalAlloc.requestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
     size_t heapLength = pageCount * 0x1000;
@@ -49,27 +53,27 @@ void Heap_init(void *heapAddr, size_t pageCount)
     startSeg->free = true;
     lastHdr = startSeg;
 
-    heap_initialised = true;
+    initialised = true;
 }
 
-void check_heap()
+void check()
 {
-    if (!heap_initialised)
+    if (!initialised)
     {
-        serial_info("Heap has not been initialised!\n");
-        Heap_init();
+        serial::info("Heap has not been initialised!\n");
+        init();
     }
 }
 
 void free(void *address)
 {
-    check_heap();
+    check();
     if (!address) return;
 
     acquire_lock(&heap_lock);
     heapSegHdr *segment = (heapSegHdr*)address - 1;
     segment->free = true;
-    if (alloc_debug) serial_info("Free: Freeing %zu Bytes", segment->length);
+    if (debug) serial::info("Free: Freeing %zu Bytes", segment->length);
     segment->combineForward();
     segment->combineBackward();
     release_lock(&heap_lock);
@@ -78,12 +82,12 @@ void free(void *address)
 volatile bool expanded = false;
 void* malloc(size_t size)
 {
-    check_heap();
+    check();
 
     acquire_lock(&heap_lock);
-    if (size > globalAlloc.getFreeRam())
+    if (size > pfalloc::globalAlloc.getFreeRam())
     {
-        serial_err("Malloc: requested more memory than available!");
+        serial::err("Malloc: requested more memory than available!\n");
         return NULL;
     }
 
@@ -103,7 +107,7 @@ void* malloc(size_t size)
             {
                 currentSeg->split(size);
                 currentSeg->free = false;
-                if (alloc_debug) serial_info("Malloc: Allocated %zu Bytes", size);
+                if (debug) serial::info("Malloc: Allocated %zu Bytes", size);
                 expanded = false;
                 release_lock(&heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
@@ -111,7 +115,7 @@ void* malloc(size_t size)
             if (currentSeg->length == size)
             {
                 currentSeg->free = false;
-                if (alloc_debug) serial_info("Malloc: Allocated %zu Bytes", size);
+                if (debug) serial::info("Malloc: Allocated %zu Bytes", size);
                 expanded = false;
                 release_lock(&heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
@@ -122,7 +126,7 @@ void* malloc(size_t size)
     }
     if (expanded)
     {
-        serial_err("Out of memory!");
+        serial::err("Out of memory!");
         return NULL;
     }
     expandHeap(size);
@@ -131,7 +135,7 @@ void* malloc(size_t size)
     return malloc(size);
 }
 
-size_t alloc_getsize(void *ptr)
+size_t getsize(void *ptr)
 {
     heapSegHdr *segment = (heapSegHdr*)ptr - 1;
     return segment->length;
@@ -139,20 +143,20 @@ size_t alloc_getsize(void *ptr)
 
 void *calloc(size_t num, size_t size)
 {
-    check_heap();
+    check();
 
     void *ptr = malloc(num * size);
     if (!ptr) return NULL;
 
-    memset(ptr, 0, num * size);
+    memory::memset(ptr, 0, num * size);
     return ptr;
 }
 
 void *realloc(void *ptr, size_t size)
 {
-    check_heap();
+    check();
 
-    size_t oldsize = alloc_getsize(ptr);
+    size_t oldsize = heap::getsize(ptr);
 
     if (!size)
     {
@@ -165,7 +169,7 @@ void *realloc(void *ptr, size_t size)
     void *newptr = malloc(size);
     if (!newptr) return ptr;
 
-    memcpy(newptr, ptr, oldsize);
+    memory::memcpy(newptr, ptr, oldsize);
     free(ptr);
     return(newptr);
 }
@@ -202,7 +206,7 @@ void expandHeap(size_t length)
 
     for (size_t i = 0; i < pageCount; i++)
     {
-        globalPTManager.mapMem(heapEnd, globalAlloc.requestPage());
+        ptmanager::globalPTManager.mapMem(heapEnd, pfalloc::globalAlloc.requestPage());
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
 
@@ -214,7 +218,7 @@ void expandHeap(size_t length)
     newSeg->length = length - sizeof(heapSegHdr);
     newSeg->combineBackward();
 
-    if (alloc_debug) serial_info("Heap: Expanded heap with %zu Bytes", length);
+    if (debug) serial::info("Heap: Expanded heap with %zu Bytes", length);
 }
 
 void heapSegHdr::combineForward()
@@ -234,4 +238,5 @@ void heapSegHdr::combineForward()
 void heapSegHdr::combineBackward()
 {
     if (last != NULL && last->free) last->combineForward();
+}
 }

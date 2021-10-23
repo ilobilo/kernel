@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <main.hpp>
 
+namespace kernel::system::mm::pfalloc {
+
 class PFAlloc
 {
     public:
@@ -32,6 +34,7 @@ class PFAlloc
 
 extern PFAlloc globalAlloc;
 
-extern bool pfalloc_initialised;
+extern bool initialised;
 
-void PFAlloc_init();
+void init();
+}

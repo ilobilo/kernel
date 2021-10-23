@@ -1,10 +1,15 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/mm/memory/memory.hpp>
+#include <lib/memory.hpp>
 #include <stivale2.h>
 #include <main.hpp>
 
-bool pfalloc_initialised = false;
+using namespace kernel::drivers::display;
+using namespace kernel::lib;
+
+namespace kernel::system::mm::pfalloc {
+
+bool initialised = false;
 
 uint64_t freeMem;
 uint64_t reservedMem;
@@ -16,7 +21,7 @@ uintptr_t highest_page = 0;
 
 void PFAlloc::ReadMemMap()
 {
-    if (pfalloc_initialised) return;
+    if (initialised) return;
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
@@ -27,7 +32,7 @@ void PFAlloc::ReadMemMap()
         if (top > highest_page) highest_page = top;
     }
 
-    uint64_t memsize = getmemsize();
+    uint64_t memsize = memory::getmemsize();
     freeMem = memsize;
     uint64_t bitmapSize = memsize / 4096 / 8 + 1;
 
@@ -178,18 +183,19 @@ uint64_t PFAlloc::getReservedRam()
     return reservedMem;
 }
 
-void PFAlloc_init()
+void init()
 {
-    serial_info("Initialising Page Frame Allocator\n");
+    serial::info("Initialising Page Frame Allocator\n");
 
-    if (pfalloc_initialised)
+    if (initialised)
     {
-        serial_info("Page frame allocator has already been initialised!\n");
+        serial::info("Page frame allocator has already been initialised!\n");
         return;
     }
 
     globalAlloc = PFAlloc();
     globalAlloc.ReadMemMap();
     
-    pfalloc_initialised = true;
+    initialised = true;
+}
 }

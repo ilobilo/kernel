@@ -3,6 +3,10 @@
 #include <lib/math.hpp>
 #include <stivale2.h>
 
+using namespace kernel::lib;
+
+namespace kernel::drivers::display::drawing {
+
 extern uint64_t frm_addr;
 extern uint16_t frm_width;
 extern uint16_t frm_height;
@@ -25,7 +29,8 @@ void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour);
 void drawcircle(int xm, int ym, int r, uint32_t colour);
 void drawfilledcircle(int cx, int cy, int radius, uint32_t colour);
 
-void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back);
-void clearcursor(uint8_t cursor[], point pos);
+void drawovercursor(uint8_t cursor[], math::point pos, uint32_t colour, bool back);
+void clearcursor(uint8_t cursor[], math::point pos);
 
-void drawing_init();
+void init();
+}

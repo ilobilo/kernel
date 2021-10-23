@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
+namespace kernel::system::cpu::idt {
+
 #define SYSCALL 0x80
 
 enum PIC
@@ -114,20 +118,21 @@ struct idtr_t
 	uint64_t	base;
 } __attribute__((packed));
 
-struct __attribute__((packed)) interrupt_registers
+struct interrupt_registers
 {
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, int_no, error_code, rip, cs, rflags, rsp, ss;
-};
+} __attribute__((packed));
 
 using int_handler_t = void (*)(interrupt_registers *registers);
 
 extern idt_entry_t idt[];
 extern idtr_t idtr;
 
-extern bool idt_initialised;
+extern bool initialised;
 
-void IDT_init();
+void init();
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
 
 extern "C" void isr_handler(interrupt_registers *regs);
 extern "C" void irq_handler(interrupt_registers *regs);
+}
