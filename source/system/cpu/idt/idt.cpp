@@ -33,13 +33,14 @@ void isr_install();
 
 void init()
 {
-    serial::info("Initialising IDT\n");
+    serial::info("Initialising IDT");
 
     if (initialised)
     {
         serial::info("IDT has already been initialised!\n");
         return;
     }
+    else serial::newline();
 
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;

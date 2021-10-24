@@ -157,7 +157,7 @@ int search(char *filename, char **contents)
 
 void init(unsigned int address)
 {
-    serial::info("Initialising USTAR filesystem\n");
+    serial::info("Initialising USTAR filesystem");
 
     if (initialised)
     {
@@ -167,16 +167,15 @@ void init(unsigned int address)
 
     if (!heap::initialised)
     {
-        serial::info("Heap has not been initialised!\n");
+        serial::info("Heap has not been initialised!");
         heap::init();
     }
+    else serial::newline();
 
     headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
 
     parse(address);
-    
-    initialised = true;
 
-    serial::newline();
+    initialised = true;
 }
 }

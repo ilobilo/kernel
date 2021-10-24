@@ -21,7 +21,7 @@ DEFINE_LOCK(heap_lock)
 
 void init(void *heapAddr, size_t pageCount)
 {
-    serial::info("Initialising Kernel Heap\n");
+    serial::info("Initialising Kernel Heap");
 
     if (initialised)
     {
@@ -31,9 +31,10 @@ void init(void *heapAddr, size_t pageCount)
 
     if (!ptmanager::initialised)
     {
-        serial::info("Page table manager has not been initialised!\n");
+        serial::info("Page table manager has not been initialised!");
         ptmanager::init();
     }
+    else serial::newline();
 
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
@@ -60,7 +61,7 @@ void check()
 {
     if (!initialised)
     {
-        serial::info("Heap has not been initialised!\n");
+        serial::info("Heap has not been initialised!");
         init();
     }
 }

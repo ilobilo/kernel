@@ -110,12 +110,6 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %s\n", string::humanify(memory::getmemsize()));
 
-    gdt::init();
-    terminal::check(gdt::initialised, "Initialising Global Descriptor Table...");
-
-    smp::init();
-    terminal::check(smp::initialised, "Initialising SMP...");
-
     pfalloc::init();
     terminal::check(pfalloc::initialised, "Initialising Page Frame Allocator...");
 
@@ -131,6 +125,12 @@ void main(struct stivale2_struct *stivale2_struct)
         ustar::init(mod_tag->modules[i].begin);
     }
     terminal::check(ustar::initialised, "Initialising USTAR filesystem...");
+
+    gdt::init();
+    terminal::check(gdt::initialised, "Initialising Global Descriptor Table...");
+
+    smp::init();
+    terminal::check(smp::initialised, "Initialising SMP...");
 
     idt::init();
     terminal::check(idt::initialised, "Initialising Interrupt Descriptor Table...");

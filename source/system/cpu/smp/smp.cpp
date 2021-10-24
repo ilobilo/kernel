@@ -15,7 +15,7 @@ volatile bool cpu_up = false;
 
 static void ap_startup(stivale2_smp_info *cpu)
 {
-    serial::info("SMP: Started CPU: %d", cpu->lapic_id);
+    serial::info("SMP: Successfully started CPU: %d", cpu->lapic_id);
     cpu_up = true;
     while (true) asm ("hlt");
 }
@@ -23,6 +23,7 @@ static void ap_startup(stivale2_smp_info *cpu)
 void init()
 {
     serial::info("Initialising SMP");
+
     if (initialised)
     {
         serial::info("SMP already initialised!\n");
@@ -33,23 +34,31 @@ void init()
         serial::info("Can't initialise SMP! only one core available\n");
         return;
     }
+    if (!pfalloc::initialised)
+    {
+        serial::info("Page frame allocator has not been initialised!");
+        pfalloc::init();
+    }
+
     for (size_t i = 0; i < smp_tag->cpu_count; i++)
     {
+        uint64_t stack = (uint64_t)pfalloc::requestPage();
+        uint64_t sched_stack = (uint64_t)pfalloc::requestPage();
+
+        gdt::tss[i].RSP[0] = stack;
+        gdt::tss[i].IST[1] = sched_stack;
+
+        smp_tag->smp_info[i].target_stack = stack;
+        smp_tag->smp_info[i].goto_address = (uintptr_t)ap_startup;
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
-            uint64_t stack = (uint64_t)pfalloc::requestPage();
-            uint64_t sched_stack = (uint64_t)pfalloc::requestPage();
-
-            gdt::tss[i].RSP[0] = stack;
-            gdt::tss[i].IST[1] = sched_stack;
-
             smp_tag->smp_info[i].target_stack = stack;
             smp_tag->smp_info[i].goto_address = (uintptr_t)ap_startup;
             while(!cpu_up);
             cpu_up = false;
         }
     }
-    serial::newline();
+    serial::info("SMP: All CPUs are online!\n");
     initialised = true;
 }
 }
