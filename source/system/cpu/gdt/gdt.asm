@@ -13,3 +13,9 @@ LoadGDT:
     push rdi
     retfq
 GLOBAL LoadGDT
+
+LoadTSS:
+    mov ax, (7 * 8) | 3
+	ltr ax
+	ret
+GLOBAL LoadTSS
