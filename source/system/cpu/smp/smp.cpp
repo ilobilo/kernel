@@ -11,8 +11,6 @@ using namespace kernel::system::mm;
 namespace kernel::system::cpu::smp {
 
 bool initialised = false;
-using stack = uint8_t[4096];
-static stack stacks[64] = {0};
 volatile bool cpu_up = false;
 
 static void ap_startup(stivale2_smp_info *cpu)
