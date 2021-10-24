@@ -16,6 +16,7 @@
 #include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <system/cpu/smp/smp.hpp>
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
@@ -111,6 +112,9 @@ void main(struct stivale2_struct *stivale2_struct)
 
     gdt::init();
     terminal::check(gdt::initialised, "Initialising Global Descriptor Table...");
+
+    smp::init();
+    terminal::check(smp::initialised, "Initialising SMP...");
 
     pfalloc::init();
     terminal::check(pfalloc::initialised, "Initialising Page Frame Allocator...");
