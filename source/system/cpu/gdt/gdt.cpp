@@ -55,10 +55,7 @@ void init()
 
         DefaultGDT.Tss.AccessByte = 0xE9;
 
-        memory::memset(&tss, 0, sizeof(tss));
-
-        tss[i].RSP[0] = 0x10;
-        tss[i].RSP[1] = 0x00;
+        memory::memset(&tss[i], 0, sizeof(tss[i]));
 
         LoadGDT(&gdtDescriptor);
         LoadTSS();
