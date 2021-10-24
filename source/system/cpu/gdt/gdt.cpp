@@ -47,8 +47,8 @@ void init()
 
     for (uint64_t i = 0; i < smp_tag->cpu_count; i++)
     {
-        uintptr_t base = (uintptr_t) &tss;
-        uintptr_t limit = base + sizeof(tss);
+        uintptr_t base = (uintptr_t)&tss[i];
+        uintptr_t limit = base + sizeof(tss[i]);
 
         DefaultGDT.Tss.Base0 = (base & 0xFFFF);
         DefaultGDT.Tss.Base1 = (base >> 16) & 0xFF;
