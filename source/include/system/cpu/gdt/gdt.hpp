@@ -40,8 +40,8 @@ struct TSS {
 } __attribute__((packed));
 
 extern GDT DefaultGDT;
-
 extern bool initialised;
+extern TSS *tss;
 
 extern "C" void LoadGDT(GDTDescriptor *gdtDescriptor);
 extern "C" void LoadTSS();

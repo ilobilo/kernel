@@ -27,7 +27,8 @@ Contributors are welcome
 - [ ] Sound
 - [ ] Real filesystems (ext2, fat...)
 - [ ] Multithreading
-- [ ] TSS
+- [x] TSS
+- [x] SMP
 - [ ] Userspace
 - [x] System calls
 - [ ] ELF execution
