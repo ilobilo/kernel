@@ -37,40 +37,40 @@ CPPFLAGS = -Ofast -pipe -Wno-everything -Wsign-compare -Werror \
 LDFLAGS = 
 ASMFLAGS = -f elf64
 
-INTERNALLDFLAGS :=         \
+INTERNALLDFLAGS :=           \
 	-T$(SOURCEDIR)/linker.ld \
-	-nostdlib              \
-	-zmax-page-size=0x1000 \
-	-static                \
-	-pie                   \
-	--no-dynamic-linker    \
+	-nostdlib                \
+	-zmax-page-size=0x1000   \
+	-static                  \
+	-pie                     \
+	--no-dynamic-linker      \
 	-ztext
 
-INTERNALCFLAGS  :=       \
-	-target x86_64-linux \
-	-I$(SOURCEDIR)/include \
-	-std=c17             \
-	-ffreestanding       \
-	-fno-stack-protector \
-	-fpie                \
-	-mno-80387           \
-	-mno-mmx             \
-	-mno-3dnow           \
-	-mno-red-zone        \
-	-fno-exceptions
+INTERNALCFLAGS  :=             \
+	-target x86_64-pc-none-elf \
+	-I$(SOURCEDIR)/include     \
+	-std=gnu18                 \
+	-ffreestanding             \
+	-fno-exceptions            \
+	-fno-stack-protector       \
+	-fpie                      \
+	-mno-80387                 \
+	-mno-mmx                   \
+	-mno-3dnow                 \
+	-mno-red-zone
 
-INTERNALCPPFLAGS  :=     \
-	-target x86_64-linux \
-	-I$(SOURCEDIR)/include \
-	-std=c++20           \
-	-ffreestanding       \
-	-fno-stack-protector \
-	-fpie                \
-	-mno-80387           \
-	-mno-mmx             \
-	-mno-3dnow           \
-	-mno-red-zone        \
-	-fno-exceptions
+INTERNALCPPFLAGS  :=           \
+	-target x86_64-pc-none-elf \
+	-I$(SOURCEDIR)/include     \
+	-std=gnu++20               \
+	-ffreestanding             \
+	-fno-exceptions            \
+	-fno-stack-protector       \
+	-fpie                      \
+	-mno-80387                 \
+	-mno-mmx                   \
+	-mno-3dnow                 \
+	-mno-red-zone
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
 CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")

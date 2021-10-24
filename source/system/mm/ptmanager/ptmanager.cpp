@@ -204,16 +204,8 @@ void init()
     pfalloc::lockPages((void*)&__kernelstart, kernelpagecount);
 
     paging::PTable *PML4 = (paging::PTable*)getCRs().cr3;
-
     globalPTManager = PTManager(PML4);
-
-    for (uint64_t s = 0; s < memory::getmemsize(); s += 0x1000)
-    {
-        // This results in UEFI qemu framebuffer corruption
-        //globalPTManager.mapMem((void*)s, (void*)s);
-    }
 
     initialised = true;
 }
-
 }
