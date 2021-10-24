@@ -1,7 +1,12 @@
 #include <drivers/display/serial/serial.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
+#include <lib/memory.hpp>
+#include <main.hpp>
 
 using namespace kernel::drivers::display;
+using namespace kernel::system::mm;
+using namespace kernel::lib;
 
 namespace kernel::system::cpu::gdt {
 
@@ -17,6 +22,8 @@ GDT DefaultGDT = {
 };
 
 bool initialised = false;
+GDTDescriptor gdtDescriptor;
+TSS *tss;
 
 void init()
 {
@@ -28,11 +35,45 @@ void init()
         return;
     }
 
-    GDTDescriptor gdtDescriptor;
+    tss = (TSS*)heap::calloc(smp_tag->cpu_count, sizeof(TSS));
+
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
-    LoadGDT(&gdtDescriptor);
+
+    for (uint64_t i = 0; i < smp_tag->cpu_count; i++)
+    {
+        uintptr_t base = (uintptr_t) &tss;
+        uintptr_t limit = base + sizeof(tss);
+
+        DefaultGDT.Tss.Base0 = (base & 0xFFFF);
+        DefaultGDT.Tss.Base1 = (base >> 16) & 0xFF;
+        DefaultGDT.Tss.Base2 = base >> 24;
+
+        DefaultGDT.Tss.Limit0 = (limit & 0xFFFF);
+        DefaultGDT.Tss.Limit1_Flags = (limit >> 16) & 0x0F;
+        DefaultGDT.Tss.Limit1_Flags |= 0x00 & 0xF0;
+
+        DefaultGDT.Tss.AccessByte = 0xE9;
+
+        memory::memset(&tss, 0, sizeof(tss));
+
+        tss[i].RSP[0] = 0x10;
+        tss[i].RSP[1] = 0x00;
+
+        LoadGDT(&gdtDescriptor);
+        LoadTSS();
+    }
 
     initialised = true;
+}
+
+void set_stack(uint64_t cpu, uintptr_t stack)
+{
+    tss[cpu].RSP[0] = stack;
+}
+
+uint64_t get_stack(uint64_t cpu)
+{
+    return tss[cpu].RSP[0];
 }
 }
