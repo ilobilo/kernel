@@ -2,6 +2,7 @@
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 
@@ -161,6 +162,18 @@ void PTManager::mapUserMem(void *virtualMemory)
     PDE = L1->entries[indexer.P_i];
     PDE.setflag(paging::PT_Flag::UserSuper, true);
     L1->entries[indexer.P_i] = PDE;
+}
+
+paging::PTable *clonePTable(paging::PTable *oldptable)
+{
+    paging::PTable *newptable = (paging::PTable*)heap::malloc(sizeof(paging::PTable));
+    newptable = oldptable;
+    return newptable;
+}
+
+void switchPTable(paging::PTable *ptable)
+{
+    asm ("mov %0, %%cr3" : : "r" (ptable));
 }
 
 CRs getCRs()

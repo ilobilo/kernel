@@ -9,6 +9,7 @@ class PTManager
     public:
     PTManager(paging::PTable *PML4Address);
     paging::PTable *PML4;
+
     void mapMem(void *virtualMemory, void *physicalMemory);
     void unmapMem(void *virtualMemory);
     void mapUserMem(void *virtualMemory);
@@ -22,8 +23,10 @@ struct CRs
 };
 
 extern PTManager globalPTManager;
-
 extern bool initialised;
+
+paging::PTable *clonePTable(paging::PTable *oldptable);
+void switchPTable(paging::PTable *ptable);
 
 void init();
 }
