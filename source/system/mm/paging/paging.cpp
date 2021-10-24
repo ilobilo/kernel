@@ -26,5 +26,4 @@ void PDEntry::setAddr(uint64_t address)
     value &= 0xFFF0000000000FFF;
     value |= (address << 12);
 }
-
 }

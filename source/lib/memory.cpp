@@ -76,5 +76,4 @@ void memmove(void *dest, void *src, size_t n)
     for (size_t i = 0; i < n; i++) temp[i] = csrc[i];
     for (size_t i = 0; i < n; i++) cdest[i] = temp[i];
 }
-
 }
