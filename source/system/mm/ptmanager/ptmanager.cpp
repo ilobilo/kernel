@@ -197,7 +197,7 @@ extern "C" uint64_t __kernelstart;
 extern "C" uint64_t __kernelend;
 void init()
 {
-    serial::info("Initialising Page Table Manager\n");
+    serial::info("Initialising Page Table Manager");
 
     if (initialised)
     {
@@ -207,9 +207,10 @@ void init()
 
     if (!pfalloc::initialised)
     {
-        serial::info("Page frame allocator has not been initialised!\n");
+        serial::info("Page frame allocator has not been initialised!");
         pfalloc::init();
     }
+    else serial::newline();
 
     uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
     uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;

@@ -194,7 +194,7 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
 
 void init()
 {
-    serial::info("Initialising PCI\n");
+    serial::info("Initialising PCI");
 
     if (initialised)
     {
@@ -209,9 +209,10 @@ void init()
     }
     if (!acpi::initialised)
     {
-        serial::info("ACPI has not been initialised!\n");
+        serial::info("ACPI has not been initialised!");
         acpi::init();
     }
+    else serial::newline();
 
     bool temp = heap::debug;
     heap::debug = false;

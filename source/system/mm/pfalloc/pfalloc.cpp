@@ -20,13 +20,14 @@ uintptr_t highest_page = 0;
 
 void init()
 {
-    serial::info("Initialising Page Frame Allocator\n");
+    serial::info("Initialising Page Frame Allocator");
 
     if (initialised)
     {
         serial::info("Page frame allocator has already been initialised!\n");
         return;
     }
+    else serial::newline();
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {

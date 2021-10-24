@@ -165,7 +165,7 @@ void proccesspacket()
 
     drawing::drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
     drawing::drawovercursor(cursorborder, mousepos, mousebordercol, false);
-    
+
     packetready = false;
     mouseposold = mousepos;
 }
@@ -204,7 +204,7 @@ static void Mouse_Handler(idt::interrupt_registers *)
 
 void init()
 {
-    serial::info("Initialising PS2 mouse\n");
+    serial::info("Initialising PS2 mouse");
 
     if (initialised)
     {
@@ -214,9 +214,10 @@ void init()
 
     if (!idt::initialised)
     {
-        serial::info("IDT has not been initialised!\n");
+        serial::info("IDT has not been initialised!");
         idt::init();
     }
+    else serial::newline();
 
     asm volatile ("cli");
 

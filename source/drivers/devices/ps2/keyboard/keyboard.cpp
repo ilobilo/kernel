@@ -212,7 +212,7 @@ char *getline()
 
 void init()
 {
-    serial::info("Initialising PS2 keyboard\n");
+    serial::info("Initialising PS2 keyboard");
 
     if (initialised)
     {
@@ -222,9 +222,10 @@ void init()
 
     if (!idt::initialised)
     {
-        serial::info("IDT has not been initialised!\n");
+        serial::info("IDT has not been initialised!");
         idt::init();
     }
+    else serial::newline();
 
     register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
     buff[0] = '\0';

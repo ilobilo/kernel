@@ -8,16 +8,14 @@ using namespace kernel::lib;
 
 namespace kernel::system::sched::pit {
 
-uint64_t frequency = 100;
-
 bool initialised = false;
-
+uint64_t frequency = 100;
 uint64_t tick = 0;
 
 void sleep(double sec)
 {
     long start = tick;
-    while (tick < start + sec * 100)
+    while (tick < start + sec * frequency)
     {
         asm ("hlt");
     }
@@ -49,7 +47,7 @@ void setfreq(uint64_t freq)
 
 void init(uint64_t freq)
 {
-    serial::info("Initialising PIT\n");
+    serial::info("Initialising PIT");
 
     if (initialised)
     {
@@ -59,9 +57,10 @@ void init(uint64_t freq)
 
     if (!idt::initialised)
     {
-        serial::info("IDT has not been initialised!\n");
+        serial::info("IDT has not been initialised!");
         idt::init();
     }
+    else serial::newline();
 
     frequency = freq;
 
