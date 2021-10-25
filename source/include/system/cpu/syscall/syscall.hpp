@@ -56,8 +56,8 @@ namespace kernel::system::cpu::syscall {
 using syscall_t = void (*)(idt::interrupt_registers *);
 
 char *read(char *string, int length);
-void write(char *string, int length);
-void err(char *string, int length);
+char *write(char *string, int length);
+char *err(char *string, int length);
 
 extern "C" void syscall_handler(idt::interrupt_registers *regs);
 }
