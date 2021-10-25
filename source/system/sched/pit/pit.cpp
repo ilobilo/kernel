@@ -15,10 +15,7 @@ uint64_t tick = 0;
 void sleep(double sec)
 {
     long start = tick;
-    while (tick < start + sec * frequency)
-    {
-        asm ("hlt");
-    }
+    while (tick < start + sec * frequency) asm ("hlt");
 }
 
 uint64_t get_tick()
@@ -55,19 +52,13 @@ void init(uint64_t freq)
         return;
     }
 
-    if (!idt::initialised)
-    {
-        serial::info("IDT has not been initialised!");
-        idt::init();
-    }
-    else serial::newline();
-
     frequency = freq;
 
     setfreq(frequency);
 
     register_interrupt_handler(idt::IRQS::IRQ0, PIT_Handler);
 
+    serial::newline();
     initialised = true;
 }
 }

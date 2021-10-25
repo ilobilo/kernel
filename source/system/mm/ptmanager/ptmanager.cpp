@@ -205,13 +205,6 @@ void init()
         return;
     }
 
-    if (!pfalloc::initialised)
-    {
-        serial::info("Page frame allocator has not been initialised!");
-        pfalloc::init();
-    }
-    else serial::newline();
-
     uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
     uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
 
@@ -220,6 +213,7 @@ void init()
     paging::PTable *PML4 = (paging::PTable*)getCRs().cr3;
     globalPTManager = PTManager(PML4);
 
+    serial::newline();
     initialised = true;
 }
 }

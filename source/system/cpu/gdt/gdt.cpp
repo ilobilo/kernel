@@ -34,11 +34,6 @@ void init()
         serial::info("GDT has already been initialised!\n");
         return;
     }
-    if (!heap::initialised)
-    {
-        serial::info("Heap has not been initialised!");
-        heap::init();
-    }
 
     tss = (TSS*)heap::calloc(smp_tag->cpu_count, sizeof(TSS));
 

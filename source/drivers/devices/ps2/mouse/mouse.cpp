@@ -212,13 +212,6 @@ void init()
         return;
     }
 
-    if (!idt::initialised)
-    {
-        serial::info("IDT has not been initialised!");
-        idt::init();
-    }
-    else serial::newline();
-
     asm volatile ("cli");
 
     io::outb(0x64, 0xA8);
@@ -244,6 +237,7 @@ void init()
 
     register_interrupt_handler(idt::IRQS::IRQ12, Mouse_Handler);
 
+    serial::newline();
     initialised = true;
 }
 }

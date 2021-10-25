@@ -61,17 +61,17 @@ void syscall_handler(idt::interrupt_registers *regs)
 char *read(char *string, int length)
 {
     uint64_t ret;
-    SYSCALL3(0, 1, (uint64_t)string, (uint64_t)length);
+    SYSCALL3(SYSCALL_READ, 1, (uint64_t)string, (uint64_t)length);
     return string;
 }
 void write(char *string, int length)
 {
     uint64_t ret;
-    SYSCALL3(1, 0, (uint64_t)string, (uint64_t)length);
+    SYSCALL3(SYSCALL_WRITE, 0, (uint64_t)string, (uint64_t)length);
 }
 void err(char *string, int length)
 {
     uint64_t ret;
-    SYSCALL3(1, 2, (uint64_t)string, (uint64_t)length);
+    SYSCALL3(SYSCALL_WRITE, 2, (uint64_t)string, (uint64_t)length);
 }
 }

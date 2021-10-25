@@ -204,15 +204,10 @@ void init()
     if (acpi::mcfg == NULL)
     {
         serial::err("MCFG was not found");
-        serial::info("Using legacy way\n");
+        serial::info("Using legacy way");
         legacy = true;
     }
-    if (!acpi::initialised)
-    {
-        serial::info("ACPI has not been initialised!");
-        acpi::init();
-    }
-    else serial::newline();
+    serial::newline();
 
     bool temp = heap::debug;
     heap::debug = false;
@@ -262,8 +257,8 @@ void init()
             }
         }
     }
-    serial::newline();
 
+    serial::newline();
     heap::debug = temp;
     initialised = true;
 }
