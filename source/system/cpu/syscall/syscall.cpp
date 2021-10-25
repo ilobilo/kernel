@@ -15,8 +15,8 @@ namespace kernel::system::cpu::syscall {
 
 static void syscall_read(idt::interrupt_registers *regs)
 {
-    char *str = "Read currently not working\n";
-    S_ARG1_RSI = (uint64_t)str;
+    char *str = "Read currently not working!\n";
+    S_RAX = (uint64_t)str;
 }
 
 static void syscall_write(idt::interrupt_registers *regs)
@@ -29,6 +29,7 @@ static void syscall_write(idt::interrupt_registers *regs)
             memory::memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
             str[S_ARG2_RDX] = 0;
             printf("%s", str);
+            S_RAX = (uint64_t)str;
             heap::free(str);
             break;
         }
@@ -40,6 +41,7 @@ static void syscall_write(idt::interrupt_registers *regs)
             memory::memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
             str[S_ARG2_RDX] = 0;
             serial::err("%s", str);
+            S_RAX = (uint64_t)str;
             heap::free(str);
             break;
         }
@@ -62,16 +64,18 @@ char *read(char *string, int length)
 {
     uint64_t ret;
     SYSCALL3(SYSCALL_READ, 1, (uint64_t)string, (uint64_t)length);
-    return string;
+    return (char*)ret;
 }
-void write(char *string, int length)
+char *write(char *string, int length)
 {
     uint64_t ret;
     SYSCALL3(SYSCALL_WRITE, 0, (uint64_t)string, (uint64_t)length);
+    return (char*)ret;
 }
-void err(char *string, int length)
+char *err(char *string, int length)
 {
     uint64_t ret;
     SYSCALL3(SYSCALL_WRITE, 2, (uint64_t)string, (uint64_t)length);
+    return (char*)ret;
 }
 }
