@@ -22,7 +22,6 @@ namespace kernel::apps::kshell {
 
 void shell_parse(char *cmd, char *arg)
 {
-    char *command = string::strdup(cmd);
     switch (string::hash(cmd))
     {
         case string::hash("help"):
