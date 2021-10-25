@@ -1,8 +1,6 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/sched/lock/lock.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <stivale2.h>
