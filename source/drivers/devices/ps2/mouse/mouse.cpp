@@ -1,5 +1,5 @@
+#include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/drawing/drawing.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -156,15 +156,15 @@ void proccesspacket()
     }
 
     if (mousepos.X < 0) mousepos.X = 0;
-    if (mousepos.X > drawing::frm_width - 1) mousepos.X = drawing::frm_width - 1;
+    if (mousepos.X > framebuffer::frm_width - 1) mousepos.X = framebuffer::frm_width - 1;
 
     if (mousepos.Y < 0) mousepos.Y = 0;
-    if (mousepos.Y > drawing::frm_height - 1) mousepos.Y = drawing::frm_height - 1;
+    if (mousepos.Y > framebuffer::frm_height - 1) mousepos.Y = framebuffer::frm_height - 1;
 
-    drawing::clearcursor(cursorinside, mouseposold);
+    framebuffer::clearcursor(cursorinside, mouseposold);
 
-    drawing::drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
-    drawing::drawovercursor(cursorborder, mousepos, mousebordercol, false);
+    framebuffer::drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
+    framebuffer::drawovercursor(cursorborder, mousepos, mousebordercol, false);
 
     packetready = false;
     mouseposold = mousepos;

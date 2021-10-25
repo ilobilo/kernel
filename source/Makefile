@@ -1,6 +1,7 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 BACKGROUND := $(SOURCEDIR)/bg.bmp
 FONT := $(SOURCEDIR)/font.bin
+SFNFONT := $(SOURCEDIR)/font.sfn
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
@@ -98,7 +99,7 @@ test: $(KERNEL) initrd
 $(KERNEL):
 	$(MAKE) $(OBJ)
 	@printf "LD\t%s\n" $(lastword $(subst /, ,$(KERNEL)))
-	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
+	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(SFNFONT) $(OBJ) -o $@
 
 %.o: %.c
 	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
