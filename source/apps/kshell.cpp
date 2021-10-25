@@ -22,64 +22,79 @@ namespace kernel::apps::kshell {
 
 void shell_parse(char *cmd, char *arg)
 {
-    if (!string::strcmp(cmd, "help"))
+    char *command = string::strdup(cmd);
+    switch (string::hash(cmd))
     {
-        printf("Supported commands:\n");
-        printf("- help\t-- This\n");
-        printf("- clear\t-- Clear terminal\n");
-        printf("- ls\t-- List files\n");
-        printf("- free\t-- Get memory info in bytes\n");
-        printf("-  -h\t-- Get memory info in MB\n");
-        printf("- time\t-- Get current RTC time\n");
-        printf("- timef\t-- Get current RTC time (Forever loop)\n");
-        printf("- tick\t-- Get current PIT tick\n");
-        printf("- pci\t-- List PCI devices\n");
-        printf("- crash\t-- Crash whole system\n");
-    }
-    else if (!string::strcmp(cmd, "clear")) terminal::clear();
-    else if (!string::strcmp(cmd, "ls")) ustar::list();
-    else if (!string::strcmp(cmd, "cat")) ustar::cat(arg);
-    else if (!string::strcmp(cmd, "free"))
-    {
-        double usable = memory::getmemsize();
-        double free = pfalloc::getFreeRam();
-        if (!string::strcmp(arg, "-h"))
+        case string::hash("help"):
+            printf("Supported commands:\n");
+            printf("- help\t-- This\n");
+            printf("- clear\t-- Clear terminal\n");
+            printf("- ls\t-- List files\n");
+            printf("- free\t-- Get memory info in bytes\n");
+            printf("-  -h\t-- Get memory info in MB\n");
+            printf("- time\t-- Get current RTC time\n");
+            printf("- timef\t-- Get current RTC time (Forever loop)\n");
+            printf("- tick\t-- Get current PIT tick\n");
+            printf("- pci\t-- List PCI devices\n");
+            printf("- crash\t-- Crash whole system\n");
+            break;
+        case string::hash("clear"):
+            terminal::clear();
+            break;
+        case string::hash("ls"):
+            ustar::list();
+            break;
+        case string::hash("cat"):
+            ustar::cat(arg);
+            break;
+        case string::hash("free"):
         {
-            usable = usable / 1024 / 1024;
-            free = free / 1024 / 1024;
-            printf("Usable memory: %.2f MB\nFree memory: %.2f MB\nUsed memory: %.2f MB\n", usable, free, usable - free);
+            double usable = memory::getmemsize();
+            double free = pfalloc::getFreeRam();
+            if (!string::strcmp(arg, "-h"))
+            {
+                usable = usable / 1024 / 1024;
+                free = free / 1024 / 1024;
+                printf("Usable memory: %.2f MB\nFree memory: %.2f MB\nUsed memory: %.2f MB\n", usable, free, usable - free);
+            }
+            else printf("Usable memory: %.0f Bytes\nFree memory: %.0f Bytes\nUsed memory: %.0f Bytes\n", usable, free, usable - free);
+            break;
         }
-        else printf("Usable memory: %.0f Bytes\nFree memory: %.0f Bytes\nUsed memory: %.0f Bytes\n", usable, free, usable - free);
+        case string::hash("time"):
+            printf("%s\n", rtc::getTime());
+            break;
+        case string::hash("tick"):
+            printf("%ld\n", pit::get_tick());
+            break;
+        case string::hash("timef"):
+            while (true)
+            {
+                printf("%s", rtc::getTime());
+                pit::sleep(1);
+                printf("\r\033[2K");
+            }
+            break;
+        case string::hash("pci"):
+            for (uint64_t i = 0; i < pci::pcidevcount; i++)
+            {
+                printf("%s / %s / %s / %s / %s\n",
+                    pci::pcidevices[i]->vendorstr,
+                    pci::pcidevices[i]->devicestr,
+                    pci::pcidevices[i]->ClassStr,
+                    pci::pcidevices[i]->subclassStr,
+                    pci::pcidevices[i]->progifstr);
+            }
+            break;
+        case string::hash("crash"):
+            asm volatile ("int $0x3");
+            asm volatile ("int $0x4");
+            break;
+        case string::hash(""):
+            break;
+        default:
+            printf("\033[31mCommand not found!\033[0m\n");
+            break;
     }
-    else if (!string::strcmp(cmd, "time")) printf("%s\n", rtc::getTime());
-    else if (!string::strcmp(cmd, "tick")) printf("%ld\n", pit::get_tick());
-    else if (!string::strcmp(cmd, "timef"))
-    {
-        while (true)
-        {
-            printf("%s", rtc::getTime());
-            pit::sleep(1);
-            printf("\r\033[2K");
-        }
-    }
-    else if (!string::strcmp(cmd, "pci"))
-    {
-        for (uint64_t i = 0; i < pci::pcidevcount; i++)
-        {
-            printf("%s / %s / %s / %s / %s\n",
-                pci::pcidevices[i]->vendorstr,
-                pci::pcidevices[i]->devicestr,
-                pci::pcidevices[i]->ClassStr,
-                pci::pcidevices[i]->subclassStr,
-                pci::pcidevices[i]->progifstr);
-        }
-    }
-    else if (!string::strcmp(cmd, "crash"))
-    {
-        asm volatile ("int $0x3");
-        asm volatile ("int $0x4");
-    }
-    else if (string::strcmp(cmd, "")) printf("\033[31mCommand not found!\033[0m\n");
 }
 
 void run()
