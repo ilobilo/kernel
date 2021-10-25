@@ -53,7 +53,7 @@ void list();
 
 char *cat(char *name);
 
-int getid(char *name);
+int getid(const char *name);
 
 int search(char *filename, char **contents);
 

@@ -1,15 +1,16 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
-using namespace kernel::lib;
-
 using namespace kernel::system::cpu;
+using namespace kernel::lib;
 
 namespace kernel::drivers::display::serial {
 
 bool initialised = false;
+DEFINE_LOCK(lock);
 
 bool check()
 {
@@ -42,30 +43,36 @@ void printc(char c, __attribute__((unused)) void *arg)
 
 void serial_printf(const char *fmt, ...)
 {
+    acquire_lock(&lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, fmt, args);
     va_end(args);
+    release_lock(&lock);
 }
 
 void info(const char *fmt, ...)
 {
+    acquire_lock(&lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, "[\033[33mINFO\033[0m] ", args);
     vfctprintf(&printc, nullptr, fmt, args);
     vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
+    release_lock(&lock);
 }
 
 void err(const char *fmt, ...)
 {
+    acquire_lock(&lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, "[\033[31mERROR\033[0m] ", args);
     vfctprintf(&printc, nullptr, fmt, args);
     vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
+    release_lock(&lock);
 }
 
 void newline()

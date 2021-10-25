@@ -46,6 +46,9 @@ extern TSS *tss;
 extern "C" void LoadGDT(GDTDescriptor *gdtDescriptor);
 extern "C" void LoadTSS();
 
+void reloadall(int cpu);
+void reloadgdt();
+void reloadtss();
 void init();
 
 void TSS_write(uint64_t RSP0, uint64_t RSP1);

@@ -25,6 +25,35 @@ bool initialised = false;
 GDTDescriptor gdtDescriptor;
 TSS *tss;
 
+void reloadgdt()
+{
+    LoadGDT(&gdtDescriptor);
+}
+
+void reloadtss()
+{
+    LoadTSS();
+}
+
+void reloadall(int cpu)
+{
+    uintptr_t base = (uintptr_t)&tss[cpu];
+    uintptr_t limit = base + sizeof(tss[cpu]);
+
+    DefaultGDT.Tss.Base0 = (base & 0xFFFF);
+    DefaultGDT.Tss.Base1 = (base >> 16) & 0xFF;
+    DefaultGDT.Tss.Base2 = base >> 24;
+
+    DefaultGDT.Tss.Limit0 = (limit & 0xFFFF);
+    DefaultGDT.Tss.Limit1_Flags = (limit >> 16) & 0x0F;
+    DefaultGDT.Tss.Limit1_Flags |= 0x00 & 0xF0;
+
+    DefaultGDT.Tss.AccessByte = 0xE9;
+
+    reloadgdt();
+    reloadtss();
+}
+
 void init()
 {
     serial::info("Initialising GDT");
@@ -40,26 +69,7 @@ void init()
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
 
-    for (uint64_t i = 0; i < smp_tag->cpu_count; i++)
-    {
-        uintptr_t base = (uintptr_t)&tss[i];
-        uintptr_t limit = base + sizeof(tss[i]);
-
-        DefaultGDT.Tss.Base0 = (base & 0xFFFF);
-        DefaultGDT.Tss.Base1 = (base >> 16) & 0xFF;
-        DefaultGDT.Tss.Base2 = base >> 24;
-
-        DefaultGDT.Tss.Limit0 = (limit & 0xFFFF);
-        DefaultGDT.Tss.Limit1_Flags = (limit >> 16) & 0x0F;
-        DefaultGDT.Tss.Limit1_Flags |= 0x00 & 0xF0;
-
-        DefaultGDT.Tss.AccessByte = 0xE9;
-
-        memory::memset(&tss[i], 0, sizeof(tss[i]));
-
-        LoadGDT(&gdtDescriptor);
-        LoadTSS();
-    }
+    reloadall(smp_tag->bsp_lapic_id);
 
     serial::newline();
     initialised = true;
