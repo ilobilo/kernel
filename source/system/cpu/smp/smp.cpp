@@ -34,11 +34,6 @@ void init()
         serial::info("Can't initialise SMP! only one core available\n");
         return;
     }
-    if (!pfalloc::initialised)
-    {
-        serial::info("Page frame allocator has not been initialised!");
-        pfalloc::init();
-    }
 
     for (size_t i = 0; i < smp_tag->cpu_count; i++)
     {

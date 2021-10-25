@@ -33,18 +33,19 @@ void init()
     {
         use_xstd = true;
         rsdt = (SDTHeader*)rsdp->xsdtaddr;
-        serial::info("Found XSDT at: 0x%X\n", rsdt);
+        serial::info("Found XSDT at: 0x%X", rsdt);
     }
     else
     {
         use_xstd = false;
         rsdt = (SDTHeader*)rsdp->rsdtaddr;
-        serial::info("Found RSDT at: 0x%X\n", rsdt);
+        serial::info("Found RSDT at: 0x%X", rsdt);
     }
 
     mcfg = (MCFGHeader*)acpi::findtable(rsdt, (char*)"MCFG");
     fadt = (FADTHeader*)acpi::findtable(rsdt, (char*)"FACP");
 
+    serial::newline();
     initialised = true;
 }
 

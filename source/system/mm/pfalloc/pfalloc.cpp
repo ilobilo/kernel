@@ -27,7 +27,6 @@ void init()
         serial::info("Page frame allocator has already been initialised!\n");
         return;
     }
-    else serial::newline();
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {
@@ -53,6 +52,7 @@ void init()
     reservePages(0, 0x100);
     lockPages(PageBitmap.buffer, PageBitmap.size / 4096 + 1);
 
+    serial::newline();
     initialised = true;
 }
 

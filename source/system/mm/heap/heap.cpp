@@ -11,7 +11,7 @@ using namespace kernel::lib;
 namespace kernel::system::mm::heap {
 
 bool initialised = false;
-bool debug = true;
+bool debug = false;
 
 void *heapStart;
 void *heapEnd;
@@ -28,13 +28,6 @@ void init(void *heapAddr, size_t pageCount)
         serial::info("Heap has already been initialised!\n");
         return;
     }
-
-    if (!ptmanager::initialised)
-    {
-        serial::info("Page table manager has not been initialised!");
-        ptmanager::init();
-    }
-    else serial::newline();
 
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
@@ -54,6 +47,7 @@ void init(void *heapAddr, size_t pageCount)
     startSeg->free = true;
     lastHdr = startSeg;
 
+    serial::newline();
     initialised = true;
 }
 

@@ -40,7 +40,6 @@ void init()
         serial::info("IDT has already been initialised!\n");
         return;
     }
-    else serial::newline();
 
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
@@ -50,6 +49,7 @@ void init()
     asm volatile ("lidt %0" : : "memory"(idtr));
     asm volatile ("sti");
 
+    serial::newline();
     initialised = true;
 }
 

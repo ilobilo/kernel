@@ -165,17 +165,11 @@ void init(unsigned int address)
         return;
     }
 
-    if (!heap::initialised)
-    {
-        serial::info("Heap has not been initialised!");
-        heap::init();
-    }
-    else serial::newline();
-
     headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
 
     parse(address);
 
+    serial::newline();
     initialised = true;
 }
 }

@@ -220,16 +220,10 @@ void init()
         return;
     }
 
-    if (!idt::initialised)
-    {
-        serial::info("IDT has not been initialised!");
-        idt::init();
-    }
-    else serial::newline();
-
     register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
     buff[0] = '\0';
 
+    serial::newline();
     initialised = true;
 }
 }
