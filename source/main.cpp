@@ -1,6 +1,6 @@
+#include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/drawing/drawing.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmindexer/pmindexer.hpp>
@@ -17,6 +17,7 @@
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <drivers/font/font.hpp>
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
@@ -24,6 +25,7 @@
 #include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
+#include <ssfn.h>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -92,7 +94,8 @@ void main(struct stivale2_struct *stivale2_struct)
         serial::err("System halted!\n");
         while (true) asm volatile ("cli; hlt");
     }
-    drawing::init();
+    framebuffer::init();
+    font::init();
 
     if (term_tag == NULL)
     {
@@ -129,11 +132,11 @@ void main(struct stivale2_struct *stivale2_struct)
     gdt::init();
     terminal::check(gdt::initialised, "Initialising Global Descriptor Table...");
 
-    smp::init();
-    terminal::check(smp::initialised, "Initialising SMP...");
-
     idt::init();
     terminal::check(idt::initialised, "Initialising Interrupt Descriptor Table...");
+
+    smp::init();
+    terminal::check(smp::initialised, "Initialising SMP...");
 
     acpi::init();
     terminal::check(acpi::initialised, "Initialising ACPI...");

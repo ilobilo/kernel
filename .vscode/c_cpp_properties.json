@@ -6,8 +6,8 @@
                 "${workspaceFolder}/source/include/"
             ],
             "defines": [
-                "GIT_VERSION",
-                "KERNEL_VERSION"
+                "GIT_VERSION=0",
+                "KERNEL_VERSION=0"
             ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
