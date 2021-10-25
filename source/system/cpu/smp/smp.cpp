@@ -1,6 +1,10 @@
 #include <drivers/display/serial/serial.hpp>
+#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/sched/lock/lock.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
+#include <system/cpu/idt/idt.hpp>
 #include <stivale2.h>
 #include <main.hpp>
 
@@ -13,11 +17,23 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 volatile bool cpu_up = false;
 
-static void ap_startup(stivale2_smp_info *cpu)
+extern "C" void InitSSE();
+static void cpu_init(stivale2_smp_info *cpu)
 {
-    serial::info("SMP: Successfully started CPU: %d", cpu->lapic_id);
-    cpu_up = true;
-    while (true) asm ("hlt");
+    gdt::reloadall(cpu->lapic_id);
+    idt::reload();
+
+    ptmanager::switchPTable(ptmanager::globalPTManager.PML4);
+
+    InitSSE();
+
+    serial::info("SMP: CPU %d is up", cpu->lapic_id);
+
+    if (cpu->lapic_id != smp_tag->bsp_lapic_id)
+    {
+        cpu_up = true;
+        while (true) asm volatile ("hlt");
+    }
 }
 
 void init()
@@ -43,17 +59,17 @@ void init()
         gdt::tss[i].RSP[0] = stack;
         gdt::tss[i].IST[1] = sched_stack;
 
-        smp_tag->smp_info[i].target_stack = stack;
-        smp_tag->smp_info[i].goto_address = (uintptr_t)ap_startup;
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
             smp_tag->smp_info[i].target_stack = stack;
-            smp_tag->smp_info[i].goto_address = (uintptr_t)ap_startup;
-            while(!cpu_up);
+            smp_tag->smp_info[i].goto_address = (uintptr_t)cpu_init;
+            while (!cpu_up);
             cpu_up = false;
         }
+        else cpu_init(&smp_tag->smp_info[i]);
     }
-    serial::info("SMP: All CPUs are online!\n");
+
+    serial::info("SMP: All CPUs are up\n");
     initialised = true;
 }
 }

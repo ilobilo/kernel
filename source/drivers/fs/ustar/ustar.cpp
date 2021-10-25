@@ -126,16 +126,13 @@ char *cat(char *name)
     return "Invalid file name!";
 }
 
-int getid(char *name)
+int getid(const char *name)
 {
     if (!check()) return 0;
 
     for (uint64_t i = 0; i < filecount; ++i)
     {
-        if(!string::strcmp(headers[i].header->name, name))
-        {
-            return i;
-        }
+        if(!string::strcmp(headers[i].header->name, name)) return i;
     }
     return 0;
 }

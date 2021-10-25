@@ -130,6 +130,8 @@ extern idtr_t idtr;
 
 extern bool initialised;
 
+void reload();
+
 void init();
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
 

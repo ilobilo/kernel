@@ -31,6 +31,11 @@ void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 
 void isr_install();
 
+void reload()
+{
+    asm volatile ("lidt %0" : : "memory"(idtr));
+}
+
 void init()
 {
     serial::info("Initialising IDT");
@@ -46,7 +51,7 @@ void init()
 
     isr_install();
 
-    asm volatile ("lidt %0" : : "memory"(idtr));
+    reload();
     asm volatile ("sti");
 
     serial::newline();
