@@ -10,7 +10,6 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
-using namespace kernel::lib;
 
 namespace kernel::drivers::ps2::kbd {
 
@@ -63,7 +62,7 @@ void handle_comb(uint8_t scancode)
         terminal::clear();
         if (reading)
         {
-            memory::memset(retstr, '\0', 1024);
+            memset(retstr, '\0', 1024);
             enter = true;
         }
     }
@@ -76,7 +75,7 @@ char c[10] = "\0";
 // Clear keyboard buffer
 void clearbuff()
 {
-    for (size_t i = 0; i < string::strlen(buff); i++)
+    for (size_t i = 0; i < strlen(buff); i++)
     {
         buff[i] = '\0';
     }
@@ -85,7 +84,7 @@ void clearbuff()
 // Main keyboard handler
 static void Keyboard_Handler(idt::interrupt_registers *)
 {
-    uint8_t scancode = io::inb(0x60);
+    uint8_t scancode = inb(0x60);
 
     if (scancode & 0x80)
     {
@@ -127,23 +126,23 @@ static void Keyboard_Handler(idt::interrupt_registers *)
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
                 break;
             case keys::UP:
-                string::strcpy(c, "\033[A");
+                strcpy(c, "\033[A");
                 terminal::print(c);
                 break;
             case keys::DOWN:
-                string::strcpy(c, "\033[B");
+                strcpy(c, "\033[B");
                 terminal::print(c);
                 break;
             case keys::RIGHT:
-                string::strcpy(c, "\033[C");
+                strcpy(c, "\033[C");
                 terminal::print(c);
                 break;
             case keys::LEFT:
-                string::strcpy(c, "\033[D");
+                strcpy(c, "\033[D");
                 terminal::print(c);
                 break;
             default:
-                memory::memset(c, 0, string::strlen(c));
+                memset(c, 0, strlen(c));
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
@@ -161,7 +160,7 @@ static void Keyboard_Handler(idt::interrupt_registers *)
                         case '\b':
                             if (buff[0] != '\0')
                             {
-                                buff[string::strlen(buff) - 1] = '\0';
+                                buff[strlen(buff) - 1] = '\0';
                                 if (reading) retstr[--gi] = 0;
                                 printf("\b \b");
                             }
@@ -169,7 +168,7 @@ static void Keyboard_Handler(idt::interrupt_registers *)
                         default:
                             pressed = true;
                             terminal::print(c);
-                            string::strcat(buff, c);
+                            strcat(buff, c);
                             break;
                     }
                 }
@@ -190,7 +189,7 @@ char *getline()
 {
     acquire_lock(&getline_lock);
     reading = true;
-    memory::memset(retstr, '\0', 1024);
+    memset(retstr, '\0', 1024);
     while (!enter)
     {
         if (pressed)

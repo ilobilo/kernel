@@ -2,18 +2,16 @@
 #include <stdint.h>
 #include <stddef.h>
 
-namespace kernel::lib::memory {
-
 uint64_t getmemsize()
 {
     static uint64_t meminbytes = 0;
     if (meminbytes > 0) return meminbytes;
 
-    for (uint64_t i = 0; i < mmap_tag->entries; i++)
+    for (uint64_t i = 0; i < kernel::mmap_tag->entries; i++)
     {
-        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
+        if (kernel::mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
 
-        meminbytes += mmap_tag->memmap[i].length;
+        meminbytes += kernel::mmap_tag->memmap[i].length;
     }
 
     return meminbytes;
@@ -75,5 +73,4 @@ void memmove(void *dest, void *src, size_t n)
     char temp[n];
     for (size_t i = 0; i < n; i++) temp[i] = csrc[i];
     for (size_t i = 0; i < n; i++) cdest[i] = temp[i];
-}
 }

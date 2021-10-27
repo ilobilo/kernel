@@ -12,7 +12,6 @@ using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
 using namespace kernel::system::power;
 using namespace kernel::system::mm;
-using namespace kernel::lib;
 
 namespace kernel::system::pci {
 
@@ -64,11 +63,11 @@ translatedpcideviceheader *translate(pcideviceheader* device)
     if (use_pciids)
     {
         char *buffer = (char*)heap::malloc(100 * sizeof(char));
-        pcidevice->vendorstr = string::strdup(getvendorname(device->vendorid, buffer));
-        if (!string::strcmp(pcidevice->vendorstr, "")) pcidevice->vendorstr = string::strdup(getvendorname(device->vendorid));
+        pcidevice->vendorstr = strdup(getvendorname(device->vendorid, buffer));
+        if (!strcmp(pcidevice->vendorstr, "")) pcidevice->vendorstr = strdup(getvendorname(device->vendorid));
 
-        pcidevice->devicestr = string::strdup(getdevicename(device->vendorid, device->deviceid, buffer));
-        if (!string::strcmp(pcidevice->devicestr, "")) pcidevice->devicestr = string::strdup(getvendorname(device->deviceid));
+        pcidevice->devicestr = strdup(getdevicename(device->vendorid, device->deviceid, buffer));
+        if (!strcmp(pcidevice->devicestr, "")) pcidevice->devicestr = strdup(getvendorname(device->deviceid));
         heap::free(buffer);
     }
     else
@@ -95,12 +94,12 @@ translatedpcideviceheader *translate(pcideviceheader* device)
 
 void add(pcideviceheader *device)
 {
-    if (pcidevcount >= (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader)))
+    if (pcidevcount >= (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader*)))
     {
         pciAllocate += 10;
-        pcidevices = (translatedpcideviceheader**)heap::realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader));
+        pcidevices = (translatedpcideviceheader**)heap::realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader*));
     }
-    if (pcidevcount < (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader)))
+    if (pcidevcount < (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader*)))
     {
         pcidevices[pcidevcount] = translate(device);
         pcidevcount++;
@@ -121,8 +120,8 @@ uint16_t read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
     uint64_t lfunc = (uint64_t)func;
     uint16_t tmp = 0;
     address = (uint64_t)((lbus << 16) | (lslot << 11) | (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
-    io::outl(0xCF8, address);
-    tmp = (uint16_t)((io::inl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
+    outl(0xCF8, address);
+    tmp = (uint16_t)((inl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
     return (tmp);
 }
 
@@ -214,7 +213,7 @@ void init()
 
     if (use_pciids) ustar::search("/pci.ids", &PCIids);
 
-    pcidevices = (translatedpcideviceheader**)heap::malloc(pciAllocate * sizeof(translatedpcideviceheader));
+    pcidevices = (translatedpcideviceheader**)heap::malloc(pciAllocate * sizeof(translatedpcideviceheader*));
 
     if (!legacy)
     {

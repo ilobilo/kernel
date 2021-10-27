@@ -6,7 +6,6 @@
 #include <lib/memory.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::lib;
 
 namespace kernel::system::mm::heap {
 
@@ -143,7 +142,7 @@ void *calloc(size_t num, size_t size)
     void *ptr = malloc(num * size);
     if (!ptr) return NULL;
 
-    memory::memset(ptr, 0, num * size);
+    memset(ptr, 0, num * size);
     return ptr;
 }
 
@@ -164,7 +163,7 @@ void *realloc(void *ptr, size_t size)
     void *newptr = malloc(size);
     if (!newptr) return ptr;
 
-    memory::memcpy(newptr, ptr, oldsize);
+    memcpy(newptr, ptr, oldsize);
     free(ptr);
     return(newptr);
 }

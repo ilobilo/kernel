@@ -1,8 +1,5 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <stdint.h>
-
-namespace kernel::lib::io {
-
 void outb(uint16_t port, uint8_t val)
 {
     asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
@@ -54,5 +51,4 @@ bool are_interrupts_enabled(bool should_print)
         else printf("Interrupts are not enabled!\n");
     }
     return flags & (1 << 9);
-}
 }

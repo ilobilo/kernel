@@ -4,7 +4,6 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
-using namespace kernel::lib;
 
 namespace kernel::system::sched::pit {
 
@@ -33,13 +32,13 @@ void setfreq(uint64_t freq)
     frequency = freq;
     uint64_t divisor = 1193180 / frequency;
 
-    io::outb(0x43, 0x36);
+    outb(0x43, 0x36);
 
     uint8_t l = (uint8_t)(divisor & 0xFF);
     uint8_t h = (uint8_t)((divisor >> 8) & 0xFF );
 
-    io::outb(0x40, l);
-    io::outb(0x40, h);
+    outb(0x40, l);
+    outb(0x40, h);
 }
 
 void init(uint64_t freq)

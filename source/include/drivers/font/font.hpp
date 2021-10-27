@@ -7,7 +7,7 @@ namespace kernel::drivers::display::font {
 
 extern uint64_t bgcolour;
 extern uint64_t fgcolour;
-extern math::point pos;
+extern point pos;
 
 void setcolour(uint64_t bg = bgcolour, uint64_t fg = fgcolour);
 

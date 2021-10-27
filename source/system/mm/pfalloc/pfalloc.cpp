@@ -5,7 +5,6 @@
 #include <main.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::lib;
 
 namespace kernel::system::mm::pfalloc {
 
@@ -37,7 +36,7 @@ void init()
         if (top > highest_page) highest_page = top;
     }
 
-    uint64_t memsize = memory::getmemsize();
+    uint64_t memsize = getmemsize();
     freeMem = memsize;
     uint64_t bitmapSize = memsize / 4096 / 8 + 1;
 

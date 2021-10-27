@@ -32,14 +32,14 @@ uint32_t getpix(uint32_t x, uint32_t y)
 
 void framebuffer_restore(uint32_t *frm)
 {
-    memory::memcpy((void*)frm_addr, frm, frm_height * frm_pitch);
+    memcpy((void*)frm_addr, frm, frm_height * frm_pitch);
     heap::free(frm);
 }
 
 uint32_t *framebuffer_backup()
 {
     uint32_t *frm = (uint32_t*)heap::malloc(frm_height * frm_pitch);
-    memory::memcpy(frm, (void*)frm_addr, frm_height * frm_pitch);
+    memcpy(frm, (void*)frm_addr, frm_height * frm_pitch);
     return frm;
 }
 
@@ -62,10 +62,10 @@ void drawhorline(int x, int y, int dx, uint32_t colour)
 void drawdiagline(int x0, int y0, int x1, int y1, uint32_t colour)
 {
     int i;
-    int sdx = math::sign(x1);
-    int sdy = math::sign(y1);
-    int dxabs = math::abs(x1);
-    int dyabs = math::abs(y1);
+    int sdx = sign(x1);
+    int sdy = sign(y1);
+    int dxabs = abs(x1);
+    int dyabs = abs(y1);
     int x = dyabs >> 1;
     int y = dxabs >> 1;
     int px = x0;
@@ -148,10 +148,10 @@ void drawcircle(int cx, int cy, int radius, uint32_t colour)
     int x = -radius, y = 0, err = 2 - 2 * radius;
     do
     {
-        putpix(math::abs(cx - x), math::abs(cy + y), colour);
-        putpix(math::abs(cx - y), math::abs(cy - x), colour);
-        putpix(math::abs(cx + x), math::abs(cy - y), colour);
-        putpix(math::abs(cx + y), math::abs(cy + x), colour);
+        putpix(abs(cx - x), abs(cy + y), colour);
+        putpix(abs(cx - y), abs(cy - x), colour);
+        putpix(abs(cx + x), abs(cy - y), colour);
+        putpix(abs(cx + y), abs(cy + x), colour);
         radius = err;
         if (radius > x) err += ++x * 2 + 1;
         if (radius <= y) err += ++y * 2 + 1;
@@ -192,7 +192,7 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
     }
 }
 
-void clearcursor(uint8_t cursor[], math::point pos)
+void clearcursor(uint8_t cursor[], point pos)
 {
     if (!mousedrawn) return;
 
@@ -215,7 +215,7 @@ void clearcursor(uint8_t cursor[], math::point pos)
     }
 }
 
-void drawovercursor(uint8_t cursor[], math::point pos, uint32_t colour, bool back)
+void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
 {
     int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
 

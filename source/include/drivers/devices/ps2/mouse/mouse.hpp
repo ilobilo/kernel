@@ -20,7 +20,7 @@ enum mousestate
 
 extern bool initialised;
 
-extern math::point mousepos;
+extern point mousepos;
 
 extern uint32_t mousebordercol;
 extern uint32_t mouseinsidecol;

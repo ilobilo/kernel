@@ -5,7 +5,6 @@
 #include <lib/io.hpp>
 
 using namespace kernel::system::cpu;
-using namespace kernel::lib;
 
 namespace kernel::drivers::display::serial {
 
@@ -20,25 +19,25 @@ bool check()
 
 int is_transmit_empty()
 {
-    return io::inb(COMS::COM1 + 5) & 0x20;
+    return inb(COMS::COM1 + 5) & 0x20;
 }
 
 int received()
 {
-    return io::inb(COMS::COM1 + 5) & 1;
+    return inb(COMS::COM1 + 5) & 1;
 }
 
 char read()
 {
     while (!received());
-    return io::inb(COMS::COM1);
+    return inb(COMS::COM1);
 }
 
 void printc(char c, __attribute__((unused)) void *arg)
 {
     if (!check()) return;
     while (!is_transmit_empty());
-    io::outb(COMS::COM1, c);
+    outb(COMS::COM1, c);
 }
 
 void serial_printf(const char *fmt, ...)
@@ -103,19 +102,19 @@ void init()
 {
     if (initialised) return;
 
-    io::outb(COMS::COM1 + 1, 0x00);
-    io::outb(COMS::COM1 + 3, 0x80);
-    io::outb(COMS::COM1 + 0, 0x03);
-    io::outb(COMS::COM1 + 1, 0x00);
-    io::outb(COMS::COM1 + 3, 0x03);
-    io::outb(COMS::COM1 + 2, 0xC7);
-    io::outb(COMS::COM1 + 4, 0x0B);
+    outb(COMS::COM1 + 1, 0x00);
+    outb(COMS::COM1 + 3, 0x80);
+    outb(COMS::COM1 + 0, 0x03);
+    outb(COMS::COM1 + 1, 0x00);
+    outb(COMS::COM1 + 3, 0x03);
+    outb(COMS::COM1 + 2, 0xC7);
+    outb(COMS::COM1 + 4, 0x0B);
 
     //serial_printf("\033[H\033[0m\033[2J");
     serial_printf("\033[0m");
 
     register_interrupt_handler(idt::IRQS::IRQ4, COM1_Handler);
-    io::outb(COMS::COM1 + 1, 0x01);
+    outb(COMS::COM1 + 1, 0x01);
 
     initialised = true;
 }

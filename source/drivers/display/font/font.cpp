@@ -9,13 +9,12 @@
 using namespace kernel::system::mm::heap;
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
-using namespace kernel::lib;
 
 namespace kernel::drivers::display::font {
 
 uint64_t bgcolour;
 uint64_t fgcolour = 0xFFFFFF;
-math::point pos;
+point pos;
 
 void printc(char c, void *arg)
 {

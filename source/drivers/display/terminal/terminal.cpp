@@ -6,7 +6,6 @@
 #include <stivale2.h>
 #include <main.hpp>
 
-using namespace kernel::lib;
 
 namespace kernel::drivers::display::terminal {
 
@@ -33,7 +32,7 @@ void init()
 void print(const char *string)
 {
     acquire_lock(&lock);
-    write(string, string::strlen(string));
+    write(string, strlen(string));
     release_lock(&lock);
 }
 
@@ -127,12 +126,12 @@ void cursor_left(int lines = 1)
 #pragma region Misc
 void center(char *text)
 {
-    for (uint64_t i = 0; i < columns / 2 - string::strlen(text) / 2; i++)
+    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
     {
         print(" ");
     }
     print(text);
-    for (uint64_t i = 0; i < columns / 2 - string::strlen(text) / 2; i++)
+    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
     {
         print(" ");
     }
@@ -144,7 +143,7 @@ void check(bool ok, char *message)
     {
         print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
         print(message);
-        for (uint16_t i = 0; i < columns - (10 + string::strlen(message)); i++)
+        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
         {
             print(" ");
         }
@@ -154,7 +153,7 @@ void check(bool ok, char *message)
     {
         print("\033[1m[\033[21m\033[31m*\033[0m\033[1m]\033[21m ");
         print(message);
-        for (uint16_t i = 0; i < columns - (10 + string::strlen(message)); i++)
+        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
         {
             print(" ");
         }

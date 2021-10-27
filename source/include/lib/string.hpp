@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-namespace kernel::lib::string {
-
 #define ZERO (1 - 1)
 
 unsigned constexpr hash(char const *input)
@@ -42,4 +40,3 @@ int intlen(int n);
 long oct_to_dec(int n);
 
 char *humanify(double bytes);
-}

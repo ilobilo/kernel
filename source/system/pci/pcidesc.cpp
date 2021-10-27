@@ -3,7 +3,6 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 
-using namespace kernel::lib;
 
 namespace kernel::system::pci {
 
@@ -39,13 +38,13 @@ char *getvendorname(uint16_t vendorid, char *buffer)
     char vid[10];
     sprintf(vid, "%X  ", vendorid);
     int i = 0;
-    memory::memset(buffer, '\0', string::strlen(buffer));
+    memset(buffer, '\0', strlen(buffer));
     do {
         if (i >= MAX_TRIES) return buffer;
-        buffer = string::getline(PCIids, vid, buffer, i);
+        buffer = getline(PCIids, vid, buffer, i);
         i++;
     } while (buffer[0] == '\t' || buffer[0] == '\0');
-    string::strrm(buffer, vid);
+    strrm(buffer, vid);
     return buffer;
 }
 
@@ -57,12 +56,12 @@ int getvendorline(uint16_t vendorid)
     int i = 0;
     do {
         if (i >= MAX_TRIES) return 0;
-        buffer = string::getline(PCIids, vid, buffer, i);
+        buffer = getline(PCIids, vid, buffer, i);
         i++;
     } while (buffer[0] == '\t' || buffer[0] == '\0');
     heap::free(buffer);
     i--;
-    return string::lstrstr(PCIids, vid, i);
+    return lstrstr(PCIids, vid, i);
 }
 
 char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
@@ -72,12 +71,12 @@ char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
     int i = 0, vl = getvendorline(vendorid), dl = 0;
     do {
         if (i >= MAX_TRIES) return buffer;
-        memory::memset(buffer, '\0', string::strlen(buffer));
-        dl = string::lstrstr(PCIids, did, i);
-        buffer = string::getline(PCIids, did, buffer, i);
+        memset(buffer, '\0', strlen(buffer));
+        dl = lstrstr(PCIids, did, i);
+        buffer = getline(PCIids, did, buffer, i);
         i++;
     } while (buffer[1] == '\t' || buffer[0] == '\0' || vl > dl);
-    string::strrm(buffer, did);
+    strrm(buffer, did);
     return buffer;
 }
 
