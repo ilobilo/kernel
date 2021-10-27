@@ -44,6 +44,8 @@ int parse(unsigned int address)
         }
 
         uintptr_t size = getsize(header->size);
+        if (header->name[strlen(header->name) - 1] == '/') header->name[strlen(header->name) - 1] = 0;
+        headers[i].size = size;
         headers[i].header = header;
         headers[i].address = address + 512;
         filecount++;
