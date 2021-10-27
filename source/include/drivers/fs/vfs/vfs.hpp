@@ -1,12 +1,13 @@
 #pragma once
 
+#include <lib/array.hpp>
 #include <stdint.h>
 
 namespace kernel::drivers::fs::vfs {
 
 #define FILENAME_LENGTH 128
 
-enum fs_filetypes
+enum filetypes
 {
     FS_FILE = 0x01,
     FS_DIRECTORY = 0x02,
@@ -27,6 +28,17 @@ using close_t = void (*)(fs_node_t*);
 using readdir_t = dirent_t *(*)(fs_node_t*, uint64_t);
 using finddir_t = fs_node_t *(*)(fs_node_t*, char*);
 
+struct fs_t
+{
+    char name[FILENAME_LENGTH];
+    read_t read;
+    write_t write;
+    open_t open;
+    close_t close;
+    readdir_t readdir;
+    finddir_t finddir;
+};
+
 struct fs_node_t
 {
     char name[FILENAME_LENGTH];
@@ -37,13 +49,10 @@ struct fs_node_t
     uint64_t inode;
     uint64_t length;
     uint64_t impl;
-    read_t read;
-    write_t write;
-    open_t open;
-    close_t close;
-    readdir_t readdir;
-    finddir_t finddir;
     fs_node_t *ptr;
+    fs_t *fs;
+    fs_node_t *parent;
+    Array<fs_node_t*> children;
 };
 
 struct dirent_t

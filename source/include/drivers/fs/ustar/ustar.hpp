@@ -4,8 +4,6 @@
 
 namespace kernel::drivers::fs::ustar {
 
-#define HEADER_SIZE 128
-
 enum filetypes
 {
     REGULAR_FILE = '0',
@@ -41,6 +39,7 @@ struct header_t
 {
     file_header_t *header;
     unsigned int address;
+    unsigned int size;
 };
 
 extern bool initialised;
