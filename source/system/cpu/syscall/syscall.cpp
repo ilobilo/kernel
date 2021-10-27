@@ -9,7 +9,6 @@
 using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
 using namespace kernel::system::mm;
-using namespace kernel::lib;
 
 namespace kernel::system::cpu::syscall {
 
@@ -26,7 +25,7 @@ static void syscall_write(idt::interrupt_registers *regs)
         case 0:
         {
             char *str = (char*)heap::malloc(S_ARG2_RDX * sizeof(char));
-            memory::memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
+            memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
             str[S_ARG2_RDX] = 0;
             printf("%s", str);
             S_RAX = (uint64_t)str;
@@ -38,7 +37,7 @@ static void syscall_write(idt::interrupt_registers *regs)
         case 2:
         {
             char *str = (char*)heap::malloc(S_ARG2_RDX * sizeof(char));
-            memory::memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
+            memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
             str[S_ARG2_RDX] = 0;
             serial::err("%s", str);
             S_RAX = (uint64_t)str;

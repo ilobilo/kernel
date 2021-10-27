@@ -7,7 +7,6 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
-using namespace kernel::lib;
 
 namespace kernel::drivers::fs::ustar {
 
@@ -36,7 +35,7 @@ int parse(unsigned int address)
     {
         file_header_t *header = (file_header_t*)address;
 
-        if (string::strcmp(header->signature, "ustar")) break;
+        if (strcmp(header->signature, "ustar")) break;
 
         if (filecount >= (heap::getsize(headers) / sizeof(header_t)))
         {
@@ -53,7 +52,7 @@ int parse(unsigned int address)
     }
     for (uint64_t g = 1; g < filecount; g++)
     {
-        memory::memmove(headers[g].header->name, headers[g].header->name + 1, string::strlen(headers[g].header->name));
+        memmove(headers[g].header->name, headers[g].header->name + 1, strlen(headers[g].header->name));
     }
     filecount--;
     i--;
@@ -81,8 +80,8 @@ void list()
         switch (headers[i].header->typeflag[0])
         {
             case REGULAR_FILE:
-                printf("%ld) (REGULAR) %s %s\n", i, headers[i].header->name, string::humanify(string::oct_to_dec(string::string_to_int(headers[i].header->size))));
-                size += string::oct_to_dec(string::string_to_int(headers[i].header->size));
+                printf("%ld) (REGULAR) %s %s\n", i, headers[i].header->name, humanify(oct_to_dec(string_to_int(headers[i].header->size))));
+                size += oct_to_dec(string_to_int(headers[i].header->size));
                 break;
             case SYMLINK:
                 printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i, headers[i].header->name, headers[i].header->link, terminal::colour);
@@ -95,7 +94,7 @@ void list()
                 break;
         }
     }
-    printf("--------------------\nTotal size: %s\n", string::humanify(size));
+    printf("--------------------\nTotal size: %s\n", humanify(size));
 }
 
 char *cat(char *name)
@@ -132,7 +131,7 @@ int getid(const char *name)
 
     for (uint64_t i = 0; i < filecount; ++i)
     {
-        if(!string::strcmp(headers[i].header->name, name)) return i;
+        if(!strcmp(headers[i].header->name, name)) return i;
     }
     return 0;
 }
@@ -143,7 +142,7 @@ int search(char *filename, char **contents)
 
     for (uint64_t i = 1; i < filecount + 1; i++)
     {
-        if (!string::strcmp(headers[i].header->name, filename))
+        if (!strcmp(headers[i].header->name, filename))
         {
             *contents = (char*)headers[i].address;
             return 1;

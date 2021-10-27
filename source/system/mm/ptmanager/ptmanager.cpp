@@ -7,7 +7,6 @@
 #include <lib/memory.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::lib;
 
 namespace kernel::system::mm::ptmanager {
 
@@ -29,7 +28,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
         PDP = (paging::PTable*)pfalloc::requestPage();
-        memory::memset(PDP, 0, 4096);
+        memset(PDP, 0, 4096);
         PDE.setAddr((uint64_t)PDP >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
@@ -45,7 +44,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
         PD = (paging::PTable*)pfalloc::requestPage();
-        memory::memset(PD, 0, 4096);
+        memset(PD, 0, 4096);
         PDE.setAddr((uint64_t)PD >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
@@ -61,7 +60,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
         PT = (paging::PTable*)pfalloc::requestPage();
-        memory::memset(PT, 0, 4096);
+        memset(PT, 0, 4096);
         PDE.setAddr((uint64_t)PT >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
@@ -89,7 +88,7 @@ void PTManager::unmapMem(void *virtualMemory)
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
         PDP = (paging::PTable*)pfalloc::requestPage();
-        memory::memset(PDP, 0, 4096);
+        memset(PDP, 0, 4096);
         PDE.setAddr((uint64_t)PDP >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
@@ -105,7 +104,7 @@ void PTManager::unmapMem(void *virtualMemory)
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
         PD = (paging::PTable*)pfalloc::requestPage();
-        memory::memset(PD, 0, 4096);
+        memset(PD, 0, 4096);
         PDE.setAddr((uint64_t)PD >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
@@ -121,7 +120,7 @@ void PTManager::unmapMem(void *virtualMemory)
     if (!PDE.getflag(paging::PT_Flag::Present))
     {
         PT = (paging::PTable*)pfalloc::requestPage();
-        memory::memset(PT, 0, 4096);
+        memset(PT, 0, 4096);
         PDE.setAddr((uint64_t)PT >> 12);
         PDE.setflag(paging::PT_Flag::Present, true);
         PDE.setflag(paging::PT_Flag::ReadWrite, true);

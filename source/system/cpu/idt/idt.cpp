@@ -4,7 +4,6 @@
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::lib;
 
 namespace kernel::system::cpu::idt {
 
@@ -134,9 +133,9 @@ void irq_handler(interrupt_registers *regs)
 
     if(regs->int_no >= IRQS::IRQ8)
     {
-        io::outb(PIC2_COMMAND, PIC_EOI);
+        outb(PIC2_COMMAND, PIC_EOI);
     }
-    io::outb(PIC1_COMMAND, PIC_EOI);
+    outb(PIC1_COMMAND, PIC_EOI);
 }
 
 void isr_install()
@@ -174,16 +173,16 @@ void isr_install()
     idt_set_descriptor(30, (void*)isr30, 0x8E);
     idt_set_descriptor(31, (void*)isr31, 0x8E);
 
-    io::outb(0x20, 0x11);
-    io::outb(0xA0, 0x11);
-    io::outb(0x21, 0x20);
-    io::outb(0xA1, 0x28);
-    io::outb(0x21, 0x04);
-    io::outb(0xA1, 0x02);
-    io::outb(0x21, 0x01);
-    io::outb(0xA1, 0x01);
-    io::outb(0x21, 0x0);
-    io::outb(0xA1, 0x0);
+    outb(0x20, 0x11);
+    outb(0xA0, 0x11);
+    outb(0x21, 0x20);
+    outb(0xA1, 0x28);
+    outb(0x21, 0x04);
+    outb(0xA1, 0x02);
+    outb(0x21, 0x01);
+    outb(0xA1, 0x01);
+    outb(0x21, 0x0);
+    outb(0xA1, 0x0);
 
     idt_set_descriptor(IRQS::IRQ0, (void*)irq0, 0x8E);
     idt_set_descriptor(IRQS::IRQ1, (void*)irq1, 0x8E);

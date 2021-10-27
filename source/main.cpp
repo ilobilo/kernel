@@ -22,6 +22,7 @@
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/array.hpp>
 #include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
@@ -35,7 +36,6 @@ using namespace kernel::system::sched;
 using namespace kernel::system::cpu;
 using namespace kernel::system::mm;
 using namespace kernel::system;
-using namespace kernel::lib;
 
 namespace kernel {
 
@@ -53,7 +53,7 @@ int find_module(char *name)
 {
     for (uint64_t i = 0; i < mod_tag->module_count; i++)
     {
-        if (!string::strcmp(mod_tag->modules[i].string, name)) return i;
+        if (!strcmp(mod_tag->modules[i].string, name)) return i;
     }
     return -1;
 }
@@ -70,15 +70,15 @@ void main(struct stivale2_struct *stivale2_struct)
 
     cmdline = (char *)cmd_tag->cmdline;
 
-    if (!string::strstr(cmdline, "nocom")) serial::init();
+    if (!strstr(cmdline, "nocom")) serial::init();
 
     serial::info("Welcome to kernel project");
 
-    if (!string::strcmp(KERNEL_VERSION, "0")) serial::info("Git version: %s\n", GIT_VERSION);
+    if (!strcmp(KERNEL_VERSION, "0")) serial::info("Git version: %s\n", GIT_VERSION);
     else serial::info("Version: %s\n", KERNEL_VERSION);
 
     serial::info("CPU cores available: %d", smp_tag->cpu_count);
-    serial::info("Total usable memory: %s\n", string::humanify(memory::getmemsize()));
+    serial::info("Total usable memory: %s\n", humanify(getmemsize()));
     serial::info("Arguments passed to kernel: %s", cmdline);
 
     serial::info("Available kernel modules:");
@@ -107,11 +107,11 @@ void main(struct stivale2_struct *stivale2_struct)
 
     terminal::center("Welcome to kernel project");
 
-    if (!string::strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
+    if (!strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
-    printf("Total usable memory: %s\n", string::humanify(memory::getmemsize()));
+    printf("Total usable memory: %s\n", humanify(getmemsize()));
 
     pfalloc::init();
     terminal::check(pfalloc::initialised, "Initialising Page Frame Allocator...");
@@ -123,7 +123,7 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check(heap::initialised, "Initialising Kernel Heap...");
 
     int i = find_module("initrd");
-    if (i != -1 && string::strstr(cmdline, "initrd"))
+    if (i != -1 && strstr(cmdline, "initrd"))
     {
         ustar::init(mod_tag->modules[i].begin);
     }
@@ -141,7 +141,7 @@ void main(struct stivale2_struct *stivale2_struct)
     acpi::init();
     terminal::check(acpi::initialised, "Initialising ACPI...");
 
-    if (string::strstr(cmdline, "pciids")) pci::use_pciids = true;
+    if (strstr(cmdline, "pciids")) pci::use_pciids = true;
     pci::init();
     terminal::check(pci::initialised, "Initialising PCI...");
 
@@ -151,7 +151,7 @@ void main(struct stivale2_struct *stivale2_struct)
     ps2::kbd::init();
     terminal::check(ps2::kbd::initialised, "Initialising PS2 Keyboard...");
 
-    if (!string::strstr(cmdline, "nomouse")) ps2::mouse::init();
+    if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
     terminal::check(ps2::mouse::initialised, "Initialising PS2 Mouse...");
 
     printf("Current RTC time: %s", rtc::getTime());

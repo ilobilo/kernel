@@ -17,17 +17,17 @@ enum fs_filetypes
     FS_MOUNTPOINT = 0x08
 };
 
-struct fs_node;
+struct fs_node_t;
 struct dirent_t;
 
-using read_t = uint64_t (*)(fs_node*, uint64_t, uint64_t, char*);
-using write_t = uint64_t (*)(fs_node*, uint64_t, uint64_t, char*);
-using open_t = void (*)(fs_node*);
-using close_t = void (*)(fs_node*);
-using readdir_t = dirent_t *(*)(fs_node*, uint64_t);
-using finddir_t = fs_node *(*)(fs_node*, char*);
+using read_t = uint64_t (*)(fs_node_t*, uint64_t, uint64_t, char*);
+using write_t = uint64_t (*)(fs_node_t*, uint64_t, uint64_t, char*);
+using open_t = void (*)(fs_node_t*);
+using close_t = void (*)(fs_node_t*);
+using readdir_t = dirent_t *(*)(fs_node_t*, uint64_t);
+using finddir_t = fs_node_t *(*)(fs_node_t*, char*);
 
-struct fs_node
+struct fs_node_t
 {
     char name[FILENAME_LENGTH];
     uint64_t mask;
@@ -43,7 +43,7 @@ struct fs_node
     close_t close;
     readdir_t readdir;
     finddir_t finddir;
-    fs_node *ptr;
+    fs_node_t *ptr;
 };
 
 struct dirent_t
@@ -52,12 +52,12 @@ struct dirent_t
     uint64_t ino;
 };
 
-extern fs_node *fs_root;
+extern fs_node_t *fs_root;
 
-uint64_t read_fs(fs_node *node, uint64_t offset, uint64_t size, char *buffer);
-uint64_t write_fs(fs_node *node, uint64_t offset, uint64_t size, char *buffer);
-void open_fs(fs_node *node, uint8_t read, uint8_t write);
-void close_fs(fs_node *node);
-dirent_t *readdir_fs(fs_node *node, uint64_t index);
-fs_node *finddir_fs(fs_node *node, char *name);
+uint64_t read_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer);
+uint64_t write_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer);
+void open_fs(fs_node_t *node, uint8_t read, uint8_t write);
+void close_fs(fs_node_t *node);
+dirent_t *readdir_fs(fs_node_t *node, uint64_t index);
+fs_node_t *finddir_fs(fs_node_t *node, char *name);
 }

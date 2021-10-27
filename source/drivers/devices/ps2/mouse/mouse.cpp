@@ -15,8 +15,8 @@ bool initialised = false;;
 uint8_t cycle = 0;
 uint8_t packet[4];
 bool packetready = false;
-math::point mousepos;
-math::point mouseposold;
+point mousepos;
+point mouseposold;
 
 uint32_t mousebordercol = 0xFFFFFF;
 uint32_t mouseinsidecol = 0x2D2D2D;
@@ -70,27 +70,27 @@ uint8_t cursorinside[]
 void mousewait()
 {
     uint64_t timeout = 100000;
-    while (timeout--) if ((io::inb(0x64) & 0b10) == 0) return;
+    while (timeout--) if ((inb(0x64) & 0b10) == 0) return;
 }
 
 void mousewait_input()
 {
     uint64_t timeout = 100000;
-    while (timeout--) if (io::inb(0x64) & 0b1) return;
+    while (timeout--) if (inb(0x64) & 0b1) return;
 }
 
 void mousewrite(uint8_t value)
 {
     mousewait();
-    io::outb(0x64, 0xD4);
+    outb(0x64, 0xD4);
     mousewait();
-    io::outb(0x60, value);
+    outb(0x60, value);
 }
 
 uint8_t mouseread()
 {
     mousewait_input();
-    return io::inb(0x60);
+    return inb(0x60);
 }
 
 mousestate getmousestate()
@@ -172,7 +172,7 @@ void proccesspacket()
 
 static void Mouse_Handler(idt::interrupt_registers *)
 {
-    uint8_t mousedata = io::inb(0x60);
+    uint8_t mousedata = inb(0x60);
 
     proccesspacket();
 
@@ -214,19 +214,19 @@ void init()
 
     asm volatile ("cli");
 
-    io::outb(0x64, 0xA8);
+    outb(0x64, 0xA8);
 
     mousewait();
-    io::outb(0x64, 0x20);
+    outb(0x64, 0x20);
     mousewait_input();
 
-    uint8_t status = io::inb(0x60);
+    uint8_t status = inb(0x60);
     status |= 0b10;
     mousewait();
 
-    io::outb(0x64, 0x60);
+    outb(0x64, 0x60);
     mousewait();
-    io::outb(0x60, status);
+    outb(0x60, status);
 
     mousewrite(0xF6);
     mouseread();

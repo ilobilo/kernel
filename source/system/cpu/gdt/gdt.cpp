@@ -6,7 +6,6 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
-using namespace kernel::lib;
 
 namespace kernel::system::cpu::gdt {
 

@@ -16,15 +16,14 @@ using namespace kernel::drivers;
 using namespace kernel::system::sched;
 using namespace kernel::system::mm;
 using namespace kernel::system;
-using namespace kernel::lib;
 
 namespace kernel::apps::kshell {
 
 void shell_parse(char *cmd, char *arg)
 {
-    switch (string::hash(cmd))
+    switch (hash(cmd))
     {
-        case string::hash("help"):
+        case hash("help"):
             printf("Supported commands:\n");
             printf("- help\t-- This\n");
             printf("- clear\t-- Clear terminal\n");
@@ -37,20 +36,20 @@ void shell_parse(char *cmd, char *arg)
             printf("- pci\t-- List PCI devices\n");
             printf("- crash\t-- Crash whole system\n");
             break;
-        case string::hash("clear"):
+        case hash("clear"):
             terminal::clear();
             break;
-        case string::hash("ls"):
+        case hash("ls"):
             ustar::list();
             break;
-        case string::hash("cat"):
+        case hash("cat"):
             ustar::cat(arg);
             break;
-        case string::hash("free"):
+        case hash("free"):
         {
-            double usable = memory::getmemsize();
+            double usable = getmemsize();
             double free = pfalloc::getFreeRam();
-            if (!string::strcmp(arg, "-h"))
+            if (!strcmp(arg, "-h"))
             {
                 usable = usable / 1024 / 1024;
                 free = free / 1024 / 1024;
@@ -59,13 +58,13 @@ void shell_parse(char *cmd, char *arg)
             else printf("Usable memory: %.0f Bytes\nFree memory: %.0f Bytes\nUsed memory: %.0f Bytes\n", usable, free, usable - free);
             break;
         }
-        case string::hash("time"):
+        case hash("time"):
             printf("%s\n", rtc::getTime());
             break;
-        case string::hash("tick"):
+        case hash("tick"):
             printf("%ld\n", pit::get_tick());
             break;
-        case string::hash("timef"):
+        case hash("timef"):
             while (true)
             {
                 printf("%s", rtc::getTime());
@@ -73,7 +72,7 @@ void shell_parse(char *cmd, char *arg)
                 printf("\r\033[2K");
             }
             break;
-        case string::hash("pci"):
+        case hash("pci"):
             for (uint64_t i = 0; i < pci::pcidevcount; i++)
             {
                 printf("%s / %s / %s / %s / %s\n",
@@ -84,11 +83,11 @@ void shell_parse(char *cmd, char *arg)
                     pci::pcidevices[i]->progifstr);
             }
             break;
-        case string::hash("crash"):
+        case hash("crash"):
             asm volatile ("int $0x3");
             asm volatile ("int $0x4");
             break;
-        case string::hash(""):
+        case hash(""):
             break;
         default:
             printf("\033[31mCommand not found!\033[0m\n");
@@ -102,18 +101,18 @@ void run()
     char *command = ps2::kbd::getline();
     char cmd[10] = "\0";
 
-    for (size_t i = 0; i < string::strlen(command); i++)
+    for (size_t i = 0; i < strlen(command); i++)
     {
         if (command[i] != ' ' && command[i] != '\0')
         {
             char c[2] = "\0";
             c[0] = command[i];
-            string::strcat(cmd, c);
+            strcat(cmd, c);
         }
         else break;
     }
-    char *arg = string::strrm(command, cmd);
-    arg = string::strrm(arg, " ");
+    char *arg = strrm(command, cmd);
+    arg = strrm(arg, " ");
 
     shell_parse(cmd, arg);
 }
