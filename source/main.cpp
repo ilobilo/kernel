@@ -22,7 +22,7 @@
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-#include <lib/array.hpp>
+#include <lib/vector.hpp>
 #include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
