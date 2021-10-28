@@ -158,7 +158,7 @@ void *realloc(void *ptr, size_t size)
         return NULL;
     }
     if (!ptr) return malloc(size);
-    if (size <= oldsize) return ptr;
+    if (size < oldsize) oldsize = size;
 
     void *newptr = malloc(size);
     if (!newptr) return ptr;
