@@ -48,8 +48,18 @@ public:
             }
         }
     }
+
     void pop_back()
     {
+        num--;
+    }
+
+    void remove(size_t pos)
+    {
+        for (size_t i = 1; i < (num - 1); i++)
+        {
+            *(vector + pos + i - 1) = *(vector + pos + i);
+        }
         num--;
     }
 
