@@ -55,7 +55,10 @@ int parse(unsigned int address)
         filecount++;
 
         vfs::fs_node_t *node = vfs::add_new_child(initrd_root, headers[i].header->name);
-        serial::info("%zu", initrd_root->children.size());
+        if (vfs::strlen_slash(headers[i].header->name) < strlen(headers[i].header->name))
+        {
+            vfs::remove_child(initrd_root, headers[i].header->name);
+        }
         node->address = headers[i].address;
         node->length = size;
         node->gid = getsize(header->gid);
@@ -71,6 +74,7 @@ int parse(unsigned int address)
                 break;
             case filetypes::DIRECTORY:
                 node->flags = vfs::FS_DIRECTORY;
+                node->children.init(1);
                 break;
             case filetypes::CHARDEV:
                 node->flags = vfs::FS_CHARDEVICE;
@@ -108,7 +112,7 @@ void list()
         switch (headers[i].header->typeflag[0])
         {
             case REGULAR_FILE:
-                printf("%ld) (REGULAR) %s %s\n", i + 1, headers[i].header->name, humanify(oct_to_dec(string_to_int(headers[i].header->size))));
+                printf("%ld) (REGULAR) %s %s\n", i + 1, headers[i].header->name, humanify(headers[i].size));
                 size += oct_to_dec(string_to_int(headers[i].header->size));
                 break;
             case SYMLINK:

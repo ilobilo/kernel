@@ -17,6 +17,8 @@ using namespace kernel::system::sched;
 using namespace kernel::system::mm;
 using namespace kernel::system;
 
+vfs::fs_node_t *current_path;
+
 namespace kernel::apps::kshell {
 
 void shell_parse(char *cmd, char *arg)
@@ -40,11 +42,75 @@ void shell_parse(char *cmd, char *arg)
             terminal::clear();
             break;
         case hash("ls"):
-            ustar::list();
+        {
+            vfs::fs_node_t *tmp;
+            if (!strcmp(arg, "")) tmp = current_path;
+            else
+            {
+                tmp = vfs::file2node(current_path, arg);
+            }
+            for (size_t i = 0; i < tmp->children.size(); i++)
+            {
+                if ((tmp->children.at(i)->flags & 0x07) == vfs::FS_DIRECTORY)
+                {
+                    printf("\033[01;95m%s%s  ", tmp->children.at(i)->name, terminal::colour);
+                }
+                else continue;
+            }
+            for (size_t i = 0; i < tmp->children.size(); i++)
+            {
+                if ((tmp->children.at(i)->flags & 0x07) == vfs::FS_SYMLINK)
+                {
+                    printf("\033[01;96m%s%s  ", tmp->children.at(i)->name, terminal::colour);
+                }
+                else continue;
+            }
+            for (size_t i = 0; i < tmp->children.size(); i++)
+            {
+                if ((tmp->children.at(i)->flags & 0x07) == vfs::FS_FILE)
+                {
+                    printf("%s  ", tmp->children.at(i)->name);
+                }
+                else continue;
+            }
+            printf("\n");
             break;
+        }
         case hash("cat"):
-            ustar::cat(arg);
+        {
+            vfs::fs_node_t *node = vfs::file2node(current_path, arg);
+            if (!node)
+            {
+                printf("\033[31mInvalid file name!%s\n", terminal::colour);
+                return;
+            }
+            if ((node->flags & 0x07) != vfs::FS_FILE)
+            {
+                printf("\033[31m%s is not a regular text file!%s\n", arg, terminal::colour);
+                return;
+            }
+            char *buf = (char*)heap::malloc(node->length);
+            vfs::read_fs(node, 0, node->length, buf);
+            printf("%s\n", buf);
             break;
+        }
+        case hash("cd"):
+        {
+            if (!strcmp(arg, "../") || !strcmp(arg, ".."))
+            {
+                current_path = current_path->parent;
+                break;
+            }
+            if (!strcmp(arg, "./") || !strcmp(arg, ".")) break;
+            vfs::fs_node_t *node = vfs::file2node(current_path, arg);
+            if (!node)
+            {
+                printf("\033[31mNo such directory!%s\n", terminal::colour);
+                return;
+            }
+            current_path = node;
+            break;
+        }
         case hash("free"):
         {
             double usable = getmemsize();
@@ -97,7 +163,8 @@ void shell_parse(char *cmd, char *arg)
 
 void run()
 {
-    printf("root@kernel:~# ");
+    if (!current_path) current_path = vfs::file2node(NULL, "/");
+    printf("\033[32mroot@kernel:\033[95m~%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
     char *command = ps2::kbd::getline();
     char cmd[10] = "\0";
 
