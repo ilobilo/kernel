@@ -106,6 +106,47 @@ fs_node_t *path2node(fs_node_t *parent, const char *path)
     return NULL;
 }
 
+fs_node_t *add_new_child(fs_node_t *parent, const char *name)
+{
+    acquire_lock(&vfs_lock);
+    if (!parent) parent = fs_root;
+    fs_node_t *node = (fs_node_t*)heap::calloc(1, sizeof(fs_node_t));
+    strcpy(node->name, name);
+    node->parent = parent;
+    node->fs = parent->fs;
+    node->children.init(1);
+    parent->children.push_back(node);
+    release_lock(&vfs_lock);
+    return node;
+}
+
+void remove_child(fs_node_t *parent, const char *name)
+{
+    acquire_lock(&vfs_lock);
+    if (!parent) parent = fs_root;
+    for (size_t i = 0; i < parent->children.size(); i++)
+    {
+        fs_node_t *node = parent->children.at(i);
+        if (!strcmp(node->name, name))
+        {
+            parent->children.remove(i);
+            node->children.destroy();
+            heap::free(node);
+            release_lock(&vfs_lock);
+            return;
+        }
+    }
+    release_lock(&vfs_lock);
+}
+
+fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *name)
+{
+    if (!parent) parent = fs_root;
+    fs_node_t *node = add_new_child(parent, name);
+    node->fs = fs;
+    return node;
+}
+
 void init()
 {
     serial::info("Initialising virtual filesystem");
