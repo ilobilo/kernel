@@ -46,6 +46,8 @@ extern bool initialised;
 extern uint64_t filecount;
 extern header_t *headers;
 
+extern vfs::fs_node_t *initrd_root;
+
 unsigned int getsize(const char *s);
 
 void list();

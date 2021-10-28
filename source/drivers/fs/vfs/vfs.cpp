@@ -149,7 +149,7 @@ fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *name)
 
 void init()
 {
-    serial::info("Initialising virtual filesystem");
+    serial::info("Initialising Virtual filesystem");
 
     fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
     fs_root->flags = filetypes::FS_DIRECTORY;
