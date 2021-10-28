@@ -122,6 +122,9 @@ void main(struct stivale2_struct *stivale2_struct)
     heap::init();
     terminal::check(heap::initialised, "Initialising Kernel Heap...");
 
+    vfs::init();
+    terminal::check(vfs::initialised, "Initialising virtual filesystem...");
+
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
