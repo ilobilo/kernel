@@ -72,7 +72,8 @@ void close_fs(fs_node_t *node);
 dirent_t *readdir_fs(fs_node_t *node, uint64_t index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
 
-fs_node_t *path2node(fs_node_t *parent, const char *path);
+size_t strlen_slash(const char *string, size_t skip = 0);
+fs_node_t *file2node(fs_node_t *parent, const char *path);
 fs_node_t *add_new_child(fs_node_t *parent, const char *name);
 void remove_child(fs_node_t *parent, const char *name);
 fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *name);

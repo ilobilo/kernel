@@ -47,7 +47,7 @@ fs_node_t *finddir_fs(fs_node_t *node, char *name)
     else return 0;
 }
 
-static size_t strlen_slash(const char *string)
+size_t strlen_slash(const char *string, size_t skip)
 {
     bool skip1 = false;
     if (!strncmp(string, "/", 1)) skip1 = true;
@@ -58,6 +58,13 @@ static size_t strlen_slash(const char *string)
         string++;
         counter++;
     };
+    if (skip > 0)
+    {
+        skip--;
+        string++;
+        counter++;
+        goto again;
+    }
     if (skip1)
     {
         skip1 = false;
@@ -68,7 +75,7 @@ static size_t strlen_slash(const char *string)
     return counter;
 }
 
-fs_node_t *path2node(fs_node_t *parent, const char *path)
+fs_node_t *file2node(fs_node_t *parent, const char *path)
 {
     acquire_lock(&vfs_lock);
     fs_node_t *parent_node;
@@ -153,7 +160,7 @@ void init()
 
     fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
     fs_root->flags = filetypes::FS_DIRECTORY;
-    fs_root->children.init();
+    fs_root->children.init(1);
     strcpy(fs_root->name, "[root]");
     fs_root->fs = NULL;
 

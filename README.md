@@ -18,7 +18,7 @@ Contributors are welcome
 - [x] Page Frame allocator
 - [x] Page Table Manager
 - [x] Heap
-- [ ] VFS
+- [x] VFS
 - [ ] AHCI
 - [x] ACPI
 - [ ] Shutdown
