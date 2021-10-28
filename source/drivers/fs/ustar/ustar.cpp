@@ -14,6 +14,8 @@ bool initialised = false;
 uint64_t filecount;
 header_t *headers;
 
+vfs::fs_node_t *initrd_root;
+
 uint64_t allocated = 10;
 
 unsigned int getsize(const char *s)
@@ -30,10 +32,12 @@ unsigned int getsize(const char *s)
 
 int parse(unsigned int address)
 {
+    address += (((getsize(((file_header_t*)address)->size) + 511) / 512) + 1) * 512;
     unsigned int i;
     for (i = 0; ; i++)
     {
         file_header_t *header = (file_header_t*)address;
+        memmove(header->name, header->name + 2, strlen(header->name));
 
         if (strcmp(header->signature, "ustar")) break;
 
@@ -50,14 +54,36 @@ int parse(unsigned int address)
         headers[i].address = address + 512;
         filecount++;
 
+        vfs::fs_node_t *node = vfs::add_new_child(initrd_root, headers[i].header->name);
+        serial::info("%zu", initrd_root->children.size());
+        node->address = headers[i].address;
+        node->length = size;
+        node->gid = getsize(header->gid);
+        node->uid = getsize(header->uid);
+
+        switch (headers[i].header->typeflag[0])
+        {
+            case filetypes::REGULAR_FILE:
+                node->flags = vfs::FS_FILE;
+                break;
+            case filetypes::SYMLINK:
+                node->flags = vfs::FS_SYMLINK;
+                break;
+            case filetypes::DIRECTORY:
+                node->flags = vfs::FS_DIRECTORY;
+                break;
+            case filetypes::CHARDEV:
+                node->flags = vfs::FS_CHARDEVICE;
+                break;
+            case filetypes::BLOCKDEV:
+                node->flags = vfs::FS_BLOCKDEVICE;
+                break;
+            default:
+                vfs::remove_child(initrd_root, headers[i].header->name);
+        }
+
         address += (((size + 511) / 512) + 1) * 512;
     }
-    for (uint64_t g = 1; g < filecount; g++)
-    {
-        memmove(headers[g].header->name, headers[g].header->name + 1, strlen(headers[g].header->name));
-    }
-    filecount--;
-    i--;
     return i;
 }
 
@@ -77,22 +103,22 @@ void list()
 
     int size = 0;
     printf("Total %ld items:\n--------------------\n", filecount);
-    for (uint64_t i = 1; i < filecount + 1; i++)
+    for (uint64_t i = 0; i < filecount; i++)
     {
         switch (headers[i].header->typeflag[0])
         {
             case REGULAR_FILE:
-                printf("%ld) (REGULAR) %s %s\n", i, headers[i].header->name, humanify(oct_to_dec(string_to_int(headers[i].header->size))));
+                printf("%ld) (REGULAR) %s %s\n", i + 1, headers[i].header->name, humanify(oct_to_dec(string_to_int(headers[i].header->size))));
                 size += oct_to_dec(string_to_int(headers[i].header->size));
                 break;
             case SYMLINK:
-                printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i, headers[i].header->name, headers[i].header->link, terminal::colour);
+                printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i + 1, headers[i].header->name, headers[i].header->link, terminal::colour);
                 break;
             case DIRECTORY:
-                printf("%ld) \033[35m(DIRECTORY) %s%s\n", i, headers[i].header->name, terminal::colour);
+                printf("%ld) \033[35m(DIRECTORY) %s%s\n", i + 1, headers[i].header->name, terminal::colour);
                 break;
             default:
-                printf("%ld) \033[31m(File type not supported!) %s%s\n", i, headers[i].header->name, terminal::colour);
+                printf("%ld) \033[31m(File type not supported!) %s%s\n", i + 1, headers[i].header->name, terminal::colour);
                 break;
         }
     }
@@ -142,7 +168,7 @@ int search(char *filename, char **contents)
 {
     if (!check()) return 0;
 
-    for (uint64_t i = 1; i < filecount + 1; i++)
+    for (uint64_t i = 0; i < filecount; i++)
     {
         if (!strcmp(headers[i].header->name, filename))
         {
@@ -152,6 +178,20 @@ int search(char *filename, char **contents)
     }
     return 0;
 }
+
+size_t initrd_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+{
+    if (!size) size = node->length;
+    if (offset > node->length) return 0;
+    if (offset + size > node->length) size = node->length - offset;
+    memcpy(buffer, (char*)(node->address + offset), size);
+    return size;
+}
+
+static vfs::fs_t initrd_fs = {
+    .name = "initrd",
+    .read = &initrd_read
+};
 
 void init(unsigned int address)
 {
@@ -165,6 +205,8 @@ void init(unsigned int address)
 
     headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
 
+    initrd_root = vfs::mount(&initrd_fs, NULL, "/");
+    initrd_root->children.init();
     parse(address);
 
     serial::newline();

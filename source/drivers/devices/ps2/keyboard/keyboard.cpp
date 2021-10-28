@@ -125,14 +125,6 @@ static void Keyboard_Handler(idt::interrupt_registers *)
             case keys::SCROLLLOCK:
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
                 break;
-            case keys::UP:
-                strcpy(c, "\033[A");
-                terminal::print(c);
-                break;
-            case keys::DOWN:
-                strcpy(c, "\033[B");
-                terminal::print(c);
-                break;
             case keys::RIGHT:
                 strcpy(c, "\033[C");
                 terminal::print(c);

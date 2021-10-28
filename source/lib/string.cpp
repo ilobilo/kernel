@@ -15,12 +15,23 @@ size_t strlen(const char *str)
 
 char *strcpy(char *destination, const char *source)
 {
-    if (destination == NULL)
-    {
-        return NULL;
-    }
+    if (destination == NULL) return NULL;
     char *ptr = destination;
     while (*source != '\0')
+    {
+        *destination = *source;
+        destination++;
+        source++;
+    }
+    *destination = '\0';
+    return ptr;
+}
+
+char *strncpy(char *destination, const char *source, size_t n)
+{
+    if (!destination) return NULL;
+    char *ptr = destination;
+    for (size_t i = 0; i < n && *source != '\0'; i++)
     {
         *destination = *source;
         destination++;

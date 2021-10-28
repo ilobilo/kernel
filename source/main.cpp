@@ -123,7 +123,7 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check(heap::initialised, "Initialising Kernel Heap...");
 
     vfs::init();
-    terminal::check(vfs::initialised, "Initialising virtual filesystem...");
+    terminal::check(vfs::initialised, "Initialising Virtual filesystem...");
 
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
@@ -161,6 +161,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
+    ps2::kbd::getchar();
     serial::info("Starting kernel shell\n");
     while (true) apps::kshell::run();
 }
