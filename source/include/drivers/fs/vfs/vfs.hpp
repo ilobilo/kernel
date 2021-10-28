@@ -61,6 +61,7 @@ struct dirent_t
     uint64_t ino;
 };
 
+extern bool initialised;
 extern fs_node_t *fs_root;
 
 uint64_t read_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer);
@@ -69,4 +70,8 @@ void open_fs(fs_node_t *node, uint8_t read, uint8_t write);
 void close_fs(fs_node_t *node);
 dirent_t *readdir_fs(fs_node_t *node, uint64_t index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
+
+fs_node_t *path2node(fs_node_t *parent, const char *path);
+
+void init();
 }
