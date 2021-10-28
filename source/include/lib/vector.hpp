@@ -18,12 +18,14 @@ public:
         vector = (T*)heap::malloc(alloc * sizeof(T));
         num = 0;
     }
+
     void init(size_t size)
     {
         cap = size;
         vector = (T*)heap::malloc(size * sizeof(T));
         num = 0;
     }
+
     void destroy()
     {
         heap::free(vector);
@@ -56,6 +58,7 @@ public:
     {
         return *(this->vector + pos);
     }
+
     T &at(size_t pos)
     {
         return *(this->vector + pos);
@@ -65,6 +68,7 @@ public:
     {
         return *this->vector;
     }
+
     T &last()
     {
         return *(this->vector + num - 1);
@@ -73,5 +77,16 @@ public:
     size_t size()
     {
         return num;
+    }
+    size_t max_size()
+    {
+        return cap;
+    }
+
+    void resize(size_t size)
+    {
+        cap = size;
+        vector = (T*)heap::realloc(vector, size * sizeof(T));
+        if (num > size) num = size + 1;
     }
 };
