@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lib/array.hpp>
+#include <lib/vector.hpp>
 #include <stdint.h>
 
 namespace kernel::drivers::fs::vfs {
@@ -52,7 +52,7 @@ struct fs_node_t
     fs_node_t *ptr;
     fs_t *fs;
     fs_node_t *parent;
-    Array<fs_node_t*> children;
+    Vector<fs_node_t*> children;
 };
 
 struct dirent_t

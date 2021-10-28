@@ -6,12 +6,12 @@
 namespace kernel::system::cpu::syscall {
 
 #define S_RAX regs->rax
-#define S_ARG0_RDI regs->rdi
-#define S_ARG1_RSI regs->rsi
-#define S_ARG2_RDX regs->rdx
-#define S_ARG3_R10 regs->r10
-#define S_ARG4_R8 regs->r8
-#define S_ARG5_R9 regs->r9
+#define S_RDI_ARG0 regs->rdi
+#define S_RSI_ARG1 regs->rsi
+#define S_RDX_ARG2 regs->rdx
+#define S_R10_ARG3 regs->r10
+#define S_R8_ARG4 regs->r8
+#define S_R9_ARG5 regs->r9
 
 #define SYSCALL0(NUM) \
 ({ \

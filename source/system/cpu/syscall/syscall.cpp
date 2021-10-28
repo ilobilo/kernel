@@ -20,13 +20,13 @@ static void syscall_read(idt::interrupt_registers *regs)
 
 static void syscall_write(idt::interrupt_registers *regs)
 {
-    switch (S_ARG0_RDI)
+    switch (S_RDI_ARG0)
     {
         case 0:
         {
-            char *str = (char*)heap::malloc(S_ARG2_RDX * sizeof(char));
-            memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
-            str[S_ARG2_RDX] = 0;
+            char *str = (char*)heap::malloc(S_RDX_ARG2 * sizeof(char));
+            memcpy(str, (void*)S_RSI_ARG1, S_RDX_ARG2);
+            str[S_RDX_ARG2] = 0;
             printf("%s", str);
             S_RAX = (uint64_t)str;
             heap::free(str);
@@ -36,9 +36,9 @@ static void syscall_write(idt::interrupt_registers *regs)
             break;
         case 2:
         {
-            char *str = (char*)heap::malloc(S_ARG2_RDX * sizeof(char));
-            memcpy(str, (void*)S_ARG1_RSI, S_ARG2_RDX);
-            str[S_ARG2_RDX] = 0;
+            char *str = (char*)heap::malloc(S_RDX_ARG2 * sizeof(char));
+            memcpy(str, (void*)S_RSI_ARG1, S_RDX_ARG2);
+            str[S_RDX_ARG2] = 0;
             serial::err("%s", str);
             S_RAX = (uint64_t)str;
             heap::free(str);
