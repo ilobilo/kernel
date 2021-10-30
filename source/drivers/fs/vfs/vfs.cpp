@@ -75,7 +75,7 @@ size_t strlen_slash(const char *string, size_t skip)
     return counter;
 }
 
-fs_node_t *file2node(fs_node_t *parent, const char *path)
+fs_node_t *getchild(fs_node_t *parent, const char *path)
 {
     acquire_lock(&vfs_lock);
     fs_node_t *parent_node;

@@ -32,7 +32,8 @@ void setcolour(char *ascii_colour), term_resetcolour();
 
 void center(char *text);
 
-void check(bool ok, char *mesaage);
+void check(char *mesaage);
+void okerr(bool ok);
 
 //void printf(char *c, ...);
 }
