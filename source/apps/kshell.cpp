@@ -42,65 +42,11 @@ void shell_parse(char *cmd, char *arg)
             terminal::clear();
             break;
         case hash("ls"):
-        {
-            vfs::fs_node_t *tmp;
-            if (!strcmp(arg, "")) tmp = current_path;
-            else tmp = vfs::getchild(current_path, arg);
-            if (!tmp)
-            {
-                printf("\033[31mNo such directory!%s\n", terminal::colour);
-                return;
-            }
-            if ((tmp->flags & 0x07) == vfs::FS_FILE)
-            {
-                printf("%s\n", arg, terminal::colour);
-                return;
-            }
-            for (size_t i = 0; i < tmp->children.size(); i++)
-            {
-                if ((tmp->children.at(i)->flags & 0x07) == vfs::FS_DIRECTORY)
-                {
-                    printf("\033[01;95m%s%s  ", tmp->children.at(i)->name, terminal::colour);
-                }
-                else continue;
-            }
-            for (size_t i = 0; i < tmp->children.size(); i++)
-            {
-                if ((tmp->children.at(i)->flags & 0x07) == vfs::FS_SYMLINK)
-                {
-                    printf("\033[01;96m%s%s  ", tmp->children.at(i)->name, terminal::colour);
-                }
-                else continue;
-            }
-            for (size_t i = 0; i < tmp->children.size(); i++)
-            {
-                if ((tmp->children.at(i)->flags & 0x07) == vfs::FS_FILE)
-                {
-                    printf("%s  ", tmp->children.at(i)->name);
-                }
-                else continue;
-            }
-            printf("\n");
+            ustar::list();
             break;
-        }
         case hash("cat"):
-        {
-            vfs::fs_node_t *node = vfs::getchild(current_path, arg);
-            if (!node)
-            {
-                printf("\033[31mInvalid file name!%s\n", terminal::colour);
-                return;
-            }
-            if ((node->flags & 0x07) != vfs::FS_FILE)
-            {
-                printf("\033[31m%s is not a regular text file!%s\n", arg, terminal::colour);
-                return;
-            }
-            char *buf = (char*)heap::malloc(node->length);
-            vfs::read_fs(node, 0, node->length, buf);
-            printf("%s\n", buf);
+            ustar::cat(arg);
             break;
-        }
         case hash("cd"):
         {
             if (!strcmp(arg, "../") || !strcmp(arg, ".."))
