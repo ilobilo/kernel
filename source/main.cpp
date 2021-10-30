@@ -113,52 +113,64 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %s\n", humanify(getmemsize()));
 
+    terminal::check("Initialising Page Frame Allocator...");
     pfalloc::init();
-    terminal::check(pfalloc::initialised, "Initialising Page Frame Allocator...");
+    terminal::okerr(pfalloc::initialised);
 
+    terminal::check("Initialising Page Table Manager...");
     ptmanager::init();
-    terminal::check(ptmanager::initialised, "Initialising Page Table Manager...");
+    terminal::okerr(ptmanager::initialised);
 
+    terminal::check("Initialising Kernel Heap...");
     heap::init();
-    terminal::check(heap::initialised, "Initialising Kernel Heap...");
+    terminal::okerr(heap::initialised);
 
+    terminal::check("Initialising Virtual filesystem...");
     vfs::init();
-    terminal::check(vfs::initialised, "Initialising Virtual filesystem...");
+    terminal::okerr(vfs::initialised);
 
+    terminal::check("Initialising USTAR filesystem...");
     int i = find_module("initrd");
     if (i != -1 && strstr(cmdline, "initrd"))
     {
         ustar::init(mod_tag->modules[i].begin);
     }
-    terminal::check(ustar::initialised, "Initialising USTAR filesystem...");
+    terminal::okerr(ustar::initialised);
 
+    terminal::check("Initialising Global Descriptor Table...");
     gdt::init();
-    terminal::check(gdt::initialised, "Initialising Global Descriptor Table...");
+    terminal::okerr(gdt::initialised);
 
+    terminal::check("Initialising Interrupt Descriptor Table...");
     idt::init();
-    terminal::check(idt::initialised, "Initialising Interrupt Descriptor Table...");
+    terminal::okerr(idt::initialised);
 
+    terminal::check("Initialising SMP...");
     smp::init();
-    terminal::check(smp::initialised, "Initialising SMP...");
+    terminal::okerr(smp::initialised);
 
+    terminal::check("Initialising ACPI...");
     acpi::init();
-    terminal::check(acpi::initialised, "Initialising ACPI...");
+    terminal::okerr(acpi::initialised);
 
     if (strstr(cmdline, "pciids")) pci::use_pciids = true;
+    terminal::check("Initialising PCI...");
     pci::init();
-    terminal::check(pci::initialised, "Initialising PCI...");
+    terminal::okerr(pci::initialised);
 
+    terminal::check("Initialising PIT...");
     pit::init();
-    terminal::check(pit::initialised, "Initialising PIT...");
+    terminal::okerr(pit::initialised);
 
+    terminal::check("Initialising PS2 Keyboard...");
     ps2::kbd::init();
-    terminal::check(ps2::kbd::initialised, "Initialising PS2 Keyboard...");
+    terminal::okerr(ps2::kbd::initialised);
 
+    terminal::check("Initialising PS2 Mouse...");
     if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
-    terminal::check(ps2::mouse::initialised, "Initialising PS2 Mouse...");
+    terminal::okerr(ps2::mouse::initialised);
 
     printf("Current RTC time: %s", rtc::getTime());
-
     printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     ps2::kbd::getchar();

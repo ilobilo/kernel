@@ -65,15 +65,15 @@ struct dirent_t
 extern bool initialised;
 extern fs_node_t *fs_root;
 
-uint64_t read_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer);
-uint64_t write_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer);
+size_t read_fs(fs_node_t *node, size_t offset, size_t size, char *buffer);
+size_t write_fs(fs_node_t *node, size_t offset, size_t size, char *buffer);
 void open_fs(fs_node_t *node, uint8_t read, uint8_t write);
 void close_fs(fs_node_t *node);
-dirent_t *readdir_fs(fs_node_t *node, uint64_t index);
+dirent_t *readdir_fs(fs_node_t *node, size_t index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
 
 size_t strlen_slash(const char *string, size_t skip = 0);
-fs_node_t *file2node(fs_node_t *parent, const char *path);
+fs_node_t *getchild(fs_node_t *parent, const char *path);
 fs_node_t *add_new_child(fs_node_t *parent, const char *name);
 void remove_child(fs_node_t *parent, const char *name);
 fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *name);

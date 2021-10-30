@@ -45,9 +45,16 @@ void shell_parse(char *cmd, char *arg)
         {
             vfs::fs_node_t *tmp;
             if (!strcmp(arg, "")) tmp = current_path;
-            else
+            else tmp = vfs::getchild(current_path, arg);
+            if (!tmp)
             {
-                tmp = vfs::file2node(current_path, arg);
+                printf("\033[31mNo such directory!%s\n", terminal::colour);
+                return;
+            }
+            if ((tmp->flags & 0x07) == vfs::FS_FILE)
+            {
+                printf("%s\n", arg, terminal::colour);
+                return;
             }
             for (size_t i = 0; i < tmp->children.size(); i++)
             {
@@ -78,7 +85,7 @@ void shell_parse(char *cmd, char *arg)
         }
         case hash("cat"):
         {
-            vfs::fs_node_t *node = vfs::file2node(current_path, arg);
+            vfs::fs_node_t *node = vfs::getchild(current_path, arg);
             if (!node)
             {
                 printf("\033[31mInvalid file name!%s\n", terminal::colour);
@@ -102,7 +109,7 @@ void shell_parse(char *cmd, char *arg)
                 break;
             }
             if (!strcmp(arg, "./") || !strcmp(arg, ".")) break;
-            vfs::fs_node_t *node = vfs::file2node(current_path, arg);
+            vfs::fs_node_t *node = vfs::getchild(current_path, arg);
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
@@ -163,7 +170,7 @@ void shell_parse(char *cmd, char *arg)
 
 void run()
 {
-    if (!current_path) current_path = vfs::file2node(NULL, "/");
+    if (!current_path) current_path = vfs::getchild(NULL, "/");
     printf("\033[32mroot@kernel:\033[95m~%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
     char *command = ps2::kbd::getline();
     char cmd[10] = "\0";

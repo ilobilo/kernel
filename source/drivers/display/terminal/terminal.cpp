@@ -137,28 +137,17 @@ void center(char *text)
     }
 }
 
-void check(bool ok, char *message)
+void check(char *message)
 {
-    if (ok)
-    {
-        print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
-        print(message);
-        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
-        {
-            print(" ");
-        }
-        print("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
-    }
-    else
-    {
-        print("\033[1m[\033[21m\033[31m*\033[0m\033[1m]\033[21m ");
-        print(message);
-        for (uint16_t i = 0; i < columns - (10 + strlen(message)); i++)
-        {
-            print(" ");
-        }
-        print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
-    }
+    print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
+    print(message);
+    for (uint16_t i = 0; i < columns - strlen(message) - 10; i++) print(" ");
+}
+
+void okerr(bool ok)
+{
+    if (ok) print("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
+    else print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
 }
 #pragma endregion Misc
 
