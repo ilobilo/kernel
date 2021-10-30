@@ -37,7 +37,7 @@ int parse(unsigned int address)
     for (i = 0; ; i++)
     {
         file_header_t *header = (file_header_t*)address;
-        memmove(header->name, header->name + 2, strlen(header->name));
+        memmove(header->name, header->name + 1, strlen(header->name));
 
         if (strcmp(header->signature, "ustar")) break;
 
@@ -53,38 +53,6 @@ int parse(unsigned int address)
         headers[i].header = header;
         headers[i].address = address + 512;
         filecount++;
-
-        vfs::fs_node_t *node = vfs::add_new_child(initrd_root, headers[i].header->name);
-        if (vfs::strlen_slash(headers[i].header->name) < strlen(headers[i].header->name))
-        {
-            vfs::remove_child(initrd_root, headers[i].header->name);
-        }
-        node->address = headers[i].address;
-        node->length = size;
-        node->gid = getsize(header->gid);
-        node->uid = getsize(header->uid);
-
-        switch (headers[i].header->typeflag[0])
-        {
-            case filetypes::REGULAR_FILE:
-                node->flags = vfs::FS_FILE;
-                break;
-            case filetypes::SYMLINK:
-                node->flags = vfs::FS_SYMLINK;
-                break;
-            case filetypes::DIRECTORY:
-                node->flags = vfs::FS_DIRECTORY;
-                node->children.init(1);
-                break;
-            case filetypes::CHARDEV:
-                node->flags = vfs::FS_CHARDEVICE;
-                break;
-            case filetypes::BLOCKDEV:
-                node->flags = vfs::FS_BLOCKDEVICE;
-                break;
-            default:
-                vfs::remove_child(initrd_root, headers[i].header->name);
-        }
 
         address += (((size + 511) / 512) + 1) * 512;
     }
@@ -183,7 +151,7 @@ int search(char *filename, char **contents)
     return 0;
 }
 
-size_t initrd_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+size_t ustar_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = node->length;
     if (offset > node->length) return 0;
@@ -192,9 +160,9 @@ size_t initrd_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffe
     return size;
 }
 
-static vfs::fs_t initrd_fs = {
-    .name = "initrd",
-    .read = &initrd_read
+static vfs::fs_t ustar_fs = {
+    .name = "USTAR",
+    .read = &ustar_read
 };
 
 void init(unsigned int address)
@@ -209,7 +177,7 @@ void init(unsigned int address)
 
     headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
 
-    initrd_root = vfs::mount(&initrd_fs, NULL, "/");
+    initrd_root = vfs::mount(&ustar_fs, NULL, "/");
     initrd_root->children.init();
     parse(address);
 
