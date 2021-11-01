@@ -11,11 +11,14 @@ private:
     size_t cap;
     size_t num;
 public:
+    bool on;
+
     void init()
     {
         cap = 5;
         vector = (T*)heap::malloc(5 * sizeof(T));
         num = 0;
+        on = true;
     }
 
     void init(size_t size)
@@ -23,11 +26,13 @@ public:
         cap = size;
         vector = (T*)heap::malloc(size * sizeof(T));
         num = 0;
+        on = true;
     }
 
     void destroy()
     {
         heap::free(vector);
+        on = false;
     }
 
     void push_back(const T &data)
