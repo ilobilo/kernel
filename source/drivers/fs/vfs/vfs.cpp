@@ -47,75 +47,28 @@ fs_node_t *finddir_fs(fs_node_t *node, char *name)
     else return 0;
 }
 
-size_t strlen_slash(const char *string, size_t skip)
-{
-    bool skip1 = false;
-    if (!strncmp(string, "/", 1)) skip1 = true;
-    size_t counter = 0;
-    again:
-    while (*string != '\0' && *string != '/')
-    {
-        string++;
-        counter++;
-    };
-    if (skip > 0)
-    {
-        skip--;
-        string++;
-        counter++;
-        goto again;
-    }
-    if (skip1)
-    {
-        skip1 = false;
-        string++;
-        counter++;
-        goto again;
-    }
-    return counter;
-}
-
 fs_node_t *getchild(fs_node_t *parent, const char *path)
 {
-    acquire_lock(&vfs_lock);
     fs_node_t *parent_node;
     fs_node_t *child_node;
     if (!parent) parent_node = fs_root;
     else parent_node = parent;
 
-    while (true)
+    if (*path == '\0')
     {
-        next:
-        if (*path == '\0')
-        {
-            release_lock(&vfs_lock);
-            return NULL;
-        }
-        for (size_t i = 0; i < parent_node->children.size(); i++)
-        {
-            child_node = parent_node->children.at(i);
-            size_t length = strlen_slash(path);
-            if (!strncmp(child_node->name, path, length))
-            {
-                path += length;
-                if (*(path++) == '\0')
-                {
-                    release_lock(&vfs_lock);
-                    return child_node;
-                }
-                parent_node = child_node;
-                goto next;
-            }
-        }
         release_lock(&vfs_lock);
         return NULL;
+    }
+    for (size_t i = 0; i < parent_node->children.size(); i++)
+    {
+        child_node = parent_node->children.at(i);
+        if (!strcmp(child_node->name, path)) return child_node;
     }
     return NULL;
 }
 
 fs_node_t *add_new_child(fs_node_t *parent, const char *name)
 {
-    acquire_lock(&vfs_lock);
     if (!parent) parent = fs_root;
     fs_node_t *node = (fs_node_t*)heap::calloc(1, sizeof(fs_node_t));
     strcpy(node->name, name);
@@ -123,33 +76,160 @@ fs_node_t *add_new_child(fs_node_t *parent, const char *name)
     node->fs = parent->fs;
     node->children.init(1);
     parent->children.push_back(node);
-    release_lock(&vfs_lock);
     return node;
 }
 
 void remove_child(fs_node_t *parent, const char *name)
 {
-    acquire_lock(&vfs_lock);
     if (!parent) parent = fs_root;
     for (size_t i = 0; i < parent->children.size(); i++)
     {
         fs_node_t *node = parent->children.at(i);
         if (!strcmp(node->name, name))
         {
-            parent->children.remove(i);
             node->children.destroy();
             heap::free(node);
-            release_lock(&vfs_lock);
+            parent->children.remove(i);
+            serial::info("%s/%s", parent->name, node->name);
             return;
         }
     }
-    release_lock(&vfs_lock);
+    serial::info("test");
 }
 
-fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *name)
+fs_node_t *open(fs_node_t *parent, const char *path)
+{
+    acquire_lock(&vfs_lock);
+    if (!path || path[0] != '/')
+    {
+        serial::err("VFS: Paths must start with /");
+        release_lock(&vfs_lock);
+        return NULL;
+    }
+    if (strchr(path, ' '))
+    {
+        serial::err("VFS: Paths must not contain spaces!");
+        release_lock(&vfs_lock);
+        return NULL;
+    }
+
+    fs_node_t *parent_node;
+    fs_node_t *child_node;
+    size_t slashes;
+    size_t cleared = 0;
+
+    if (!parent) parent_node = getchild(NULL, "/");
+    if (!parent_node)
+    {
+        serial::err("VFS: Couldn't find directory /");
+        serial::err("VFS: Is root mounted?");
+        release_lock(&vfs_lock);
+        return NULL;
+    }
+
+    char **patharr = strsplit_count(path, "/", &slashes);
+    if (!strcmp(patharr[slashes], "")) slashes--;
+    slashes -= 2;
+    patharr++;
+
+    while (slashes)
+    {
+        next:
+        for (size_t i = 0; i < parent_node->children.size(); i++)
+        {
+            child_node = parent_node->children.at(i);
+            if (!strcmp(child_node->name, patharr[cleared]))
+            {
+                parent_node = parent_node->children.at(i);
+                cleared++;
+                goto next;
+            }
+            if (i + 1 == parent_node->children.size()) goto notfound;
+        }
+        slashes--;
+    }
+
+    release_lock(&vfs_lock);
+    return child_node;
+
+    notfound:
+    serial::err("VFS: File not found!");
+    release_lock(&vfs_lock);
+    return NULL;
+}
+
+fs_node_t *create(fs_node_t *parent, const char *path)
+{
+    acquire_lock(&vfs_lock);
+    if (!path || path[0] != '/')
+    {
+        serial::err("VFS: Paths must start with /");
+        release_lock(&vfs_lock);
+        return NULL;
+    }
+    if (strchr(path, ' '))
+    {
+        serial::err("VFS: Paths must not contain spaces!");
+        release_lock(&vfs_lock);
+        return NULL;
+    }
+
+    fs_node_t *parent_node;
+    fs_node_t *child_node;
+    size_t slashes;
+    size_t cleared = 0;
+
+    if (!parent) parent_node = getchild(NULL, "/");
+    if (!parent_node)
+    {
+        serial::err("VFS: Couldn't find directory /");
+        serial::err("VFS: Is root mounted?");
+        release_lock(&vfs_lock);
+        return NULL;
+    }
+
+    char **patharr = strsplit_count(path, "/", &slashes);
+    if (!strcmp(patharr[slashes], "")) slashes--;
+    slashes -= 2;
+    patharr++;
+
+    while (slashes)
+    {
+        if (getchild(parent_node, patharr[cleared]))
+        {
+            cleared++;
+            slashes--;
+        }
+        if (slashes > 1) parent_node = add_new_child(parent_node, patharr[cleared]);
+        else child_node = add_new_child(parent_node, patharr[cleared]);
+        cleared++;
+        slashes--;
+    }
+
+    release_lock(&vfs_lock);
+    return child_node;
+}
+
+fs_node_t *mount_r(fs_t *fs, fs_node_t *parent, const char *path)
 {
     if (!parent) parent = fs_root;
-    fs_node_t *node = add_new_child(parent, name);
+    fs_node_t *node = create(parent, path);
+    node->fs = fs;
+    return node;
+}
+
+fs_node_t *mount_root(fs_t *fs)
+{
+    fs_node_t *node = add_new_child(fs_root, "/");
+    node->fs = fs;
+    return node;
+}
+
+fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
+{
+    if (!parent) parent = fs_root;
+    fs_node_t *node = create(parent, path);
+    if (!node) return NULL;
     node->fs = fs;
     return node;
 }
@@ -161,7 +241,7 @@ void init()
     fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
     fs_root->flags = filetypes::FS_DIRECTORY;
     fs_root->children.init(1);
-    strcpy(fs_root->name, "[root]");
+    strcpy(fs_root->name, "[ROOT]");
     fs_root->fs = NULL;
 
     serial::newline();
