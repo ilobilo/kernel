@@ -90,16 +90,16 @@ void remove_child(fs_node_t *parent, const char *name)
             node->children.destroy();
             heap::free(node);
             parent->children.remove(i);
-            serial::info("%s/%s", parent->name, node->name);
             return;
         }
     }
-    serial::info("test");
 }
 
 fs_node_t *open(fs_node_t *parent, const char *path)
 {
     acquire_lock(&vfs_lock);
+    if (!strcmp(path, "/")) return fs_root->ptr;
+    if (!strcmp(path, "[ROOT]")) return fs_root;
     if (!path || path[0] != '/')
     {
         serial::err("VFS: Paths must start with /");
@@ -129,8 +129,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     }
 
     char **patharr = strsplit_count(path, "/", &slashes);
-    if (!strcmp(patharr[slashes], "")) slashes--;
-    slashes -= 2;
+    while (!strcmp(patharr[slashes], "") || !patharr[slashes]) slashes--;
     patharr++;
 
     while (slashes)
@@ -197,8 +196,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     }
 
     char **patharr = strsplit_count(path, "/", &slashes);
-    if (!strcmp(patharr[slashes], "")) slashes--;
-    slashes -= 2;
+    while (!strcmp(patharr[slashes], "") || !patharr[slashes]) slashes--;
     patharr++;
 
     while (slashes)
@@ -207,9 +205,11 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         {
             cleared++;
             slashes--;
+            continue;
         }
         if (slashes > 1) parent_node = add_new_child(parent_node, patharr[cleared]);
         else child_node = add_new_child(parent_node, patharr[cleared]);
+
         cleared++;
         slashes--;
     }

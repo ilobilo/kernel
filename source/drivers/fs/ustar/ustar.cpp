@@ -54,6 +54,32 @@ int parse(unsigned int address)
         headers[i].address = address + 512;
         filecount++;
 
+        vfs::fs_node_t *node = vfs::create(NULL, headers[i].header->name);
+
+        node->address = headers[i].address;
+        node->length = size;
+        node->gid = getsize(header->gid);
+        node->uid = getsize(header->uid);
+
+        switch (headers[i].header->typeflag[0])
+        {
+            case filetypes::REGULAR_FILE:
+                node->flags = vfs::FS_FILE;
+                break;
+            case filetypes::SYMLINK:
+                node->flags = vfs::FS_SYMLINK;
+                break;
+            case filetypes::DIRECTORY:
+                node->flags = vfs::FS_DIRECTORY;
+                break;
+            case filetypes::CHARDEV:
+                node->flags = vfs::FS_CHARDEVICE;
+                break;
+            case filetypes::BLOCKDEV:
+                node->flags = vfs::FS_BLOCKDEVICE;
+                break;
+        }
+
         address += (((size + 511) / 512) + 1) * 512;
     }
     return i;
@@ -107,12 +133,7 @@ char *cat(char *name)
     switch (headers[i].header->typeflag[0])
     {
         case filetypes::REGULAR_FILE:
-            if (search(name, &contents) != 0)
-            {
-                printf("--BEGIN-- %s\n", name);
-                printf("%s", contents);
-                printf("--END-- %s\n", name);
-            }
+            if (search(name, &contents) != 0) printf("%s", contents);
             else goto Error;
             break;
         default:
