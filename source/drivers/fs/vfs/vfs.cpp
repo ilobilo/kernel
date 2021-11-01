@@ -118,7 +118,8 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     size_t slashes;
     size_t cleared = 0;
 
-    if (!parent) parent_node = getchild(NULL, "/");
+    if (!parent) parent_node = fs_root->ptr;
+    else parent_node = parent;
     if (!parent_node)
     {
         serial::err("VFS: Couldn't find directory /");
@@ -135,6 +136,12 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     while (slashes)
     {
         next:
+        if ((parent_node->flags & 0x07) == FS_MOUNTPOINT || (parent_node->flags & 0x07) == FS_SYMLINK)
+        {
+            parent_node = parent_node->ptr;
+            slashes++;
+            goto next;
+        }
         for (size_t i = 0; i < parent_node->children.size(); i++)
         {
             child_node = parent_node->children.at(i);
@@ -179,7 +186,8 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     size_t slashes;
     size_t cleared = 0;
 
-    if (!parent) parent_node = getchild(NULL, "/");
+    if (!parent) parent_node = fs_root->ptr;
+    else parent_node = parent;
     if (!parent_node)
     {
         serial::err("VFS: Couldn't find directory /");
@@ -210,27 +218,21 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     return child_node;
 }
 
-fs_node_t *mount_r(fs_t *fs, fs_node_t *parent, const char *path)
-{
-    if (!parent) parent = fs_root;
-    fs_node_t *node = create(parent, path);
-    node->fs = fs;
-    return node;
-}
-
 fs_node_t *mount_root(fs_t *fs)
 {
     fs_node_t *node = add_new_child(fs_root, "/");
+    fs_root->ptr = node;
+    node->flags = FS_DIRECTORY;
     node->fs = fs;
     return node;
 }
 
-fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
+fs_node_t *mount(fs_t *fs, fs_node_t *parent, fs_node_t *node)
 {
     if (!parent) parent = fs_root;
-    fs_node_t *node = create(parent, path);
-    if (!node) return NULL;
-    node->fs = fs;
+    parent->ptr = node;
+    parent->flags = FS_MOUNTPOINT;
+    parent->ptr->flags = FS_DIRECTORY;
     return node;
 }
 
@@ -239,7 +241,7 @@ void init()
     serial::info("Initialising Virtual filesystem");
 
     fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
-    fs_root->flags = filetypes::FS_DIRECTORY;
+    fs_root->flags = filetypes::FS_MOUNTPOINT;
     fs_root->children.init(1);
     strcpy(fs_root->name, "[ROOT]");
     fs_root->fs = NULL;
