@@ -177,8 +177,8 @@ void init(unsigned int address)
 
     headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
 
-    //initrd_root = vfs::mount(&ustar_fs, NULL, "/");
-    //initrd_root->children.init();
+    initrd_root = vfs::mount_root(&ustar_fs);
+    initrd_root->children.init();
     parse(address);
 
     serial::newline();
