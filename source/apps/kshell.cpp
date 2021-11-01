@@ -49,13 +49,23 @@ void shell_parse(char *cmd, char *arg)
             break;
         case hash("cd"):
         {
+            if (strncmp(arg, "/", 1))
+            {
+                printf("\033[31mPath must be absolute!%s\n", terminal::colour);
+            }
+            if (!strcmp(arg, ""))
+            {
+                current_path = vfs::getchild(NULL, "/");
+                break;
+            }
             if (!strncmp(arg, "../", 3) || !strncmp(arg, "..", 2))
             {
                 current_path = current_path->parent;
                 break;
             }
             if (!strncmp(arg, "./", 2) || !strncmp(arg, ".", 1)) break;
-            vfs::fs_node_t *node = vfs::open(current_path, arg);
+
+            vfs::fs_node_t *node = vfs::open(NULL, strdup(arg));
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
