@@ -42,8 +42,62 @@ void shell_parse(char *cmd, char *arg)
             terminal::clear();
             break;
         case hash("ls"):
-            ustar::list();
+        {
+            vfs::fs_node_t *node;
+            if (!strncmp(arg, "../", 3) || !strncmp(arg, "..", 2)) node = current_path->parent;
+            else if (!strncmp(arg, "./", 2) || !strncmp(arg, ".", 1) || !strcmp(arg, "")) node = current_path;
+            else node = vfs::open(NULL, arg);
+            if (!node)
+            {
+                printf("\033[31mNo such directory!%s\n", terminal::colour);
+                return;
+            }
+
+            size_t size = 0;
+            for (size_t i = 0; i < node->children.size(); i++)
+            {
+                switch (node->children.at(i)->flags & 0x07)
+                {
+                    case vfs::FS_DIRECTORY:
+                        printf("\033[35m%s%s ", node->children.at(i)->name, terminal::colour);
+                        break;
+                }
+            }
+            for (size_t i = 0; i < node->children.size(); i++)
+            {
+                switch (node->children.at(i)->flags & 0x07)
+                {
+                    case vfs::FS_SYMLINK:
+                        printf("\033[96m%s%s ", node->children.at(i)->name, terminal::colour);
+                        break;
+                }
+            }
+            for (size_t i = 0; i < node->children.size(); i++)
+            {
+                switch (node->children.at(i)->flags & 0x07)
+                {
+                    case vfs::FS_FILE:
+                        printf("%s ", node->children.at(i)->name);
+                        size += node->length;
+                        break;
+                }
+            }
+            for (size_t i = 0; i < node->children.size(); i++)
+            {
+                switch (node->children.at(i)->flags & 0x07)
+                {
+                    case vfs::FS_FILE:
+                    case vfs::FS_SYMLINK:
+                    case vfs::FS_DIRECTORY:
+                        break;
+                    default:
+                        printf("\033[31m%s%s ", node->children.at(i)->name, terminal::colour);
+                        break;
+                }
+            }
+            printf("\n");
             break;
+        }
         case hash("cat"):
             ustar::cat(arg);
             break;
@@ -126,7 +180,11 @@ void shell_parse(char *cmd, char *arg)
 
 void run()
 {
-    if (!current_path) current_path = vfs::getchild(NULL, "/");
+    if (!current_path)
+    {
+        current_path = vfs::getchild(NULL, "/");
+        current_path->flags = vfs::FS_DIRECTORY;
+    }
     printf("\033[32mroot@kernel:\033[95m~%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
     char *command = ps2::kbd::getline();
     char cmd[10] = "\0";
