@@ -100,9 +100,9 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     acquire_lock(&vfs_lock);
     if (!strcmp(path, "/")) return fs_root->ptr;
     if (!strcmp(path, "[ROOT]")) return fs_root;
-    if (!path || path[0] != '/')
+    if (!path)
     {
-        serial::err("VFS: Paths must start with /");
+        serial::err("VFS: Invalid path!");
         release_lock(&vfs_lock);
         return NULL;
     }
@@ -115,7 +115,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 
     fs_node_t *parent_node;
     fs_node_t *child_node;
-    size_t slashes;
+    size_t items;
     size_t cleared = 0;
 
     if (!parent) parent_node = fs_root->ptr;
@@ -128,17 +128,37 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         return NULL;
     }
 
-    char **patharr = strsplit_count(path, "/", &slashes);
-    while (!strcmp(patharr[slashes], "") || !patharr[slashes]) slashes--;
-    patharr++;
-
-    while (slashes)
+    char **patharr = strsplit_count(path, "/", &items);
+    if (!patharr) return NULL;
+    while (!strcmp(patharr[0], ""))
     {
-        next:
+        items--;
+        patharr++;
+    }
+    while (!strcmp(patharr[items - 1], "")) items--;
+
+    next:
+    if (items > 0)
+    {
         if ((parent_node->flags & 0x07) == FS_MOUNTPOINT || (parent_node->flags & 0x07) == FS_SYMLINK)
         {
             parent_node = parent_node->ptr;
-            slashes++;
+            goto next;
+        }
+        if (!strcmp(patharr[cleared], ".."))
+        {
+            if (items > 1) parent_node = parent_node->parent;
+            else child_node = parent_node->parent;
+            cleared++;
+            items--;
+            goto next;
+        }
+        if (!strcmp(patharr[cleared], "."))
+        {
+
+            if (items <= 1) child_node = parent_node; 
+            cleared++;
+            items--;
             goto next;
         }
         for (size_t i = 0; i < parent_node->children.size(); i++)
@@ -148,11 +168,11 @@ fs_node_t *open(fs_node_t *parent, const char *path)
             {
                 parent_node = parent_node->children.at(i);
                 cleared++;
+                items--;
                 goto next;
             }
-            if (i + 1 == parent_node->children.size()) goto notfound;
         }
-        slashes--;
+        goto notfound;
     }
 
     release_lock(&vfs_lock);
@@ -167,9 +187,9 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 fs_node_t *create(fs_node_t *parent, const char *path)
 {
     acquire_lock(&vfs_lock);
-    if (!path || path[0] != '/')
+    if (!path)
     {
-        serial::err("VFS: Paths must start with /");
+        serial::err("VFS: Invalid path!");
         release_lock(&vfs_lock);
         return NULL;
     }
@@ -182,7 +202,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
 
     fs_node_t *parent_node;
     fs_node_t *child_node;
-    size_t slashes;
+    size_t items;
     size_t cleared = 0;
 
     if (!parent) parent_node = fs_root->ptr;
@@ -195,23 +215,47 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         return NULL;
     }
 
-    char **patharr = strsplit_count(path, "/", &slashes);
-    while (!strcmp(patharr[slashes], "") || !patharr[slashes]) slashes--;
-    patharr++;
-
-    while (slashes)
+    char **patharr = strsplit_count(path, "/", &items);
+    if (!patharr) return NULL;
+    while (!strcmp(patharr[0], ""))
     {
-        if (getchild(parent_node, patharr[cleared]))
+        items--;
+        patharr++;
+    }
+    while (!strcmp(patharr[items - 1], "")) items--;
+
+    next:
+    if (items > 0)
+    {
+        if (fs_node_t *temp = getchild(parent_node, patharr[cleared]))
         {
+            if (items > 1) parent_node = temp;
+            else child_node = temp;
             cleared++;
-            slashes--;
-            continue;
+            items--;
+            goto next;
         }
-        if (slashes > 1) parent_node = add_new_child(parent_node, patharr[cleared]);
+        if (!strcmp(patharr[cleared], ".."))
+        {
+            if (items > 1) parent_node = parent_node->parent;
+            else child_node = parent_node->parent;
+            cleared++;
+            items--;
+            goto next;
+        }
+        if (!strcmp(patharr[cleared], "."))
+        {
+            if (items <= 1) child_node = parent_node; 
+            cleared++;
+            items--;
+            goto next;
+        }
+        if (items > 1) parent_node = add_new_child(parent_node, patharr[cleared]);
         else child_node = add_new_child(parent_node, patharr[cleared]);
 
         cleared++;
-        slashes--;
+        items--;
+        goto next;
     }
 
     release_lock(&vfs_lock);
