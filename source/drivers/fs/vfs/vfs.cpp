@@ -99,7 +99,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 {
     acquire_lock(&vfs_lock);
     if (!strcmp(path, "/")) return fs_root->ptr;
-    if (!strcmp(path, "[ROOT]")) return fs_root;
+    if (!strcmp(path, ROOTNAME)) return fs_root;
     if (!path)
     {
         serial::err("VFS: Invalid path!");
@@ -289,7 +289,7 @@ void init()
     fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
     fs_root->flags = filetypes::FS_MOUNTPOINT;
     fs_root->children.init(1);
-    strcpy(fs_root->name, "[ROOT]");
+    strcpy(fs_root->name, ROOTNAME);
     fs_root->fs = NULL;
 
     serial::newline();

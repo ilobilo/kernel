@@ -46,7 +46,8 @@ void shell_parse(char *cmd, char *arg)
             vfs::fs_node_t *node;
             if (!strncmp(arg, "../", 3) || !strncmp(arg, "..", 2)) node = current_path->parent;
             else if (!strncmp(arg, "./", 2) || !strncmp(arg, ".", 1) || !strcmp(arg, "")) node = current_path;
-            else node = vfs::open(NULL, arg);
+            else if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            else node = vfs::open(current_path, arg);
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
@@ -100,7 +101,9 @@ void shell_parse(char *cmd, char *arg)
         }
         case hash("cat"):
         {
-            vfs::fs_node_t *node = vfs::open(current_path, strdup(arg));
+            vfs::fs_node_t *node;
+            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, strdup(arg));
+            else node = vfs::open(current_path, strdup(arg));
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
@@ -131,7 +134,9 @@ void shell_parse(char *cmd, char *arg)
             }
             if (!strcmp(arg, ".") || !strcmp(arg, "./")) break;
 
-            vfs::fs_node_t *node = vfs::open(current_path, strdup(arg));
+            vfs::fs_node_t *node;
+            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            else node = vfs::open(current_path, strdup(arg));
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
