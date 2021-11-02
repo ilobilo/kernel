@@ -99,8 +99,24 @@ void shell_parse(char *cmd, char *arg)
             break;
         }
         case hash("cat"):
-            ustar::cat(arg);
+        {
+            vfs::fs_node_t *node = vfs::open(current_path, strdup(arg));
+            if (!node)
+            {
+                printf("\033[31mNo such directory!%s\n", terminal::colour);
+                return;
+            }
+            switch (node->flags & 0x07)
+            {
+                case vfs::FS_FILE:
+                    printf("%s\n", node->address);
+                    break;
+                default:
+                    printf("\033[31m%s is not a text file!%s\n", arg, terminal::colour);
+                    break;
+            }
             break;
+        }
         case hash("cd"):
         {
             if (!strcmp(arg, ""))
