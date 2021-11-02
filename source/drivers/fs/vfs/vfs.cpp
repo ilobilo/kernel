@@ -163,7 +163,9 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         }
         for (size_t i = 0; i < parent_node->children.size(); i++)
         {
-            child_node = parent_node->children.at(i);
+            if ((parent_node->children.at(i)->flags & 0x07) == FS_MOUNTPOINT || (parent_node->children.at(i)->flags & 0x07) == FS_SYMLINK)
+                child_node = parent_node->children.at(i)->ptr;
+            else child_node = parent_node->children.at(i);
             if (!strcmp(child_node->name, patharr[cleared]))
             {
                 parent_node = parent_node->children.at(i);
