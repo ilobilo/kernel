@@ -103,23 +103,19 @@ void shell_parse(char *cmd, char *arg)
             break;
         case hash("cd"):
         {
-            if (strncmp(arg, "/", 1))
-            {
-                printf("\033[31mPath must be absolute!%s\n", terminal::colour);
-            }
             if (!strcmp(arg, ""))
             {
                 current_path = vfs::getchild(NULL, "/");
                 break;
             }
-            if (!strncmp(arg, "../", 3) || !strncmp(arg, "..", 2))
+            if (!strcmp(arg, "..") || !strcmp(arg, "../"))
             {
                 current_path = current_path->parent;
                 break;
             }
-            if (!strncmp(arg, "./", 2) || !strncmp(arg, ".", 1)) break;
+            if (!strcmp(arg, ".") || !strcmp(arg, "./")) break;
 
-            vfs::fs_node_t *node = vfs::open(NULL, strdup(arg));
+            vfs::fs_node_t *node = vfs::open(current_path, strdup(arg));
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
@@ -185,7 +181,7 @@ void run()
         current_path = vfs::getchild(NULL, "/");
         current_path->flags = vfs::FS_DIRECTORY;
     }
-    printf("\033[32mroot@kernel:\033[95m~%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
+    printf("\033[32mroot@kernel:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
     char *command = ps2::kbd::getline();
     char cmd[10] = "\0";
 
