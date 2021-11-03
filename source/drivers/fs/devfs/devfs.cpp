@@ -1,5 +1,7 @@
+#include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
+#include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 
@@ -17,7 +19,7 @@ vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mask, const char *name)
     vfs::fs_node_t *node = vfs::open_r(devfs_root, name);
     node->children.destroy();
     node->fs = fs;
-    node->mask = mask;
+    if (mask) node->mask = mask;
     node->inode = count;
     count++;
     return node;
@@ -93,6 +95,57 @@ static vfs::fs_t rand_fs = {
 };
 #pragma endregion rand
 
+#pragma region tty
+static size_t read_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+{
+    return 0;
+}
+static size_t write_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+{
+    if (!size) size = strlen(buffer);
+    size_t written = 0;
+    while (written < size)
+    {
+        serial::serial_printf("%c", buffer[written]);
+        written++;
+    }
+    return size;
+}
+static vfs::fs_t ttys_fs = {
+    .name = "ttys",
+    .read = &read_ttys,
+    .write = &write_ttys
+};
+
+static size_t read_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+{
+    return 0;
+}
+static size_t write_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+{
+    if (!size) size = strlen(buffer);
+    size_t written = 0;
+    while (written < size)
+    {
+        printf("%c", buffer[written]);
+        written++;
+    }
+    return size;
+}
+static vfs::fs_t tty_fs = {
+    .name = "tty",
+    .read = &read_tty,
+    .write = &write_tty
+};
+static void addtty(const char *name, bool serial)
+{
+    vfs::fs_node_t *tty;
+    if (!serial) tty = add(&tty_fs, NULL, name);
+    else tty = add(&ttys_fs, NULL, name);
+    tty->flags = vfs::FS_CHARDEVICE;
+}
+#pragma endregion tty
+
 void init()
 {
     serial::info("Mounting and populating DEVFS");
@@ -118,6 +171,10 @@ void init()
     vfs::fs_node_t *urand = add(&rand_fs, 0444, "urandom");
     urand->flags = vfs::FS_CHARDEVICE;
     urand->length = 1024;
+
+    addtty("ttyS0", true);
+    addtty("tty0", false);
+    addtty("console", false);
 
     serial::newline();
     initialised = true;
