@@ -24,6 +24,36 @@ volatile bool enter = false;
 
 kbd_mod_t kbd_mod;
 
+bool ps2_wait_write()
+{
+    int timer = 500;
+    while ((inb(0x64) & 2) && timer-- > 0) asm volatile ("pause");
+    return timer != 0;
+}
+
+bool ps2_write(uint32_t port, uint8_t b)
+{
+    if (ps2_wait_write())
+    {
+        outb(port, b);
+        return true;
+    }
+    return false;
+}
+
+bool ps2_wait_read()
+{
+    int timer = 500;
+    while ((inb(0x64) & 1) && timer-- > 0) asm volatile ("pause");
+    return timer != 0;
+}
+
+uint8_t ps2_read(uint32_t port)
+{
+    if (ps2_wait_write()) return inb(port);
+    return -1;
+}
+
 // Scancode to ascii
 char get_ascii_char(uint8_t key_code)
 {
