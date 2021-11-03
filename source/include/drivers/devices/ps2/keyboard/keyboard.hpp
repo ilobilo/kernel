@@ -13,8 +13,10 @@ struct kbd_mod_t
 };
 
 extern bool initialised;
-
 extern char *buff;
+
+bool ps2_write(uint32_t port, uint8_t b);
+uint8_t ps2_read(uint32_t port);
 
 void clearbuff();
 
