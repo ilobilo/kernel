@@ -54,12 +54,14 @@ int parse(unsigned int address)
         headers[i].address = address + 512;
         filecount++;
 
-        vfs::fs_node_t *node = vfs::create(NULL, headers[i].header->name);
+        vfs::fs_node_t *node = vfs::open_r(NULL, headers[i].header->name);
 
+        node->mask = string_to_int(headers[i].header->mode);
         node->address = headers[i].address;
         node->length = headers[i].size;
         node->gid = getsize(header->gid);
         node->uid = getsize(header->uid);
+        node->inode = i;
 
         switch (headers[i].header->typeflag[0])
         {
@@ -176,7 +178,7 @@ int search(char *filename, char **contents)
     return 0;
 }
 
-size_t ustar_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+static size_t ustar_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = node->length;
     if (offset > node->length) return 0;
@@ -192,11 +194,11 @@ static vfs::fs_t ustar_fs = {
 
 void init(unsigned int address)
 {
-    serial::info("Initialising USTAR filesystem");
+    serial::info("Mounting USTAR initrd");
 
     if (initialised)
     {
-        serial::info("USTAR filesystem has already been initialised!\n");
+        serial::info("USTAR initrd has already been mounted!\n");
         return;
     }
 

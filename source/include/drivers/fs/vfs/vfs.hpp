@@ -24,7 +24,7 @@ struct dirent_t;
 
 using read_t = size_t (*)(fs_node_t*, size_t, size_t, char*);
 using write_t = size_t (*)(fs_node_t*, size_t, size_t, char*);
-using open_t = void (*)(fs_node_t*);
+using open_t = void (*)(fs_node_t*, uint8_t, uint8_t);
 using close_t = void (*)(fs_node_t*);
 using readdir_t = dirent_t *(*)(fs_node_t*, size_t);
 using finddir_t = fs_node_t *(*)(fs_node_t*, char*);
@@ -50,7 +50,6 @@ struct fs_node_t
     uint64_t inode;
     uint64_t address;
     uint64_t length;
-    uint64_t impl;
     fs_node_t *ptr;
     fs_t *fs;
     fs_node_t *parent;
@@ -64,6 +63,7 @@ struct dirent_t
 };
 
 extern bool initialised;
+extern bool debug;
 extern fs_node_t *fs_root;
 
 size_t read_fs(fs_node_t *node, size_t offset, size_t size, char *buffer);
@@ -79,9 +79,10 @@ void remove_child(fs_node_t *parent, const char *name);
 
 fs_node_t *open(fs_node_t *parent, const char *path);
 fs_node_t *create(fs_node_t *parent, const char *path);
+fs_node_t *open_r(fs_node_t *parent, const char *path);
 
 fs_node_t *mount_root(fs_t *fs);
-fs_node_t *mount(fs_t *fs, fs_node_t *parent, fs_node_t *node);
+fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path);
 
 void init();
 }

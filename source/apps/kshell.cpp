@@ -68,6 +68,15 @@ void shell_parse(char *cmd, char *arg)
             {
                 switch (node->children.at(i)->flags & 0x07)
                 {
+                    case vfs::FS_CHARDEVICE:
+                        printf("\033[93m%s%s ", node->children.at(i)->name, terminal::colour);
+                        break;
+                }
+            }
+            for (size_t i = 0; i < node->children.size(); i++)
+            {
+                switch (node->children.at(i)->flags & 0x07)
+                {
                     case vfs::FS_SYMLINK:
                         printf("\033[96m%s%s ", node->children.at(i)->name, terminal::colour);
                         break;
@@ -90,6 +99,7 @@ void shell_parse(char *cmd, char *arg)
                     case vfs::FS_FILE:
                     case vfs::FS_SYMLINK:
                     case vfs::FS_DIRECTORY:
+                    case vfs::FS_CHARDEVICE:
                         break;
                     default:
                         printf("\033[31m%s%s ", node->children.at(i)->name, terminal::colour);
@@ -133,6 +143,11 @@ void shell_parse(char *cmd, char *arg)
                 break;
             }
             if (!strcmp(arg, ".") || !strcmp(arg, "./")) break;
+            if (!strcmp(arg, "/"))
+            {
+                current_path = vfs::fs_root->ptr;
+                break;
+            }
 
             vfs::fs_node_t *node;
             if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
@@ -140,7 +155,12 @@ void shell_parse(char *cmd, char *arg)
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
-                return;
+                break;
+            }
+            if ((node->flags & 0x07) != vfs::FS_DIRECTORY)
+            {
+                printf("\033[31m%s is not a directory!%s\n", arg, terminal::colour);
+                break;
             }
             current_path = node;
             break;

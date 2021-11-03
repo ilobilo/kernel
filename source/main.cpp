@@ -11,9 +11,10 @@
 #include <system/mm/bitmap/bitmap.hpp>
 #include <system/power/acpi/acpi.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
-#include <system/mm/heap/heap.hpp>
+#include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -136,6 +137,10 @@ void main(struct stivale2_struct *stivale2_struct)
         ustar::init(mod_tag->modules[i].begin);
     }
     terminal::okerr(ustar::initialised);
+
+    terminal::check("Initialising DEV filesystem...");
+    devfs::init();
+    terminal::okerr(devfs::initialised);
 
     terminal::check("Initialising Global Descriptor Table...");
     gdt::init();
