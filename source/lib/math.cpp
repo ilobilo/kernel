@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+static unsigned long next = 1;
+
 int pow(int base, int exp)
 {
     int result = 1;
@@ -19,13 +21,11 @@ int sign(int num)
 
 uint64_t rand()
 {
-    static uint64_t x = 123456789;
-    static uint64_t y = 362436069;
-    static uint64_t z = 521288629;
-    static uint64_t w = 88675123;
+    next = next * 1103515245 + 12345;
+    return (uint64_t)(next / 65536) % 32768;
+}
 
-    uint64_t t;
-    t = x ^ (x << 11);
-    x = y; y = z; z = w;
-    return abs(w = w ^ (w >> 19) ^ t ^ (t >> 8));
+void srand(uint64_t seed)
+{
+    next = seed;
 }

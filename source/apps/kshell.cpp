@@ -112,8 +112,8 @@ void shell_parse(char *cmd, char *arg)
         case hash("cat"):
         {
             vfs::fs_node_t *node;
-            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, strdup(arg));
-            else node = vfs::open(current_path, strdup(arg));
+            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            else node = vfs::open(current_path, arg);
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
@@ -122,10 +122,25 @@ void shell_parse(char *cmd, char *arg)
             switch (node->flags & 0x07)
             {
                 case vfs::FS_FILE:
-                    printf("%s\n", node->address);
+                {
+                    char *txt = (char*)heap::calloc(node->length, sizeof(char));
+                    vfs::read_fs(node, NULL, NULL, txt);
+                    printf("%s\n", txt);
+                    heap::free(txt);
                     break;
+                }
+                case vfs::FS_CHARDEVICE:
+                {
+                    size_t size = 50;
+                    if (node->length) size = node->length;
+                    char *txt = (char*)heap::calloc(node->length, sizeof(char));
+                    vfs::read_fs(node, NULL, size, txt);
+                    printf("%s\n", txt);
+                    heap::free(txt);
+                    break;
+                }
                 default:
-                    printf("\033[31m%s is not a text file!%s\n", arg, terminal::colour);
+                    printf("\033[31m%s is not a file!%s\n", arg, terminal::colour);
                     break;
             }
             break;
@@ -148,10 +163,9 @@ void shell_parse(char *cmd, char *arg)
                 current_path = vfs::fs_root->ptr;
                 break;
             }
-
             vfs::fs_node_t *node;
             if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
-            else node = vfs::open(current_path, strdup(arg));
+            else node = vfs::open(current_path, arg);
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
