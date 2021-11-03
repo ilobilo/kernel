@@ -2,7 +2,6 @@
 #include <system/sched/rtc/rtc.hpp>
 #include <lib/io.hpp>
 
-
 namespace kernel::system::sched::rtc {
 
 int bcdtobin(int value)
