@@ -8,6 +8,7 @@ using namespace kernel::drivers::display;
 namespace kernel::drivers::fs::vfs {
 
 bool initialised = false;
+bool debug = false;
 fs_node_t *fs_root;
 DEFINE_LOCK(vfs_lock);
 
@@ -25,7 +26,7 @@ uint64_t write_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer)
 
 void open_fs(fs_node_t *node, uint8_t read, uint8_t write)
 {
-    if (node->fs->open != 0) return node->fs->open(node);
+    if (node->fs->open != 0) return node->fs->open(node, read, write);
     else return;
 }
 
@@ -98,17 +99,15 @@ void remove_child(fs_node_t *parent, const char *name)
 fs_node_t *open(fs_node_t *parent, const char *path)
 {
     acquire_lock(&vfs_lock);
-    if (!strcmp(path, "/")) return fs_root->ptr;
-    if (!strcmp(path, ROOTNAME)) return fs_root;
     if (!path)
     {
-        serial::err("VFS: Invalid path!");
+        if (debug) serial::err("VFS: Invalid path!");
         release_lock(&vfs_lock);
         return NULL;
     }
     if (strchr(path, ' '))
     {
-        serial::err("VFS: Paths must not contain spaces!");
+        if (debug) serial::err("VFS: Paths must not contain spaces!");
         release_lock(&vfs_lock);
         return NULL;
     }
@@ -122,11 +121,15 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     else parent_node = parent;
     if (!parent_node)
     {
-        serial::err("VFS: Couldn't find directory /");
-        serial::err("VFS: Is root mounted?");
+        if (debug)
+        {
+            serial::err("VFS: Couldn't find directory /");
+            serial::err("VFS: Is root mounted?");
+        }
         release_lock(&vfs_lock);
         return NULL;
     }
+    if (!strcmp(path, "/")) return parent;
 
     char **patharr = strsplit_count(path, "/", &items);
     if (!patharr) return NULL;
@@ -181,7 +184,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     return child_node;
 
     notfound:
-    serial::err("VFS: File not found!");
+    if (debug) serial::err("VFS: File not found!");
     release_lock(&vfs_lock);
     return NULL;
 }
@@ -191,13 +194,13 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     acquire_lock(&vfs_lock);
     if (!path)
     {
-        serial::err("VFS: Invalid path!");
+        if (debug) serial::err("VFS: Invalid path!");
         release_lock(&vfs_lock);
         return NULL;
     }
     if (strchr(path, ' '))
     {
-        serial::err("VFS: Paths must not contain spaces!");
+        if (debug) serial::err("VFS: Paths must not contain spaces!");
         release_lock(&vfs_lock);
         return NULL;
     }
@@ -211,8 +214,11 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     else parent_node = parent;
     if (!parent_node)
     {
-        serial::err("VFS: Couldn't find directory /");
-        serial::err("VFS: Is root mounted?");
+        if (debug)
+        {
+            serial::err("VFS: Couldn't find directory /");
+            serial::err("VFS: Is root mounted?");
+        }
         release_lock(&vfs_lock);
         return NULL;
     }
@@ -264,6 +270,13 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     return child_node;
 }
 
+fs_node_t *open_r(fs_node_t *parent, const char *path)
+{
+    fs_node_t *node = open(parent, path);
+    if (!node) node = create(parent, path);
+    return node;
+}
+
 fs_node_t *mount_root(fs_t *fs)
 {
     fs_node_t *node = add_new_child(fs_root, "/");
@@ -273,18 +286,26 @@ fs_node_t *mount_root(fs_t *fs)
     return node;
 }
 
-fs_node_t *mount(fs_t *fs, fs_node_t *parent, fs_node_t *node)
+fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
 {
-    if (!parent) parent = fs_root;
-    parent->ptr = node;
+    if (!parent) parent = fs_root->ptr;
+    if (!fs) fs = parent->fs;
+    parent->ptr = create(parent, path);
     parent->flags = FS_MOUNTPOINT;
     parent->ptr->flags = FS_DIRECTORY;
-    return node;
+    parent->ptr->fs = fs;
+    return parent->ptr;
 }
 
 void init()
 {
-    serial::info("Initialising Virtual filesystem");
+    serial::info("Installing VFS");
+
+    if (initialised)
+    {
+        serial::info("VFS has already been installed!\n");
+        return;
+    }
 
     fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
     fs_root->flags = filetypes::FS_MOUNTPOINT;
