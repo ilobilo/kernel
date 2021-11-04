@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <system/mm/bitmap/bitmap.hpp>
 
 bool Bitmap::operator[](uint64_t index)

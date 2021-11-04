@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #pragma once
 
 #include <system/pci/pcidesc.hpp>

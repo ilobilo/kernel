@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
@@ -30,6 +32,11 @@ char *strstr(const char *str, const char *substring);
 int lstrstr(const char *str, const char *substring, int skip = 0);
 
 char *getline(const char *str, const char *substring, char *buffer, int skip = 0);
+
+char char2low(char c);
+char char2up(char c);
+int char2num(char c);
+char *char2str(char c);
 
 char *int_to_string(int num);
 int string_to_int(char *str);

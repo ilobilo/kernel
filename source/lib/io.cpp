@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/terminal/terminal.hpp>
 #include <stdint.h>
 void outb(uint16_t port, uint8_t val)

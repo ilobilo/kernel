@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>

@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <system/sched/lock/lock.hpp>
 
 void acquire_lock(lock_t *lock)

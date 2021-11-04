@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <lib/io.hpp>

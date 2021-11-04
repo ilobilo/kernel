@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
