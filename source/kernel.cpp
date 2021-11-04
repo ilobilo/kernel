@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <stivale2.h>
 #include <main.hpp>
 #include <stddef.h>

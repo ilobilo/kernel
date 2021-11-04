@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>

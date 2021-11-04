@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/heap/heap.hpp>
@@ -23,6 +25,11 @@ bool mousedrawn;
 void putpix(uint32_t x, uint32_t y, uint32_t colour)
 {
     *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = colour;
+}
+
+void putpix(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint64_t b)
+{
+    *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = (r << 16) | (g << 8) | b;
 }
 
 uint32_t getpix(uint32_t x, uint32_t y)

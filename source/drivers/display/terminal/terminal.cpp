@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
@@ -5,7 +7,6 @@
 #include <lib/string.hpp>
 #include <stivale2.h>
 #include <main.hpp>
-
 
 namespace kernel::drivers::display::terminal {
 
@@ -44,46 +45,41 @@ void printi(int num)
         int i = 0;
         if (num < 0)
         {
-            print("-");
+            printc('-');
             num = -num;
         }
-        if (num > 0); else { temp[i++] = '8'; num = -(num / 10); }
+        if (num <= 0)
+        {
+            temp[i++] = '8';
+            num = -(num / 10);
+        }
         while (num > 0)
         {
             temp[i++] = num % 10 + '0';
             num /= 10;
         }
-        while (--i >= 0)
-        {
-            printc(temp[i]);
-        }
+        while (--i >= 0) printc(temp[i]);
     }
-    else
-    {
-        print("0");
-    }
+    else printc('0');
 }
 
 void printc(char c)
 {
-    char cs[2] = "\0";
-    cs[0] = c;
-    print(cs);
+    print(char2str(c));
 }
-
 #pragma endregion Print
 
 #pragma region Colour
 void setcolour(char *ascii_colour)
 {
     colour = ascii_colour;
-    print(colour);
+    printf("%s", colour);
 }
 
 void resetcolour()
 {
     colour = "\033[0m";
-    print(colour);
+    printf("%s", colour);
 }
 #pragma endregion Colour
 
@@ -99,25 +95,25 @@ void clear(char *ansii_colour)
 {
     ps2::kbd::clearbuff();
     setcolour(ansii_colour);
-    print("\033[H\033[2J");
+    printf("\033[H\033[2J");
     reset();
 }
 #pragma endregion Clear
 
 #pragma region CursorCtrl
-void cursor_up(int lines = 1)
+void cursor_up(int lines)
 {
     printf("\033[%dA", lines);
 }
-void cursor_down(int lines = 1)
+void cursor_down(int lines)
 {
     printf("\033[%dB", lines);
 }
-void cursor_right(int lines = 1)
+void cursor_right(int lines)
 {
     printf("\033[%dC", lines);
 }
-void cursor_left(int lines = 1)
+void cursor_left(int lines)
 {
     printf("\033[%dD", lines);
 }
@@ -126,28 +122,21 @@ void cursor_left(int lines = 1)
 #pragma region Misc
 void center(char *text)
 {
-    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
-    {
-        print(" ");
-    }
+    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
     print(text);
-    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++)
-    {
-        print(" ");
-    }
+    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
 }
 
 void check(char *message)
 {
-    print("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m ");
-    print(message);
-    for (uint16_t i = 0; i < columns - strlen(message) - 10; i++) print(" ");
+    printf("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m %s", message);
+    for (uint16_t i = 0; i < columns - strlen(message) - 10; i++) printc(' ');
 }
 
 void okerr(bool ok)
 {
-    if (ok) print("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
-    else print("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
+    if (ok) printf("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
+    else printf("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
 }
 #pragma endregion Misc
 
@@ -175,7 +164,7 @@ void printf(char *c, ...)
 
         switch(*c)
         {
-            case 's': print(va_arg(lst, char *)); break;
+            case 's': print(va_arg(lst, char*)); break;
             case 'c': printc(va_arg(lst, int)); break;
             case 'd': case 'i': printi(va_arg(lst, int)); break;
         }

@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <system/mm/paging/paging.hpp>
 
 namespace kernel::system::mm::paging {

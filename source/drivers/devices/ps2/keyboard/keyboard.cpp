@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/devices/ps2/keyboard/kbscancodetable.hpp>
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
@@ -23,36 +25,6 @@ volatile bool pressed = false;
 volatile bool enter = false;
 
 kbd_mod_t kbd_mod;
-
-bool ps2_wait_write()
-{
-    int timer = 500;
-    while ((inb(0x64) & 2) && timer-- > 0) asm volatile ("pause");
-    return timer != 0;
-}
-
-bool ps2_write(uint32_t port, uint8_t b)
-{
-    if (ps2_wait_write())
-    {
-        outb(port, b);
-        return true;
-    }
-    return false;
-}
-
-bool ps2_wait_read()
-{
-    int timer = 500;
-    while ((inb(0x64) & 1) && timer-- > 0) asm volatile ("pause");
-    return timer != 0;
-}
-
-uint8_t ps2_read(uint32_t port)
-{
-    if (ps2_wait_write()) return inb(port);
-    return -1;
-}
 
 // Scancode to ascii
 char get_ascii_char(uint8_t key_code)
@@ -157,17 +129,27 @@ static void Keyboard_Handler(idt::interrupt_registers *)
                 break;
             case keys::RIGHT:
                 strcpy(c, "\033[C");
-                terminal::print(c);
+                printf("%c", c);
                 break;
             case keys::LEFT:
                 strcpy(c, "\033[D");
-                terminal::print(c);
+                printf("%c", c);
                 break;
             default:
                 memset(c, 0, strlen(c));
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
+                    char ch = char2up(c[0]);
+
+                    if (kbd_mod.ctrl)
+                    {
+                        if (ch >= 'A' && ch <= '_' || ch == '?' || ch == '0')
+                        {
+                            printf("%c", escapes[char2num(ch)]);
+                        }
+                    }
+                    else if (kbd_mod.alt) printf("\x1b[%c", ch);
                     handle_comb(scancode);
                 }
                 else
@@ -189,7 +171,7 @@ static void Keyboard_Handler(idt::interrupt_registers *)
                             break;
                         default:
                             pressed = true;
-                            terminal::print(c);
+                            printf("%s", c);
                             strcat(buff, c);
                             break;
                     }
@@ -241,8 +223,8 @@ void init()
         return;
     }
 
-    register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
     buff[0] = '\0';
+    register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
 
     serial::newline();
     initialised = true;

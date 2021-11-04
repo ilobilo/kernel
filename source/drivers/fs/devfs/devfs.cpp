@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
@@ -103,12 +105,7 @@ static size_t read_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *
 static size_t write_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
-    size_t written = 0;
-    while (written < size)
-    {
-        serial::serial_printf("%c", buffer[written]);
-        written++;
-    }
+    serial::serial_printf("%.*s", size, buffer);
     return size;
 }
 static vfs::fs_t ttys_fs = {
@@ -124,12 +121,7 @@ static size_t read_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *b
 static size_t write_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
-    size_t written = 0;
-    while (written < size)
-    {
-        printf("%c", buffer[written]);
-        written++;
-    }
+    printf("%.*s", size, buffer);
     return size;
 }
 static vfs::fs_t tty_fs = {

@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/memory.hpp>
@@ -220,6 +222,29 @@ void reverse(char s[])
         s[i] = s[j];
         s[j] = c;
     }
+}
+
+char char2low(char c)
+{
+    return (c >= 'A' && c <= 'Z') ? c + 32 : c;
+}
+
+char char2up(char c)
+{
+    return (c >= 'a' && c <= 'z') ? c - 32 : c;
+}
+
+int char2num(char c)
+{
+    c = char2up(c);
+    return (c) ? c - 64 : -1;
+}
+
+char str[2];
+char *char2str(char c)
+{
+    str[0] = c;
+    return str;
 }
 
 char *int_to_string(int num)

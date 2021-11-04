@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
@@ -236,7 +238,7 @@ void run()
         current_path = vfs::getchild(NULL, "/");
         current_path->flags = vfs::FS_DIRECTORY;
     }
-    printf("\033[32mroot@kernel:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
+    printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
     char *command = ps2::kbd::getline();
     char cmd[10] = "\0";
 

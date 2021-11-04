@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #pragma once
 
 #include <drivers/display/terminal/terminal.hpp>

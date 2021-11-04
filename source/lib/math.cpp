@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <stdint.h>
 
 static unsigned long next = 1;

@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <main.hpp>
 #include <stdint.h>
 #include <stddef.h>

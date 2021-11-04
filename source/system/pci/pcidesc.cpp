@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <lib/string.hpp>

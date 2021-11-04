@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #pragma once
 
 #include <lib/math.hpp>
@@ -15,6 +17,7 @@ extern uint16_t frm_pixperscanline;
 extern uint32_t frm_size;
 
 void putpix(uint32_t x, uint32_t y, uint32_t colour);
+void putpix(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint64_t b);
 uint32_t getpix(uint32_t x, uint32_t y);
 
 void framebuffer_restore(uint32_t *frm);

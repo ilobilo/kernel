@@ -1,3 +1,5 @@
+// Copyright (C) 2021  ilobilo
+
 #pragma once
 
 #include <drivers/display/terminal/printf.h>
@@ -17,19 +19,15 @@ extern uint16_t rows;
 extern char *colour;
 
 void print(const char *string);
-
 void printi(int i);
-
 void printc(char c);
 
 void init();
 
-void cursor_up(int lines), cursor_down(int lines), cursor_right(int lines), cursor_left(int lines);
+void cursor_up(int lines = 1), cursor_down(int lines = 1), cursor_right(int lines = 1), cursor_left(int lines = 1);
 
 void clear(char *ansii_colour = colour);
-
-void setcolour(char *ascii_colour), term_resetcolour();
-
+void setcolour(char *ascii_colour), resetcolour();
 void center(char *text);
 
 void check(char *mesaage);
