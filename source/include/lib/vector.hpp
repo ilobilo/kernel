@@ -5,6 +5,8 @@
 #include <system/mm/heap/heap.hpp>
 #include <stddef.h>
 
+using namespace kernel::system::mm;
+
 template<typename T>
 class Vector
 {

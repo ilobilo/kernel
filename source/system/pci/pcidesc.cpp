@@ -5,10 +5,11 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 
+using namespace kernel::system::mm;
 
 namespace kernel::system::pci {
 
-char *device_classes[20]
+const char *device_classes[20]
 {
     "Unclassified",
     "Mass Storage Controller",
@@ -35,7 +36,7 @@ char *device_classes[20]
 char *PCIids;
 #define MAX_TRIES 5
 
-char *getvendorname(uint16_t vendorid, char *buffer)
+const char *getvendorname(uint16_t vendorid, char *buffer)
 {
     char vid[10];
     sprintf(vid, "%X  ", vendorid);
@@ -66,7 +67,7 @@ int getvendorline(uint16_t vendorid)
     return lstrstr(PCIids, vid, i);
 }
 
-char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
+const char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
 {
     char did[10];
     sprintf(did, "\t%X  ", deviceid);
@@ -82,7 +83,7 @@ char *getdevicename(uint16_t vendorid, uint16_t deviceid, char *buffer)
     return buffer;
 }
 
-char *getvendorname(uint16_t vendorid)
+const char *getvendorname(uint16_t vendorid)
 {
     switch (vendorid)
     {
@@ -100,7 +101,7 @@ char *getvendorname(uint16_t vendorid)
     return ret;
 }
 
-char *getdevicename(uint16_t vendorid, uint16_t deviceid)
+const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
 {
     switch (vendorid)
     {
@@ -164,7 +165,7 @@ char *getdevicename(uint16_t vendorid, uint16_t deviceid)
     return ret;
 }
 
-char *unclasssubclassname(uint8_t subclasscode)
+const char *unclasssubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -178,7 +179,7 @@ char *unclasssubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *mscsubclassname(uint8_t subclasscode)
+const char *mscsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -208,7 +209,7 @@ char *mscsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *netsubclassname(uint8_t subclasscode)
+const char *netsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -238,7 +239,7 @@ char *netsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *dispsubclassname(uint8_t subclasscode)
+const char *dispsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -256,7 +257,7 @@ char *dispsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *multimediasubclassname(uint8_t subclasscode)
+const char *multimediasubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -276,7 +277,7 @@ char *multimediasubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *memsubclassname(uint8_t subclasscode)
+const char *memsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -292,7 +293,7 @@ char *memsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *bridgesubclassname(uint8_t subclasscode){
+const char *bridgesubclassname(uint8_t subclasscode){
     switch (subclasscode){
         case 0x00:
             return "Host Bridge";
@@ -324,7 +325,7 @@ char *bridgesubclassname(uint8_t subclasscode){
     return ret;
 }
 
-char *simplecomsubclassname(uint8_t subclasscode)
+const char *simplecomsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -348,7 +349,7 @@ char *simplecomsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *basesyspersubclassname(uint8_t subclasscode)
+const char *basesyspersubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -374,7 +375,7 @@ char *basesyspersubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *inputdevsubclassname(uint8_t subclasscode)
+const char *inputdevsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -396,7 +397,7 @@ char *inputdevsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *dockstatsubclassname(uint8_t subclasscode)
+const char *dockstatsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -410,7 +411,7 @@ char *dockstatsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *procsubclassname(uint8_t subclasscode)
+const char *procsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -438,7 +439,7 @@ char *procsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *sbcsubclassname(uint8_t subclasscode){
+const char *sbcsubclassname(uint8_t subclasscode){
     switch (subclasscode){
         case 0x00:
             return "FireWire (IEEE 1394) Controller";
@@ -468,7 +469,7 @@ char *sbcsubclassname(uint8_t subclasscode){
     return ret;
 }
 
-char *wirelsubclassname(uint8_t subclasscode)
+const char *wirelsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -494,7 +495,7 @@ char *wirelsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *intelsubclassname(uint8_t subclasscode)
+const char *intelsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -506,7 +507,7 @@ char *intelsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *satcomsubclassname(uint8_t subclasscode)
+const char *satcomsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -524,7 +525,7 @@ char *satcomsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *encryptsubclassname(uint8_t subclasscode)
+const char *encryptsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -540,7 +541,7 @@ char *encryptsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *signprocsubclassname(uint8_t subclasscode)
+const char *signprocsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -560,7 +561,7 @@ char *signprocsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-char *getsubclassname(uint8_t classcode, uint8_t subclasscode)
+const char *getsubclassname(uint8_t classcode, uint8_t subclasscode)
 {
     switch (classcode)
     {
@@ -606,7 +607,7 @@ char *getsubclassname(uint8_t classcode, uint8_t subclasscode)
     return ret;
 }
 
-char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
+const char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
 {
     switch (classcode)
     {

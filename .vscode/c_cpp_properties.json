@@ -10,10 +10,12 @@
                 "KERNEL_VERSION=0"
             ],
             "compilerPath": "/usr/bin/clang",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++20",
             "intelliSenseMode": "linux-clang-x64",
-            "compilerArgs": [],
+            "compilerArgs": [
+                "-Werror"
+            ],
             "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],

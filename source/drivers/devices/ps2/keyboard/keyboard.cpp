@@ -129,11 +129,11 @@ static void Keyboard_Handler(idt::interrupt_registers *)
                 break;
             case keys::RIGHT:
                 strcpy(c, "\033[C");
-                printf("%c", c);
+                printf("%s", c);
                 break;
             case keys::LEFT:
                 strcpy(c, "\033[D");
-                printf("%c", c);
+                printf("%s", c);
                 break;
             default:
                 memset(c, 0, strlen(c));

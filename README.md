@@ -19,6 +19,7 @@ Contributors are welcome
 - [x] Page Table Manager
 - [x] Heap
 - [x] VFS
+- [x] DEVFS
 - [ ] AHCI
 - [x] ACPI
 - [ ] Shutdown

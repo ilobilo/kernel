@@ -8,13 +8,13 @@ namespace kernel::system::pci {
 
 extern char *PCIids;
 
-extern char *device_classes[20];
+extern const char *device_classes[20];
 
-char *getvendorname(uint16_t vendorid, char *buffer);
-char *getdevicename(uint16_t vendorid, uint16_t deviceid, char* buffer);
+const char *getvendorname(uint16_t vendorid, char *buffer);
+const char *getdevicename(uint16_t vendorid, uint16_t deviceid, char* buffer);
 
-char *getvendorname(uint16_t vendorid);
-char *getdevicename(uint16_t vendorid, uint16_t deviceid);
-char *getsubclassname(uint8_t classcode, uint8_t subclasscode);
-char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif);
+const char *getvendorname(uint16_t vendorid);
+const char *getdevicename(uint16_t vendorid, uint16_t deviceid);
+const char *getsubclassname(uint8_t classcode, uint8_t subclasscode);
+const char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif);
 }

@@ -5,7 +5,6 @@
 #include <lib/math.hpp>
 #include <stivale2.h>
 
-
 namespace kernel::drivers::display::framebuffer {
 
 extern uint64_t frm_addr;

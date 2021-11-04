@@ -54,11 +54,11 @@ unsigned int getsize(const char *s);
 
 void list();
 
-char *cat(char *name);
+const char *cat(const char *name);
 
 int getid(const char *name);
 
-int search(char *filename, char **contents);
+int search(const char *filename, char **contents);
 
 void init(unsigned int address);
 }

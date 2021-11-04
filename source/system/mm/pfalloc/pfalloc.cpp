@@ -149,7 +149,6 @@ void unreservePage(void *address)
     }
 }
 
-
 void unreservePages(void *address, uint64_t pageCount)
 {
     for (uint64_t t = 0; t < pageCount; t++)
