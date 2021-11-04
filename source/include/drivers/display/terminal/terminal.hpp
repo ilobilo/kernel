@@ -26,11 +26,11 @@ void init();
 
 void cursor_up(int lines = 1), cursor_down(int lines = 1), cursor_right(int lines = 1), cursor_left(int lines = 1);
 
-void clear(char *ansii_colour = colour);
-void setcolour(char *ascii_colour), resetcolour();
-void center(char *text);
+void clear(const char *ansii_colour = colour);
+void setcolour(const char *ascii_colour), resetcolour();
+void center(const char *text);
 
-void check(char *mesaage);
+void check(const char *mesaage);
 void okerr(bool ok);
 
 //void printf(char *c, ...);

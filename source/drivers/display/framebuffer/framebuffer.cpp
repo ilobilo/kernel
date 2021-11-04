@@ -7,6 +7,8 @@
 #include <lib/memory.hpp>
 #include <main.hpp>
 
+using namespace kernel::system::mm;
+
 namespace kernel::drivers::display::framebuffer {
 
 uint64_t frm_addr;

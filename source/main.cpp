@@ -52,7 +52,7 @@ struct stivale2_struct_tag_cmdline *cmd_tag;
 
 char *cmdline;
 
-int find_module(char *name)
+int find_module(const char *name)
 {
     for (uint64_t i = 0; i < mod_tag->module_count; i++)
     {

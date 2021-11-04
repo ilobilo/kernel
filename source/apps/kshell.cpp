@@ -48,7 +48,7 @@ void shell_parse(char *cmd, char *arg)
             vfs::fs_node_t *node;
             if (!strncmp(arg, "../", 3) || !strncmp(arg, "..", 2)) node = current_path->parent;
             else if (!strncmp(arg, "./", 2) || !strncmp(arg, ".", 1) || !strcmp(arg, "")) node = current_path;
-            else if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            else if (!strncmp(arg, "/", 1)) node = vfs::open(0, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {
@@ -126,7 +126,7 @@ void shell_parse(char *cmd, char *arg)
                 case vfs::FS_FILE:
                 {
                     char *txt = (char*)heap::calloc(node->length, sizeof(char));
-                    vfs::read_fs(node, NULL, NULL, txt);
+                    vfs::read_fs(node, 0, 0, txt);
                     printf("%s\n", txt);
                     heap::free(txt);
                     break;
@@ -136,7 +136,7 @@ void shell_parse(char *cmd, char *arg)
                     size_t size = 50;
                     if (node->length) size = node->length;
                     char *txt = (char*)heap::calloc(node->length, sizeof(char));
-                    vfs::read_fs(node, NULL, size, txt);
+                    vfs::read_fs(node, 0, size, txt);
                     printf("%s\n", txt);
                     heap::free(txt);
                     break;
@@ -151,7 +151,7 @@ void shell_parse(char *cmd, char *arg)
         {
             if (!strcmp(arg, ""))
             {
-                current_path = vfs::getchild(NULL, "/");
+                current_path = vfs::getchild(0, "/");
                 break;
             }
             if (!strcmp(arg, "..") || !strcmp(arg, "../"))
@@ -166,7 +166,7 @@ void shell_parse(char *cmd, char *arg)
                 break;
             }
             vfs::fs_node_t *node;
-            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            if (!strncmp(arg, "/", 1)) node = vfs::open(0, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {

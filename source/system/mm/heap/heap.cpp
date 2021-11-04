@@ -236,3 +236,18 @@ void heapSegHdr::combineBackward()
     if (last != NULL && last->free) last->combineForward();
 }
 }
+
+void *operator new(size_t size)
+{
+    return kernel::system::mm::heap::malloc(size);
+}
+
+void *operator new[](size_t size)
+{
+    return kernel::system::mm::heap::malloc(size);
+}
+
+void operator delete(void* ptr)
+{
+    kernel::system::mm::heap::free(ptr);
+}

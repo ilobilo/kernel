@@ -1524,9 +1524,9 @@ int ssfn_putc(uint32_t unicode)
 #   define SSFN_PIXEL uint32_t
 #  endif
 # endif
-    register SSFN_PIXEL *o, *p;
-    register uint8_t *ptr, *chr = NULL, *frg;
-    register int i, j, k, l, m, y = 0, w, s = ssfn_dst.p / sizeof(SSFN_PIXEL);
+    SSFN_PIXEL *o, *p;
+    uint8_t *ptr, *chr = NULL, *frg;
+    int i, j, k, l, m, y = 0, w, s = ssfn_dst.p / sizeof(SSFN_PIXEL);
 
     if(!ssfn_src || ssfn_src->magic[0] != 'S' || ssfn_src->magic[1] != 'F' || ssfn_src->magic[2] != 'N' ||
         ssfn_src->magic[3] != '2' || !ssfn_dst.ptr || !ssfn_dst.p) return SSFN_ERR_INVINP;

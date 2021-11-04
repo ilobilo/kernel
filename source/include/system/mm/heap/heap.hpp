@@ -34,19 +34,6 @@ void free(void *address);
 void expandHeap(size_t length);
 }
 
-using namespace kernel::system::mm;
-
-inline void* operator new(size_t size)
-{
-    return heap::malloc(size);
-}
-
-inline void* operator new[](size_t size)
-{
-    return heap::malloc(size);
-}
-
-inline void operator delete(void* ptr)
-{
-    heap::free(ptr);
-}
+void *operator new(size_t size);
+void *operator new[](size_t size);
+void operator delete(void* ptr);

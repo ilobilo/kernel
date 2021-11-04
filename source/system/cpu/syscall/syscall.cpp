@@ -16,7 +16,7 @@ namespace kernel::system::cpu::syscall {
 
 static void syscall_read(idt::interrupt_registers *regs)
 {
-    char *str = "Read currently not working!\n";
+    char *str = (char*)"Read currently not working!\n";
     S_RAX = (uint64_t)str;
 }
 

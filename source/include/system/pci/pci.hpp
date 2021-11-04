@@ -27,17 +27,17 @@ struct translatedpcideviceheader
 {
     uint16_t vendorid;
     uint16_t deviceid;
-    char *vendorstr;
-    char *devicestr;
+    const char *vendorstr;
+    const char *devicestr;
     uint16_t command;
     uint16_t status;
     uint8_t revisionid;
     uint8_t progif;
-    char *progifstr;
+    const char *progifstr;
     uint8_t subclass;
-    char *subclassStr;
+    const char *subclassStr;
     uint8_t Class;
-    char *ClassStr;
+    const char *ClassStr;
     uint8_t cachelinesize;
     uint8_t latencytimer;
     uint8_t headertype;

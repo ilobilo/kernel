@@ -15,7 +15,7 @@ DEFINE_LOCK(lock);
 uint16_t columns;
 uint16_t rows;
 
-char *colour = "\033[0m";
+char *colour = (char*)"\033[0m";
 
 void (*write)(const char *string, uint64_t length);
 
@@ -70,15 +70,15 @@ void printc(char c)
 #pragma endregion Print
 
 #pragma region Colour
-void setcolour(char *ascii_colour)
+void setcolour(const char *ascii_colour)
 {
-    colour = ascii_colour;
+    colour = (char*)ascii_colour;
     printf("%s", colour);
 }
 
 void resetcolour()
 {
-    colour = "\033[0m";
+    colour = (char*)"\033[0m";
     printf("%s", colour);
 }
 #pragma endregion Colour
@@ -91,7 +91,7 @@ void reset()
     release_lock(&lock);
 }
 
-void clear(char *ansii_colour)
+void clear(const char *ansii_colour)
 {
     ps2::kbd::clearbuff();
     setcolour(ansii_colour);
@@ -120,14 +120,14 @@ void cursor_left(int lines)
 #pragma endregion CursorCtrl
 
 #pragma region Misc
-void center(char *text)
+void center(const char *text)
 {
     for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
     print(text);
     for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
 }
 
-void check(char *message)
+void check(const char *message)
 {
     printf("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m %s", message);
     for (uint16_t i = 0; i < columns - strlen(message) - 10; i++) printc(' ');

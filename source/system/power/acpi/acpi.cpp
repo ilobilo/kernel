@@ -40,7 +40,7 @@ void init()
     else
     {
         use_xstd = false;
-        rsdt = (SDTHeader*)rsdp->rsdtaddr;
+        rsdt = (SDTHeader*)((uintptr_t)rsdp->rsdtaddr);
         serial::info("Found RSDT at: 0x%X", rsdt);
     }
 
@@ -63,7 +63,7 @@ void *findtable(SDTHeader *sdthdr, char *signature)
         }
         else
         {
-            newsdthdr = (SDTHeader*)*(uint32_t*)(*((uint32_t*)(&sdthdr)) + sizeof(SDTHeader) + (t * 4));
+            newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)sdthdr) + sizeof(SDTHeader) + (t * 4)));
         }
         for (int i = 0; i < 4; i++)
         {

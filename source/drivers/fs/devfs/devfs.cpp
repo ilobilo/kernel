@@ -105,7 +105,7 @@ static size_t read_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *
 static size_t write_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
-    serial::serial_printf("%.*s", size, buffer);
+    serial::serial_printf("%.*s", (int)size, buffer);
     return size;
 }
 static vfs::fs_t ttys_fs = {
@@ -121,7 +121,7 @@ static size_t read_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *b
 static size_t write_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
-    printf("%.*s", size, buffer);
+    printf("%.*s", (int)size, buffer);
     return size;
 }
 static vfs::fs_t tty_fs = {
@@ -132,8 +132,8 @@ static vfs::fs_t tty_fs = {
 static void addtty(const char *name, bool serial)
 {
     vfs::fs_node_t *tty;
-    if (!serial) tty = add(&tty_fs, NULL, name);
-    else tty = add(&ttys_fs, NULL, name);
+    if (!serial) tty = add(&tty_fs, 0, name);
+    else tty = add(&ttys_fs, 0, name);
     tty->flags = vfs::FS_CHARDEVICE;
 }
 #pragma endregion tty
@@ -148,7 +148,7 @@ void init()
         return;
     }
 
-    devfs_root = vfs::mount(NULL, NULL, "/dev");
+    devfs_root = vfs::mount(0, 0, "/dev");
 
     vfs::fs_node_t *null = add(&null_fs, 0666, "null");
     null->flags = vfs::FS_CHARDEVICE;

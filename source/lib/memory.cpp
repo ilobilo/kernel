@@ -19,7 +19,6 @@ uint64_t getmemsize()
     return meminbytes;
 }
 
-
 void *memcpy(void *dest, void *src, size_t n)
 {
     long d0, d1, d2; 

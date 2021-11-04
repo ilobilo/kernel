@@ -27,11 +27,11 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CFLAGS = -Ofast -pipe -Wno-everything -Wsign-compare -Werror \
+CFLAGS = -Ofast -pipe -Werror \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 
-CPPFLAGS = -Ofast -pipe -Wno-everything -Wsign-compare -Werror \
+CPPFLAGS = -Ofast -pipe -Werror -Wno-c99-designator \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 

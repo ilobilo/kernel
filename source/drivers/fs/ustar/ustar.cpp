@@ -34,11 +34,11 @@ unsigned int getsize(const char *s)
 
 int parse(unsigned int address)
 {
-    address += (((getsize(((file_header_t*)address)->size) + 511) / 512) + 1) * 512;
+    address += (((getsize(((file_header_t*)((uintptr_t)address))->size) + 511) / 512) + 1) * 512;
     unsigned int i;
     for (i = 0; ; i++)
     {
-        file_header_t *header = (file_header_t*)address;
+        file_header_t *header = (file_header_t*)((uintptr_t)address);
         memmove(header->name, header->name + 1, strlen(header->name));
 
         if (strcmp(header->signature, "ustar")) break;
@@ -131,7 +131,7 @@ void list()
     printf("--------------------\nTotal size: %s\n", humanify(size));
 }
 
-char *cat(char *name)
+const char *cat(const char *name)
 {
     if (!check()) return "";
 
@@ -165,7 +165,7 @@ int getid(const char *name)
     return 0;
 }
 
-int search(char *filename, char **contents)
+int search(const char *filename, char **contents)
 {
     if (!check()) return 0;
 
@@ -173,7 +173,7 @@ int search(char *filename, char **contents)
     {
         if (!strcmp(headers[i].header->name, filename))
         {
-            *contents = (char*)headers[i].address;
+            *contents = (char*)((uintptr_t)headers[i].address);
             return 1;
         }
     }
