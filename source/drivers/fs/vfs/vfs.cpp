@@ -161,7 +161,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         if (!strcmp(patharr[cleared], "."))
         {
 
-            if (items <= 1) child_node = parent_node; 
+            if (items <= 1) child_node = parent_node;
             cleared++;
             items--;
             goto next;
@@ -257,7 +257,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         }
         if (!strcmp(patharr[cleared], "."))
         {
-            if (items <= 1) child_node = parent_node; 
+            if (items <= 1) child_node = parent_node;
             cleared++;
             items--;
             goto next;
@@ -288,11 +288,13 @@ fs_node_t *mount_root(fs_t *fs)
     fs_root->ptr = node;
     node->flags = FS_DIRECTORY;
     node->fs = fs;
+    node->children.init();
     return node;
 }
 
 fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
 {
+    if (!fs_root->ptr) mount_root(0);
     if (!parent) parent = fs_root->ptr;
     if (!fs) fs = parent->fs;
     parent->ptr = create(parent, path);

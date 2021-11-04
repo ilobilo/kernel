@@ -101,6 +101,7 @@ static const char *exception_messages[32] = {
 
 void isr_handler(interrupt_registers *regs)
 {
+    volatile bool halt = true;
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
     printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
 
@@ -120,9 +121,12 @@ void isr_handler(interrupt_registers *regs)
             break;
     }
 
-    printf("[\033[31mPANIC\033[0m] System halted!\n");
-    serial::err("System halted!\n");
-    asm volatile ("cli; hlt");
+    if (halt)
+    {
+        printf("[\033[31mPANIC\033[0m] System halted!\n");
+        serial::err("System halted!\n");
+        asm volatile ("cli; hlt");
+    }
 }
 
 void irq_handler(interrupt_registers *regs)

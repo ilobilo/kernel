@@ -152,7 +152,7 @@ void init()
 
     vfs::fs_node_t *null = add(&null_fs, 0666, "null");
     null->flags = vfs::FS_CHARDEVICE;
-    
+
     vfs::fs_node_t *zero = add(&zero_fs, 0666, "zero");
     zero->flags = vfs::FS_CHARDEVICE;
 
