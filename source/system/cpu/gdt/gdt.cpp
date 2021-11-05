@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
+#include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <lib/memory.hpp>
@@ -22,6 +23,7 @@ GDT DefaultGDT = {
     {0, 0, 0, 0x92, 0xa0, 0},
 };
 
+DEFINE_LOCK(gdt_lock);
 bool initialised = false;
 GDTDescriptor gdtDescriptor;
 TSS *tss;
@@ -38,6 +40,8 @@ void reloadtss()
 
 void reloadall(int cpu)
 {
+    acquire_lock(&gdt_lock);
+
     uintptr_t base = (uintptr_t)&tss[cpu];
     uintptr_t limit = base + sizeof(tss[cpu]);
 
@@ -53,6 +57,8 @@ void reloadall(int cpu)
 
     reloadgdt();
     reloadtss();
+
+    release_lock(&gdt_lock);
 }
 
 void init()
