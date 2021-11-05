@@ -2,6 +2,7 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
@@ -9,6 +10,7 @@ using namespace kernel::drivers::display;
 
 namespace kernel::system::cpu::idt {
 
+DEFINE_LOCK(idt_lock);
 bool initialised = false;
 
 __attribute__((aligned(0x10)))
@@ -47,6 +49,8 @@ void init()
         return;
     }
 
+    acquire_lock(&idt_lock);
+
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
 
@@ -57,6 +61,7 @@ void init()
 
     serial::newline();
     initialised = true;
+    release_lock(&idt_lock);
 }
 
 void register_interrupt_handler(uint8_t n, int_handler_t handler)
