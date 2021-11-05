@@ -124,20 +124,31 @@ void shell_parse(char *cmd, char *arg)
             switch (node->flags & 0x07)
             {
                 case vfs::FS_FILE:
-                {
-                    char *txt = (char*)heap::calloc(node->length, sizeof(char));
-                    vfs::read_fs(node, 0, 0, txt);
-                    printf("%s\n", txt);
-                    heap::free(txt);
-                    break;
-                }
                 case vfs::FS_CHARDEVICE:
                 {
                     size_t size = 50;
                     if (node->length) size = node->length;
-                    char *txt = (char*)heap::calloc(node->length, sizeof(char));
-                    vfs::read_fs(node, 0, size, txt);
-                    printf("%s\n", txt);
+                    char *txt;
+                    if (size <= 50)
+                    {
+                        txt = (char*)heap::calloc(node->length, sizeof(char));
+                        vfs::read_fs(node, 0, size, txt);
+                        printf("%s", txt);
+                    }
+                    else
+                    {
+                        size_t offset = 0;
+                        txt = (char*)heap::calloc(50, sizeof(char));
+                        while (offset < size - (size % 50))
+                        {
+                            vfs::read_fs(node, offset, 50, txt);
+                            printf("%s", txt);
+                            offset += 50;
+                        }
+                        vfs::read_fs(node, offset, size % 50, txt);
+                        printf("%s\n", txt);
+                    }
+                    printf("\n");
                     heap::free(txt);
                     break;
                 }

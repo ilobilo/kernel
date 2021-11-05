@@ -129,7 +129,7 @@ void center(const char *text)
 
 void check(const char *message)
 {
-    printf("\033[1m[\033[21m\033[32m*\033[0m\033[1m]\033[21m %s", message);
+    printf("\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
     for (uint16_t i = 0; i < columns - strlen(message) - 10; i++) printc(' ');
 }
 

@@ -168,6 +168,8 @@ void init()
     addtty("tty0", false);
     addtty("console", false);
 
+    vfs::open(NULL, "/gg/dfds");
+
     serial::newline();
     initialised = true;
 }
