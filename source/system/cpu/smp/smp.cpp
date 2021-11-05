@@ -3,6 +3,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <stivale2.h>
@@ -27,13 +28,14 @@ static void cpu_init(stivale2_smp_info *cpu)
 
     InitSSE();
 
-    serial::info("SMP: CPU %d is up", cpu->lapic_id);
+    serial::info("CPU %ld is up", cpu->lapic_id);
 
     if (cpu->lapic_id != smp_tag->bsp_lapic_id)
     {
         cpu_up = true;
         while (true) asm volatile ("hlt");
     }
+    cpu_up = true;
 }
 
 void init()
@@ -42,12 +44,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("SMP already initialised!\n");
-        return;
-    }
-    if (smp_tag->cpu_count == 1)
-    {
-        serial::info("Can't initialise SMP! only one core available\n");
+        serial::info("CPUs are already up!\n");
         return;
     }
 
@@ -63,13 +60,13 @@ void init()
         {
             smp_tag->smp_info[i].target_stack = stack;
             smp_tag->smp_info[i].goto_address = (uintptr_t)cpu_init;
-            while (!cpu_up);
-            cpu_up = false;
         }
         else cpu_init(&smp_tag->smp_info[i]);
+        while (!cpu_up);
+        cpu_up = false;
     }
 
-    serial::info("SMP: All CPUs are up\n");
+    serial::info("All CPUs are up\n");
     initialised = true;
 }
 }

@@ -35,7 +35,7 @@ CPPFLAGS = -Ofast -pipe -Werror -Wno-c99-designator \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 
-LDFLAGS = 
+LDFLAGS =
 ASMFLAGS = -f elf64
 
 INTERNALLDFLAGS :=           \
@@ -50,7 +50,7 @@ INTERNALLDFLAGS :=           \
 INTERNALCFLAGS  :=             \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/include     \
-	-std=gnu18                 \
+	-std=gnu17                 \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
@@ -63,7 +63,7 @@ INTERNALCFLAGS  :=             \
 INTERNALCPPFLAGS  :=           \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/include     \
-	-std=gnu++20               \
+	-std=gnu++17               \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \

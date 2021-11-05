@@ -270,7 +270,6 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         goto next;
     }
 
-    heap::free(patharr);
     release_lock(&vfs_lock);
     return child_node;
 }
