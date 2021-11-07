@@ -2,12 +2,12 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/power/acpi/acpi.hpp>
+#include <system/acpi/acpi.hpp>
 #include <main.hpp>
 
 using namespace kernel::drivers::display;
 
-namespace kernel::system::power::acpi {
+namespace kernel::system::acpi {
 
 bool initialised = false;
 

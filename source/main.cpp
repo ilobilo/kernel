@@ -8,10 +8,10 @@
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/cpu/syscall/syscall.hpp>
+#include <drivers/display/ssfn/ssfn.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/mm/paging/paging.hpp>
 #include <system/mm/bitmap/bitmap.hpp>
-#include <system/power/acpi/acpi.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/pit/pit.hpp>
@@ -20,7 +20,7 @@
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
-#include <drivers/font/font.hpp>
+#include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
@@ -34,7 +34,6 @@
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
 using namespace kernel::drivers;
-using namespace kernel::system::power;
 using namespace kernel::system::sched;
 using namespace kernel::system::cpu;
 using namespace kernel::system::mm;
@@ -98,7 +97,7 @@ void main(struct stivale2_struct *stivale2_struct)
         while (true) asm volatile ("cli; hlt");
     }
     framebuffer::init();
-    font::init();
+    ssfn::init();
 
     if (term_tag == NULL)
     {

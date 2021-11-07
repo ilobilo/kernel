@@ -2,10 +2,7 @@
 
 #pragma once
 
-#include <drivers/display/terminal/terminal.hpp>
-#include <lib/math.hpp>
-
-namespace kernel::drivers::display::font {
+namespace kernel::drivers::display::ssfn {
 
 extern uint64_t bgcolour;
 extern uint64_t fgcolour;

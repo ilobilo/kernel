@@ -4,7 +4,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
-#include <system/power/acpi/acpi.hpp>
+#include <system/acpi/acpi.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
@@ -12,7 +12,6 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
-using namespace kernel::system::power;
 using namespace kernel::system::mm;
 
 namespace kernel::system::pci {

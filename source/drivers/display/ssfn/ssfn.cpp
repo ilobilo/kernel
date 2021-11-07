@@ -2,17 +2,10 @@
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/fs/ustar/ustar.hpp>
-#include <system/mm/heap/heap.hpp>
-#include <lib/math.hpp>
 #define SSFN_CONSOLEBITMAP_TRUECOLOR
 #include <ssfn.h>
 
-using namespace kernel::system::mm::heap;
-using namespace kernel::drivers::display;
-using namespace kernel::drivers::fs;
-
-namespace kernel::drivers::display::font {
+namespace kernel::drivers::display::ssfn {
 
 uint64_t bgcolour;
 uint64_t fgcolour = 0xFFFFFF;
