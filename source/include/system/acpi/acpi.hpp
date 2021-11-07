@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-namespace kernel::system::power::acpi {
+namespace kernel::system::acpi {
 
 struct RSDP
 {
