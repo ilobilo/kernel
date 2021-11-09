@@ -159,7 +159,6 @@ void main(struct stivale2_struct *stivale2_struct)
     acpi::init();
     terminal::okerr(acpi::initialised);
 
-    if (strstr(cmdline, "pciids")) pci::use_pciids = true;
     terminal::check("Initialising PCI...");
     pci::init();
     terminal::okerr(pci::initialised);

@@ -146,7 +146,7 @@ void shell_parse(char *cmd, char *arg)
                             offset += 50;
                         }
                         vfs::read_fs(node, offset, size % 50, txt);
-                        printf("%s\n", txt);
+                        printf("%s", txt);
                     }
                     printf("\n");
                     heap::free(txt);
@@ -220,7 +220,7 @@ void shell_parse(char *cmd, char *arg)
             }
             break;
         case hash("pci"):
-            for (uint64_t i = 0; i < pci::pcidevcount; i++)
+            for (size_t i = 0; i < pci::pcidevices.size(); i++)
             {
                 printf("%s / %s / %s / %s / %s\n",
                     pci::pcidevices[i]->vendorstr,

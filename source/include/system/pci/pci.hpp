@@ -3,6 +3,7 @@
 #pragma once
 
 #include <system/pci/pcidesc.hpp>
+#include <lib/vector.hpp>
 #include <stdint.h>
 
 namespace kernel::system::pci {
@@ -69,10 +70,8 @@ struct pciheader0
 
 extern bool initialised;
 extern bool legacy;
-extern bool use_pciids;
 
-extern translatedpcideviceheader **pcidevices;
-extern uint64_t pcidevcount;
+extern Vector<translatedpcideviceheader*> pcidevices;
 
 translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 

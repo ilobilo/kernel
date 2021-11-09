@@ -3,9 +3,9 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
-#include <drivers/fs/ustar/ustar.hpp>
-#include <system/acpi/acpi.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <drivers/fs/vfs/vfs.hpp>
+#include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 #include <lib/io.hpp>
@@ -18,11 +18,8 @@ namespace kernel::system::pci {
 
 bool initialised = false;
 bool legacy = false;
-bool use_pciids = false;
 
-translatedpcideviceheader **pcidevices;
-uint64_t pciAllocate = 10;
-uint64_t pcidevcount = 0;
+Vector<translatedpcideviceheader*> pcidevices;
 
 translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
@@ -31,7 +28,7 @@ translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t p
         serial::info("PCI has not been initialised!\n");
         return NULL;
     }
-    for (uint64_t i = 0; i < pcidevcount; i++)
+    for (uint64_t i = 0; i < pcidevices.size(); i++)
     {
         if (pcidevices[i]->Class == Class)
         {
@@ -61,21 +58,8 @@ translatedpcideviceheader *translate(pcideviceheader* device)
 
     pcidevice->vendorid = device->vendorid;
     pcidevice->deviceid = device->deviceid;
-    if (use_pciids)
-    {
-        char *buffer = (char*)heap::malloc(100 * sizeof(char));
-        pcidevice->vendorstr = strdup(getvendorname(device->vendorid, buffer));
-        if (!strcmp(pcidevice->vendorstr, "")) pcidevice->vendorstr = strdup(getvendorname(device->vendorid));
-
-        pcidevice->devicestr = strdup(getdevicename(device->vendorid, device->deviceid, buffer));
-        if (!strcmp(pcidevice->devicestr, "")) pcidevice->devicestr = strdup(getvendorname(device->deviceid));
-        heap::free(buffer);
-    }
-    else
-    {
-        pcidevice->vendorstr = getvendorname(device->vendorid);
-        pcidevice->devicestr = getdevicename(device->vendorid, device->deviceid);
-    }
+    pcidevice->vendorstr = getvendorname(device->vendorid);
+    pcidevice->devicestr = getdevicename(device->vendorid, device->deviceid);
     pcidevice->command = device->command;
     pcidevice->status = device->status;
     pcidevice->revisionid = device->revisionid;
@@ -91,26 +75,6 @@ translatedpcideviceheader *translate(pcideviceheader* device)
     pcidevice->bist = device->bist;
 
     return pcidevice;
-}
-
-void add(pcideviceheader *device)
-{
-    if (pcidevcount >= (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader*)))
-    {
-        pciAllocate += 10;
-        pcidevices = (translatedpcideviceheader**)heap::realloc(pcidevices, pciAllocate * sizeof(translatedpcideviceheader*));
-    }
-    if (pcidevcount < (heap::getsize(pcidevices) / sizeof(translatedpcideviceheader*)))
-    {
-        pcidevices[pcidevcount] = translate(device);
-        pcidevcount++;
-    }
-    else
-    {
-        serial::newline();
-        serial::err("Could not add pci device to the list!");
-        serial::err("Possible reason: Could not allocate memory\n");
-    }
 }
 
 uint16_t read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
@@ -152,16 +116,16 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     uint64_t offset = func << 12;
     uint64_t funcaddr = deviceaddr + offset;
 
-    pcideviceheader *pcidevice = (pcideviceheader*)funcaddr;
-    if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
+    pcideviceheader *device = (pcideviceheader*)funcaddr;
+    if (device->deviceid == 0 || device->deviceid == 0xFFFF) return;
 
-    add(pcidevice);
+    pcidevices.push_back(translate(device));
     serial::info("%s / %s / %s / %s / %s",
-        pcidevices[pcidevcount - 1]->vendorstr,
-        pcidevices[pcidevcount - 1]->devicestr,
-        pcidevices[pcidevcount - 1]->ClassStr,
-        pcidevices[pcidevcount - 1]->subclassStr,
-        pcidevices[pcidevcount - 1]->progifstr);
+        pcidevices.last()->vendorstr,
+        pcidevices.last()->devicestr,
+        pcidevices.last()->ClassStr,
+        pcidevices.last()->subclassStr,
+        pcidevices.last()->progifstr);
 }
 
 void enumdevice(uint64_t busaddr, uint64_t device)
@@ -209,13 +173,7 @@ void init()
     }
     serial::newline();
 
-    bool temp = heap::debug;
-    heap::debug = false;
-
-    if (use_pciids) ustar::search("/pci.ids", &PCIids);
-
-    pcidevices = (translatedpcideviceheader**)heap::malloc(pciAllocate * sizeof(translatedpcideviceheader*));
-
+    pcidevices.init(5);
     if (!legacy)
     {
         int entries = ((acpi::mcfg->header.length) - sizeof(acpi::MCFGHeader)) / sizeof(acpi::deviceconfig);
@@ -236,22 +194,22 @@ void init()
             {
                 for (int func = 0; func < 8; func++)
                 {
-                    pcideviceheader *device = (pcideviceheader*)heap::malloc(sizeof(pcideviceheader));
                     uint16_t vendorid = getvenid(bus, dev, func);
                     if (vendorid == 0 || vendorid == 0xFFFF) continue;
 
+                    pcideviceheader *device = (pcideviceheader*)heap::calloc(1, sizeof(pcideviceheader));
                     device->vendorid = vendorid;
                     device->deviceid = getdevid(bus, dev, func);
                     device->Class = getclassid(bus, dev, func);
                     device->subclass = getsubclassid(bus, dev, func);
 
-                    add(device);
+                    pcidevices.push_back(translate(device));
                     serial::info("%s / %s / %s / %s / %s",
-                        pcidevices[pcidevcount - 1]->vendorstr,
-                        pcidevices[pcidevcount - 1]->devicestr,
-                        pcidevices[pcidevcount - 1]->ClassStr,
-                        pcidevices[pcidevcount - 1]->subclassStr,
-                        pcidevices[pcidevcount - 1]->progifstr);
+                        pcidevices.last()->vendorstr,
+                        pcidevices.last()->devicestr,
+                        pcidevices.last()->ClassStr,
+                        pcidevices.last()->subclassStr,
+                        pcidevices.last()->progifstr);
                     heap::free(device);
                 }
             }
@@ -259,7 +217,6 @@ void init()
     }
 
     serial::newline();
-    heap::debug = temp;
     initialised = true;
 }
 }
