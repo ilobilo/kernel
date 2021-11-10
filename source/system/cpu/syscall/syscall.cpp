@@ -56,27 +56,27 @@ syscall_t syscalls[] = {
     [1] = syscall_write
 };
 
-void syscall_handler(idt::interrupt_registers *regs)
+void handler(idt::interrupt_registers *regs)
 {
     if (S_RAX >= ZERO && syscalls[S_RAX]) syscalls[S_RAX](regs);
 }
 
-char *read(char *string, int length)
+const char *read(const char *string, int length)
 {
     uint64_t ret;
     SYSCALL3(SYSCALL_READ, 1, (uint64_t)string, (uint64_t)length);
-    return (char*)ret;
+    return (const char*)ret;
 }
-char *write(char *string, int length)
+const char *write(const char *string, int length)
 {
     uint64_t ret;
     SYSCALL3(SYSCALL_WRITE, 0, (uint64_t)string, (uint64_t)length);
-    return (char*)ret;
+    return (const char*)ret;
 }
-char *err(char *string, int length)
+const char *err(const char *string, int length)
 {
     uint64_t ret;
     SYSCALL3(SYSCALL_WRITE, 2, (uint64_t)string, (uint64_t)length);
-    return (char*)ret;
+    return (const char*)ret;
 }
 }

@@ -52,8 +52,13 @@ void shell_parse(char *cmd, char *arg)
             else node = vfs::open(current_path, arg);
             if (!node)
             {
-                printf("\033[31mNo such directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file directory!%s\n", terminal::colour);
                 return;
+            }
+            if ((node->flags & 0x07) != vfs::FS_DIRECTORY)
+            {
+                printf("%s\n", arg);
+                break;
             }
 
             size_t size = 0;
@@ -118,7 +123,7 @@ void shell_parse(char *cmd, char *arg)
             else node = vfs::open(current_path, arg);
             if (!node)
             {
-                printf("\033[31mNo such directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
                 return;
             }
             switch (node->flags & 0x07)
@@ -153,7 +158,7 @@ void shell_parse(char *cmd, char *arg)
                     break;
                 }
                 default:
-                    printf("\033[31m%s is not a file!%s\n", arg, terminal::colour);
+                    printf("\033[31m%s is not a text file!%s\n", arg, terminal::colour);
                     break;
             }
             break;
