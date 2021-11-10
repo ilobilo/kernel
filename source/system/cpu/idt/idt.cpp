@@ -154,7 +154,7 @@ void int_handler(interrupt_registers *regs)
 {
     if (regs->int_no < 32) isr_handler(regs);
     else if (regs->int_no < 48) irq_handler(regs);
-    else if (regs->int_no == 0x80) syscall::handler(regs);
+    else if (regs->int_no == SYSCALL) syscall::handler(regs);
 }
 
 extern "C" void *int_table[];
@@ -175,6 +175,6 @@ void isr_install()
 
     for (size_t i = 32; i < 48; i++) idt_set_descriptor(i, int_table[i], 0x8E);
 
-    idt_set_descriptor(SYSCALL, int_table[0x80], 0x8E);
+    idt_set_descriptor(SYSCALL, int_table[SYSCALL], 0x8E);
 }
 }
