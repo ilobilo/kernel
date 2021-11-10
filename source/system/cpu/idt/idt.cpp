@@ -2,6 +2,7 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/cpu/syscall/syscall.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
@@ -149,40 +150,17 @@ void irq_handler(interrupt_registers *regs)
     outb(PIC1_COMMAND, PIC_EOI);
 }
 
+void int_handler(interrupt_registers *regs)
+{
+    if (regs->int_no < 32) isr_handler(regs);
+    else if (regs->int_no < 48) irq_handler(regs);
+    else if (regs->int_no == 0x80) syscall::handler(regs);
+}
+
+extern "C" void *int_table[];
 void isr_install()
 {
-    idt_set_descriptor(0, (void*)isr0, 0x8E);
-    idt_set_descriptor(1, (void*)isr1, 0x8E);
-    idt_set_descriptor(2, (void*)isr2, 0x8E);
-    idt_set_descriptor(3, (void*)isr3, 0x8E);
-    idt_set_descriptor(4, (void*)isr4, 0x8E);
-    idt_set_descriptor(5, (void*)isr5, 0x8E);
-    idt_set_descriptor(6, (void*)isr6, 0x8E);
-    idt_set_descriptor(7, (void*)isr7, 0x8E);
-    idt_set_descriptor(8, (void*)isr8, 0x8E);
-    idt_set_descriptor(9, (void*)isr9, 0x8E);
-    idt_set_descriptor(10, (void*)isr10, 0x8E);
-    idt_set_descriptor(11, (void*)isr11, 0x8E);
-    idt_set_descriptor(12, (void*)isr12, 0x8E);
-    idt_set_descriptor(13, (void*)isr13, 0x8E);
-    idt_set_descriptor(14, (void*)isr14, 0x8E);
-    idt_set_descriptor(15, (void*)isr15, 0x8E);
-    idt_set_descriptor(16, (void*)isr16, 0x8E);
-    idt_set_descriptor(17, (void*)isr17, 0x8E);
-    idt_set_descriptor(18, (void*)isr18, 0x8E);
-    idt_set_descriptor(19, (void*)isr19, 0x8E);
-    idt_set_descriptor(20, (void*)isr20, 0x8E);
-    idt_set_descriptor(21, (void*)isr21, 0x8E);
-    idt_set_descriptor(22, (void*)isr22, 0x8E);
-    idt_set_descriptor(23, (void*)isr23, 0x8E);
-    idt_set_descriptor(24, (void*)isr24, 0x8E);
-    idt_set_descriptor(25, (void*)isr25, 0x8E);
-    idt_set_descriptor(26, (void*)isr26, 0x8E);
-    idt_set_descriptor(27, (void*)isr27, 0x8E);
-    idt_set_descriptor(28, (void*)isr28, 0x8E);
-    idt_set_descriptor(29, (void*)isr29, 0x8E);
-    idt_set_descriptor(30, (void*)isr30, 0x8E);
-    idt_set_descriptor(31, (void*)isr31, 0x8E);
+    for (size_t i = 0; i < 32; i++) idt_set_descriptor(i, int_table[i], 0x8E);
 
     outb(0x20, 0x11);
     outb(0xA0, 0x11);
@@ -195,23 +173,8 @@ void isr_install()
     outb(0x21, 0x0);
     outb(0xA1, 0x0);
 
-    idt_set_descriptor(IRQS::IRQ0, (void*)irq0, 0x8E);
-    idt_set_descriptor(IRQS::IRQ1, (void*)irq1, 0x8E);
-    idt_set_descriptor(IRQS::IRQ2, (void*)irq2, 0x8E);
-    idt_set_descriptor(IRQS::IRQ3, (void*)irq3, 0x8E);
-    idt_set_descriptor(IRQS::IRQ4, (void*)irq4, 0x8E);
-    idt_set_descriptor(IRQS::IRQ5, (void*)irq5, 0x8E);
-    idt_set_descriptor(IRQS::IRQ6, (void*)irq6, 0x8E);
-    idt_set_descriptor(IRQS::IRQ7, (void*)irq7, 0x8E);
-    idt_set_descriptor(IRQS::IRQ8, (void*)irq8, 0x8E);
-    idt_set_descriptor(IRQS::IRQ9, (void*)irq9, 0x8E);
-    idt_set_descriptor(IRQS::IRQ10, (void*)irq10, 0x8E);
-    idt_set_descriptor(IRQS::IRQ11, (void*)irq11, 0x8E);
-    idt_set_descriptor(IRQS::IRQ12, (void*)irq12, 0x8E);
-    idt_set_descriptor(IRQS::IRQ13, (void*)irq13, 0x8E);
-    idt_set_descriptor(IRQS::IRQ14, (void*)irq14, 0x8E);
-    idt_set_descriptor(IRQS::IRQ15, (void*)irq15, 0x8E);
+    for (size_t i = 32; i < 48; i++) idt_set_descriptor(i, int_table[i], 0x8E);
 
-    idt_set_descriptor(SYSCALL, (void*)syscall, 0x8E);
+    idt_set_descriptor(SYSCALL, int_table[0x80], 0x8E);
 }
 }

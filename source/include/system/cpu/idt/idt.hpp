@@ -19,59 +19,6 @@ enum PIC
     PIC_EOI = 0x20
 };
 
-extern "C" void isr0();
-extern "C" void isr1();
-extern "C" void isr2();
-extern "C" void isr3();
-extern "C" void isr4();
-extern "C" void isr5();
-extern "C" void isr6();
-extern "C" void isr7();
-extern "C" void isr8();
-extern "C" void isr9();
-extern "C" void isr10();
-extern "C" void isr11();
-extern "C" void isr12();
-extern "C" void isr13();
-extern "C" void isr14();
-extern "C" void isr15();
-extern "C" void isr16();
-extern "C" void isr17();
-extern "C" void isr18();
-extern "C" void isr19();
-extern "C" void isr20();
-extern "C" void isr21();
-extern "C" void isr22();
-extern "C" void isr23();
-extern "C" void isr24();
-extern "C" void isr25();
-extern "C" void isr26();
-extern "C" void isr27();
-extern "C" void isr28();
-extern "C" void isr29();
-extern "C" void isr30();
-extern "C" void isr31();
-extern "C" void isr127();
-
-extern "C" void irq0();
-extern "C" void irq1();
-extern "C" void irq2();
-extern "C" void irq3();
-extern "C" void irq4();
-extern "C" void irq5();
-extern "C" void irq6();
-extern "C" void irq7();
-extern "C" void irq8();
-extern "C" void irq9();
-extern "C" void irq10();
-extern "C" void irq11();
-extern "C" void irq12();
-extern "C" void irq13();
-extern "C" void irq14();
-extern "C" void irq15();
-
-extern "C" void syscall();
-
 enum IRQS
 {
     IRQ0 = 32,
@@ -125,7 +72,7 @@ struct interrupt_registers
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, int_no, error_code, rip, cs, rflags, rsp, ss;
 } __attribute__((packed));
 
-using int_handler_t = void (*)(interrupt_registers *registers);
+using int_handler_t = void (*)(interrupt_registers *);
 
 extern idt_entry_t idt[];
 extern idtr_t idtr;
@@ -137,6 +84,5 @@ void reload();
 void init();
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
 
-extern "C" void isr_handler(interrupt_registers *regs);
-extern "C" void irq_handler(interrupt_registers *regs);
+extern "C" void int_handler(interrupt_registers *regs);
 }
