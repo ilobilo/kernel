@@ -36,10 +36,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
         PML4->entries[indexer.PDP_i] = PDE;
     }
-    else
-    {
-        PDP = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
-    }
+    else PDP = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
 
     PDE = PDP->entries[indexer.PD_i];
     paging::PTable *PD;
@@ -52,10 +49,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
         PDP->entries[indexer.PD_i] = PDE;
     }
-    else
-    {
-        PD = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
-    }
+    else PD = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
 
     PDE = PD->entries[indexer.PT_i];
     paging::PTable *PT;
@@ -68,10 +62,7 @@ void PTManager::mapMem(void *virtualMemory, void *physicalMemory)
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
         PD->entries[indexer.PT_i] = PDE;
     }
-    else
-    {
-        PT = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
-    }
+    else PT = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
 
     PDE = PT->entries[indexer.P_i];
     PDE.setAddr((uint64_t)physicalMemory >> 12);
@@ -96,10 +87,7 @@ void PTManager::unmapMem(void *virtualMemory)
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
         PML4->entries[indexer.PDP_i] = PDE;
     }
-    else
-    {
-        PDP = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
-    }
+    else PDP = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
 
     PDE = PDP->entries[indexer.PD_i];
     paging::PTable *PD;
@@ -112,10 +100,7 @@ void PTManager::unmapMem(void *virtualMemory)
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
         PDP->entries[indexer.PD_i] = PDE;
     }
-    else
-    {
-        PD = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
-    }
+    else PD = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
 
     PDE = PD->entries[indexer.PT_i];
     paging::PTable *PT;
@@ -128,10 +113,7 @@ void PTManager::unmapMem(void *virtualMemory)
         PDE.setflag(paging::PT_Flag::ReadWrite, true);
         PD->entries[indexer.PT_i] = PDE;
     }
-    else
-    {
-        PT = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
-    }
+    else PT = (paging::PTable*)((uint64_t)PDE.getAddr() << 12);
 
     PDE = PT->entries[indexer.P_i];
     PDE.setAddr(0);
