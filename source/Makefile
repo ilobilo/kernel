@@ -43,9 +43,7 @@ INTERNALLDFLAGS :=           \
 	-nostdlib                \
 	-zmax-page-size=0x1000   \
 	-static                  \
-	-pie                     \
-	--no-dynamic-linker      \
-	-ztext
+	-pie
 
 INTERNALCFLAGS  :=             \
 	-target x86_64-pc-none-elf \
@@ -58,7 +56,8 @@ INTERNALCFLAGS  :=             \
 	-mno-80387                 \
 	-mno-mmx                   \
 	-mno-3dnow                 \
-	-mno-red-zone
+	-mno-red-zone              \
+	-mcmodel=kernel
 
 INTERNALCPPFLAGS  :=           \
 	-target x86_64-pc-none-elf \
@@ -71,7 +70,8 @@ INTERNALCPPFLAGS  :=           \
 	-mno-80387                 \
 	-mno-mmx                   \
 	-mno-3dnow                 \
-	-mno-red-zone
+	-mno-red-zone              \
+	-mcmodel=kernel
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
 CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")

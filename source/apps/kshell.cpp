@@ -146,6 +146,7 @@ void shell_parse(char *cmd, char *arg)
                         txt = (char*)heap::calloc(50, sizeof(char));
                         while (offset < size - (size % 50))
                         {
+                            memset(txt, 0, 50);
                             vfs::read_fs(node, offset, 50, txt);
                             printf("%s", txt);
                             offset += 50;
@@ -227,7 +228,9 @@ void shell_parse(char *cmd, char *arg)
         case hash("pci"):
             for (size_t i = 0; i < pci::pcidevices.size(); i++)
             {
-                printf("%s / %s / %s / %s / %s\n",
+                printf("%X:%X %s / %s / %s / %s / %s\n",
+                    pci::pcidevices[i]->vendorid,
+                    pci::pcidevices[i]->deviceid,
                     pci::pcidevices[i]->vendorstr,
                     pci::pcidevices[i]->devicestr,
                     pci::pcidevices[i]->ClassStr,

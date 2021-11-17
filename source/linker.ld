@@ -9,7 +9,6 @@ PHDRS
     text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ;
     rodata  PT_LOAD    FLAGS((1 << 2)) ;
     data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ;
-    dynamic PT_DYNAMIC FLAGS((1 << 1) | (1 << 2)) ;
 }
 
 SECTIONS
@@ -22,7 +21,7 @@ SECTIONS
         *(.text*)
     } :text
 
-    . += 0x1000;
+    . += CONSTANT(MAXPAGESIZE);
 
     .stivale2hdr : {
         KEEP(*(.stivale2hdr))
@@ -32,15 +31,11 @@ SECTIONS
         *(.rodata*)
     } :rodata
 
-    . += 0x1000;
+    . += CONSTANT(MAXPAGESIZE);
 
     .data : {
         *(.data*)
     } :data
-
-    .dynamic : {
-        *(.dynamic)
-    } :data :dynamic
 
     .bss : {
         *(COMMON)
