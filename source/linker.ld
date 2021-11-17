@@ -9,11 +9,12 @@ PHDRS
     text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ;
     rodata  PT_LOAD    FLAGS((1 << 2)) ;
     data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ;
+    dynamic PT_DYNAMIC FLAGS((1 << 1) | (1 << 2)) ;
 }
 
 SECTIONS
 {
-    . = 0xffffffff80200000;
+    . = 0xffffffff80000000;
 
     __kernelstart = .;
 
@@ -36,6 +37,10 @@ SECTIONS
     .data : {
         *(.data*)
     } :data
+
+    .dynamic : {
+        *(.dynamic)
+    } :data :dynamic
 
     .bss : {
         *(COMMON)
