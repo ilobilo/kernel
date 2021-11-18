@@ -45,7 +45,7 @@ struct GenericAddressStructure
     uint8_t BitOffset;
     uint8_t AccessSize;
     uint64_t Address;
-};
+} __attribute__((packed));
 
 struct FADTHeader
 {
@@ -101,7 +101,7 @@ struct FADTHeader
     GenericAddressStructure X_PMTimerBlock;
     GenericAddressStructure X_GPE0Block;
     GenericAddressStructure X_GPE1Block;
-};
+} __attribute__((packed));
 
 struct deviceconfig
 {
@@ -119,6 +119,7 @@ extern RSDP *rsdp;
 
 extern MCFGHeader *mcfg;
 extern FADTHeader *fadt;
+extern SDTHeader *rsdt;
 
 void init();
 

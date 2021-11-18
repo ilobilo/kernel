@@ -8,9 +8,11 @@
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -238,6 +240,9 @@ void shell_parse(char *cmd, char *arg)
         case hash("crash"):
             asm volatile ("int $0x3");
             asm volatile ("int $0x4");
+            break;
+        case hash("reboot"):
+            outb(acpi::fadt->ResetReg.Address, acpi::fadt->ResetValue);
             break;
         case hash(""):
             break;
