@@ -120,14 +120,11 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     if (device->deviceid == 0 || device->deviceid == 0xFFFF) return;
 
     pcidevices.push_back(translate(device));
-    serial::info("%X:%X %s / %s / %s / %s / %s",
+    serial::info("%X:%X %s %s",
         pcidevices.last()->vendorid,
         pcidevices.last()->deviceid,
         pcidevices.last()->vendorstr,
-        pcidevices.last()->devicestr,
-        pcidevices.last()->ClassStr,
-        pcidevices.last()->subclassStr,
-        pcidevices.last()->progifstr);
+        pcidevices.last()->devicestr);
 }
 
 void enumdevice(uint64_t busaddr, uint64_t device)
@@ -206,14 +203,11 @@ void init()
                     device->subclass = getsubclassid(bus, dev, func);
 
                     pcidevices.push_back(translate(device));
-                    serial::info("%X:%X %s / %s / %s / %s / %s",
+                    serial::info("%X:%X %s %s",
                         pcidevices.last()->vendorid,
                         pcidevices.last()->deviceid,
                         pcidevices.last()->vendorstr,
-                        pcidevices.last()->devicestr,
-                        pcidevices.last()->ClassStr,
-                        pcidevices.last()->subclassStr,
-                        pcidevices.last()->progifstr);
+                        pcidevices.last()->devicestr);
                     heap::free(device);
                 }
             }
