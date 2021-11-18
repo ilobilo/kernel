@@ -16,6 +16,7 @@ RSDP *rsdp;
 
 MCFGHeader *mcfg;
 FADTHeader *fadt;
+SDTHeader *rsdt;
 
 void init()
 {
@@ -28,8 +29,6 @@ void init()
     }
 
     rsdp = (RSDP*)rsdp_tag->rsdp;
-
-    SDTHeader *rsdt;
 
     if (rsdp->revision >= 2 && rsdp->xsdtaddr)
     {
@@ -57,20 +56,11 @@ void *findtable(SDTHeader *sdthdr, char *signature)
     for (int t = 0; t < entries; t++)
     {
         SDTHeader *newsdthdr;
-        if (use_xstd)
-        {
-            newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)sdthdr + sizeof(SDTHeader) + (t * 8));
-        }
-        else
-        {
-            newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)sdthdr) + sizeof(SDTHeader) + (t * 4)));
-        }
+        if (use_xstd) newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)sdthdr + sizeof(SDTHeader) + (t * 8));
+        else newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)sdthdr) + sizeof(SDTHeader) + (t * 4)));
         for (int i = 0; i < 4; i++)
         {
-            if (newsdthdr->signature[i] != signature[i])
-            {
-                break;
-            }
+            if (newsdthdr->signature[i] != signature[i]) break;
             else if (i == 3) return newsdthdr;
         }
     }
