@@ -167,10 +167,9 @@ void init()
     if (acpi::mcfg == NULL)
     {
         serial::err("MCFG was not found");
-        serial::info("Using legacy way");
+        serial::info("This might take some time\n");
         legacy = true;
     }
-    serial::newline();
 
     pcidevices.init(5);
     if (!legacy)
