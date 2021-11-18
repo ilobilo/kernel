@@ -149,6 +149,7 @@ void init()
     }
 
     devfs_root = vfs::mount(0, 0, "/dev");
+    devfs_root->mask = 0755;
 
     vfs::fs_node_t *null = add(&null_fs, 0666, "null");
     null->flags = vfs::FS_CHARDEVICE;
