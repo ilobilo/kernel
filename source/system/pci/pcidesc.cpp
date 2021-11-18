@@ -59,7 +59,7 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
             switch (deviceid)
             {
                 case 0x1111:
-                    return "QEMU Virtual Video Controller";
+                    return "Virtual Video Controller";
             }
             break;
         case 0x8086:
