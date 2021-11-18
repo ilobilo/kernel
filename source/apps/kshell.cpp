@@ -241,6 +241,13 @@ void shell_parse(char *cmd, char *arg)
             asm volatile ("int $0x3");
             asm volatile ("int $0x4");
             break;
+        case hash("shutdown"):
+        case hash("poweroff"):
+            outw(0xB004, 0x2000);
+            outw(0x604, 0x2000);
+            outw(0x4004, 0x3400);
+            asm volatile ("hlt");
+            break;
         case hash("reboot"):
             outb(acpi::fadt->ResetReg.Address, acpi::fadt->ResetValue);
             break;
