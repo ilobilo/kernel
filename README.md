@@ -20,23 +20,24 @@ Contributors are welcome
 - [x] Heap
 - [x] VFS
 - [x] DEVFS
-- [ ] AHCI
 - [x] ACPI
-- [ ] Shutdown
-- [ ] Reboot
+- [x] Shutdown
+- [x] Reboot
 - [x] PCI
 - [ ] Sound
-- [ ] Real filesystems (ext2, fat...)
-- [ ] Multithreading
+- [ ] AHCI
+- [ ] Ext2
+- [ ] Fat
+- [ ] Threading
+- [ ] Scheduling
 - [x] TSS
 - [x] SMP
 - [ ] Userspace
 - [x] System calls
-- [ ] ELF execution
-- [ ] Port libc (Newlib)
-- [ ] POSIX
-- [ ] Port apps
-- [ ] FUSE
+- [ ] ELF
+- [ ] Libc
+- [ ] Bash
+- [ ] Coreutils
 - [ ] Network
 - [ ] USB
 - [ ] USB Keyboard
