@@ -2,9 +2,9 @@
 My first os built from scratch<br />
 Contributors are welcome
 
-# [LICENSE](LICENSE)
+## [LICENSE](LICENSE)
 
-# TODO
+## TODO
 
 - [x] GDT
 - [x] IDT
@@ -45,7 +45,7 @@ Contributors are welcome
 - [ ] USB Mouse
 - [ ] GUI (Window manager)
 
-# Building And Running
+## Building And Running
 
 Make sure you have following programs installed:
 * Clang
@@ -57,17 +57,21 @@ Make sure you have following programs installed:
 * Wget
 * Tar
 
-1. Clone this repo with:<br />
-``git clone --single-branch --branch master https://github.com/ilobilo/kernel``
+If you have Debian based system (Ubuntu, linux mint, Pop_os! etc) you can install them with this command:</br>
+```sudo apt install clang lld make nasm qemu-system-x86 xorriso wget tar```
+
+Follow this steps to build and run the os
+1. Clone this repo with:</br>
+``git clone --single-branch --branch master --depth 1 https://github.com/ilobilo/kernel``
 
 2. Go to the root directory of cloned repo and run:<br />
-``make -j$(nproc --all)`` For UEFI<br />
-``make bios -j$(nproc --all)`` For BIOS<br />
+``make -j$(nproc --all)`` For UEFI</br>
+``make bios -j$(nproc --all)`` For BIOS</br>
 
-# Discord server
+## Discord server
 https://discord.gg/fM5GK3RpS7
 
-# Resources used:
+## Resources used:
 * Printf: https://github.com/eyalroz/printf
 * Osdev wiki: https://wiki.osdev.org
 * Osdev discord server: https://discord.gg/RnCtsqD

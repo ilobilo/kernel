@@ -54,13 +54,13 @@ mouse::mousestate getmousestate()
 void handle_mouse()
 {
 	vmware_cmd cmd;
-    
-    cmd.bx = 0;
+
+	cmd.bx = 0;
 	cmd.command = CMD_ABSPOINTER_STATUS;
 	send(&cmd);
-    
-    if (cmd.ax == 0xFFFF0000)
-    {
+
+	if (cmd.ax == 0xFFFF0000)
+	{
 		mouse_relative();
 		mouse_absolute();
 		return;
@@ -73,33 +73,33 @@ void handle_mouse()
 	send(&cmd);
 
 	buttons = (cmd.ax & 0xFFFF);
-    mouse::pos.X = (cmd.bx * framebuffer::frm_width) / 0xFFFF;
-    mouse::pos.Y = (cmd.cx * framebuffer::frm_height) / 0xFFFF;
+	mouse::pos.X = (cmd.bx * framebuffer::frm_width) / 0xFFFF;
+	mouse::pos.Y = (cmd.cx * framebuffer::frm_height) / 0xFFFF;
 
-    mouse::clear();
+	mouse::clear();
 
-    static bool circle = false;
-    switch(mouse::getmousestate())
-    {
-        case mouse::ps2_left:
-            if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xff0000);   
-            else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xff0000);
-            break;
-        case mouse::ps2_middle:
-            if (circle) circle = false;
-            else circle = true;
-            break;
-        case mouse::ps2_right:
-            if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xdd56f5);   
-            else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xdd56f5);
-            break;
-        default:
-            break;
-    }
+	static bool circle = false;
+	switch(mouse::getmousestate())
+	{
+		case mouse::ps2_left:
+			if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xff0000);   
+			else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xff0000);
+			break;
+		case mouse::ps2_middle:
+			if (circle) circle = false;
+			else circle = true;
+			break;
+		case mouse::ps2_right:
+			if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xdd56f5);   
+			else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xdd56f5);
+			break;
+		default:
+			break;
+	}
 
-    mouse::draw();
+	mouse::draw();
 
-    mouse::posold = mouse::pos;
+	mouse::posold = mouse::pos;
 }
 
 void mouse_absolute()
@@ -122,7 +122,7 @@ void mouse_absolute()
 	cmd.command = CMD_ABSPOINTER_COMMAND;
 	send(&cmd);
 
-    mouse::vmware = true;
+	mouse::vmware = true;
 }
 
 void mouse_relative() 
@@ -132,7 +132,7 @@ void mouse_relative()
 	cmd.command = CMD_ABSPOINTER_COMMAND;
 	send(&cmd);
 
-    mouse::vmware = false;
+	mouse::vmware = false;
 }
 
 void init()
