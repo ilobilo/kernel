@@ -3,6 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/acpi/acpi.hpp>
+#include <lib/string.hpp>
 #include <main.hpp>
 
 using namespace kernel::drivers::display;
@@ -34,37 +35,37 @@ void init()
     {
         use_xstd = true;
         rsdt = (SDTHeader*)rsdp->xsdtaddr;
-        serial::info("Found XSDT at: 0x%X", rsdt);
+        serial::info("Found XSDT at: 0x%X", rsdp->xsdtaddr);
     }
     else
     {
         use_xstd = false;
         rsdt = (SDTHeader*)((uintptr_t)rsdp->rsdtaddr);
-        serial::info("Found RSDT at: 0x%X", rsdt);
+        serial::info("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
-    mcfg = (MCFGHeader*)acpi::findtable(rsdt, (char*)"MCFG");
-    fadt = (FADTHeader*)acpi::findtable(rsdt, (char*)"FACP");
+    mcfg = (MCFGHeader*)acpi::findtable((char*)"MCFG");
+    fadt = (FADTHeader*)acpi::findtable((char*)"FACP");
 
     serial::newline();
     initialised = true;
 }
 
-void *findtable(SDTHeader *sdthdr, char *signature)
+void *findtable(char *signature)
 {
-    int entries = (sdthdr->length + sizeof(SDTHeader)) / 8;
+    int entries = (rsdt->length + sizeof(SDTHeader)) / 8;
+
     for (int t = 0; t < entries; t++)
     {
         SDTHeader *newsdthdr;
-        if (use_xstd) newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)sdthdr + sizeof(SDTHeader) + (t * 8));
-        else newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)sdthdr) + sizeof(SDTHeader) + (t * 4)));
-        for (int i = 0; i < 4; i++)
-        {
-            if (newsdthdr->signature[i] != signature[i]) break;
-            else if (i == 3) return newsdthdr;
-        }
-    }
+        if (use_xstd) newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)rsdt + sizeof(SDTHeader) + (t * 8));
+        else newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)rsdt) + sizeof(SDTHeader) + (t * 4)));
+        
+        if (!newsdthdr || !strcmp((const char*)newsdthdr->signature, "")) continue;
 
+        if (!strncmp((const char*)newsdthdr->signature, signature, 4)) return newsdthdr;
+        else continue;
+    }
     return 0;
 }
 }
