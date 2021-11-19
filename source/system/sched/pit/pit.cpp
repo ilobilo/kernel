@@ -11,6 +11,7 @@ namespace kernel::system::sched::pit {
 
 bool initialised = false;
 uint64_t frequency = 100;
+uint64_t freqbck = 100;
 uint64_t tick = 0;
 
 void sleep(double sec)
@@ -43,6 +44,11 @@ void setfreq(uint64_t freq)
     outb(0x40, h);
 }
 
+void resetfreq()
+{
+    setfreq(freqbck);
+}
+
 void init(uint64_t freq)
 {
     serial::info("Initialising PIT");
@@ -53,9 +59,8 @@ void init(uint64_t freq)
         return;
     }
 
-    frequency = freq;
-
-    setfreq(frequency);
+    freqbck = freq;
+    setfreq(freq);
 
     register_interrupt_handler(idt::IRQS::IRQ0, PIT_Handler);
 
