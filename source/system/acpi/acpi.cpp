@@ -53,13 +53,11 @@ void init()
 
 void *findtable(char *signature)
 {
-    int entries = (rsdt->length + sizeof(SDTHeader)) / 8;
-
-    for (int t = 0; t < entries; t++)
+    for (int i = 0; i < (rsdt->length + sizeof(SDTHeader)) / 8; i++)
     {
         SDTHeader *newsdthdr;
-        if (use_xstd) newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)rsdt + sizeof(SDTHeader) + (t * 8));
-        else newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)rsdt) + sizeof(SDTHeader) + (t * 4)));
+        if (use_xstd) newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)rsdt + sizeof(SDTHeader) + (i * 8));
+        else newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)rsdt) + sizeof(SDTHeader) + (i * 4)));
         
         if (!newsdthdr || !strcmp((const char*)newsdthdr->signature, "")) continue;
 

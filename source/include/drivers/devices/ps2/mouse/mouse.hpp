@@ -21,13 +21,17 @@ enum mousestate
 };
 
 extern bool initialised;
+extern bool vmware;
 
-extern point mousepos;
-
+extern point pos;
+extern point posold;
 extern uint32_t mousebordercol;
 extern uint32_t mouseinsidecol;
 
 mousestate getmousestate();
+
+void draw();
+void clear();
 
 void init();
 }

@@ -14,6 +14,7 @@
 #include <system/mm/bitmap/bitmap.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
+#include <drivers/vmware/vmware.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/mm/heap/heap.hpp>
@@ -173,6 +174,10 @@ void main(struct stivale2_struct *stivale2_struct)
 
     terminal::check("Initialising PS2 Mouse...");
     if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
+    terminal::okerr(ps2::mouse::initialised);
+
+    terminal::check("Initialising VMWare tools...");
+    vmware::init();
     terminal::okerr(ps2::mouse::initialised);
 
     printf("Current RTC time: %s", rtc::getTime());
