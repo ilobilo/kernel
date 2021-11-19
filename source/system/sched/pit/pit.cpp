@@ -33,7 +33,7 @@ static void PIT_Handler(idt::interrupt_registers *)
 void setfreq(uint64_t freq)
 {
     frequency = freq;
-    uint64_t divisor = 1193180 / frequency;
+    uint64_t divisor = 1193180 / freq;
 
     outb(0x43, 0x36);
 

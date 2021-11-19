@@ -4,6 +4,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <drivers/vmware/vmware.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
@@ -12,13 +13,14 @@ using namespace kernel::system::cpu;
 
 namespace kernel::drivers::ps2::mouse {
 
-bool initialised = false;;
+bool initialised = false;
+bool vmware = false;
 
 uint8_t cycle = 0;
 uint8_t packet[4];
 bool packetready = false;
-point mousepos;
-point mouseposold;
+point pos;
+point posold;
 
 uint32_t mousebordercol = 0xFFFFFF;
 uint32_t mouseinsidecol = 0x2D2D2D;
@@ -97,10 +99,22 @@ uint8_t mouseread()
 
 mousestate getmousestate()
 {
+    if (vmware) return vmware::getmousestate();
     if (packet[0] & ps2_left) return ps2_left;
     else if (packet[0] & ps2_middle) return ps2_middle;
     else if (packet[0] & ps2_right) return ps2_right;
     return ps2_none;
+}
+
+void draw()
+{
+    framebuffer::drawovercursor(cursorinside, pos, mouseinsidecol, true);
+    framebuffer::drawovercursor(cursorborder, pos, mousebordercol, false);
+}
+
+void clear()
+{
+    framebuffer::clearcursor(cursorinside, posold);
 }
 
 void proccesspacket()
@@ -123,58 +137,70 @@ void proccesspacket()
 
     if (!xmin)
     {
-        mousepos.X += packet[1];
-        if (xover)
-        {
-            mousepos.X += 255;
-        }
+        pos.X += packet[1];
+        if (xover) pos.X += 255;
     }
     else
     {
         packet[1] = 256 - packet[1];
-        mousepos.X -= packet[1];
-        if (xover)
-        {
-            mousepos.X -= 255;
-        }
+        pos.X -= packet[1];
+        if (xover) pos.X -= 255;
     }
 
     if (!ymin)
     {
-        mousepos.Y -= packet[2];
-        if (yover)
-        {
-            mousepos.Y -= 255;
-        }
+        pos.Y -= packet[2];
+        if (yover) pos.Y -= 255;
     }
     else
     {
         packet[2] = 256 - packet[2];
-        mousepos.Y += packet[2];
-        if (yover)
-        {
-            mousepos.Y += 255;
-        }
+        pos.Y += packet[2];
+        if (yover) pos.Y += 255;
     }
 
-    if (mousepos.X < 0) mousepos.X = 0;
-    if (mousepos.X > framebuffer::frm_width - 1) mousepos.X = framebuffer::frm_width - 1;
+    if (pos.X < 0) pos.X = 0;
+    if (pos.X > framebuffer::frm_width - 1) pos.X = framebuffer::frm_width - 1;
 
-    if (mousepos.Y < 0) mousepos.Y = 0;
-    if (mousepos.Y > framebuffer::frm_height - 1) mousepos.Y = framebuffer::frm_height - 1;
+    if (pos.Y < 0) pos.Y = 0;
+    if (pos.Y > framebuffer::frm_height - 1) pos.Y = framebuffer::frm_height - 1;
 
-    framebuffer::clearcursor(cursorinside, mouseposold);
+    clear();
 
-    framebuffer::drawovercursor(cursorinside, mousepos, mouseinsidecol, true);
-    framebuffer::drawovercursor(cursorborder, mousepos, mousebordercol, false);
+    static bool circle = false;
+    switch(mouse::getmousestate())
+    {
+        case mouse::ps2_left:
+            if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xff0000);   
+            else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xff0000);
+            break;
+        case mouse::ps2_middle:
+            if (circle) circle = false;
+            else circle = true;
+            break;
+        case mouse::ps2_right:
+            if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xdd56f5);   
+            else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xdd56f5);
+            break;
+        default:
+            break;
+    }
+
+    draw();
 
     packetready = false;
-    mouseposold = mousepos;
+    posold = pos;
 }
 
 static void Mouse_Handler(idt::interrupt_registers *)
 {
     uint8_t mousedata = inb(0x60);
+
+    if (vmware)
+    {
+        vmware::handle_mouse();
+        return;
+    }
 
     proccesspacket();
 

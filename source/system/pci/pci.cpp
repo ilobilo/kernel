@@ -164,10 +164,10 @@ void init()
         serial::info("PCI has already been initialised!\n");
         return;
     }
-    if (acpi::mcfg == NULL)
+    if (!acpi::mcfg)
     {
-        serial::err("MCFG was not found");
-        serial::info("This might take some time\n");
+        serial::info("MCFG was not found");
+        serial::info("This might take some time");
         legacy = true;
     }
 
