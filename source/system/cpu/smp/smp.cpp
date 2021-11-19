@@ -19,7 +19,6 @@ using namespace kernel::system::mm;
 namespace kernel::system::cpu::smp {
 
 bool initialised = false;
-volatile int cpus_up = 0;
 
 DEFINE_LOCK(cpu_lock)
 cpu_t *cpus;
@@ -51,7 +50,6 @@ static void cpu_init(stivale2_smp_info *cpu)
 
     InitSSE();
 
-    cpus_up++;
     this_cpu->up = true;
     this_cpu->lapic_id = cpu->lapic_id;
     serial::info("CPU %ld is up", this_cpu->lapic_id);
@@ -92,7 +90,7 @@ void init()
         else cpu_init(&smp_tag->smp_info[i]);
     }
 
-    while (cpus_up < smp_tag->cpu_count);
+    for (size_t i = 0; i < smp_tag->cpu_count; i++) while (!cpus[i].up);
 
     serial::info("All CPUs are up\n");
     initialised = true;
