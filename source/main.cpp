@@ -178,14 +178,13 @@ void main(struct stivale2_struct *stivale2_struct)
 
     terminal::check("Initialising VMWare tools...");
     vmware::init();
-    terminal::okerr(ps2::mouse::initialised);
+    terminal::okerr(vmware::initialised);
 
     printf("Current RTC time: %s", rtc::getTime());
     printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     srand(rtc::time());
 
-    ps2::kbd::getchar();
     serial::info("Starting kernel shell\n");
     while (true) apps::kshell::run();
 }
