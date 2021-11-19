@@ -30,17 +30,19 @@ void shell_parse(char *cmd, char *arg)
     switch (hash(cmd))
     {
         case hash("help"):
-            printf("Supported commands:\n");
-            printf("- help\t-- This\n");
-            printf("- clear\t-- Clear terminal\n");
-            printf("- ls\t-- List files\n");
-            printf("- free\t-- Get memory info in bytes\n");
-            printf("-  -h\t-- Get memory info in MB\n");
-            printf("- time\t-- Get current RTC time\n");
-            printf("- timef\t-- Get current RTC time (Forever loop)\n");
-            printf("- tick\t-- Get current PIT tick\n");
-            printf("- pci\t-- List PCI devices\n");
-            printf("- crash\t-- Crash whole system\n");
+            printf("- help -- This\n");
+            printf("- clear -- Clear terminal\n");
+            printf("- ls -- List files\n");
+            printf("- free -- Get memory info in bytes\n");
+            printf("-  -h -- Get memory info in MB\n");
+            printf("- time -- Get current RTC time\n");
+            printf("- timef -- Get current RTC time (Forever loop)\n");
+            printf("- tick -- Get current PIT tick\n");
+            printf("- pci -- List PCI devices\n");
+            printf("- crash -- Crash whole system\n");
+            printf("- reboot -- Reboot the system\n");
+            printf("- poweroff -- Shutdown the system\n");
+            printf("- shutdown -- Shutdown the system\n");
             break;
         case hash("clear"):
             terminal::clear();
@@ -238,8 +240,7 @@ void shell_parse(char *cmd, char *arg)
             }
             break;
         case hash("crash"):
-            asm volatile ("int $0x3");
-            asm volatile ("int $0x4");
+            ((int (*)())vfs::open(NULL, "/bin/crash")->address)();
             break;
         case hash("shutdown"):
         case hash("poweroff"):
