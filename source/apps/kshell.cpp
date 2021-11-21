@@ -33,6 +33,9 @@ void shell_parse(char *cmd, char *arg)
             printf("- help -- This\n");
             printf("- clear -- Clear terminal\n");
             printf("- ls -- List files\n");
+            printf("- cat -- Print file contents\n");
+            printf("- cd -- Change directory\n");
+            printf("- exec -- Execute binary\n");
             printf("- free -- Get memory info in bytes\n");
             printf("-  -h -- Get memory info in MB\n");
             printf("- time -- Get current RTC time\n");
@@ -200,6 +203,29 @@ void shell_parse(char *cmd, char *arg)
                 break;
             }
             current_path = node;
+            break;
+        }
+        case hash("exec"):
+        {
+            if (!strcmp(arg, ""))
+            {
+                printf("exec <filename>\n");
+                break;
+            }
+            vfs::fs_node_t *node = vfs::open(current_path, arg);
+            if (!node)
+            {
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                return;
+            }
+            if ((node->flags & 0x07) != vfs::FS_FILE)
+            {
+                printf("\033[31m%s is not an executable file!%s\n", arg, terminal::colour);
+                break;
+            }
+            using func = int (*)();
+            func t = (func)node->address;
+            t();
             break;
         }
         case hash("free"):

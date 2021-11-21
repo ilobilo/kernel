@@ -41,30 +41,30 @@ enum IRQS
 
 struct idt_desc_t
 {
-   uint16_t offset_1;
-   uint16_t selector;
-   uint8_t ist;
-   uint8_t type_attr;
-   uint16_t offset_2;
-   uint32_t offset_3;
-   uint32_t zero;
+    uint16_t offset_1;
+    uint16_t selector;
+    uint8_t ist;
+    uint8_t type_attr;
+    uint16_t offset_2;
+    uint32_t offset_3;
+    uint32_t zero;
 };
 
 struct idt_entry_t
 {
-	uint16_t    isr_low;
-	uint16_t    kernel_cs;
-	uint8_t	    ist;
-	uint8_t     attributes;
-	uint16_t    isr_mid;
-	uint32_t    isr_high;
-	uint32_t    reserved;
+    uint16_t isr_low;
+    uint16_t kernel_cs;
+    uint8_t ist;
+    uint8_t attributes;
+    uint16_t isr_mid;
+    uint32_t isr_high;
+    uint32_t reserved;
 } __attribute__((packed));
 
 struct idtr_t
 {
-	uint16_t	limit;
-	uint64_t	base;
+    uint16_t limit;
+    uint64_t base;
 } __attribute__((packed));
 
 struct interrupt_registers

@@ -102,48 +102,48 @@ char *strdup(const char *src)
 
 static char** _strsplit(const char* s, const char* delim, size_t* nb)
 {
-	void* data;
-	char* _s = (char*)s;
-	const char** ptrs;
-	size_t ptrsSize;
-	size_t nbWords = 1;
-	size_t sLen = strlen(s);
-	size_t delimLen = strlen(delim);
+    void* data;
+    char* _s = (char*)s;
+    const char** ptrs;
+    size_t ptrsSize;
+    size_t nbWords = 1;
+    size_t sLen = strlen(s);
+    size_t delimLen = strlen(delim);
 
-	while ((_s = strstr(_s, delim)))
+    while ((_s = strstr(_s, delim)))
     {
-		_s += delimLen;
-		++nbWords;
-	}
-	ptrsSize = (nbWords + 1) * sizeof(char*);
-	ptrs = (const char**)heap::malloc(ptrsSize + sLen + 1);
+        _s += delimLen;
+        ++nbWords;
+    }
+    ptrsSize = (nbWords + 1) * sizeof(char*);
+    ptrs = (const char**)heap::malloc(ptrsSize + sLen + 1);
     data = ptrs;
-	if (data)
+    if (data)
     {
-		*ptrs = _s = strcpy(((char*)data) + ptrsSize, s);
-		if (nbWords > 1)
+        *ptrs = _s = strcpy(((char*)data) + ptrsSize, s);
+        if (nbWords > 1)
         {
-			while (( _s = strstr(_s, delim)))
+            while (( _s = strstr(_s, delim)))
             {
-				*_s = '\0';
-				_s += delimLen;
-				*++ptrs = _s;
-			}
-		}
-		*++ptrs = NULL;
-	}
-	if (nb) *nb = data ? nbWords : 0;
-	return (char**)data;
+                *_s = '\0';
+                _s += delimLen;
+                *++ptrs = _s;
+            }
+        }
+        *++ptrs = NULL;
+    }
+    if (nb) *nb = data ? nbWords : 0;
+    return (char**)data;
 }
 
 char** strsplit(const char* s, const char* delim)
 {
-	return _strsplit(s, delim, NULL);
+    return _strsplit(s, delim, NULL);
 }
 
 char** strsplit_count(const char* s, const char* delim, size_t* nb)
 {
-	return _strsplit(s, delim, nb);
+    return _strsplit(s, delim, nb);
 }
 
 char *strstr(const char *str, const char *substring)
