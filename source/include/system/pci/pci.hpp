@@ -74,6 +74,7 @@ extern bool legacy;
 extern Vector<translatedpcideviceheader*> pcidevices;
 
 translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
+translatedpcideviceheader *search(uint16_t vendor, uint16_t device, int skip);
 
 void init();
 }

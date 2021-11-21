@@ -105,7 +105,7 @@ static const char *exception_messages[32] = {
     "Reserved",
 };
 
-void isr_handler(interrupt_registers *regs)
+void exception_handler(interrupt_registers *regs)
 {
     volatile bool halt = true;
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
@@ -152,7 +152,7 @@ void irq_handler(interrupt_registers *regs)
 
 void int_handler(interrupt_registers *regs)
 {
-    if (regs->int_no < 32) isr_handler(regs);
+    if (regs->int_no < 32) exception_handler(regs);
     else if (regs->int_no < 48) irq_handler(regs);
     else if (regs->int_no == SYSCALL) syscall::handler(regs);
 }

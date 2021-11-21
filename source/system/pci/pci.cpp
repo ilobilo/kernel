@@ -21,7 +21,7 @@ bool legacy = false;
 
 Vector<translatedpcideviceheader*> pcidevices;
 
-translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
+translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
     if (!initialised)
     {
@@ -43,11 +43,33 @@ translatedpcideviceheader *PCI_search(uint8_t Class, uint8_t subclass, uint8_t p
                     }
                     else return pcidevices[i];
                 }
-                else continue;
             }
-            else continue;
         }
-        else continue;
+    }
+    return NULL;
+}
+
+translatedpcideviceheader *search(uint16_t vendor, uint16_t device, int skip)
+{
+    if (!initialised)
+    {
+        serial::info("PCI has not been initialised!\n");
+        return NULL;
+    }
+    for (uint64_t i = 0; i < pcidevices.size(); i++)
+    {
+        if (pcidevices[i]->vendorid == vendor)
+        {
+            if (pcidevices[i]->deviceid == device)
+            {
+                if (skip > 0)
+                {
+                    skip--;
+                    continue;
+                }
+                else return pcidevices[i];
+            }
+        }
     }
     return NULL;
 }
@@ -120,7 +142,7 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
     if (device->deviceid == 0 || device->deviceid == 0xFFFF) return;
 
     pcidevices.push_back(translate(device));
-    serial::info("%X:%X %s %s",
+    serial::info("%.4X:%.4X %s %s",
         pcidevices.last()->vendorid,
         pcidevices.last()->deviceid,
         pcidevices.last()->vendorstr,
@@ -202,7 +224,7 @@ void init()
                     device->subclass = getsubclassid(bus, dev, func);
 
                     pcidevices.push_back(translate(device));
-                    serial::info("%X:%X %s %s",
+                    serial::info("%.4X:%.4X %s %s",
                         pcidevices.last()->vendorid,
                         pcidevices.last()->deviceid,
                         pcidevices.last()->vendorstr,

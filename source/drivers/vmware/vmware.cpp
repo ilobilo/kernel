@@ -141,7 +141,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("VMWare tools has already been initialised!\n");
+        serial::info("VMWare tools have already been initialised!\n");
         return;
     }
     if (!is_vmware_backdoor())

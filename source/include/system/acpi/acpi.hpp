@@ -123,5 +123,5 @@ extern SDTHeader *rsdt;
 
 void init();
 
-void *findtable(char *signature);
+void *findtable(const char *signature);
 }
