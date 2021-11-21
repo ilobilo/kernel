@@ -5,7 +5,6 @@
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
-#include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <stivale2.h>
@@ -13,7 +12,6 @@
 #include <lib/math.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::system::cpu;
 using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::smp {
@@ -25,16 +23,16 @@ cpu_t *cpus;
 
 uint64_t rdmsr(uint32_t msr)
 {
-	uint32_t edx, eax;
-	asm volatile("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr) : "memory");
-	return ((uint64_t)edx << 32) | eax;
+    uint32_t edx, eax;
+    asm volatile("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr) : "memory");
+    return ((uint64_t)edx << 32) | eax;
 }
 
 void wrmsr(uint32_t msr, uint64_t value)
 {
-	uint32_t edx = value >> 32;
-	uint32_t eax = (uint32_t)value;
-	asm volatile("wrmsr" : : "a"(eax), "d"(edx), "c"(msr) : "memory");
+    uint32_t edx = value >> 32;
+    uint32_t eax = (uint32_t)value;
+    asm volatile("wrmsr" : : "a"(eax), "d"(edx), "c"(msr) : "memory");
 }
 
 extern "C" void InitSSE();
@@ -50,9 +48,11 @@ static void cpu_init(stivale2_smp_info *cpu)
 
     InitSSE();
 
-    this_cpu->up = true;
     this_cpu->lapic_id = cpu->lapic_id;
+    this_cpu->tss = &gdt::tss[this_cpu->lapic_id];
+
     serial::info("CPU %ld is up", this_cpu->lapic_id);
+    this_cpu->up = true;
 
     release_lock(&cpu_lock);
     if (cpu->lapic_id != smp_tag->bsp_lapic_id) while (true) asm volatile ("hlt");

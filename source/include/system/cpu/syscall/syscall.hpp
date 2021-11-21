@@ -52,8 +52,8 @@ namespace kernel::system::cpu::syscall {
     asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3), "r"(arg4), "r"(arg5) : "rcx", "r11", "memory"); \
 })
 
-#define SYSCALL_READ	0
-#define SYSCALL_WRITE	1
+#define SYSCALL_READ  0
+#define SYSCALL_WRITE 1
 
 using syscall_t = void (*)(idt::interrupt_registers *);
 

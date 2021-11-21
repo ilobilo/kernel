@@ -18,31 +18,31 @@ namespace kernel::drivers::vmware {
 #define CMD_ABSPOINTER_DATA    39
 #define CMD_ABSPOINTER_STATUS  40
 #define CMD_ABSPOINTER_COMMAND 41
- 
-#define ABSPOINTER_ENABLE   0x45414552 /* Q E A E */
+
+#define ABSPOINTER_ENABLE   0x45414552
 #define ABSPOINTER_RELATIVE 0xF5
-#define ABSPOINTER_ABSOLUTE 0x53424152 /* R A B S */
+#define ABSPOINTER_ABSOLUTE 0x53424152
 
 struct vmware_cmd
 {
-	union {
-		uint32_t ax;
-		uint32_t magic;
-	};
-	union {
-		uint32_t bx;
-		size_t size;
-	};
-	union {
-		uint32_t cx;
-		uint16_t command;
-	};
-	union {
-		uint32_t dx;
-		uint16_t port;
-	};
-	uint32_t si;
-	uint32_t di;
+    union {
+        uint32_t ax;
+        uint32_t magic;
+    };
+    union {
+        uint32_t bx;
+        size_t size;
+    };
+    union {
+        uint32_t cx;
+        uint16_t command;
+    };
+    union {
+        uint32_t dx;
+        uint16_t port;
+    };
+    uint32_t si;
+    uint32_t di;
 };
 
 extern bool initialised;

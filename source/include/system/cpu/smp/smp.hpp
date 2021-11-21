@@ -2,12 +2,15 @@
 
 #pragma once
 
+#include <system/cpu/gdt/gdt.hpp>
+
 namespace kernel::system::cpu::smp {
 
 struct cpu_t
 {
-	uint64_t id;
-	uint32_t lapic_id;
+    uint64_t id;
+    uint32_t lapic_id;
+    gdt::TSS *tss;
     volatile bool up;
 };
 
