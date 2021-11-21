@@ -44,14 +44,14 @@ void init()
         serial::info("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
-    mcfg = (MCFGHeader*)acpi::findtable((char*)"MCFG");
-    fadt = (FADTHeader*)acpi::findtable((char*)"FACP");
+    mcfg = (MCFGHeader*)acpi::findtable("MCFG");
+    fadt = (FADTHeader*)acpi::findtable("FACP");
 
     serial::newline();
     initialised = true;
 }
 
-void *findtable(char *signature)
+void *findtable(const char *signature)
 {
     size_t entries;
     if (use_xstd) entries = (rsdt->length - sizeof(SDTHeader)) / 8;

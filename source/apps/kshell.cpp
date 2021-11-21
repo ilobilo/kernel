@@ -232,7 +232,7 @@ void shell_parse(char *cmd, char *arg)
         case hash("pci"):
             for (size_t i = 0; i < pci::pcidevices.size(); i++)
             {
-                printf("%X:%X %s %s\n",
+                printf("%.4X:%.4X %s %s\n",
                     pci::pcidevices[i]->vendorid,
                     pci::pcidevices[i]->deviceid,
                     pci::pcidevices[i]->vendorstr,

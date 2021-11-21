@@ -56,14 +56,7 @@ isr_stub_%+%1:
     jmp int_common_stub
 %endmacro
 
-%macro irq_stub 1
-irq_stub_%+%1:
-    push byte %1
-    push byte 32 + %1
-    jmp int_common_stub
-%endmacro
-
-; ISRs
+; Exceptions
 isr_stub 0
 isr_stub 1
 isr_stub 2
@@ -98,22 +91,22 @@ isr_stub 30
 isr_stub 31
 
 ; IRQs
-irq_stub 0
-irq_stub 1
-irq_stub 2
-irq_stub 3
-irq_stub 4
-irq_stub 5
-irq_stub 6
-irq_stub 7
-irq_stub 8
-irq_stub 9
-irq_stub 10
-irq_stub 11
-irq_stub 12
-irq_stub 13
-irq_stub 14
-irq_stub 15
+isr_stub 32
+isr_stub 33
+isr_stub 34
+isr_stub 35
+isr_stub 36
+isr_stub 37
+isr_stub 38
+isr_stub 39
+isr_stub 40
+isr_stub 41
+isr_stub 42
+isr_stub 43
+isr_stub 44
+isr_stub 45
+isr_stub 46
+isr_stub 47
 
 syscall:
     push byte 0
@@ -124,19 +117,10 @@ section .data
 
 int_table:
 %assign i 0
-%rep 32
+%rep 48
     dq isr_stub_%+i
 %assign i i+1
 %endrep
-
-%assign i 0
-%rep 16
-    dq irq_stub_%+i
-%assign i i+1
-%endrep
-
-%rep 80
-    dq 0
-%endrep
+    times 80 dq 0
     dq syscall
 GLOBAL int_table
