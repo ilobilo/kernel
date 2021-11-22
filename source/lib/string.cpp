@@ -327,7 +327,7 @@ int intlen(int n)
     return digits;
 }
 
-char *humanify(double bytes)
+char *humanify(uint64_t bytes)
 {
     static char buf[10];
     int i = 0;
@@ -336,6 +336,6 @@ char *humanify(double bytes)
     {
         bytes /= 1024;
     }
-    sprintf(buf, "%.2f%s", bytes, units[i]);
+    sprintf(buf, "%ld%s", bytes, units[i]);
     return buf;
 }

@@ -230,15 +230,15 @@ void shell_parse(char *cmd, char *arg)
         }
         case hash("free"):
         {
-            double usable = getmemsize();
-            double free = pfalloc::getFreeRam();
+            uint64_t usable = getmemsize();
+            uint64_t free = pfalloc::getFreeRam();
             if (!strcmp(arg, "-h"))
             {
                 usable = usable / 1024 / 1024;
                 free = free / 1024 / 1024;
-                printf("Usable memory: %.2f MB\nFree memory: %.2f MB\nUsed memory: %.2f MB\n", usable, free, usable - free);
+                printf("Usable memory: %ld MB\nFree memory: %ld MB\nUsed memory: %ld MB\n", usable, free, usable - free);
             }
-            else printf("Usable memory: %.0f Bytes\nFree memory: %.0f Bytes\nUsed memory: %.0f Bytes\n", usable, free, usable - free);
+            else printf("Usable memory: %ld Bytes\nFree memory: %ld Bytes\nUsed memory: %ld Bytes\n", usable, free, usable - free);
             break;
         }
         case hash("time"):

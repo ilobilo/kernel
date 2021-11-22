@@ -43,4 +43,4 @@ int string_to_int(char *str);
 long oct_to_dec(int n);
 
 int intlen(int n);
-char *humanify(double bytes);
+char *humanify(uint64_t bytes);

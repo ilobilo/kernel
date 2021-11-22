@@ -64,12 +64,12 @@
 
 // Support for the decimal notation floating point conversion specifiers (%f, %F)
 #ifndef PRINTF_SUPPORT_DECIMAL_SPECIFIERS
-#define PRINTF_SUPPORT_DECIMAL_SPECIFIERS 1
+#define PRINTF_SUPPORT_DECIMAL_SPECIFIERS 0
 #endif
 
 // Support for the exponential notatin floating point conversion specifiers (%e, %g, %E, %G)
 #ifndef PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS
-#define PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS 1
+#define PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS 0
 #endif
 
 // Default precision for the floating point conversion specifiers (the C standard sets this at 6)

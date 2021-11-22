@@ -56,6 +56,8 @@ INTERNALCFLAGS  :=             \
 	-mno-mmx                   \
 	-mno-3dnow                 \
 	-mno-red-zone              \
+	-mno-sse                   \
+	-mno-sse2                  \
 	-mcmodel=kernel
 
 INTERNALCPPFLAGS  :=           \
@@ -70,6 +72,8 @@ INTERNALCPPFLAGS  :=           \
 	-mno-mmx                   \
 	-mno-3dnow                 \
 	-mno-red-zone              \
+	-mno-sse                   \
+	-mno-sse2                  \
 	-mcmodel=kernel
 
 CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
