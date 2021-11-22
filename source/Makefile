@@ -20,7 +20,7 @@ QEMU = qemu-system-x86_64
 QEMUFLAGS = -M q35 \
 	-cpu max -smp 12 -m 512M \
 	-boot d -rtc base=localtime \
-	-serial stdio
+	-serial stdio -drive format=raw,file=$(DISK)
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
