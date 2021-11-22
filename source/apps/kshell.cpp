@@ -21,9 +21,9 @@ using namespace kernel::system::sched;
 using namespace kernel::system::mm;
 using namespace kernel::system;
 
-vfs::fs_node_t *current_path;
-
 namespace kernel::apps::kshell {
+
+vfs::fs_node_t *current_path;
 
 void shell_parse(char *cmd, char *arg)
 {
@@ -176,18 +176,18 @@ void shell_parse(char *cmd, char *arg)
             if (!strcmp(arg, ""))
             {
                 current_path = vfs::getchild(0, "/");
-                break;
+                return;
             }
             if (!strcmp(arg, "..") || !strcmp(arg, "../"))
             {
                 current_path = current_path->parent;
-                break;
+                return;
             }
-            if (!strcmp(arg, ".") || !strcmp(arg, "./")) break;
+            if (!strcmp(arg, ".") || !strcmp(arg, "./")) return;
             if (!strcmp(arg, "/"))
             {
                 current_path = vfs::fs_root->ptr;
-                break;
+                return;
             }
             vfs::fs_node_t *node;
             if (!strncmp(arg, "/", 1)) node = vfs::open(0, arg);
@@ -195,12 +195,12 @@ void shell_parse(char *cmd, char *arg)
             if (!node)
             {
                 printf("\033[31mNo such directory!%s\n", terminal::colour);
-                break;
+                return;
             }
             if ((node->flags & 0x07) != vfs::FS_DIRECTORY)
             {
                 printf("\033[31m%s is not a directory!%s\n", arg, terminal::colour);
-                break;
+                return;
             }
             current_path = node;
             break;
@@ -210,7 +210,7 @@ void shell_parse(char *cmd, char *arg)
             if (!strcmp(arg, ""))
             {
                 printf("exec <filename>\n");
-                break;
+                return;
             }
             vfs::fs_node_t *node = vfs::open(current_path, arg);
             if (!node)
@@ -221,7 +221,7 @@ void shell_parse(char *cmd, char *arg)
             if ((node->flags & 0x07) != vfs::FS_FILE)
             {
                 printf("\033[31m%s is not an executable file!%s\n", arg, terminal::colour);
-                break;
+                return;
             }
             using func = int (*)();
             func t = (func)node->address;
