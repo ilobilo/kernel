@@ -26,19 +26,7 @@ struct pcidevice_t
 
 struct translatedpcidevice_t
 {
-    uint16_t vendorid;
-    uint16_t deviceid;
-    uint16_t command;
-    uint16_t status;
-    uint8_t revisionid;
-    uint8_t progif;
-    uint8_t subclass;
-    uint8_t Class;
-    uint8_t cachelinesize;
-    uint8_t latencytimer;
-    uint8_t headertype;
-    uint8_t bist;
-
+    pcidevice_t *device;
     const char *vendorstr;
     const char *devicestr;
     const char *progifstr;
@@ -51,7 +39,7 @@ struct translatedpcidevice_t
 
 struct pciheader0
 {
-    pcideviceheader header;
+    pcidevice_t device;
     uint32_t BAR0;
     uint32_t BAR1;
     uint32_t BAR2;
@@ -79,6 +67,7 @@ extern Vector<translatedpcidevice_t*> pcidevices;
 
 translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
+size_t count(uint16_t vendor, uint16_t device);
 
 void init();
 }

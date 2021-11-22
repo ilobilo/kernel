@@ -74,11 +74,11 @@ translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, i
     }
     for (uint64_t i = 0; i < pcidevices.size(); i++)
     {
-        if (pcidevices[i]->Class == Class)
+        if (pcidevices[i]->device->Class == Class)
         {
-            if (pcidevices[i]->subclass == subclass)
+            if (pcidevices[i]->device->subclass == subclass)
             {
-                if (pcidevices[i]->progif == progif)
+                if (pcidevices[i]->device->progif == progif)
                 {
                     if (skip > 0)
                     {
@@ -102,9 +102,9 @@ translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
     }
     for (uint64_t i = 0; i < pcidevices.size(); i++)
     {
-        if (pcidevices[i]->vendorid == vendor)
+        if (pcidevices[i]->device->vendorid == vendor)
         {
-            if (pcidevices[i]->deviceid == device)
+            if (pcidevices[i]->device->deviceid == device)
             {
                 if (skip > 0)
                 {
@@ -118,27 +118,35 @@ translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
     return NULL;
 }
 
+size_t count(uint16_t vendor, uint16_t device)
+{
+    if (!initialised)
+    {
+        serial::info("PCI has not been initialised!\n");
+        return 0;
+    }
+    size_t num = 0;
+    for (uint64_t i = 0; i < pcidevices.size(); i++)
+    {
+        if (pcidevices[i]->device->vendorid == vendor)
+        {
+            if (pcidevices[i]->device->deviceid == device) num++;
+        }
+    }
+    return num;
+}
+
 translatedpcidevice_t *translate(pcidevice_t* device)
 {
     translatedpcidevice_t *pcidevice = (translatedpcidevice_t*)heap::malloc(sizeof(translatedpcidevice_t));
 
-    pcidevice->vendorid = device->vendorid;
-    pcidevice->deviceid = device->deviceid;
+    pcidevice->device = device;
+
     pcidevice->vendorstr = getvendorname(device->vendorid);
     pcidevice->devicestr = getdevicename(device->vendorid, device->deviceid);
-    pcidevice->command = device->command;
-    pcidevice->status = device->status;
-    pcidevice->revisionid = device->revisionid;
-    pcidevice->progif = device->progif;
     pcidevice->progifstr = getprogifname(device->Class, device->subclass, device->progif);
-    pcidevice->subclass = device->subclass;
     pcidevice->subclassStr = getsubclassname(device->Class, device->subclass);
-    pcidevice->Class = device->Class;
     pcidevice->ClassStr = device_classes[device->Class];
-    pcidevice->cachelinesize = device->cachelinesize;
-    pcidevice->latencytimer = device->latencytimer;
-    pcidevice->headertype = device->headertype;
-    pcidevice->bist = device->bist;
 
     pcidevice->bus = currbus;
     pcidevice->dev = currdev;
@@ -159,8 +167,8 @@ void enumfunc(uint64_t devaddr, uint64_t func)
 
     pcidevices.push_back(translate(pcidevice));
     serial::info("%.4X:%.4X %s %s",
-        pcidevices.last()->vendorid,
-        pcidevices.last()->deviceid,
+        pcidevices.last()->device->vendorid,
+        pcidevices.last()->device->deviceid,
         pcidevices.last()->vendorstr,
         pcidevices.last()->devicestr);
 }
@@ -261,12 +269,13 @@ void init()
                     currfunc = func;
 
                     pcidevices.push_back(translate(pcidevice));
+                    heap::free(pcidevice);
+
                     serial::info("%.4X:%.4X %s %s",
-                        pcidevices.last()->vendorid,
-                        pcidevices.last()->deviceid,
+                        pcidevices.last()->device->vendorid,
+                        pcidevices.last()->device->deviceid,
                         pcidevices.last()->vendorstr,
                         pcidevices.last()->devicestr);
-                    heap::free(pcidevice);
                 }
             }
         }

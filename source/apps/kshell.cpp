@@ -258,8 +258,8 @@ void shell_parse(char *cmd, char *arg)
             for (size_t i = 0; i < pci::pcidevices.size(); i++)
             {
                 printf("%.4X:%.4X %s %s\n",
-                    pci::pcidevices[i]->vendorid,
-                    pci::pcidevices[i]->deviceid,
+                    pci::pcidevices[i]->device->vendorid,
+                    pci::pcidevices[i]->device->deviceid,
                     pci::pcidevices[i]->vendorstr,
                     pci::pcidevices[i]->devicestr);
             }
