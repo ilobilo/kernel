@@ -250,9 +250,8 @@ void shell_parse(char *cmd, char *arg)
         case hash("timef"):
             while (true)
             {
-                printf("%s", rtc::getTime());
+                printf("\r\033[2K%s", rtc::getTime());
                 pit::sleep(1);
-                printf("\r\033[2K");
             }
             break;
         case hash("pci"):
@@ -276,7 +275,7 @@ void shell_parse(char *cmd, char *arg)
             asm volatile ("hlt");
             break;
         case hash("reboot"):
-            outb(acpi::fadt->ResetReg.Address, acpi::fadt->ResetValue);
+            outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
             break;
         case hash(""):
             break;

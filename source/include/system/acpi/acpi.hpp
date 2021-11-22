@@ -47,6 +47,21 @@ struct GenericAddressStructure
     uint64_t Address;
 } __attribute__((packed));
 
+struct HPETHeader
+{
+    SDTHeader header;
+    uint8_t hardware_rev_id;
+    uint8_t comparator_count : 5;
+    uint8_t counter_size : 1;
+    uint8_t reserved : 1;
+    uint8_t legacy_replacement : 1;
+    uint16_t pci_vendor_id;
+    GenericAddressStructure address;
+    uint8_t hpet_number;
+    uint16_t minimum_tick;
+    uint8_t page_protection;
+} __attribute__((packed));
+
 struct FADTHeader
 {
     SDTHeader header;
@@ -117,8 +132,9 @@ extern bool initialised;
 extern bool use_xstd;
 extern RSDP *rsdp;
 
-extern MCFGHeader *mcfg;
-extern FADTHeader *fadt;
+extern MCFGHeader *mcfghdr;
+extern FADTHeader *fadthdr;
+extern HPETHeader *hpethdr;
 extern SDTHeader *rsdt;
 
 void init();

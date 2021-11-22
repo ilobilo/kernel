@@ -15,8 +15,9 @@ bool initialised = false;
 bool use_xstd;
 RSDP *rsdp;
 
-MCFGHeader *mcfg;
-FADTHeader *fadt;
+MCFGHeader *mcfghdr;
+FADTHeader *fadthdr;
+HPETHeader *hpethdr;
 SDTHeader *rsdt;
 
 void init()
@@ -44,8 +45,9 @@ void init()
         serial::info("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
-    mcfg = (MCFGHeader*)acpi::findtable("MCFG");
-    fadt = (FADTHeader*)acpi::findtable("FACP");
+    mcfghdr = (MCFGHeader*)findtable("MCFG");
+    fadthdr = (FADTHeader*)findtable("FACP");
+    hpethdr = (HPETHeader*)findtable("HPET");
 
     serial::newline();
     initialised = true;

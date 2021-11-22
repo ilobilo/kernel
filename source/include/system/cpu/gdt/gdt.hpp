@@ -21,12 +21,12 @@ struct GDTEntry {
 
 struct GDT {
     GDTEntry Null;
-    GDTEntry _16Code;
-    GDTEntry _16Data;
-    GDTEntry _32Code;
-    GDTEntry _32Data;
-    GDTEntry _64Code;
-    GDTEntry _64Data;
+    GDTEntry _16BitCode;
+    GDTEntry _16BitData;
+    GDTEntry _32BitCode;
+    GDTEntry _32BitData;
+    GDTEntry _64BitCode;
+    GDTEntry _64BitData;
     GDTEntry UserData;
     GDTEntry UserCode;
     GDTEntry Tss;
@@ -59,4 +59,7 @@ void TSS_write(uint64_t RSP0, uint64_t RSP1);
 
 void set_stack(uint64_t cpu, uintptr_t stack);
 uint64_t get_stack(uint64_t cpu);
+
+void set_stack(uintptr_t stack);
+uint64_t get_stack();
 }
