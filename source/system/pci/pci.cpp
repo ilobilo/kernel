@@ -19,9 +19,53 @@ namespace kernel::system::pci {
 bool initialised = false;
 bool legacy = false;
 
-Vector<translatedpcideviceheader*> pcidevices;
+static uint64_t currbus, currdev, currfunc;
 
-translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
+Vector<translatedpcidevice_t*> pcidevices;
+
+static void get_addr(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    uint32_t address = (bus << 16) | (dev << 11) | (func << 8) | (offset & ~((uint32_t)(3))) | 0x80000000;
+    outl(0xcf8, address);
+}
+
+uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inb(0xcfc + (offset & 3));
+}
+
+void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value)
+{
+    get_addr(bus, dev, func, offset);
+    outb(0xcfc + (offset & 3), value);
+}
+
+uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inw(0xcfc + (offset & 3));
+}
+
+void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value)
+{
+    get_addr(bus, dev, func, offset);
+    outw(0xcfc + (offset & 3), value);
+}
+
+uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inl(0xcfc + (offset & 3));
+}
+
+void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value)
+{
+    get_addr(bus, dev, func, offset);
+    outl(0xcfc + (offset & 3), value);
+}
+
+translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
     if (!initialised)
     {
@@ -49,7 +93,7 @@ translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progi
     return NULL;
 }
 
-translatedpcideviceheader *search(uint16_t vendor, uint16_t device, int skip)
+translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
 {
     if (!initialised)
     {
@@ -74,9 +118,9 @@ translatedpcideviceheader *search(uint16_t vendor, uint16_t device, int skip)
     return NULL;
 }
 
-translatedpcideviceheader *translate(pcideviceheader* device)
+translatedpcidevice_t *translate(pcidevice_t* device)
 {
-    translatedpcideviceheader *pcidevice = (translatedpcideviceheader*)heap::malloc(sizeof(translatedpcideviceheader));
+    translatedpcidevice_t *pcidevice = (translatedpcidevice_t*)heap::malloc(sizeof(translatedpcidevice_t));
 
     pcidevice->vendorid = device->vendorid;
     pcidevice->deviceid = device->deviceid;
@@ -96,52 +140,24 @@ translatedpcideviceheader *translate(pcideviceheader* device)
     pcidevice->headertype = device->headertype;
     pcidevice->bist = device->bist;
 
+    pcidevice->bus = currbus;
+    pcidevice->dev = currdev;
+    pcidevice->func = currfunc;
+
     return pcidevice;
 }
 
-uint16_t read(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset)
-{
-    uint64_t address;
-    uint64_t lbus = (uint64_t)bus;
-    uint64_t lslot = (uint64_t)slot;
-    uint64_t lfunc = (uint64_t)func;
-    uint16_t tmp = 0;
-    address = (uint64_t)((lbus << 16) | (lslot << 11) | (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
-    outl(0xCF8, address);
-    tmp = (uint16_t)((inl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
-    return (tmp);
-}
-
-uint16_t getvenid(uint16_t bus, uint16_t dev, uint16_t func)
-{
-    uint32_t r0 = read(bus, dev, func, 0);
-    return r0;
-}
-uint16_t getdevid(uint16_t bus, uint16_t dev, uint16_t func)
-{
-    uint32_t r0 = read(bus, dev, func, 2);
-    return r0;
-}
-uint16_t getclassid(uint16_t bus, uint16_t dev, uint16_t func)
-{
-    uint32_t r0 = read(bus, dev, func, 0xA);
-    return (r0 & ~0x00FF) >> 8;
-}
-uint16_t getsubclassid(uint16_t bus, uint16_t dev, uint16_t func)
-{
-    uint32_t r0 = read(bus, dev, func, 0xA);
-    return (r0 & ~0xFF00);
-}
-
-void enumfunc(uint64_t deviceaddr, uint64_t func)
+void enumfunc(uint64_t devaddr, uint64_t func)
 {
     uint64_t offset = func << 12;
-    uint64_t funcaddr = deviceaddr + offset;
+    uint64_t funcaddr = devaddr + offset;
 
-    pcideviceheader *device = (pcideviceheader*)funcaddr;
-    if (device->deviceid == 0 || device->deviceid == 0xFFFF) return;
+    pcidevice_t *pcidevice = (pcidevice_t*)funcaddr;
+    if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
-    pcidevices.push_back(translate(device));
+    currfunc = func;
+
+    pcidevices.push_back(translate(pcidevice));
     serial::info("%.4X:%.4X %s %s",
         pcidevices.last()->vendorid,
         pcidevices.last()->deviceid,
@@ -149,17 +165,19 @@ void enumfunc(uint64_t deviceaddr, uint64_t func)
         pcidevices.last()->devicestr);
 }
 
-void enumdevice(uint64_t busaddr, uint64_t device)
+void enumdevice(uint64_t busaddr, uint64_t dev)
 {
-    uint64_t offset = device << 15;
-    uint64_t deviceaddr = busaddr + offset;
+    uint64_t offset = dev << 15;
+    uint64_t devaddr = busaddr + offset;
 
-    pcideviceheader *pcidevice = (pcideviceheader*)deviceaddr;
+    pcidevice_t *pcidevice = (pcidevice_t*)devaddr;
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
+
+    currdev = dev;
 
     for (uint64_t func = 0; func < 8; func++)
     {
-        enumfunc(deviceaddr, func);
+        enumfunc(devaddr, func);
     }
 }
 
@@ -168,12 +186,14 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     uint64_t offset = bus << 20;
     uint64_t busaddr = baseaddr + offset;
 
-    pcideviceheader *pcidevice = (pcideviceheader*)busaddr;
+    pcidevice_t *pcidevice = (pcidevice_t*)busaddr;
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
-    for (uint64_t device = 0; device < 32; device++)
+    currbus = bus;
+
+    for (uint64_t dev = 0; dev < 32; dev++)
     {
-        enumdevice(busaddr, device);
+        enumdevice(busaddr, dev);
     }
 }
 
@@ -214,22 +234,39 @@ void init()
             {
                 for (int func = 0; func < 8; func++)
                 {
-                    uint16_t vendorid = getvenid(bus, dev, func);
-                    if (vendorid == 0 || vendorid == 0xFFFF) continue;
+                    uint32_t config_0 = readl(bus, dev, func, 0);
+                    if (config_0 == 0xFFFFFFFF) continue;
 
-                    pcideviceheader *device = (pcideviceheader*)heap::calloc(1, sizeof(pcideviceheader));
-                    device->vendorid = vendorid;
-                    device->deviceid = getdevid(bus, dev, func);
-                    device->Class = getclassid(bus, dev, func);
-                    device->subclass = getsubclassid(bus, dev, func);
+                    uint32_t config_4 = readl(bus, dev, func, 0x4);
+                    uint32_t config_8 = readl(bus, dev, func, 0x8);
+                    uint32_t config_c = readl(bus, dev, func, 0xc);
 
-                    pcidevices.push_back(translate(device));
+                    pcidevice_t *pcidevice = (pcidevice_t*)heap::malloc(sizeof(pcidevice_t));
+
+                    pcidevice->vendorid = (uint16_t)config_0;
+                    pcidevice->deviceid = (uint16_t)(config_0 >> 16);
+                    pcidevice->command = (uint16_t)config_4;
+                    pcidevice->status = (uint16_t)(config_4 >> 16);
+                    pcidevice->revisionid = (uint8_t)config_8;
+                    pcidevice->progif = (uint8_t)(config_8 >> 8);
+                    pcidevice->subclass = (uint8_t)(config_8 >> 16);
+                    pcidevice->Class = (uint8_t)(config_8 >> 24);
+                    pcidevice->cachelinesize = (uint8_t)config_c;
+                    pcidevice->latencytimer = (uint8_t)(config_c >> 8);
+                    pcidevice->headertype = (uint8_t)(config_c >> 16);
+                    pcidevice->bist = (uint8_t)(config_c >> 24);
+
+                    currbus = bus;
+                    currdev = dev;
+                    currfunc = func;
+
+                    pcidevices.push_back(translate(pcidevice));
                     serial::info("%.4X:%.4X %s %s",
                         pcidevices.last()->vendorid,
                         pcidevices.last()->deviceid,
                         pcidevices.last()->vendorstr,
                         pcidevices.last()->devicestr);
-                    heap::free(device);
+                    heap::free(pcidevice);
                 }
             }
         }
