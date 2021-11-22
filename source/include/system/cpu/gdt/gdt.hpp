@@ -21,12 +21,14 @@ struct GDTEntry {
 
 struct GDT {
     GDTEntry Null;
-    GDTEntry KernelCode;
-    GDTEntry KernelData;
-    GDTEntry UserNull;
-    GDTEntry UserCode;
+    GDTEntry _16Code;
+    GDTEntry _16Data;
+    GDTEntry _32Code;
+    GDTEntry _32Data;
+    GDTEntry _64Code;
+    GDTEntry _64Data;
     GDTEntry UserData;
-    GDTEntry Reserved;
+    GDTEntry UserCode;
     GDTEntry Tss;
 } __attribute__((packed))
 __attribute((aligned(0x1000)));
