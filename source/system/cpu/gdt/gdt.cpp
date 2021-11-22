@@ -21,6 +21,8 @@ GDT DefaultGDT = {
     {0xffff, 0, 0, 0x92, 0xcf, 0},
     {0, 0, 0, 0x9a, 0xa2, 0},
     {0, 0, 0, 0x92, 0xa0, 0},
+    {0, 0, 0, 0xF2, 0, 0},
+    {0, 0, 0, 0xFA, 0x20, 0}
 };
 
 DEFINE_LOCK(gdt_lock);
