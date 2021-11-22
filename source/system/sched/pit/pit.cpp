@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
+#include <system/sched/hpet/hpet.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
@@ -14,10 +15,15 @@ uint64_t frequency = 100;
 uint64_t freqbck = 100;
 uint64_t tick = 0;
 
-void sleep(double sec)
+void sleep(uint64_t sec)
 {
+    if (!initialised)
+    {
+        if (hpet::initialised) hpet::sleep(sec);
+        return;
+    }
     long start = tick;
-    while (tick < start + sec * frequency) asm ("hlt");
+    while (tick < start + sec * frequency) asm volatile ("hlt");
 }
 
 uint64_t get_tick()

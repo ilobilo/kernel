@@ -9,7 +9,7 @@ namespace kernel::system::sched::pit {
 extern uint64_t frequency;
 extern bool initialised;
 
-void sleep(double sec);
+void sleep(uint64_t sec);
 uint64_t get_tick();
 
 void setfreq(uint64_t freq = 100);

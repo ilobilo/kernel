@@ -186,7 +186,7 @@ void init()
         serial::info("PCI has already been initialised!\n");
         return;
     }
-    if (!acpi::mcfg)
+    if (!acpi::mcfghdr)
     {
         serial::info("MCFG was not found");
         serial::info("This might take some time");
@@ -196,10 +196,10 @@ void init()
     pcidevices.init(5);
     if (!legacy)
     {
-        int entries = ((acpi::mcfg->header.length) - sizeof(acpi::MCFGHeader)) / sizeof(acpi::deviceconfig);
+        int entries = ((acpi::mcfghdr->header.length) - sizeof(acpi::MCFGHeader)) / sizeof(acpi::deviceconfig);
         for (int t = 0; t < entries; t++)
         {
-            acpi::deviceconfig *newdevconf = (acpi::deviceconfig*)((uint64_t)acpi::mcfg + sizeof(acpi::MCFGHeader) + (sizeof(acpi::deviceconfig) * t));
+            acpi::deviceconfig *newdevconf = (acpi::deviceconfig*)((uint64_t)acpi::mcfghdr + sizeof(acpi::MCFGHeader) + (sizeof(acpi::deviceconfig) * t));
             for (uint64_t bus = newdevconf->startbus; bus < newdevconf->endbus; bus++)
             {
                 enumbus(newdevconf->baseaddr, bus);

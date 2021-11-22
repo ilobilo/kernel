@@ -1,5 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
+#pragma region include
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
@@ -14,6 +15,7 @@
 #include <system/mm/bitmap/bitmap.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
+#include <system/sched/hpet/hpet.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
@@ -31,6 +33,7 @@
 #include <stivale2.h>
 #include <kernel.hpp>
 #include <ssfn.h>
+#pragma endregion include
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -164,9 +167,16 @@ void main(struct stivale2_struct *stivale2_struct)
     pci::init();
     terminal::okerr(pci::initialised);
 
-    terminal::check("Initialising PIT...");
-    pit::init();
-    terminal::okerr(pit::initialised);
+    terminal::check("Initialising HPET...");
+    hpet::init();
+    terminal::okerr(hpet::initialised);
+
+    if (!hpet::initialised)
+    {
+        terminal::check("Initialising PIT...");
+        pit::init();
+        terminal::okerr(pit::initialised);
+    }
 
     terminal::check("Initialising PS2 Keyboard...");
     ps2::kbd::init();
@@ -180,8 +190,8 @@ void main(struct stivale2_struct *stivale2_struct)
     vmware::init();
     terminal::okerr(vmware::initialised);
 
-    printf("Current RTC time: %s", rtc::getTime());
-    printf("\n\nUserspace has not been implemented yet! dropping to kernel shell...\n\n");
+    printf("Current RTC time: %s\n\n", rtc::getTime());
+    printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     srand(rtc::time());
 

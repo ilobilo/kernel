@@ -4,6 +4,7 @@
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
+#include <system/cpu/smp/smp.hpp>
 #include <lib/memory.hpp>
 #include <main.hpp>
 
@@ -92,5 +93,15 @@ void set_stack(uint64_t cpu, uintptr_t stack)
 uint64_t get_stack(uint64_t cpu)
 {
     return tss[cpu].RSP[0];
+}
+
+void set_stack(uintptr_t stack)
+{
+    tss[this_cpu->lapic_id].RSP[0] = stack;
+}
+
+uint64_t get_stack()
+{
+    return tss[this_cpu->lapic_id].RSP[0];
 }
 }
