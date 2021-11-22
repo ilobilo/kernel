@@ -8,7 +8,7 @@
 
 namespace kernel::system::pci {
 
-struct pcideviceheader
+struct pcidevice_t
 {
     uint16_t vendorid;
     uint16_t deviceid;
@@ -24,25 +24,29 @@ struct pcideviceheader
     uint8_t bist;
 };
 
-struct translatedpcideviceheader
+struct translatedpcidevice_t
 {
     uint16_t vendorid;
     uint16_t deviceid;
-    const char *vendorstr;
-    const char *devicestr;
     uint16_t command;
     uint16_t status;
     uint8_t revisionid;
     uint8_t progif;
-    const char *progifstr;
     uint8_t subclass;
-    const char *subclassStr;
     uint8_t Class;
-    const char *ClassStr;
     uint8_t cachelinesize;
     uint8_t latencytimer;
     uint8_t headertype;
     uint8_t bist;
+
+    const char *vendorstr;
+    const char *devicestr;
+    const char *progifstr;
+    const char *subclassStr;
+    const char *ClassStr;
+    uint8_t bus;
+    uint8_t dev;
+    uint8_t func;
 };
 
 struct pciheader0
@@ -71,10 +75,10 @@ struct pciheader0
 extern bool initialised;
 extern bool legacy;
 
-extern Vector<translatedpcideviceheader*> pcidevices;
+extern Vector<translatedpcidevice_t*> pcidevices;
 
-translatedpcideviceheader *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
-translatedpcideviceheader *search(uint16_t vendor, uint16_t device, int skip);
+translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
+translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
 
 void init();
 }
