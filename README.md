@@ -24,6 +24,7 @@ Contributors are welcome
 - [x] Shutdown
 - [x] Reboot
 - [x] PCI
+- [x] HPET
 - [x] VMWare Tools
 - [ ] Sound
 - [ ] AHCI
