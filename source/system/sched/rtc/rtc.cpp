@@ -52,18 +52,18 @@ int time()
     return hour() * 3600 + minute() * 60 + second();
 }
 
-void sleep(int sec)
+void sleep(uint64_t sec)
 {
     int lastsec = time() + sec;
     while (lastsec != time());
 }
 
+char timestr[30];
 char *getTime()
 {
-    static char time[30];
-    sprintf(time, "20%d/%d/%d %d:%d:%d", year(), month(),
+    sprintf(timestr, "20%d/%d/%d %d:%d:%d", year(), month(),
         day(), hour(),
         minute(), second());
-    return time;
+    return timestr;
 }
 }

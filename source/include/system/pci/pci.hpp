@@ -65,6 +65,14 @@ extern bool legacy;
 
 extern Vector<translatedpcidevice_t*> pcidevices;
 
+uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
+void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value);
+uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
+
+void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value);
+uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
+void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value);
+
 translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
 size_t count(uint16_t vendor, uint16_t device);

@@ -8,7 +8,7 @@ int year(), month(), day(), hour(), minute(), second();
 
 int time();
 
-void sleep(int sec);
+void sleep(uint64_t sec);
 
 char *getTime();
 }

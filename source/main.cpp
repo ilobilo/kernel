@@ -170,13 +170,10 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising HPET...");
     hpet::init();
     terminal::okerr(hpet::initialised);
-
-    if (!hpet::initialised)
-    {
-        terminal::check("Initialising PIT...");
-        pit::init();
-        terminal::okerr(pit::initialised);
-    }
+    
+    terminal::check("Initialising PIT...");
+    pit::init();
+    terminal::okerr(pit::initialised);
 
     terminal::check("Initialising PS2 Keyboard...");
     ps2::kbd::init();
