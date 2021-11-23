@@ -10,6 +10,7 @@ extern uint64_t frequency;
 extern bool initialised;
 
 void sleep(uint64_t sec);
+void msleep(uint64_t msec);
 uint64_t get_tick();
 
 void setfreq(uint64_t freq = 100);

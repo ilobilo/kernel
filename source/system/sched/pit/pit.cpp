@@ -2,6 +2,7 @@
 
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
+#include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
@@ -17,13 +18,28 @@ uint64_t tick = 0;
 
 void sleep(uint64_t sec)
 {
-    if (!initialised)
+    if (hpet::initialised)
     {
-        if (hpet::initialised) hpet::sleep(sec);
+        hpet::sleep(sec);
         return;
     }
+    if (!initialised) rtc::sleep(sec);
+
     long start = tick;
-    while (tick < start + sec * frequency) asm volatile ("hlt");
+    while (tick < start + sec * frequency);
+}
+
+void msleep(uint64_t msec)
+{
+    if (hpet::initialised)
+    {
+        hpet::msleep(msec);
+        return;
+    }
+    if (!initialised) rtc::sleep(msec / 100);
+
+    long start = tick;
+    while (tick < start + msec * (frequency / 100));
 }
 
 uint64_t get_tick()

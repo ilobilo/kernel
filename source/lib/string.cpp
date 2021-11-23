@@ -249,10 +249,10 @@ char *char2str(char c)
     return str;
 }
 
+char out[10];
 char *int_to_string(int num)
 {
     bool isMinus = false;
-    static char out[10];
     int g = 0;
     if (num != 0)
     {
@@ -327,9 +327,9 @@ int intlen(int n)
     return digits;
 }
 
+char buf[10];
 char *humanify(uint64_t bytes)
 {
-    static char buf[10];
     int i = 0;
     const char *units[] = { "B", "KB", "MB", "GB", "TB" };
     for (i = 0; bytes > 1024; i++)

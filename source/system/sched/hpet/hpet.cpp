@@ -3,6 +3,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/sched/pit/pit.hpp>
+#include <system/sched/rtc/rtc.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/mmio.hpp>
 
@@ -23,11 +24,12 @@ void usleep(uint64_t us)
 {
     if (!initialised)
     {
-        if (pit::initialised) pit::sleep(us / 1000000);
+        if (pit::initialised) pit::msleep(us / 10000);
+        else rtc::sleep(us / 1000000);
         return;
     }
     uint64_t target = counter() + (us * 1000000000) / clk;
-    while (counter() < target) asm volatile ("hlt");
+    while (counter() < target);
 }
 
 void msleep(uint64_t msec)
