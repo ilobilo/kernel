@@ -81,7 +81,7 @@ void newline()
     serial_printf("\n");
 }
 
-static void COM1_Handler(idt::interrupt_registers *)
+static void COM1_Handler(idt::registers_t *)
 {
     char c = read();
     switch (c)

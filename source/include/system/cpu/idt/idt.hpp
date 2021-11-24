@@ -67,12 +67,12 @@ struct idtr_t
     uint64_t base;
 } __attribute__((packed));
 
-struct interrupt_registers
+struct registers_t
 {
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, int_no, error_code, rip, cs, rflags, rsp, ss;
 } __attribute__((packed));
 
-using int_handler_t = void (*)(interrupt_registers *);
+using int_handler_t = void (*)(registers_t *);
 
 extern idt_entry_t idt[];
 extern idtr_t idtr;
@@ -84,5 +84,5 @@ void reload();
 void init();
 void register_interrupt_handler(uint8_t n, int_handler_t handler);
 
-extern "C" void int_handler(interrupt_registers *regs);
+extern "C" void int_handler(registers_t *regs);
 }

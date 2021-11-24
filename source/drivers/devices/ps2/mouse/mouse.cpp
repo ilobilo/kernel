@@ -192,7 +192,7 @@ void proccesspacket()
     posold = pos;
 }
 
-static void Mouse_Handler(idt::interrupt_registers *)
+static void Mouse_Handler(idt::registers_t *)
 {
     uint8_t mousedata = inb(0x60);
 

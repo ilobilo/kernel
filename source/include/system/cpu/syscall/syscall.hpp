@@ -55,11 +55,11 @@ namespace kernel::system::cpu::syscall {
 #define SYSCALL_READ  0
 #define SYSCALL_WRITE 1
 
-using syscall_t = void (*)(idt::interrupt_registers *);
+using syscall_t = void (*)(idt::registers_t *);
 
 const char *read(const char *string, int length);
 const char *write(const char *string, int length);
 const char *err(const char *string, int length);
 
-void handler(idt::interrupt_registers *regs);
+void handler(idt::registers_t *regs);
 }

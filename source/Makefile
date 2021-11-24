@@ -35,7 +35,7 @@ CPPFLAGS = -Ofast -pipe -Werror -Wno-c99-designator \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\"
 
-LDFLAGS =
+LDFLAGS = 
 ASMFLAGS = -f elf64
 
 INTERNALLDFLAGS :=           \
@@ -139,23 +139,23 @@ endif
 run:
 	echo "\nBooting iso in uefi mode...\n"
 ifndef DEBUG
-	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
+	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd | llvm-cxxfilt
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd | llvm-cxxfilt
 endif
 
 run-bios:
 	echo "\nBooting iso in bios mode...\n"
 ifndef DEBUG
-	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO)
+	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) | llvm-cxxfilt
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) | llvm-cxxfilt
 endif
 
 run-test:
 	echo "\nBooting iso in bios mode... (testing)\n"
 ifndef DEBUG
-	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO)
+	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | llvm-cxxfilt
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -vnc 0.0.0.0:1 -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -vnc 0.0.0.0:1 -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) | llvm-cxxfilt
 endif

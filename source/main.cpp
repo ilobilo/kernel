@@ -52,6 +52,7 @@ struct stivale2_struct_tag_framebuffer *frm_tag;
 struct stivale2_struct_tag_terminal *term_tag;
 struct stivale2_struct_tag_modules *mod_tag;
 struct stivale2_struct_tag_cmdline *cmd_tag;
+struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
 
 char *cmdline;
 
@@ -73,6 +74,7 @@ void main(struct stivale2_struct *stivale2_struct)
     term_tag = (stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID);
     mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
     cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
+    kfilev2_tag = (stivale2_struct_tag_kernel_file_v2 (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID);
 
     cmdline = (char *)cmd_tag->cmdline;
 
