@@ -84,7 +84,7 @@ void clearbuff()
 }
 
 // Main keyboard handler
-static void Keyboard_Handler(idt::interrupt_registers *)
+static void Keyboard_Handler(idt::registers_t *)
 {
     uint8_t scancode = inb(0x60);
 

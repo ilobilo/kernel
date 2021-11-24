@@ -14,13 +14,13 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::syscall {
 
-static void syscall_read(idt::interrupt_registers *regs)
+static void syscall_read(idt::registers_t *regs)
 {
     char *str = (char*)"Read currently not working!\n";
     S_RAX = (uint64_t)str;
 }
 
-static void syscall_write(idt::interrupt_registers *regs)
+static void syscall_write(idt::registers_t *regs)
 {
     switch (S_RDI_ARG0)
     {
@@ -56,7 +56,7 @@ syscall_t syscalls[] = {
     [1] = syscall_write
 };
 
-void handler(idt::interrupt_registers *regs)
+void handler(idt::registers_t *regs)
 {
     if (S_RAX >= ZERO && syscalls[S_RAX]) syscalls[S_RAX](regs);
 }

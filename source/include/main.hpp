@@ -13,6 +13,7 @@ extern struct stivale2_struct_tag_framebuffer *frm_tag;
 extern struct stivale2_struct_tag_terminal *term_tag;
 extern struct stivale2_struct_tag_modules *mod_tag;
 extern struct stivale2_struct_tag_cmdline *cmd_tag;
+extern struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
 
 extern char *cmdline;
 

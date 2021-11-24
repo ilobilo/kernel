@@ -4,6 +4,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/sched/lock/lock.hpp>
+#include <system/trace/trace.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
@@ -51,6 +52,8 @@ void init()
     }
 
     acquire_lock(&idt_lock);
+
+    trace::init();
 
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
@@ -105,14 +108,29 @@ static const char *exception_messages[32] = {
     "Reserved",
 };
 
-void exception_handler(interrupt_registers *regs)
+void exception_handler(registers_t *regs)
 {
     volatile bool halt = true;
+
+    serial::err("System exception! %s", (char*)exception_messages[regs->int_no & 0xff]);
+    serial::err("Error code: 0x%lX", regs->error_code);
+
+    switch (regs->int_no)
+    {
+        case 3:
+        case 4:
+            //halt = false;
+            break;
+    }
+
+    if (!halt)
+    {
+        serial::newline();
+        return;
+    }
+
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
     printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
-
-    serial::err("System exception!");
-    serial::err("Exception: %s", (char*)exception_messages[regs->int_no & 0xff]);
 
     switch (regs->int_no)
     {
@@ -123,19 +141,16 @@ void exception_handler(interrupt_registers *regs)
         case 13:
         case 14:
             printf("[\033[31mPANIC\033[0m] Error code: 0x%lX\n", regs->error_code);
-            serial::err("Error code: 0x%lX", regs->error_code);
             break;
     }
 
-    if (halt)
-    {
-        printf("[\033[31mPANIC\033[0m] System halted!\n");
-        serial::err("System halted!\n");
-        asm volatile ("cli; hlt");
-    }
+    printf("[\033[31mPANIC\033[0m] System halted!\n");
+    serial::err("System halted!\n");
+    trace::trace();
+    asm volatile ("cli; hlt");
 }
 
-void irq_handler(interrupt_registers *regs)
+void irq_handler(registers_t *regs)
 {
     if (interrupt_handlers[regs->int_no] != 0)
     {
@@ -150,7 +165,7 @@ void irq_handler(interrupt_registers *regs)
     outb(PIC1_COMMAND, PIC_EOI);
 }
 
-void int_handler(interrupt_registers *regs)
+void int_handler(registers_t *regs)
 {
     if (regs->int_no < 32) exception_handler(regs);
     else if (regs->int_no < 48) irq_handler(regs);

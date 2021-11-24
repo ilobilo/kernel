@@ -47,7 +47,7 @@ uint64_t get_tick()
     return tick;
 }
 
-static void PIT_Handler(idt::interrupt_registers *)
+static void PIT_Handler(idt::registers_t *)
 {
     tick++;
 }
