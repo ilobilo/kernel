@@ -34,5 +34,4 @@ struct PTable
 {
     PDEntry entries[512];
 } __attribute__((aligned(0x1000)));
-
 }

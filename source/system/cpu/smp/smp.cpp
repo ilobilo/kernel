@@ -1,15 +1,15 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <system/mm/vmm/vmm.hpp>
+#include <lib/math.hpp>
 #include <stivale2.h>
 #include <main.hpp>
-#include <lib/math.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
@@ -42,7 +42,7 @@ static void cpu_init(stivale2_smp_info *cpu)
     gdt::reloadall(cpu->lapic_id);
     idt::reload();
 
-    ptmanager::switchPTable(ptmanager::globalPTManager.PML4);
+    vmm::switchPagemap(vmm::kernel_pagemap);
 
     wrmsr(0xC0000101, (uintptr_t)cpu->extra_argument);
 

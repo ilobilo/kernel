@@ -176,8 +176,6 @@ CRs getCRs()
     return {cr0, cr2, cr3};
 }
 
-extern "C" uint64_t __kernelstart;
-extern "C" uint64_t __kernelend;
 void init()
 {
     serial::info("Initialising Page Table Manager");
@@ -187,11 +185,6 @@ void init()
         serial::info("Page table manager has already been initialised!\n");
         return;
     }
-
-    uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
-    uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
-
-    pfalloc::lockPages((void*)&__kernelstart, kernelpagecount);
 
     paging::PTable *PML4 = (paging::PTable*)getCRs().cr3;
     globalPTManager = PTManager(PML4);

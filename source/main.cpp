@@ -8,6 +8,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmindexer/pmindexer.hpp>
 #include <system/mm/ptmanager/ptmanager.hpp>
+#include <system/mm/vmm/vmm.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
@@ -129,6 +130,10 @@ void main(struct stivale2_struct *stivale2_struct)
     ptmanager::init();
     terminal::okerr(ptmanager::initialised);
 
+    terminal::check("Initialising VMM...");
+    vmm::init();
+    terminal::okerr(vmm::initialised);
+
     terminal::check("Initialising Kernel Heap...");
     heap::init();
     terminal::okerr(heap::initialised);
@@ -193,6 +198,17 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     srand(rtc::time());
+
+    // I don't get #PF with this
+    //ptmanager::globalPTManager.mapMem((void*)0x6000000000, (void*)0x80000);
+
+    // But I Do with this
+    vmm::kernel_pagemap->mapMem(0x6000000000, 0x80000);
+
+    uint64_t* test = (uint64_t*)0x6000000000;
+    *test = 26;
+
+    printf("%ld", *test);
 
     serial::info("Starting kernel shell\n");
     while (true) apps::kshell::run();
