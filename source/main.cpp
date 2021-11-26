@@ -6,12 +6,9 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/pmindexer/pmindexer.hpp>
-#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/mm/paging/paging.hpp>
 #include <system/mm/bitmap/bitmap.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
@@ -23,6 +20,7 @@
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
@@ -125,9 +123,9 @@ void main(struct stivale2_struct *stivale2_struct)
     pfalloc::init();
     terminal::okerr(pfalloc::initialised);
 
-    terminal::check("Initialising Page Table Manager...");
-    ptmanager::init();
-    terminal::okerr(ptmanager::initialised);
+    terminal::check("Initialising VMM...");
+    vmm::init();
+    terminal::okerr(vmm::initialised);
 
     terminal::check("Initialising Kernel Heap...");
     heap::init();
@@ -172,7 +170,7 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising HPET...");
     hpet::init();
     terminal::okerr(hpet::initialised);
-    
+
     terminal::check("Initialising PIT...");
     pit::init();
     terminal::okerr(pit::initialised);
