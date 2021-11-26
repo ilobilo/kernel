@@ -12,7 +12,6 @@ namespace kernel::system::mm::vmm {
 
 bool initialised = false;
 Pagemap *kernel_pagemap = NULL;
-Paging_type defaultPType;
 
 PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 {
@@ -39,21 +38,7 @@ void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
     size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
     size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
 
-    PTable *pml5, *pml4, *pml3, *pml2, *pml1;
-
-    switch (this->lvl)
-    {
-        case L4:
-            pml4 = this->top_lvl;
-            break;
-        case L5:
-            pml5 = this->top_lvl;
-            pml4 = get_next_lvl(pml5, pml5_entry);
-            break;
-        default:
-            return;
-            break;
-    }
+    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
 
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
@@ -72,27 +57,12 @@ void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 
 void Pagemap::unmapMem(uint64_t vaddr)
 {
-    size_t pml5_entry = (vaddr & ((uint64_t)0x1FF << 48)) >> 48;
     size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
     size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
     size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
     size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
 
-    PTable *pml5, *pml4, *pml3, *pml2, *pml1;
-
-    switch (this->lvl)
-    {
-        case L4:
-            pml4 = this->top_lvl;
-            break;
-        case L5:
-            pml5 = this->top_lvl;
-            pml4 = get_next_lvl(pml5, pml5_entry);
-            break;
-        default:
-            return;
-            break;
-    }
+    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
 
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
@@ -147,13 +117,12 @@ void PDEntry::setAddr(uint64_t address)
 Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->top_lvl = (PTable*)pfalloc::requestPage();
-    pagemap->lvl = defaultPType;
+    pagemap->PML4 = (PTable*)pfalloc::requestPage();
 
     if (kernel_pagemap)
     {
-        PTable *top_level = pagemap->top_lvl;
-        PTable *kernel_top_level = kernel_pagemap->top_lvl;
+        PTable *top_level = pagemap->PML4;
+        PTable *kernel_top_level = kernel_pagemap->PML4;
         
         for (size_t i = 256; i < 512; i++) top_level->entries[i] = kernel_top_level->entries[i];
     }
@@ -162,12 +131,12 @@ Pagemap *newPagemap()
 
 void switchPagemap(Pagemap *pmap)
 {
-    asm ("mov %0, %%cr3" : : "r" (pmap->top_lvl));
+    asm ("mov %0, %%cr3" : : "r" (pmap->PML4));
 }
 
 CRs getCRs()
 {
-    uint64_t cr0, cr2, cr3, cr4;
+    uint64_t cr0, cr2, cr3;
     asm volatile (
         "mov %%cr0, %%rax\n\t"
         "mov %%eax, %0\n\t"
@@ -175,11 +144,11 @@ CRs getCRs()
         "mov %%eax, %1\n\t"
         "mov %%cr3, %%rax\n\t"
         "mov %%eax, %2\n\t"
-    : "=m" (cr0), "=m" (cr2), "=m" (cr3), "=m"(cr4)
+    : "=m" (cr0), "=m" (cr2), "=m" (cr3)
     : /* no input */
     : "%rax"
     );
-    return {cr0, cr2, cr3, cr4};
+    return {cr0, cr2, cr3};
 }
 #include <main.hpp>
 void init()
@@ -192,9 +161,7 @@ void init()
         return;
     }
 
-    defaultPType = Paging_type::L4;
-    kernel_pagemap->top_lvl = (PTable*)getCRs().cr3;
-    kernel_pagemap->lvl = defaultPType;
+    kernel_pagemap->PML4 = (PTable*)getCRs().cr3;
 
     switchPagemap(kernel_pagemap);
 

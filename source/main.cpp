@@ -170,7 +170,7 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising HPET...");
     hpet::init();
     terminal::okerr(hpet::initialised);
-    
+
     terminal::check("Initialising PIT...");
     pit::init();
     terminal::okerr(pit::initialised);
@@ -191,17 +191,6 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     srand(rtc::time());
-
-    // I didn't get #PF with this
-    //ptmanager::globalPTManager.mapMem((void*)0x6000000000, (void*)0x80000);
-
-    // But I do get it with this
-    vmm::kernel_pagemap->mapMem(0x6000000000, 0x80000);
-
-    uint64_t* test = (uint64_t*)0x6000000000;
-    *test = 26;
-
-    printf("%ld", *test);
 
     serial::info("Starting kernel shell\n");
     while (true) apps::kshell::run();

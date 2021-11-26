@@ -20,12 +20,6 @@ enum PT_Flag
     NX = ((uint64_t)1 << 63)
 };
 
-enum Paging_type
-{
-    L4 = 4,
-    L5 = 5
-};
-
 struct PDEntry
 {
     uint64_t value;
@@ -48,8 +42,7 @@ struct PTable
 class Pagemap
 {
     public:
-    Paging_type lvl;
-    PTable *top_lvl;
+    PTable *PML4;
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
@@ -61,12 +54,10 @@ struct CRs
     uint64_t cr0;
     uint64_t cr2;
     uint64_t cr3;
-    uint64_t cr4;
 };
 
 extern bool initialised;
 extern Pagemap *kernel_pagemap;
-extern Paging_type defaultPType;
 
 Pagemap *new_pagemap();
 void switchPagemap(Pagemap *pmap);
