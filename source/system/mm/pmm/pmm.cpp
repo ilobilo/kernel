@@ -1,14 +1,14 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/pfalloc/pfalloc.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <lib/memory.hpp>
 #include <stivale2.h>
 #include <main.hpp>
 
 using namespace kernel::drivers::display;
 
-namespace kernel::system::mm::pfalloc {
+namespace kernel::system::mm::pmm {
 
 Bitmap PageBitmap;
 bool initialised = false;
@@ -23,11 +23,11 @@ extern "C" uint64_t __kernelstart;
 extern "C" uint64_t __kernelend;
 void init()
 {
-    serial::info("Initialising Page Frame Allocator");
+    serial::info("Initialising PMM");
 
     if (initialised)
     {
-        serial::info("Page frame allocator has already been initialised!\n");
+        serial::info("PMM has already been initialised!\n");
         return;
     }
 
@@ -58,7 +58,7 @@ void init()
     uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
     uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
 
-    pfalloc::lockPages((void*)&__kernelstart, kernelpagecount);
+    pmm::lockPages((void*)&__kernelstart, kernelpagecount);
 
     serial::newline();
     initialised = true;

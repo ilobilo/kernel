@@ -1,9 +1,9 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <lib/memory.hpp>
 
@@ -22,7 +22,7 @@ DEFINE_LOCK(heap_lock)
 
 void init(void *heapAddr, size_t pageCount)
 {
-    serial::info("Initialising Kernel Heap");
+    serial::info("Initialising Heap");
 
     if (initialised)
     {
@@ -33,7 +33,7 @@ void init(void *heapAddr, size_t pageCount)
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
     {
-        vmm::kernel_pagemap->mapMem((uint64_t)pos, (uint64_t)pfalloc::requestPage());
+        vmm::kernel_pagemap->mapMem((uint64_t)pos, (uint64_t)pmm::requestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
     size_t heapLength = pageCount * 0x1000;
@@ -81,7 +81,7 @@ void* malloc(size_t size)
     check();
 
     acquire_lock(&heap_lock);
-    if (size > pfalloc::getFreeRam())
+    if (size > pmm::getFreeRam())
     {
         serial::err("Malloc: requested more memory than available!\n");
         return NULL;
@@ -202,7 +202,7 @@ void expandHeap(size_t length)
 
     for (size_t i = 0; i < pageCount; i++)
     {
-        vmm::kernel_pagemap->mapMem((uint64_t)heapEnd, (uint64_t)pfalloc::requestPage());
+        vmm::kernel_pagemap->mapMem((uint64_t)heapEnd, (uint64_t)pmm::requestPage());
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
 

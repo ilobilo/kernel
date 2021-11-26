@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <lib/math.hpp>
 #include <stivale2.h>
@@ -74,8 +74,8 @@ void init()
     {
         smp_tag->smp_info[i].extra_argument = (uint64_t)&cpus[i];
 
-        uint64_t stack = (uint64_t)pfalloc::requestPage();
-        uint64_t sched_stack = (uint64_t)pfalloc::requestPage();
+        uint64_t stack = (uint64_t)pmm::requestPage();
+        uint64_t sched_stack = (uint64_t)pmm::requestPage();
 
         gdt::tss[i].RSP[0] = stack;
         gdt::tss[i].IST[1] = sched_stack;

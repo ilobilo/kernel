@@ -15,8 +15,8 @@ Contributors are welcome
 - [x] Initrd
 - [x] Drawing on framebuffer
 - [x] Serial debugging
-- [x] Page Frame allocator
-- [x] Page Table Manager
+- [x] PMM
+- [x] VMM
 - [x] Heap
 - [x] VFS
 - [x] DEVFS
