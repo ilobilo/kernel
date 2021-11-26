@@ -3,11 +3,11 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/pfalloc/pfalloc.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
@@ -231,7 +231,7 @@ void shell_parse(char *cmd, char *arg)
         case hash("free"):
         {
             uint64_t usable = getmemsize();
-            uint64_t free = pfalloc::getFreeRam();
+            uint64_t free = pmm::getFreeRam();
             if (!strcmp(arg, "-h"))
             {
                 usable = usable / 1024 / 1024;

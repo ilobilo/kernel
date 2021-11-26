@@ -6,10 +6,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
-#include <system/mm/pfalloc/pfalloc.hpp>
-#include <system/mm/bitmap/bitmap.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/hpet/hpet.hpp>
@@ -20,17 +17,15 @@
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-#include <lib/vector.hpp>
-#include <lib/io.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
-#include <ssfn.h>
 #pragma endregion include
 
 using namespace kernel::drivers::display;
@@ -119,15 +114,15 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %s\n", humanify(getmemsize()));
 
-    terminal::check("Initialising Page Frame Allocator...");
-    pfalloc::init();
-    terminal::okerr(pfalloc::initialised);
+    terminal::check("Initialising PMM...");
+    pmm::init();
+    terminal::okerr(pmm::initialised);
 
     terminal::check("Initialising VMM...");
     vmm::init();
     terminal::okerr(vmm::initialised);
 
-    terminal::check("Initialising Kernel Heap...");
+    terminal::check("Initialising Heap...");
     heap::init();
     terminal::okerr(heap::initialised);
 

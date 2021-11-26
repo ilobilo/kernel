@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <main.hpp>
 
-namespace kernel::system::mm::pfalloc {
+namespace kernel::system::mm::pmm {
 
 extern Bitmap PageBitmap;
 extern bool initialised;
