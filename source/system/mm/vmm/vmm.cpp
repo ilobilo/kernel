@@ -1,8 +1,8 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/pmm/pmm.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <lib/memory.hpp>
 
@@ -46,7 +46,7 @@ void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
     {
         pml2->entries[pml2_entry].setAddr(paddr >> 12);
         pml2->entries[pml2_entry].setflags(flags, true);
-        flags &= ~LargerPages;
+        return;
     }
 
     pml1 = get_next_lvl(pml2, pml2_entry);
