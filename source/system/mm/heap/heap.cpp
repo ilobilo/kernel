@@ -1,10 +1,10 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/pfalloc/pfalloc.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <system/mm/vmm/vmm.hpp>
 #include <lib/memory.hpp>
 
 using namespace kernel::drivers::display;
@@ -33,7 +33,7 @@ void init(void *heapAddr, size_t pageCount)
     void *pos = heapAddr;
     for (size_t i = 0; i < pageCount; i++)
     {
-        ptmanager::globalPTManager.mapMem(pos, pfalloc::requestPage());
+        vmm::kernel_pagemap->mapMem((uint64_t)pos, (uint64_t)pfalloc::requestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
     size_t heapLength = pageCount * 0x1000;
@@ -202,7 +202,7 @@ void expandHeap(size_t length)
 
     for (size_t i = 0; i < pageCount; i++)
     {
-        ptmanager::globalPTManager.mapMem(heapEnd, pfalloc::requestPage());
+        vmm::kernel_pagemap->mapMem((uint64_t)heapEnd, (uint64_t)pfalloc::requestPage());
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
 
