@@ -118,14 +118,11 @@ Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
     pagemap->PML4 = (PTable*)pfalloc::requestPage();
+    
+    PTable *pml4 = pagemap->PML4;
+    PTable *kernel_pml4 = kernel_pagemap->PML4;
+    for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
 
-    if (kernel_pagemap)
-    {
-        PTable *top_level = pagemap->PML4;
-        PTable *kernel_top_level = kernel_pagemap->PML4;
-        
-        for (size_t i = 256; i < 512; i++) top_level->entries[i] = kernel_top_level->entries[i];
-    }
     return pagemap;
 }
 

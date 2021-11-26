@@ -59,7 +59,7 @@ struct CRs
 extern bool initialised;
 extern Pagemap *kernel_pagemap;
 
-Pagemap *new_pagemap();
+Pagemap *newPagemap();
 void switchPagemap(Pagemap *pmap);
 
 CRs getCRs();
