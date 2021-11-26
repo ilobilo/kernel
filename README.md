@@ -51,6 +51,7 @@ Contributors are welcome
 Make sure you have following programs installed:
 * Clang
 * lld
+* LLVM
 * Make
 * Nasm
 * Qemu x86-64

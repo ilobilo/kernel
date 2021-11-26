@@ -75,24 +75,29 @@ void init()
         }
     }
 
-    symbol_table = (symtable_t*)heap::calloc(entries, sizeof(symtable_t));
-
-    for (size_t i = 0; i < entries; i++)
-    {
-        symbol_table[i].addr = symtab[i].st_value;
-        symbol_table[i].name = &strtab[symtab[i].st_name];
-    }
-    
     size_t j, min_idx;
- 
     for (size_t i = 0; i < entries - 1; i++)
     {
         min_idx = i;
-        for (j = i + 1; j < entries; j++) if (symbol_table[j].addr < symbol_table[min_idx].addr) min_idx = j;
+        for (j = i + 1; j < entries; j++) if (symtab[j].st_value < symtab[min_idx].st_value) min_idx = j;
 
-        symtable_t temp = symbol_table[min_idx];
-        symbol_table[min_idx] = symbol_table[i];
-        symbol_table[i] = temp;
+        Elf64_Sym temp = symtab[min_idx];
+        symtab[min_idx] = symtab[i];
+        symtab[i] = temp;
+    }
+
+    while (symtab[0].st_value == 0)
+    {
+        symtab++;
+        entries--;
+    }
+
+    symbol_table = (symtable_t*)heap::calloc(entries, sizeof(symtable_t));
+
+    for (size_t i = 0, t = 0, entriesbck = entries; i < entriesbck; i++)
+    {
+        symbol_table[i].addr = symtab[i].st_value;
+        symbol_table[i].name = &strtab[symtab[i].st_name];
     }
 }
 }

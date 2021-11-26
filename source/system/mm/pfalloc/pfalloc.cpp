@@ -19,6 +19,8 @@ uint64_t usedMem;
 
 uintptr_t highest_page = 0;
 
+extern "C" uint64_t __kernelstart;
+extern "C" uint64_t __kernelend;
 void init()
 {
     serial::info("Initialising Page Frame Allocator");
@@ -52,6 +54,11 @@ void init()
     }
     reservePages(0, 0x100);
     lockPages(PageBitmap.buffer, PageBitmap.size / 4096 + 1);
+
+    uint64_t kernelsize = (uint64_t)&__kernelend - (uint64_t)&__kernelstart;
+    uint64_t kernelpagecount = (uint64_t)kernelsize / 4096 + 1;
+
+    pfalloc::lockPages((void*)&__kernelstart, kernelpagecount);
 
     serial::newline();
     initialised = true;

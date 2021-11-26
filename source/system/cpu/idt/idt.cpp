@@ -117,14 +117,11 @@ void exception_handler(registers_t *regs)
 
     switch (regs->int_no)
     {
-        case 3:
-        case 4:
-            //halt = false;
-            break;
     }
 
     if (!halt)
     {
+        trace::trace();
         serial::newline();
         return;
     }

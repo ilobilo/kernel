@@ -2,7 +2,6 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/ptmanager/ptmanager.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <system/acpi/acpi.hpp>
