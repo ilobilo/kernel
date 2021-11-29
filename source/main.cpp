@@ -7,6 +7,7 @@
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
+#include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/hpet/hpet.hpp>
@@ -29,6 +30,7 @@
 #pragma endregion include
 
 using namespace kernel::drivers::display;
+using namespace kernel::drivers::audio;
 using namespace kernel::drivers::fs;
 using namespace kernel::drivers;
 using namespace kernel::system::sched;
@@ -131,10 +133,10 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::okerr(vfs::initialised);
 
     terminal::check("Initialising USTAR filesystem...");
-    int i = find_module("initrd");
-    if (i != -1 && strstr(cmdline, "initrd"))
+    int m = find_module("initrd");
+    if (m != -1 && strstr(cmdline, "initrd"))
     {
-        ustar::init(mod_tag->modules[i].begin);
+        ustar::init(mod_tag->modules[m].begin);
     }
     terminal::okerr(ustar::initialised);
 
