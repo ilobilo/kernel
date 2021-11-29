@@ -326,16 +326,3 @@ int intlen(int n)
     }
     return digits;
 }
-
-char buf[10];
-char *humanify(uint64_t bytes)
-{
-    int i = 0;
-    const char *units[] = { "B", "KB", "MB", "GB", "TB" };
-    for (i = 0; bytes > 1024; i++)
-    {
-        bytes /= 1024;
-    }
-    sprintf(buf, "%ld%s", bytes, units[i]);
-    return buf;
-}
