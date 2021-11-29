@@ -55,7 +55,7 @@ static void PIT_Handler(idt::registers_t *)
 void setfreq(uint64_t freq)
 {
     frequency = freq;
-    uint64_t divisor = 1193180 / freq;
+    uint64_t divisor = 1193180 / frequency;
 
     outb(0x43, 0x36);
 
