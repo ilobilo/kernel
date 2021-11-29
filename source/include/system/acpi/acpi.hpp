@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <acpispec/tables.h>
 #include <stdint.h>
 
 namespace kernel::system::acpi {

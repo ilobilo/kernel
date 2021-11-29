@@ -14,9 +14,14 @@ namespace kernel::system::mm::heap {
 bool initialised = false;
 bool debug = false;
 
-void *heapStart;
+heapSegHdr *lastSeg;
+heapSegHdr *mainSeg;
+
+size_t totalSize;
+size_t freeSize;
+size_t usedSize;
+
 void *heapEnd;
-heapSegHdr *lastHdr;
 
 DEFINE_LOCK(heap_lock)
 
@@ -30,23 +35,8 @@ void init(void *heapAddr, size_t pageCount)
         return;
     }
 
-    void *pos = heapAddr;
-    for (size_t i = 0; i < pageCount; i++)
-    {
-        vmm::kernel_pagemap->mapMem((uint64_t)pos, (uint64_t)pmm::requestPage());
-        pos = (void*)((size_t)pos + 0x1000);
-    }
-    size_t heapLength = pageCount * 0x1000;
-
-    heapStart = heapAddr;
-    heapEnd = (void*)((size_t)heapStart + heapLength);
-    heapSegHdr *startSeg = (heapSegHdr*)heapAddr;
-
-    startSeg->length = heapLength - sizeof(heapSegHdr);
-    startSeg->next = NULL;
-    startSeg->last = NULL;
-    startSeg->free = true;
-    lastHdr = startSeg;
+    heapEnd = heapAddr;
+    expandHeap(pageCount * 0x1000);
 
     serial::newline();
     initialised = true;
@@ -67,15 +57,36 @@ void free(void *address)
     if (!address) return;
 
     acquire_lock(&heap_lock);
-    heapSegHdr *segment = (heapSegHdr*)address - 1;
-    segment->free = true;
-    if (debug) serial::info("Free: Freeing %zu Bytes", segment->length);
-    segment->combineForward();
-    segment->combineBackward();
+    heapSegHdr *header = (heapSegHdr*)((uint64_t)address - sizeof(heapSegHdr));
+    header->free = true;
+    freeSize += header->length + sizeof(heapSegHdr);
+    usedSize -= header->length + sizeof(heapSegHdr);
+
+    if (header->next && header->last)
+    {
+        if (header->next->free && header->last->free)
+        {
+            header->mergeNextAndThisToLast();
+        }
+    }
+    else if (header->last)
+    {
+        if (header->last->free)
+        {
+            header->mergeThisToLast();
+        }
+    }
+    else if (header->next)
+    {
+        if (header->next->free)
+        {
+            header->mergeNextToThis();
+        }
+    }
+    if (debug) serial::info("Free: Freeing %zu Bytes", header->length + sizeof(heapSegHdr));
     release_lock(&heap_lock);
 }
 
-volatile bool expanded = false;
 void* malloc(size_t size)
 {
     check();
@@ -87,14 +98,14 @@ void* malloc(size_t size)
         return NULL;
     }
 
-    if (size % 0x08 > 0)
+    if (size % blockSize)
     {
-        size -= (size % 0x08);
-        size += 0x08;
+        size -= (size % blockSize);
+        size += blockSize;
     }
-    if (size == 0) return NULL;
+    if (!size) return NULL;
 
-    heapSegHdr* currentSeg = (heapSegHdr*)heapStart;
+    heapSegHdr* currentSeg = (heapSegHdr*)mainSeg;
     while (true)
     {
         if (currentSeg->free)
@@ -103,32 +114,101 @@ void* malloc(size_t size)
             {
                 currentSeg->split(size);
                 currentSeg->free = false;
-                if (debug) serial::info("Malloc: Allocated %zu Bytes", size);
-                expanded = false;
+                usedSize += currentSeg->length + sizeof(heapSegHdr);
+                freeSize -= currentSeg->length + sizeof(heapSegHdr);
+
+                if (debug) serial::info("Malloc: Allocated %zu Bytes", size + sizeof(heapSegHdr));
                 release_lock(&heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
             if (currentSeg->length == size)
             {
                 currentSeg->free = false;
-                if (debug) serial::info("Malloc: Allocated %zu Bytes", size);
-                expanded = false;
+                if (debug) serial::info("Malloc: Allocated %zu Bytes", size + sizeof(heapSegHdr));
+                usedSize += currentSeg->length + sizeof(heapSegHdr);
+                freeSize -= currentSeg->length + sizeof(heapSegHdr);
+
                 release_lock(&heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
         }
-        if (currentSeg->next == NULL) break;
+        if (!currentSeg->next) break;
         currentSeg = currentSeg->next;
     }
-    if (expanded)
-    {
-        serial::err("Out of memory!");
-        return NULL;
-    }
     expandHeap(size);
-    expanded = true;
     release_lock(&heap_lock);
     return malloc(size);
+}
+
+void heapSegHdr::mergeNextAndThisToLast()
+{
+    if (this->next == lastSeg)
+    {
+        if (this->next->next) lastSeg = this->next->next;
+        else lastSeg = this->last;
+    }
+    if (this->next == mainSeg)
+    {
+        if (this->next->last) mainSeg = this->next->last;
+        else mainSeg = this->next->next;
+    }
+    if (this == lastSeg)
+    {
+        if (this->next->next) lastSeg = this->next->next;
+        else lastSeg = this->last;
+    }
+    if (this == mainSeg)
+    {
+        if (this->last) mainSeg = this->last;
+        else mainSeg = this->next->next;
+    }
+
+    this->last->length += this->length + sizeof(heapSegHdr) + this->next->length + sizeof(heapSegHdr);
+    this->last->next = this->next->next;
+    this->next->next->last = this->last;
+
+    memset(this->next, 0, sizeof(heapSegHdr));
+    memset(this, 0, sizeof(heapSegHdr));
+}
+
+void heapSegHdr::mergeThisToLast()
+{
+    this->last->length += this->length + sizeof(heapSegHdr);
+    this->last->next = this->next;
+    this->next->last = this->last;
+    if (this == lastSeg)
+    {
+        if (this->next) lastSeg = this->next;
+        else lastSeg = this->last;
+    }
+    if (this == mainSeg)
+    {
+        if (this->last) mainSeg = this->last;
+        else mainSeg = this->next;
+    }
+    memset(this, 0, sizeof(heapSegHdr));
+}
+
+void heapSegHdr::mergeNextToThis()
+{
+    heapSegHdr *nextHdr = this->next;
+    this->length += this->next->length + sizeof(heapSegHdr);
+    this->next = this->next->next;
+    this->next->last = this;
+    
+    if (this == lastSeg)
+    {
+        if (this->next->next) lastSeg = this->next->next;
+        else lastSeg = this;
+    }
+    if (nextHdr == lastSeg)
+    {
+        if (this->next) lastSeg = this->next;
+        else lastSeg = this;
+    }
+    if (this ==  mainSeg) mainSeg = this->last;
+
+    memset(nextHdr, 0, sizeof(heapSegHdr));
 }
 
 size_t getsize(void *ptr)
@@ -152,6 +232,8 @@ void *realloc(void *ptr, size_t size)
 {
     check();
 
+    if (!ptr) return malloc(size);
+
     size_t oldsize = heap::getsize(ptr);
 
     if (!size)
@@ -159,7 +241,6 @@ void *realloc(void *ptr, size_t size)
         free(ptr);
         return NULL;
     }
-    if (!ptr) return malloc(size);
     if (size < oldsize) oldsize = size;
 
     void *newptr = malloc(size);
@@ -170,28 +251,25 @@ void *realloc(void *ptr, size_t size)
     return(newptr);
 }
 
-heapSegHdr *heapSegHdr::split(size_t splitLength)
+void heapSegHdr::split(size_t size)
 {
-    if (splitLength < 0x08) return NULL;
-    int64_t splitSegLength = length - splitLength - sizeof(heapSegHdr);
-    if (splitSegLength < 0x08) return NULL;
+    if (this->length < size + sizeof(heapSegHdr)) return;
 
-    heapSegHdr *newSplitHdr = (heapSegHdr*)((size_t)this + splitLength + sizeof(heapSegHdr));
+    heapSegHdr *newSeg = (heapSegHdr*)((uint64_t)this + sizeof(heapSegHdr) + size);
+    memset(newSeg, 0, sizeof(heapSegHdr));
+    newSeg->free = true;
+    newSeg->length = this->length - size - sizeof(heapSegHdr);
+    newSeg->next = this->next;
+    newSeg->last = this;
 
-    next->last = newSplitHdr;
-    newSplitHdr->next = next;
-    next = newSplitHdr;
-    newSplitHdr->last = this;
-    newSplitHdr->length = splitSegLength;
-    newSplitHdr->free = free;
-    length = splitLength;
-
-    if (lastHdr == this) lastHdr = newSplitHdr;
-    return newSplitHdr;
+    if (!this->next) lastSeg = newSeg;
+    this->next = newSeg;
+    this->length = size;
 }
 
 void expandHeap(size_t length)
 {
+    length += sizeof(heapSegHdr);
     if (length % 0x1000)
     {
         length -= length % 0x1000;
@@ -206,34 +284,22 @@ void expandHeap(size_t length)
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
 
-    newSeg->free = true;
-    newSeg->last = lastHdr;
-    lastHdr->next = newSeg;
-    lastHdr = newSeg;
-    newSeg->next = NULL;
-    newSeg->length = length - sizeof(heapSegHdr);
-    newSeg->combineBackward();
+    if (lastSeg && lastSeg->free) lastSeg->length += length;
+    else
+    {
+        newSeg->length = length - sizeof(heapSegHdr);
+        newSeg->free = true;
+        newSeg->last = lastSeg;
+        newSeg->next = NULL;
+        if (lastSeg) lastSeg->next = newSeg;
+        lastSeg = newSeg;
+    }
+
+    if (!mainSeg) mainSeg = newSeg;
+    totalSize += length + sizeof(heapSegHdr);
+    freeSize -= length + sizeof(heapSegHdr);
 
     if (debug) serial::info("Heap: Expanded heap with %zu Bytes", length);
-}
-
-void heapSegHdr::combineForward()
-{
-    if (next == NULL) return;
-    if (!next->free) return;
-
-    if (next == last) lastHdr = this;
-
-    if (next->next != NULL) next->next->last = this;
-
-    length = length + next->length + sizeof(heapSegHdr);
-
-    next = next->next;
-}
-
-void heapSegHdr::combineBackward()
-{
-    if (last != NULL && last->free) last->combineForward();
 }
 }
 

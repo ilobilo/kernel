@@ -19,7 +19,7 @@ uint64_t getmemsize()
     return meminbytes;
 }
 
-void *memcpy(void *dest, void *src, size_t n)
+extern "C" void *memcpy(void *dest, void *src, size_t n)
 {
     long d0, d1, d2; 
     asm volatile (
@@ -33,7 +33,7 @@ void *memcpy(void *dest, void *src, size_t n)
     return dest;
 }
 
-int memcmp(const void *s1, const void *s2, int len)
+extern "C" int memcmp(const void *s1, const void *s2, int len)
 {
     unsigned char *p = (unsigned char*)s1;
     unsigned char *q = (unsigned char*)s2;
@@ -57,7 +57,7 @@ int memcmp(const void *s1, const void *s2, int len)
     return charstat;
 }
 
-void memset(void *str, char ch, size_t n)
+extern "C" void memset(void *str, char ch, size_t n)
 {
     size_t i;
     char *s = (char *)str;
@@ -67,7 +67,7 @@ void memset(void *str, char ch, size_t n)
     }
 }
 
-void memmove(void *dest, void *src, size_t n)
+extern "C" void memmove(void *dest, void *src, size_t n)
 {
     char *csrc = (char *)src;
     char *cdest = (char *)dest;

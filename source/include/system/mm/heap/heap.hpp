@@ -7,20 +7,31 @@
 
 namespace kernel::system::mm::heap {
 
+#define blockSize 0x8
+
 struct heapSegHdr
 {
     size_t length;
     heapSegHdr *next;
     heapSegHdr *last;
     bool free;
-    void combineForward();
-    void combineBackward();
-    heapSegHdr *split(size_t splitLength);
+    void mergeNextAndThisToLast();
+    void mergeThisToLast();
+    void mergeNextToThis();
+    void split(size_t splitLength);
 };
 
 extern bool initialised;
-
 extern bool debug;
+
+extern heapSegHdr *lastSeg;
+extern heapSegHdr *mainSeg;
+
+extern size_t totalSize;
+extern size_t freeSize;
+extern size_t usedSize;
+
+extern void *heapEnd;
 
 void init(void *heapAddr = (void*)0x0000100000000000, size_t pageCount = 0x10);
 

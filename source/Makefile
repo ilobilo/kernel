@@ -51,6 +51,7 @@ INTERNALLDFLAGS :=           \
 INTERNALCFLAGS  :=             \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/include     \
+	-I$(SOURCEDIR)/include/lai \
 	-std=gnu17                 \
 	-ffreestanding             \
 	-fno-exceptions            \
@@ -67,6 +68,7 @@ INTERNALCFLAGS  :=             \
 INTERNALCPPFLAGS  :=           \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/include     \
+	-I$(SOURCEDIR)/include/lai \
 	-std=gnu++17               \
 	-ffreestanding             \
 	-fno-exceptions            \

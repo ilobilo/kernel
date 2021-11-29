@@ -89,7 +89,29 @@ void *requestPage()
 
 void *requestPages(uint64_t count)
 {
-    for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
+    while (pageBitmapIndex < PageBitmap.size * 8)
+    {
+        for (uint64_t i = 0; i < count; i++)
+        {
+            if (PageBitmap[pageBitmapIndex + i] == true)
+            {
+                pageBitmapIndex += i + 1;
+                goto notfree;
+            }
+        }
+        goto exit;
+        notfree:
+            continue;
+        
+        exit: {
+            void* page = (void*)(pageBitmapIndex * 4096);
+            pageBitmapIndex += count;
+            lockPages(page, count);
+            return page;
+        }
+    }
+    return NULL;
+    /*for (; pageBitmapIndex < PageBitmap.size * 8; pageBitmapIndex++)
     {
         for (uint64_t i = 0; i < count; i++)
         {
@@ -102,7 +124,7 @@ void *requestPages(uint64_t count)
         lockPages((void*)(pageBitmapIndex * 4096), count);
         return (void*)(pageBitmapIndex * 4096);
     }
-    return NULL;
+    return NULL;*/
 }
 
 void freePage(void *address)
