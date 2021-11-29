@@ -26,7 +26,7 @@ Contributors are welcome
 - [x] PCI
 - [x] HPET
 - [x] VMWare Tools
-- [ ] Sound
+- [x] Audio (PC speaker)
 - [ ] AHCI
 - [ ] Ext2
 - [ ] Fat
@@ -75,6 +75,7 @@ https://discord.gg/fM5GK3RpS7
 
 ## Resources used:
 * Printf: https://github.com/eyalroz/printf
+* Lai: https://github.com/managarm/lai
 * Osdev wiki: https://wiki.osdev.org
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
