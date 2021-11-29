@@ -32,7 +32,6 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 
 void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
-    size_t pml5_entry = (vaddr & ((uint64_t)0x1FF << 48)) >> 48;
     size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
     size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
     size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;

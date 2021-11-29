@@ -79,7 +79,7 @@ void main(struct stivale2_struct *stivale2_struct)
     else serial::info("Version: %s\n", KERNEL_VERSION);
 
     serial::info("CPU cores available: %d", smp_tag->cpu_count);
-    serial::info("Total usable memory: %s\n", humanify(getmemsize()));
+    serial::info("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
     serial::info("Arguments passed to kernel: %s", cmdline);
 
     serial::info("Available kernel modules:");
@@ -112,7 +112,7 @@ void main(struct stivale2_struct *stivale2_struct)
     else printf("Version: %s\n", KERNEL_VERSION);
 
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
-    printf("Total usable memory: %s\n", humanify(getmemsize()));
+    printf("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
 
     terminal::check("Initialising PMM...");
     pmm::init();

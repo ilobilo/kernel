@@ -36,8 +36,7 @@ void shell_parse(char *cmd, char *arg)
             printf("- cat -- Print file contents\n");
             printf("- cd -- Change directory\n");
             printf("- exec -- Execute binary\n");
-            printf("- free -- Get memory info in bytes\n");
-            printf("-  -h -- Get memory info in MB\n");
+            printf("- free -- Get memory info\n");
             printf("- time -- Get current RTC time\n");
             printf("- timef -- Get current RTC time (Forever loop)\n");
             printf("- tick -- Get current PIT tick\n");
@@ -230,15 +229,9 @@ void shell_parse(char *cmd, char *arg)
         }
         case hash("free"):
         {
-            uint64_t usable = getmemsize();
-            uint64_t free = pmm::getFreeRam();
-            if (!strcmp(arg, "-h"))
-            {
-                usable = usable / 1024 / 1024;
-                free = free / 1024 / 1024;
-                printf("Usable memory: %ld MB\nFree memory: %ld MB\nUsed memory: %ld MB\n", usable, free, usable - free);
-            }
-            else printf("Usable memory: %ld Bytes\nFree memory: %ld Bytes\nUsed memory: %ld Bytes\n", usable, free, usable - free);
+            uint64_t usable = getmemsize() / 1024 / 1024;
+            uint64_t free = pmm::getFreeRam() / 1024 / 1024;
+            printf("Usable memory: %ld MB\nFree memory: %ld MB\nUsed memory: %ld MB\n", usable, free, usable - free);
             break;
         }
         case hash("time"):

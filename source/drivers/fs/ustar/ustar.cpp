@@ -103,61 +103,8 @@ bool check()
     return true;
 }
 
-void list()
-{
-    if (!check()) return;
-
-    int size = 0;
-    printf("Total %ld items:\n--------------------\n", filecount);
-    for (uint64_t i = 0; i < filecount; i++)
-    {
-        switch (headers[i].header->typeflag[0])
-        {
-            case REGULAR_FILE:
-                printf("%ld) (REGULAR) %s %s\n", i + 1, headers[i].header->name, humanify(headers[i].size));
-                size += oct_to_dec(string_to_int(headers[i].header->size));
-                break;
-            case SYMLINK:
-                printf("%ld) \033[96m(SYMLINK) %s --> %s%s\n", i + 1, headers[i].header->name, headers[i].header->link, terminal::colour);
-                break;
-            case DIRECTORY:
-                printf("%ld) \033[35m(DIRECTORY) %s%s\n", i + 1, headers[i].header->name, terminal::colour);
-                break;
-            default:
-                printf("%ld) \033[31m(File type not supported!) %s%s\n", i + 1, headers[i].header->name, terminal::colour);
-                break;
-        }
-    }
-    printf("--------------------\nTotal size: %s\n", humanify(size));
-}
-
-const char *cat(const char *name)
-{
-    if (!check()) return "";
-
-    char *contents;
-    int i = 0;
-    i = getid(name);
-    switch (headers[i].header->typeflag[0])
-    {
-        case filetypes::REGULAR_FILE:
-            if (search(name, &contents) != 0) printf("%s\n", contents);
-            else goto Error;
-            break;
-        default:
-            goto Error;
-            break;
-    }
-    return contents;
-    Error:
-    printf("\033[31mInvalid file name!%s\n", terminal::colour);
-    return "Invalid file name!";
-}
-
 int getid(const char *name)
 {
-    if (!check()) return 0;
-
     for (uint64_t i = 0; i < filecount; ++i)
     {
         if(!strcmp(headers[i].header->name, name)) return i;
