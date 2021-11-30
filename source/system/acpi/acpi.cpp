@@ -52,9 +52,9 @@ void init()
         serial::info("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
-    mcfghdr = (MCFGHeader*)findtable("MCFG");
-    fadthdr = (FADTHeader*)findtable("FACP");
-    hpethdr = (HPETHeader*)findtable("HPET");
+    mcfghdr = (MCFGHeader*)findtable("MCFG", 0);
+    fadthdr = (FADTHeader*)findtable("FACP", 0);
+    hpethdr = (HPETHeader*)findtable("HPET", 0);
 
     lai_set_acpi_revision(rsdp->revision);
     lai_create_namespace();
@@ -63,11 +63,10 @@ void init()
     initialised = true;
 }
 
-void *findtable(const char *signature)
+void *findtable(const char *signature, size_t skip)
 {
-    size_t entries;
-    if (use_xstd) entries = (rsdt->length - sizeof(SDTHeader)) / 8;
-    else entries = (rsdt->length - sizeof(SDTHeader)) / 4;
+    if (skip < 0) skip = 0;
+    size_t entries = (rsdt->length - sizeof(SDTHeader)) / (use_xstd ? 8 : 4);
     for (size_t i = 0; i < entries; i++)
     {
         SDTHeader *newsdthdr;
@@ -76,7 +75,11 @@ void *findtable(const char *signature)
         
         if (!newsdthdr || !strcmp((const char*)newsdthdr->signature, "")) continue;
 
-        if (!strncmp((const char*)newsdthdr->signature, signature, 4)) return newsdthdr;
+        if (!strncmp((const char*)newsdthdr->signature, signature, 4))
+        {
+            if (!skip) return newsdthdr;
+            else skip--;
+        }
         else continue;
     }
     return 0;
@@ -135,15 +138,14 @@ void *laihost_scan(const char *signature, size_t index)
 {
 	if (!strncmp(signature, "DSDT", 4))
     {
-		acpi_fadt_t *facp = (acpi_fadt_t*)kernel::system::acpi::findtable("FACP");
 		uint64_t dsdt_addr = 0;
 
-		if (is_canonical(facp->x_dsdt) && kernel::system::acpi::use_xstd) dsdt_addr = facp->x_dsdt;
-		else dsdt_addr = facp->dsdt;
+		if (is_canonical(kernel::system::acpi::fadthdr->X_Dsdt) && kernel::system::acpi::use_xstd) dsdt_addr = kernel::system::acpi::fadthdr->X_Dsdt;
+		else dsdt_addr = kernel::system::acpi::fadthdr->Dsdt;
 
 		return (void*)dsdt_addr;
     }
-    else return kernel::system::acpi::findtable(signature);
+    else return kernel::system::acpi::findtable(signature, index);
 }
 
 void laihost_outb(uint16_t port, uint8_t val)

@@ -4,6 +4,7 @@
 
 #include <acpispec/tables.h>
 #include <stdint.h>
+#include <stddef.h>
 
 namespace kernel::system::acpi {
 
@@ -140,5 +141,5 @@ extern SDTHeader *rsdt;
 
 void init();
 
-void *findtable(const char *signature);
+void *findtable(const char *signature, size_t skip = 0);
 }

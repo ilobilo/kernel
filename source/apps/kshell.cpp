@@ -10,9 +10,12 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
+#include <lai/helpers/pm.h>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/io.hpp>
+
+#include <lai/core.h>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -25,7 +28,7 @@ namespace kernel::apps::kshell {
 
 vfs::fs_node_t *current_path;
 
-void shell_parse(char *cmd, char *arg)
+void parse(char *cmd, char *arg)
 {
     switch (hash(cmd))
     {
@@ -265,10 +268,15 @@ void shell_parse(char *cmd, char *arg)
             outw(0xB004, 0x2000);
             outw(0x604, 0x2000);
             outw(0x4004, 0x3400);
-            asm volatile ("hlt");
+            lai_enter_sleep(5);
+            asm volatile ("cli; hlt");
             break;
         case hash("reboot"):
-            outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
+            //lai_acpi_reset();
+
+            serial::err("%s", lai_api_error_to_string(lai_acpi_reset()));
+            //outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
+            //asm volatile ("cli; hlt");
             break;
         case hash(""):
             break;
@@ -302,6 +310,6 @@ void run()
     char *arg = strrm(command, cmd);
     arg = strrm(arg, " ");
 
-    shell_parse(cmd, arg);
+    parse(cmd, arg);
 }
 }

@@ -19,7 +19,7 @@ uint64_t getmemsize()
     return meminbytes;
 }
 
-extern "C" void *memcpy(void *dest, void *src, size_t n)
+extern "C" void *memcpy(void *dest, const void *src, size_t n)
 {
     long d0, d1, d2; 
     asm volatile (
@@ -33,7 +33,7 @@ extern "C" void *memcpy(void *dest, void *src, size_t n)
     return dest;
 }
 
-extern "C" int memcmp(const void *s1, const void *s2, int len)
+extern "C" int memcmp(const void *s1, const void *s2, size_t len)
 {
     unsigned char *p = (unsigned char*)s1;
     unsigned char *q = (unsigned char*)s2;
@@ -57,7 +57,7 @@ extern "C" int memcmp(const void *s1, const void *s2, int len)
     return charstat;
 }
 
-extern "C" void memset(void *str, char ch, size_t n)
+extern "C" void *memset(void *str, int ch, size_t n)
 {
     size_t i;
     char *s = (char *)str;
@@ -65,13 +65,15 @@ extern "C" void memset(void *str, char ch, size_t n)
     {
         s[i] = ch;
     }
+    return str;
 }
 
-extern "C" void memmove(void *dest, void *src, size_t n)
+extern "C" void *memmove(void *dest, const void *src, size_t n)
 {
     char *csrc = (char *)src;
     char *cdest = (char *)dest;
     char temp[n];
     for (size_t i = 0; i < n; i++) temp[i] = csrc[i];
     for (size_t i = 0; i < n; i++) cdest[i] = temp[i];
+    return dest;
 }
