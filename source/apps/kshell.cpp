@@ -272,11 +272,9 @@ void parse(char *cmd, char *arg)
             asm volatile ("cli; hlt");
             break;
         case hash("reboot"):
-            //lai_acpi_reset();
-
-            serial::err("%s", lai_api_error_to_string(lai_acpi_reset()));
-            //outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
-            //asm volatile ("cli; hlt");
+            lai_acpi_reset();
+            outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
+            asm volatile ("cli; hlt");
             break;
         case hash(""):
             break;
