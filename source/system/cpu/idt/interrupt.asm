@@ -134,4 +134,5 @@ int_table:
 %endrep
     times 80 dq 0
     dq syscall
+    times 128 dq 0
 GLOBAL int_table

@@ -26,7 +26,7 @@ GDT DefaultGDT = {
     {0, 0, 0, 0xFA, 0x20, 0}
 };
 
-DEFINE_LOCK(gdt_lock);
+DEFINE_LOCK(gdt_lock)
 bool initialised = false;
 GDTDescriptor gdtDescriptor;
 TSS *tss;
@@ -70,7 +70,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("GDT has already been initialised!\n");
+        serial::warn("GDT has already been initialised!\n");
         return;
     }
 

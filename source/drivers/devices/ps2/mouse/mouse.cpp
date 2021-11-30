@@ -236,7 +236,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("Mouse driver has already been initialised!\n");
+        serial::warn("Mouse driver has already been initialised!\n");
         return;
     }
 

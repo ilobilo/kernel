@@ -31,7 +31,7 @@ void init(void *heapAddr, size_t pageCount)
 
     if (initialised)
     {
-        serial::info("Heap has already been initialised!\n");
+        serial::warn("Heap has already been initialised!\n");
         return;
     }
 
@@ -46,7 +46,7 @@ void check()
 {
     if (!initialised)
     {
-        serial::info("Heap has not been initialised!");
+        serial::err("Heap has not been initialised!");
         init();
     }
 }

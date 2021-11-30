@@ -6,13 +6,15 @@
 #include <system/sched/lock/lock.hpp>
 #include <system/trace/trace.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <system/cpu/pic/pic.hpp>
+#include <system/apic/apic.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
 
 namespace kernel::system::cpu::idt {
 
-DEFINE_LOCK(idt_lock);
+DEFINE_LOCK(idt_lock)
 bool initialised = false;
 
 __attribute__((aligned(0x10)))
@@ -41,13 +43,14 @@ void reload()
     asm volatile ("lidt %0" : : "memory"(idtr));
 }
 
+extern "C" void *int_table[];
 void init()
 {
     serial::info("Initialising IDT");
 
     if (initialised)
     {
-        serial::info("IDT has already been initialised!\n");
+        serial::warn("IDT has already been initialised!\n");
         return;
     }
 
@@ -58,7 +61,8 @@ void init()
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
 
-    isr_install();
+    for (size_t i = 0; i < 256; i++) idt_set_descriptor(i, int_table[i], 0x8E);
+    pic::init();
 
     reload();
     asm volatile ("sti");
@@ -155,11 +159,9 @@ void irq_handler(registers_t *regs)
         handler(regs);
     }
 
-    if(regs->int_no >= IRQS::IRQ8)
-    {
-        outb(PIC2_COMMAND, PIC_EOI);
-    }
-    outb(PIC1_COMMAND, PIC_EOI);
+    //if(regs->int_no >= IRQS::IRQ8) outb(PIC2_COMMAND, PIC_EOI);
+    //outb(PIC1_COMMAND, PIC_EOI);
+    apic::eoi();
 }
 
 void int_handler(registers_t *regs)
@@ -167,26 +169,5 @@ void int_handler(registers_t *regs)
     if (regs->int_no < 32) exception_handler(regs);
     else if (regs->int_no < 48) irq_handler(regs);
     else if (regs->int_no == SYSCALL) syscall::handler(regs);
-}
-
-extern "C" void *int_table[];
-void isr_install()
-{
-    for (size_t i = 0; i < 32; i++) idt_set_descriptor(i, int_table[i], 0x8E);
-
-    outb(0x20, 0x11);
-    outb(0xA0, 0x11);
-    outb(0x21, 0x20);
-    outb(0xA1, 0x28);
-    outb(0x21, 0x04);
-    outb(0xA1, 0x02);
-    outb(0x21, 0x01);
-    outb(0xA1, 0x01);
-    outb(0x21, 0x0);
-    outb(0xA1, 0x0);
-
-    for (size_t i = 32; i < 48; i++) idt_set_descriptor(i, int_table[i], 0x8E);
-
-    idt_set_descriptor(SYSCALL, int_table[SYSCALL], 0x8E);
 }
 }

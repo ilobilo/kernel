@@ -144,7 +144,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("DEV filesystem has already been mounted!\n");
+        serial::warn("DEV filesystem has already been mounted!\n");
         return;
     }
 

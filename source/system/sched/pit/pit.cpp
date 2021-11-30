@@ -77,7 +77,7 @@ void init(uint64_t freq)
 
     if (initialised)
     {
-        serial::info("PIT has already been initialised!\n");
+        serial::warn("PIT has already been initialised!\n");
         return;
     }
 

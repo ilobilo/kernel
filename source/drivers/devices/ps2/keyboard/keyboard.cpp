@@ -219,7 +219,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("Keyboard driver has already been initialised!\n");
+        serial::warn("Keyboard driver has already been initialised!\n");
         return;
     }
 

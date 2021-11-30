@@ -39,6 +39,14 @@ struct MCFGHeader
     uint64_t reserved;
 } __attribute__((packed));
 
+struct MADTHeader
+{
+    SDTHeader sdt;
+    uint32_t local_controller_addr;
+    uint32_t flags;
+    char madt_entries_begin[];
+} __attribute__((packed));
+
 struct GenericAddressStructure
 {
     uint8_t AddressSpace;
@@ -134,6 +142,7 @@ extern bool use_xstd;
 extern RSDP *rsdp;
 
 extern MCFGHeader *mcfghdr;
+extern MADTHeader *madthdr;
 extern FADTHeader *fadthdr;
 extern HPETHeader *hpethdr;
 extern SDTHeader *rsdt;
