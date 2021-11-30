@@ -6,8 +6,6 @@
 #include <system/mm/heap/heap.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <lai/helpers/sci.h>
-#include <lai/helpers/pm.h>
 #include <lib/string.hpp>
 #include <lib/io.hpp>
 #include <lai/host.h>
@@ -25,7 +23,6 @@ bool use_xstd;
 RSDP *rsdp;
 
 MCFGHeader *mcfghdr;
-MADTHeader *madthdr;
 FADTHeader *fadthdr;
 HPETHeader *hpethdr;
 SDTHeader *rsdt;
@@ -56,20 +53,11 @@ void init()
     }
 
     mcfghdr = (MCFGHeader*)findtable("MCFG");
-    madthdr = (MADTHeader*)findtable("APIC");
-    if (!madthdr)
-    {
-        serial::err("MADT could not be found!");
-        serial::err("System halted!");
-        while (true) asm volatile ("cli; hlt");
-    }
-
     fadthdr = (FADTHeader*)findtable("FACP");
     hpethdr = (HPETHeader*)findtable("HPET");
 
     lai_set_acpi_revision(rsdp->revision);
     lai_create_namespace();
-    lai_enable_acpi(1);
 
     serial::newline();
     initialised = true;

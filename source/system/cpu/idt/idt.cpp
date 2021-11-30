@@ -7,7 +7,6 @@
 #include <system/trace/trace.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/pic/pic.hpp>
-#include <system/apic/apic.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -36,11 +35,11 @@ void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
     descriptor->zero           = 0;
 }
 
-void isr_install();
-
 void reload()
 {
+    asm volatile ("cli");
     asm volatile ("lidt %0" : : "memory"(idtr));
+    asm volatile ("sti");
 }
 
 extern "C" void *int_table[];
@@ -62,10 +61,10 @@ void init()
     idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
 
     for (size_t i = 0; i < 256; i++) idt_set_descriptor(i, int_table[i], 0x8E);
+
     pic::init();
 
     reload();
-    asm volatile ("sti");
 
     serial::newline();
     initialised = true;
@@ -112,10 +111,9 @@ static const char *exception_messages[32] = {
     "Reserved",
 };
 
+static volatile bool halt = true;
 void exception_handler(registers_t *regs)
 {
-    volatile bool halt = true;
-
     serial::err("System exception! %s", (char*)exception_messages[regs->int_no & 0xff]);
     serial::err("Error code: 0x%lX", regs->error_code);
 
@@ -153,15 +151,8 @@ void exception_handler(registers_t *regs)
 
 void irq_handler(registers_t *regs)
 {
-    if (interrupt_handlers[regs->int_no] != 0)
-    {
-        int_handler_t handler = interrupt_handlers[regs->int_no];
-        handler(regs);
-    }
-
-    //if(regs->int_no >= IRQS::IRQ8) outb(PIC2_COMMAND, PIC_EOI);
-    //outb(PIC1_COMMAND, PIC_EOI);
-    apic::eoi();
+    if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
+    pic::eoi(regs->int_no);
 }
 
 void int_handler(registers_t *regs)

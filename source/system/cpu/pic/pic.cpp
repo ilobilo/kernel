@@ -1,8 +1,15 @@
 // Copyright (C) 2021  ilobilo
 
+#include <system/cpu/pic/pic.hpp>
 #include <lib/io.hpp>
 
 namespace kernel::system::cpu::pic {
+
+void eoi(uint64_t int_no)
+{
+    if(int_no >= 40) outb(pic::PIC2_COMMAND, pic::PIC_EOI);
+    outb(pic::PIC1_COMMAND, pic::PIC_EOI);
+}
 
 void disable()
 {
@@ -22,7 +29,5 @@ void init()
     outb(0xA1, 0x01);
     outb(0x21, 0x00);
     outb(0xA1, 0x00);
-    
-    disable();
 }
 }

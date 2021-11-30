@@ -7,7 +7,6 @@
 #include <system/cpu/smp/smp.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
-#include <system/apic/apic.hpp>
 #include <lib/math.hpp>
 #include <lib/msr.hpp>
 #include <stivale2.h>
@@ -43,11 +42,7 @@ static void cpu_init(stivale2_smp_info *cpu)
     this_cpu->up = true;
 
     release_lock(&cpu_lock);
-    if (cpu->lapic_id != smp_tag->bsp_lapic_id)
-    {
-        apic::lapic_init(this_cpu->lapic_id);
-        while (true) asm volatile ("hlt");
-    }
+    if (cpu->lapic_id != smp_tag->bsp_lapic_id) while (true) asm volatile ("hlt");
 }
 
 void init()

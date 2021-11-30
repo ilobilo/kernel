@@ -21,8 +21,6 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
-#include <system/acpi/madt.hpp>
-#include <system/apic/apic.hpp>
 #include <system/pci/pci.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
@@ -142,10 +140,6 @@ void main(struct stivale2_struct *stivale2_struct)
     acpi::init();
     terminal::okerr(acpi::initialised);
 
-    terminal::check("Initialising MADT...");
-    madt::init();
-    terminal::okerr(madt::initialised);
-
     terminal::check("Initialising HPET...");
     hpet::init();
     terminal::okerr(hpet::initialised);
@@ -157,10 +151,6 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising PCI...");
     pci::init();
     terminal::okerr(pci::initialised);
-
-    terminal::check("Initialising APIC...");
-    apic::init();
-    terminal::okerr(apic::initialised);
 
     terminal::check("Initialising SMP...");
     smp::init();
