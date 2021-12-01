@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
+#include <system/sched/hpet/hpet.hpp>
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
@@ -11,6 +12,7 @@
 #include <cpuid.h>
 
 using namespace kernel::drivers::display;
+using namespace kernel::system::sched;
 
 namespace kernel::system::cpu::apic {
 
@@ -191,10 +193,11 @@ static void SCI_Handler(idt::registers_t *)
     uint16_t event = getSCIevent();
     if (event & ACPI_POWER_BUTTON)
     {
+        acpi::shutdown();
+        hpet::msleep(50);
         outw(0xB004, 0x2000);
         outw(0x604, 0x2000);
         outw(0x4004, 0x3400);
-        acpi::shutdown();
     }
 }
 

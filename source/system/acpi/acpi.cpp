@@ -88,7 +88,7 @@ void madt_init()
     }
 }
 
-void fadt_init()
+void dsdt_init()
 {
     uint64_t dsdtaddr = (is_canonical(fadthdr->X_Dsdt && use_xstd) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
     uint8_t *S5Addr = (uint8_t*)dsdtaddr + 36;
@@ -216,7 +216,7 @@ void init()
     while (!(inw(fadthdr->PM1aControlBlock) & 1));
 
     if (madt) madt_init();
-    fadt_init();
+    dsdt_init();
 
     serial::newline();
     initialised = true;

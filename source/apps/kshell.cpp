@@ -262,15 +262,16 @@ void parse(char *cmd, char *arg)
             break;
         case hash("shutdown"):
         case hash("poweroff"):
+            acpi::shutdown();
+            pit::msleep(50);
             outw(0xB004, 0x2000);
             outw(0x604, 0x2000);
             outw(0x4004, 0x3400);
-            acpi::shutdown();
-            asm volatile ("cli; hlt");
+            printf("\033[31mCould not shutdown!\033[0m\n");
             break;
         case hash("reboot"):
             acpi::reboot();
-            asm volatile ("cli; hlt");
+            printf("\033[31mCould not reboot!\033[0m\n");
             break;
         case hash(""):
             break;
