@@ -4,6 +4,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/sched/lock/lock.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <system/trace/trace.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/pic/pic.hpp>
@@ -71,9 +72,10 @@ void init()
     release_lock(&idt_lock);
 }
 
-void register_interrupt_handler(uint8_t n, int_handler_t handler)
+void register_interrupt_handler(uint8_t vector, int_handler_t handler)
 {
-    interrupt_handlers[n] = handler;
+    interrupt_handlers[vector] = handler;
+    if (apic::initialised && vector > 31 && vector < 48) apic::ioapic_redirect_irq(vector - 32, vector);
 }
 
 static const char *exception_messages[32] = {
@@ -152,7 +154,8 @@ void exception_handler(registers_t *regs)
 void irq_handler(registers_t *regs)
 {
     if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
-    pic::eoi(regs->int_no);
+    if (apic::initialised) apic::eoi();
+    else pic::eoi(regs->int_no);
 }
 
 void int_handler(registers_t *regs)

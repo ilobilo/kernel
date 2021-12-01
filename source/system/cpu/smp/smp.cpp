@@ -2,6 +2,7 @@
 
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/lock/lock.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -42,7 +43,11 @@ static void cpu_init(stivale2_smp_info *cpu)
     this_cpu->up = true;
 
     release_lock(&cpu_lock);
-    if (cpu->lapic_id != smp_tag->bsp_lapic_id) while (true) asm volatile ("hlt");
+    if (cpu->lapic_id != smp_tag->bsp_lapic_id)
+    {
+        if (apic::initialised) apic::lapic_init(this_cpu->lapic_id);
+        while (true) asm volatile ("hlt");
+    }
 }
 
 void init()

@@ -59,8 +59,8 @@ struct idtr_t
 struct registers_t
 {
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
-    uint64_t rsi, rdi, rbp, rdx, rcx, rbx, rax;
-    uint64_t core, int_no, error_code, rip, cs, rflags, rsp, ss;
+    uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
+    uint64_t int_no, error_code, rip, cs, rflags, rsp, ss;
 } __attribute__((packed));
 
 using int_handler_t = void (*)(registers_t *);
@@ -73,7 +73,7 @@ extern bool initialised;
 void reload();
 
 void init();
-void register_interrupt_handler(uint8_t n, int_handler_t handler);
+void register_interrupt_handler(uint8_t vector, int_handler_t handler);
 
 extern "C" void int_handler(registers_t *regs);
 }

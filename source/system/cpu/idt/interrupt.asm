@@ -3,9 +3,9 @@
     push rbx
     push rcx
     push rdx
-    push rbp
-    push rdi
     push rsi
+    push rdi
+    push rbp
     push r8
     push r9
     push r10
@@ -25,9 +25,9 @@
     pop r10
     pop r9
     pop r8
-    pop rsi
-    pop rdi
     pop rbp
+    pop rdi
+    pop rsi
     pop rdx
     pop rcx
     pop rbx
@@ -40,21 +40,19 @@ int_common_stub:
     mov rdi, rsp
     call int_handler
     popall
-    add rsp, 24
+    add rsp, 16
     iretq
 
 %macro isr 1
 isr_%1:
     push 0
     push %1
-    push fs
     jmp int_common_stub
 %endmacro
 
 %macro isr_err 1
 isr_%1:
     push %1
-    push fs
     jmp int_common_stub
 %endmacro
 

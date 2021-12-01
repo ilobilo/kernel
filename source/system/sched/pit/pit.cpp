@@ -3,6 +3,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/sched/rtc/rtc.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/io.hpp>
 
@@ -12,9 +13,9 @@ using namespace kernel::system::cpu;
 namespace kernel::system::sched::pit {
 
 bool initialised = false;
+volatile uint64_t tick = 0;
 uint64_t frequency = 100;
 uint64_t freqbck = 100;
-uint64_t tick = 0;
 
 void sleep(uint64_t sec)
 {
@@ -25,7 +26,7 @@ void sleep(uint64_t sec)
     }
     if (!initialised) rtc::sleep(sec);
 
-    long start = tick;
+    uint64_t start = tick;
     while (tick < start + sec * frequency);
 }
 
@@ -38,7 +39,7 @@ void msleep(uint64_t msec)
     }
     if (!initialised) rtc::sleep(msec / 100);
 
-    long start = tick;
+    uint64_t start = tick;
     while (tick < start + msec * (frequency / 100));
 }
 
@@ -84,7 +85,7 @@ void init(uint64_t freq)
     freqbck = freq;
     setfreq(freq);
 
-    register_interrupt_handler(idt::IRQS::IRQ0, PIT_Handler);
+    register_interrupt_handler(idt::IRQ0, PIT_Handler);
 
     serial::newline();
     initialised = true;

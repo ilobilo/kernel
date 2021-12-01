@@ -15,6 +15,7 @@
 #include <drivers/vmware/vmware.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -145,13 +146,13 @@ void main(struct stivale2_struct *stivale2_struct)
     hpet::init();
     terminal::okerr(hpet::initialised);
 
-    terminal::check("Initialising PIT...");
-    pit::init();
-    terminal::okerr(pit::initialised);
-
     terminal::check("Initialising PCI...");
     pci::init();
     terminal::okerr(pci::initialised);
+
+    terminal::check("Initialising APIC...");
+    apic::init();
+    terminal::okerr(apic::initialised);
 
     terminal::check("Initialising SMP...");
     smp::init();
@@ -172,6 +173,10 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising DEV filesystem...");
     devfs::init();
     terminal::okerr(devfs::initialised);
+
+    terminal::check("Initialising PIT...");
+    pit::init();
+    terminal::okerr(pit::initialised);
 
     terminal::check("Initialising System calls...");
     syscall::init();

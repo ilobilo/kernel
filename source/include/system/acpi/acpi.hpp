@@ -3,6 +3,7 @@
 #pragma once
 
 #include <acpispec/tables.h>
+#include <lib/vector.hpp>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -38,6 +39,54 @@ struct MCFGHeader
 {
     SDTHeader header;
     uint64_t reserved;
+} __attribute__((packed));
+
+struct MADTHeader
+{
+    acpi_header_t sdt;
+    uint32_t local_controller_addr;
+    uint32_t flags;
+    char entries_begin[];
+} __attribute__((packed));
+
+struct MADT
+{
+    uint8_t type;
+    uint8_t length;
+} __attribute__((packed));
+
+struct MADTLapic
+{
+    MADT madtHeader;
+    uint8_t processor_id;
+    uint8_t apic_id;
+    uint32_t flags;
+} __attribute__((packed));
+
+struct MADTIOApic
+{
+    MADT madtHeader;
+    uint8_t apic_id;
+    uint8_t reserved;
+    uint32_t addr;
+    uint32_t gsib;
+} __attribute__((packed));
+
+struct MADTIso
+{
+    MADT madtHeader;
+    uint8_t bus_source;
+    uint8_t irq_source;
+    uint32_t gsi;
+    uint16_t flags;
+} __attribute__((packed));
+
+struct MADTNmi
+{
+    MADT madtHeader;
+    uint8_t processor;
+    uint16_t flags;
+    uint8_t lint;
 } __attribute__((packed));
 
 struct GenericAddressStructure
@@ -130,14 +179,23 @@ struct deviceconfig
 } __attribute__((packed));
 
 extern bool initialised;
+extern bool madt;
 
 extern bool use_xstd;
 extern RSDP *rsdp;
 
 extern MCFGHeader *mcfghdr;
+extern MADTHeader *madthdr;
 extern FADTHeader *fadthdr;
 extern HPETHeader *hpethdr;
 extern SDTHeader *rsdt;
+
+extern Vector<MADTLapic*> lapics;
+extern Vector<MADTIOApic*> ioapics;
+extern Vector<MADTIso*> isos;
+extern Vector<MADTNmi*> nmis;
+
+extern uintptr_t lapic_addr;
 
 void init();
 

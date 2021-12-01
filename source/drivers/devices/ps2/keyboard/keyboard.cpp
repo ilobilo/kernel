@@ -224,7 +224,7 @@ void init()
     }
 
     buff[0] = '\0';
-    register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
+    register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
 
     serial::newline();
     initialised = true;

@@ -7,6 +7,7 @@
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
+#include <lib/mmio.hpp>
 #include <lib/io.hpp>
 #include <lai/host.h>
 #include <lai/core.h>
@@ -18,14 +19,23 @@ using namespace kernel::system::mm;
 namespace kernel::system::acpi {
 
 bool initialised = false;
+bool madt = false;
 
 bool use_xstd;
 RSDP *rsdp;
 
 MCFGHeader *mcfghdr;
+MADTHeader *madthdr;
 FADTHeader *fadthdr;
 HPETHeader *hpethdr;
 SDTHeader *rsdt;
+
+Vector<MADTLapic*> lapics;
+Vector<MADTIOApic*> ioapics;
+Vector<MADTIso*> isos;
+Vector<MADTNmi*> nmis;
+
+uintptr_t lapic_addr = 0;
 
 void init()
 {
@@ -53,11 +63,51 @@ void init()
     }
 
     mcfghdr = (MCFGHeader*)findtable("MCFG", 0);
+    madthdr = (MADTHeader*)findtable("APIC", 0);
+    if (madthdr) madt = true;
     fadthdr = (FADTHeader*)findtable("FACP", 0);
     hpethdr = (HPETHeader*)findtable("HPET", 0);
 
     lai_set_acpi_revision(rsdp->revision);
     lai_create_namespace();
+
+    if (madt)
+    {
+        serial::newline();
+
+        lapics.init(1);
+        ioapics.init(1);
+        isos.init(1);
+        nmis.init(1);
+
+        lapic_addr = madthdr->local_controller_addr;
+        
+        for (uint8_t *madt_ptr = (uint8_t*)madthdr->entries_begin; (uintptr_t)madt_ptr < (uintptr_t)madthdr + madthdr->sdt.length; madt_ptr += *(madt_ptr + 1))
+        {
+            switch (*(madt_ptr))
+            {
+                case 0:
+                    serial::info("ACPI/MADT: Found local APIC %ld", lapics.size());
+                    lapics.push_back((MADTLapic*)madt_ptr);
+                    break;
+                case 1:
+                    serial::info("ACPI/MADT: Found I/O APIC %ld", ioapics.size());
+                    ioapics.push_back((MADTIOApic*)madt_ptr);
+                    break;
+                case 2:
+                    serial::info("ACPI/MADT: Found ISO %ld", isos.size());
+                    isos.push_back((MADTIso*)madt_ptr);
+                    break;
+                case 4:
+                    serial::info("ACPI/MADT: Found NMI %ld", nmis.size());
+                    nmis.push_back((MADTNmi*)madt_ptr);
+                    break;
+                case 5:
+                    lapic_addr = QWORD_PTR(madt_ptr + 4);
+                    break;
+            }
+        }
+    }
 
     serial::newline();
     initialised = true;

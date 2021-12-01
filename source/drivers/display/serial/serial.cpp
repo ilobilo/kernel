@@ -126,7 +126,7 @@ void init()
 
     serial_printf("\033[0m");
 
-    register_interrupt_handler(idt::IRQS::IRQ4, COM1_Handler);
+    register_interrupt_handler(idt::IRQ4, COM1_Handler);
     outb(COMS::COM1 + 1, 0x01);
 
     initialised = true;

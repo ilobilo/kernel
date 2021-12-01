@@ -6,8 +6,8 @@
 
 namespace kernel::system::sched::pit {
 
-extern uint64_t frequency;
 extern bool initialised;
+extern uint64_t frequency;
 
 void sleep(uint64_t sec);
 void msleep(uint64_t msec);
