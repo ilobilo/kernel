@@ -2,12 +2,27 @@
 
 #pragma once
 
-#include <acpispec/tables.h>
 #include <lib/vector.hpp>
 #include <stdint.h>
 #include <stddef.h>
 
 namespace kernel::system::acpi {
+
+#define ACPI_TIMER 0x0001
+#define ACPI_BUSMASTER 0x0010
+#define ACPI_GLOBAL 0x0020
+#define ACPI_POWER_BUTTON 0x0100
+#define ACPI_SLEEP_BUTTON 0x0200
+#define ACPI_RTC_ALARM 0x0400
+#define ACPI_PCIE_WAKE 0x4000
+#define ACPI_WAKE 0x8000
+
+#define ACPI_ENABLED 0x0001
+#define ACPI_SLEEP 0x2000
+
+#define ACPI_GAS_MMIO 0
+#define ACPI_GAS_IO 1
+#define ACPI_GAS_PCI 2
 
 struct RSDP
 {
@@ -43,7 +58,7 @@ struct MCFGHeader
 
 struct MADTHeader
 {
-    acpi_header_t sdt;
+    SDTHeader sdt;
     uint32_t local_controller_addr;
     uint32_t flags;
     char entries_begin[];
@@ -195,9 +210,23 @@ extern Vector<MADTIOApic*> ioapics;
 extern Vector<MADTIso*> isos;
 extern Vector<MADTNmi*> nmis;
 
+extern uint32_t *SMI_CMD;
+extern uint8_t ACPI_ENABLE;
+extern uint8_t ACPI_DISABLE;
+extern uint32_t PM1a_CNT;
+extern uint32_t PM1b_CNT;
+extern uint16_t SLP_TYPa;
+extern uint16_t SLP_TYPb;
+extern uint16_t SLP_EN;
+extern uint16_t SCI_EN;
+extern uint8_t  PM1_CNT_LEN;
+
 extern uintptr_t lapic_addr;
 
 void init();
+
+void shutdown();
+void reboot();
 
 void *findtable(const char *signature, size_t skip = 0);
 }

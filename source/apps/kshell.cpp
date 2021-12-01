@@ -10,12 +10,9 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <lai/helpers/pm.h>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/io.hpp>
-
-#include <lai/core.h>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -268,12 +265,11 @@ void parse(char *cmd, char *arg)
             outw(0xB004, 0x2000);
             outw(0x604, 0x2000);
             outw(0x4004, 0x3400);
-            lai_enter_sleep(5);
+            acpi::shutdown();
             asm volatile ("cli; hlt");
             break;
         case hash("reboot"):
-            lai_acpi_reset();
-            outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
+            acpi::reboot();
             asm volatile ("cli; hlt");
             break;
         case hash(""):

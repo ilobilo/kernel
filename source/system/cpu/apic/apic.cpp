@@ -4,8 +4,6 @@
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
-#include <lai/helpers/sci.h>
-#include <lai/helpers/pm.h>
 #include <lib/mmio.hpp>
 #include <lib/msr.hpp>
 #include <lib/io.hpp>
@@ -163,11 +161,41 @@ void eoi()
     lapic_write(0xB0, 0);
 }
 
+uint16_t getSCIevent()
+{
+    uint16_t a = 0, b = 0;
+    if (acpi::fadthdr->PM1aEventBlock)
+    {
+        a = inw(acpi::fadthdr->PM1aEventBlock);
+        outw(acpi::fadthdr->PM1aEventBlock, a);
+    }
+    if (acpi::fadthdr->PM1bEventBlock)
+    {
+        b = inw(acpi::fadthdr->PM1bEventBlock);
+        outw(acpi::fadthdr->PM1bEventBlock, b);
+    }
+    return a | b;
+}
+
+void setSCIevent(uint16_t value)
+{
+    uint16_t a = acpi::fadthdr->PM1aEventBlock + (acpi::fadthdr->PM1EventLength / 2);
+    uint16_t b = acpi::fadthdr->PM1bEventBlock + (acpi::fadthdr->PM1EventLength / 2);
+
+    if (acpi::fadthdr->PM1aEventBlock) outw(a, value);
+    if (acpi::fadthdr->PM1bEventBlock) outw(b, value);
+}
+
 static void SCI_Handler(idt::registers_t *)
 {
-    serial::info("test sci");
-    uint16_t event = lai_get_sci_event();
-    if (event & ACPI_POWER_BUTTON) lai_enter_sleep(5);
+    uint16_t event = getSCIevent();
+    if (event & ACPI_POWER_BUTTON)
+    {
+        outw(0xB004, 0x2000);
+        outw(0x604, 0x2000);
+        outw(0x4004, 0x3400);
+        acpi::shutdown();
+    }
 }
 
 void init()
@@ -188,6 +216,9 @@ void init()
 
     pic::disable();
     lapic_init(acpi::lapics[0]->processor_id);
+
+    setSCIevent(ACPI_POWER_BUTTON | ACPI_SLEEP_BUTTON | ACPI_WAKE);
+    getSCIevent();
 
     idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler);
 
