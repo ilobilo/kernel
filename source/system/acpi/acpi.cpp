@@ -2,7 +2,6 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/memory.hpp>
@@ -91,7 +90,7 @@ void madt_init()
 
 void fadt_init()
 {
-    uint64_t dsdtaddr = (is_canonical(fadthdr->X_Dsdt) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
+    uint64_t dsdtaddr = (is_canonical(fadthdr->X_Dsdt && use_xstd) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
     uint8_t *S5Addr = (uint8_t*)dsdtaddr + 36;
     uint64_t dsdtlength = ((SDTHeader*)dsdtaddr)->length;
 

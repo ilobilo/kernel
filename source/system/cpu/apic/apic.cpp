@@ -221,6 +221,7 @@ void init()
     getSCIevent();
 
     idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler);
+    ioapic_redirect_irq(acpi::fadthdr->SCI_Interrupt, acpi::fadthdr->SCI_Interrupt + 32);
 
     serial::newline();
     initialised = true;

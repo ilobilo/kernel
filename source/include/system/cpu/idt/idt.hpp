@@ -68,6 +68,8 @@ using int_handler_t = void (*)(registers_t *);
 extern idt_entry_t idt[];
 extern idtr_t idtr;
 
+extern int_handler_t interrupt_handlers[];
+
 extern bool initialised;
 
 void reload();
