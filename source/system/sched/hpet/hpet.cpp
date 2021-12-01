@@ -48,12 +48,12 @@ void init()
 
     if (initialised)
     {
-        serial::info("HPET has already been initialised!\n");
+        serial::warn("HPET has already been initialised!\n");
         return;
     }
     if (!acpi::hpethdr)
     {
-        serial::info("HPET table not found!\n");
+        serial::err("HPET table not found!\n");
         return;
     }
 

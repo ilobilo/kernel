@@ -27,7 +27,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("PMM has already been initialised!\n");
+        serial::warn("PMM has already been initialised!\n");
         return;
     }
 

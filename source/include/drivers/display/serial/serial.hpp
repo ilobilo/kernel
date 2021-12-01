@@ -13,14 +13,12 @@ enum COMS
 extern bool initialised;
 
 void printc(char c, void *arg);
-
 void serial_printf(const char *fmt, ...);
+void newline();
 
 void info(const char *fmt, ...);
-
+void warn(const char *fmt, ...);
 void err(const char *fmt, ...);
-
-void newline();
 
 void init();
 }

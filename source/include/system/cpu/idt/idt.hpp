@@ -8,17 +8,6 @@ namespace kernel::system::cpu::idt {
 
 #define SYSCALL 0x80
 
-enum PIC
-{
-    PIC1 = 0x20,
-    PIC2 = 0xA0,
-    PIC1_COMMAND = PIC1,
-    PIC1_DATA = (PIC1+1),
-    PIC2_COMMAND = PIC2,
-    PIC2_DATA = (PIC2+1),
-    PIC_EOI = 0x20
-};
-
 enum IRQS
 {
     IRQ0 = 32,
@@ -69,7 +58,9 @@ struct idtr_t
 
 struct registers_t
 {
-    uint64_t r15, r14, r13, r12, r11, r10, r9, r8, rbp, rdi, rsi, rdx, rcx, rbx, rax, int_no, error_code, rip, cs, rflags, rsp, ss;
+    uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
+    uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
+    uint64_t int_no, error_code, rip, cs, rflags, rsp, ss;
 } __attribute__((packed));
 
 using int_handler_t = void (*)(registers_t *);
@@ -77,12 +68,14 @@ using int_handler_t = void (*)(registers_t *);
 extern idt_entry_t idt[];
 extern idtr_t idtr;
 
+extern int_handler_t interrupt_handlers[];
+
 extern bool initialised;
 
 void reload();
 
 void init();
-void register_interrupt_handler(uint8_t n, int_handler_t handler);
+void register_interrupt_handler(uint8_t vector, int_handler_t handler);
 
 extern "C" void int_handler(registers_t *regs);
 }

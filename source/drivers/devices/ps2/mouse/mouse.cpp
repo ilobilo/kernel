@@ -236,7 +236,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("Mouse driver has already been initialised!\n");
+        serial::warn("Mouse driver has already been initialised!\n");
         return;
     }
 
@@ -263,7 +263,7 @@ void init()
 
     asm volatile ("sti");
 
-    register_interrupt_handler(idt::IRQS::IRQ12, Mouse_Handler);
+    register_interrupt_handler(idt::IRQ12, Mouse_Handler);
 
     serial::newline();
     initialised = true;

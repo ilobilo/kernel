@@ -57,9 +57,11 @@ namespace kernel::system::cpu::syscall {
 
 using syscall_t = void (*)(idt::registers_t *);
 
+extern bool initialised;
+
 const char *read(const char *string, int length);
 const char *write(const char *string, int length);
 const char *err(const char *string, int length);
 
-void handler(idt::registers_t *regs);
+void init();
 }

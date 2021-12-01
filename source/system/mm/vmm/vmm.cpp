@@ -153,7 +153,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("VMM has already been initialised!\n");
+        serial::warn("VMM has already been initialised!\n");
         return;
     }
 

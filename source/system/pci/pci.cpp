@@ -68,7 +68,7 @@ translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, i
 {
     if (!initialised)
     {
-        serial::info("PCI has not been initialised!\n");
+        serial::err("PCI has not been initialised!\n");
         return NULL;
     }
     for (uint64_t i = 0; i < pcidevices.size(); i++)
@@ -96,7 +96,7 @@ translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
 {
     if (!initialised)
     {
-        serial::info("PCI has not been initialised!\n");
+        serial::err("PCI has not been initialised!\n");
         return NULL;
     }
     for (uint64_t i = 0; i < pcidevices.size(); i++)
@@ -121,7 +121,7 @@ size_t count(uint16_t vendor, uint16_t device)
 {
     if (!initialised)
     {
-        serial::info("PCI has not been initialised!\n");
+        serial::err("PCI has not been initialised!\n");
         return 0;
     }
     size_t num = 0;
@@ -210,13 +210,13 @@ void init()
 
     if (initialised)
     {
-        serial::info("PCI has already been initialised!\n");
+        serial::warn("PCI has already been initialised!\n");
         return;
     }
     if (!acpi::mcfghdr)
     {
-        serial::info("MCFG was not found");
-        serial::info("This might take some time");
+        serial::err("MCFG was not found");
+        serial::warn("This might take some time");
         legacy = true;
     }
 

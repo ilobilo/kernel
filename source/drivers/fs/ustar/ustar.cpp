@@ -147,7 +147,7 @@ void init(unsigned int address)
 
     if (initialised)
     {
-        serial::info("USTAR initrd has already been mounted!\n");
+        serial::warn("USTAR initrd has already been mounted!\n");
         return;
     }
 

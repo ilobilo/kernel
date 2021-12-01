@@ -11,7 +11,7 @@ using namespace kernel::system::cpu;
 namespace kernel::drivers::display::serial {
 
 bool initialised = false;
-DEFINE_LOCK(lock);
+DEFINE_LOCK(lock)
 
 bool check()
 {
@@ -57,7 +57,19 @@ void info(const char *fmt, ...)
     acquire_lock(&lock);
     va_list args;
     va_start(args, fmt);
-    vfctprintf(&printc, nullptr, "[\033[33mINFO\033[0m] ", args);
+    vfctprintf(&printc, nullptr, "[INFO] ", args);
+    vfctprintf(&printc, nullptr, fmt, args);
+    vfctprintf(&printc, nullptr, "\n", args);
+    va_end(args);
+    release_lock(&lock);
+}
+
+void warn(const char *fmt, ...)
+{
+    acquire_lock(&lock);
+    va_list args;
+    va_start(args, fmt);
+    vfctprintf(&printc, nullptr, "[\033[33mWARN\033[0m] ", args);
     vfctprintf(&printc, nullptr, fmt, args);
     vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
@@ -112,10 +124,9 @@ void init()
     outb(COMS::COM1 + 2, 0xC7);
     outb(COMS::COM1 + 4, 0x0B);
 
-    //serial_printf("\033[H\033[0m\033[2J");
     serial_printf("\033[0m");
 
-    register_interrupt_handler(idt::IRQS::IRQ4, COM1_Handler);
+    register_interrupt_handler(idt::IRQ4, COM1_Handler);
     outb(COMS::COM1 + 1, 0x01);
 
     initialised = true;

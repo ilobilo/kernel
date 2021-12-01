@@ -10,7 +10,7 @@
 
 namespace kernel::drivers::display::terminal {
 
-DEFINE_LOCK(lock);
+DEFINE_LOCK(lock)
 
 uint16_t columns;
 uint16_t rows;

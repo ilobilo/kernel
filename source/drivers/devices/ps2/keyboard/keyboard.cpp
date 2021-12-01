@@ -6,12 +6,14 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <system/acpi/acpi.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
+using namespace kernel::system;
 
 namespace kernel::drivers::ps2::kbd {
 
@@ -53,12 +55,8 @@ void handle_comb(uint8_t scancode)
 {
     char ch = get_ascii_char(scancode);
 
-    // Crash the os: CTRL + ALT + DEL
-    if (kbd_mod.ctrl && kbd_mod.alt && scancode == keys::DELETE)
-    {
-        asm volatile ("int $0x3");
-        asm volatile ("int $0x4");
-    }
+    // Reboot the os: CTRL + ALT + DEL
+    if (kbd_mod.ctrl && kbd_mod.alt && scancode == keys::DELETE) acpi::reboot();
     else if (kbd_mod.ctrl && ((ch == 'l') || (ch == 'L')))
     {
         terminal::clear();
@@ -219,12 +217,12 @@ void init()
 
     if (initialised)
     {
-        serial::info("Keyboard driver has already been initialised!\n");
+        serial::warn("Keyboard driver has already been initialised!\n");
         return;
     }
 
     buff[0] = '\0';
-    register_interrupt_handler(idt::IRQS::IRQ1, Keyboard_Handler);
+    register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
 
     serial::newline();
     initialised = true;

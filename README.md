@@ -6,44 +6,91 @@ Contributors are welcome
 
 ## TODO
 
+### System
 - [x] GDT
 - [x] IDT
-- [x] PS2 Keyboard
-- [x] PS2 Mouse
-- [x] PIT
-- [x] RTC
-- [x] Initrd
+- [x] TSS
+- [x] PCI
+
+### Display
 - [x] Drawing on framebuffer
 - [x] Serial debugging
+
+### Memory
 - [x] PMM
 - [x] VMM
 - [x] Heap
-- [x] VFS
-- [x] DEVFS
+
+### ACPI
 - [x] ACPI
+- [x] LAPIC
+- [x] IOAPIC
 - [x] Shutdown
 - [x] Reboot
-- [x] PCI
-- [x] HPET
+
+### Audio
+- [x] PC speaker
+- [ ] AC97
+- [ ] SB16
+- [ ] HDA
+
+### Peripherals
+- [x] PS2 Keyboard
+- [x] PS2 Mouse
+
+### VMs
 - [x] VMWare Tools
-- [x] Audio (PC speaker)
+- [ ] VBox Guest Additions
+
+### Disk
+- [ ] ATA
+- [ ] ATAPI
 - [ ] AHCI
-- [ ] Ext2
-- [ ] Fat
+- [ ] SCSI
+- [ ] NVMe
+- [ ] FDC
+
+### Timers
+- [x] HPET
+- [x] PIT
+- [x] RTC
+- [ ] LAPIC Timer
+
+### Tasking
+- [x] SMP
 - [ ] Threading
 - [ ] Scheduling
-- [x] TSS
-- [x] SMP
-- [ ] Userspace
+
+### Filesystem
+- [x] VFS
+- [x] DEVFS
+- [x] Initrd
+- [ ] Ext2
+- [ ] Fat32
+- [ ] ISO9660
+
+### Userspace
 - [x] System calls
 - [ ] ELF
+- [ ] Userspace
 - [ ] Libc
 - [ ] Bash
 - [ ] Coreutils
-- [ ] Network
-- [ ] USB
+
+### Network
+- [ ] ARP
+- [ ] ICMP
+- [ ] TCP
+- [ ] UDP
+
+### USB
+- [ ] OHCI/UHCI
+- [ ] EHCI
+- [ ] XHCI
 - [ ] USB Keyboard
 - [ ] USB Mouse
+
+### Other
 - [ ] GUI (Window manager)
 
 ## Building And Running
@@ -75,9 +122,9 @@ https://discord.gg/fM5GK3RpS7
 
 ## Resources used:
 * Printf: https://github.com/eyalroz/printf
-* Lai: https://github.com/managarm/lai
 * Osdev wiki: https://wiki.osdev.org
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
 * LyreOS: https://github.com/lyre-os/lyre
+* PolarisOS: https://github.com/NSG650/Polaris
