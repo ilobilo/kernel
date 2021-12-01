@@ -90,7 +90,7 @@ void madt_init()
 
 void dsdt_init()
 {
-    uint64_t dsdtaddr = (is_canonical(fadthdr->X_Dsdt && use_xstd) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
+    uint64_t dsdtaddr = ((is_canonical(fadthdr->X_Dsdt) && use_xstd) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
     uint8_t *S5Addr = (uint8_t*)dsdtaddr + 36;
     uint64_t dsdtlength = ((SDTHeader*)dsdtaddr)->length;
 
