@@ -158,7 +158,6 @@ void irq_handler(registers_t *regs)
 void int_handler(registers_t *regs)
 {
     if (regs->int_no < 32) exception_handler(regs);
-    else if (regs->int_no < 48) irq_handler(regs);
-    else if (regs->int_no == SYSCALL) syscall::handler(regs);
+    irq_handler(regs);
 }
 }

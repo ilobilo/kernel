@@ -6,6 +6,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
@@ -171,6 +172,10 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising DEV filesystem...");
     devfs::init();
     terminal::okerr(devfs::initialised);
+
+    terminal::check("Initialising System calls...");
+    syscall::init();
+    terminal::okerr(syscall::initialised);
 
     terminal::check("Initialising PS2 Keyboard...");
     ps2::kbd::init();
