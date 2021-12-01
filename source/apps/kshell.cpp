@@ -25,7 +25,7 @@ namespace kernel::apps::kshell {
 
 vfs::fs_node_t *current_path;
 
-void shell_parse(char *cmd, char *arg)
+void parse(char *cmd, char *arg)
 {
     switch (hash(cmd))
     {
@@ -262,13 +262,16 @@ void shell_parse(char *cmd, char *arg)
             break;
         case hash("shutdown"):
         case hash("poweroff"):
+            acpi::shutdown();
+            pit::msleep(50);
             outw(0xB004, 0x2000);
             outw(0x604, 0x2000);
             outw(0x4004, 0x3400);
-            asm volatile ("hlt");
+            printf("\033[31mCould not shutdown!\033[0m\n");
             break;
         case hash("reboot"):
-            outb(acpi::fadthdr->ResetReg.Address, acpi::fadthdr->ResetValue);
+            acpi::reboot();
+            printf("\033[31mCould not reboot!\033[0m\n");
             break;
         case hash(""):
             break;
@@ -302,6 +305,6 @@ void run()
     char *arg = strrm(command, cmd);
     arg = strrm(arg, " ");
 
-    shell_parse(cmd, arg);
+    parse(cmd, arg);
 }
 }

@@ -6,6 +6,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
@@ -14,6 +15,7 @@
 #include <drivers/vmware/vmware.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -128,6 +130,34 @@ void main(struct stivale2_struct *stivale2_struct)
     heap::init();
     terminal::okerr(heap::initialised);
 
+    terminal::check("Initialising Global Descriptor Table...");
+    gdt::init();
+    terminal::okerr(gdt::initialised);
+
+    terminal::check("Initialising Interrupt Descriptor Table...");
+    idt::init();
+    terminal::okerr(idt::initialised);
+
+    terminal::check("Initialising ACPI...");
+    acpi::init();
+    terminal::okerr(acpi::initialised);
+
+    terminal::check("Initialising HPET...");
+    hpet::init();
+    terminal::okerr(hpet::initialised);
+
+    terminal::check("Initialising PCI...");
+    pci::init();
+    terminal::okerr(pci::initialised);
+
+    terminal::check("Initialising APIC...");
+    apic::init();
+    terminal::okerr(apic::initialised);
+
+    terminal::check("Initialising SMP...");
+    smp::init();
+    terminal::okerr(smp::initialised);
+
     terminal::check("Initialising Virtual filesystem...");
     vfs::init();
     terminal::okerr(vfs::initialised);
@@ -144,33 +174,13 @@ void main(struct stivale2_struct *stivale2_struct)
     devfs::init();
     terminal::okerr(devfs::initialised);
 
-    terminal::check("Initialising Global Descriptor Table...");
-    gdt::init();
-    terminal::okerr(gdt::initialised);
-
-    terminal::check("Initialising Interrupt Descriptor Table...");
-    idt::init();
-    terminal::okerr(idt::initialised);
-
-    terminal::check("Initialising SMP...");
-    smp::init();
-    terminal::okerr(smp::initialised);
-
-    terminal::check("Initialising ACPI...");
-    acpi::init();
-    terminal::okerr(acpi::initialised);
-
-    terminal::check("Initialising PCI...");
-    pci::init();
-    terminal::okerr(pci::initialised);
-
-    terminal::check("Initialising HPET...");
-    hpet::init();
-    terminal::okerr(hpet::initialised);
-
     terminal::check("Initialising PIT...");
     pit::init();
     terminal::okerr(pit::initialised);
+
+    terminal::check("Initialising System calls...");
+    syscall::init();
+    terminal::okerr(syscall::initialised);
 
     terminal::check("Initialising PS2 Keyboard...");
     ps2::kbd::init();

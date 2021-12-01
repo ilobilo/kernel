@@ -3,8 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/source/include/",
-                "${workspaceFolder}/source/include/lai/"
+                "${workspaceFolder}/source/include/"
             ],
             "defines": [
                 "GIT_VERSION=0",

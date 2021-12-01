@@ -14,6 +14,8 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::syscall {
 
+bool initialised = false;
+
 static void syscall_read(idt::registers_t *regs)
 {
     char *str = (char*)"Read currently not working!\n";
@@ -56,7 +58,7 @@ syscall_t syscalls[] = {
     [1] = syscall_write
 };
 
-void handler(idt::registers_t *regs)
+static void handler(idt::registers_t *regs)
 {
     if (S_RAX >= ZERO && syscalls[S_RAX]) syscalls[S_RAX](regs);
 }
@@ -78,5 +80,21 @@ const char *err(const char *string, int length)
     uint64_t ret;
     SYSCALL3(SYSCALL_WRITE, 2, (uint64_t)string, (uint64_t)length);
     return (const char*)ret;
+}
+
+void init()
+{
+    serial::info("Initialising System calls");
+
+    if (initialised)
+    {
+        serial::warn("System calls have already been initialised!\n");
+        return;
+    }
+
+    register_interrupt_handler(SYSCALL, handler);
+
+    serial::newline();
+    initialised = true;
 }
 }

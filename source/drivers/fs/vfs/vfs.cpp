@@ -12,7 +12,7 @@ namespace kernel::drivers::fs::vfs {
 bool initialised = false;
 bool debug = false;
 fs_node_t *fs_root;
-DEFINE_LOCK(vfs_lock);
+DEFINE_LOCK(vfs_lock)
 
 uint64_t read_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer)
 {
@@ -309,7 +309,7 @@ void init()
 
     if (initialised)
     {
-        serial::info("VFS has already been installed!\n");
+        serial::warn("VFS has already been installed!\n");
         return;
     }
 

@@ -2,10 +2,27 @@
 
 #pragma once
 
-#include <acpispec/tables.h>
+#include <lib/vector.hpp>
 #include <stdint.h>
+#include <stddef.h>
 
 namespace kernel::system::acpi {
+
+#define ACPI_TIMER 0x0001
+#define ACPI_BUSMASTER 0x0010
+#define ACPI_GLOBAL 0x0020
+#define ACPI_POWER_BUTTON 0x0100
+#define ACPI_SLEEP_BUTTON 0x0200
+#define ACPI_RTC_ALARM 0x0400
+#define ACPI_PCIE_WAKE 0x4000
+#define ACPI_WAKE 0x8000
+
+#define ACPI_ENABLED 0x0001
+#define ACPI_SLEEP 0x2000
+
+#define ACPI_GAS_MMIO 0
+#define ACPI_GAS_IO 1
+#define ACPI_GAS_PCI 2
 
 struct RSDP
 {
@@ -37,6 +54,54 @@ struct MCFGHeader
 {
     SDTHeader header;
     uint64_t reserved;
+} __attribute__((packed));
+
+struct MADTHeader
+{
+    SDTHeader sdt;
+    uint32_t local_controller_addr;
+    uint32_t flags;
+    char entries_begin[];
+} __attribute__((packed));
+
+struct MADT
+{
+    uint8_t type;
+    uint8_t length;
+} __attribute__((packed));
+
+struct MADTLapic
+{
+    MADT madtHeader;
+    uint8_t processor_id;
+    uint8_t apic_id;
+    uint32_t flags;
+} __attribute__((packed));
+
+struct MADTIOApic
+{
+    MADT madtHeader;
+    uint8_t apic_id;
+    uint8_t reserved;
+    uint32_t addr;
+    uint32_t gsib;
+} __attribute__((packed));
+
+struct MADTIso
+{
+    MADT madtHeader;
+    uint8_t bus_source;
+    uint8_t irq_source;
+    uint32_t gsi;
+    uint16_t flags;
+} __attribute__((packed));
+
+struct MADTNmi
+{
+    MADT madtHeader;
+    uint8_t processor;
+    uint16_t flags;
+    uint8_t lint;
 } __attribute__((packed));
 
 struct GenericAddressStructure
@@ -129,16 +194,39 @@ struct deviceconfig
 } __attribute__((packed));
 
 extern bool initialised;
+extern bool madt;
 
 extern bool use_xstd;
 extern RSDP *rsdp;
 
 extern MCFGHeader *mcfghdr;
+extern MADTHeader *madthdr;
 extern FADTHeader *fadthdr;
 extern HPETHeader *hpethdr;
 extern SDTHeader *rsdt;
 
+extern Vector<MADTLapic*> lapics;
+extern Vector<MADTIOApic*> ioapics;
+extern Vector<MADTIso*> isos;
+extern Vector<MADTNmi*> nmis;
+
+extern uint32_t *SMI_CMD;
+extern uint8_t ACPI_ENABLE;
+extern uint8_t ACPI_DISABLE;
+extern uint32_t PM1a_CNT;
+extern uint32_t PM1b_CNT;
+extern uint16_t SLP_TYPa;
+extern uint16_t SLP_TYPb;
+extern uint16_t SLP_EN;
+extern uint16_t SCI_EN;
+extern uint8_t  PM1_CNT_LEN;
+
+extern uintptr_t lapic_addr;
+
 void init();
 
-void *findtable(const char *signature);
+void shutdown();
+void reboot();
+
+void *findtable(const char *signature, size_t skip = 0);
 }
