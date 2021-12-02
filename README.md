@@ -32,7 +32,6 @@ Contributors are welcome
 - [x] PC speaker
 - [ ] AC97
 - [ ] SB16
-- [ ] HDA
 
 ### Peripherals
 - [x] PS2 Keyboard

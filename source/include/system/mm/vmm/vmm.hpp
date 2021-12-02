@@ -39,9 +39,8 @@ struct PTable
     PDEntry entries[512];
 } __attribute__((aligned(0x1000)));
 
-class Pagemap
+struct Pagemap
 {
-    public:
     PTable *PML4;
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));

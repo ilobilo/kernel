@@ -5,6 +5,8 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <lib/memory.hpp>
+#include <lib/math.hpp>
+#include <main.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -69,6 +71,7 @@ void Pagemap::unmapMem(uint64_t vaddr)
 
     pml1->entries[pml1_entry].setAddr(0);
     pml1->entries[pml1_entry].setflags((Present | ReadWrite | UserSuper | WriteThrough | CacheDisable | Accessed | LargerPages | Custom1 | Custom2 | NX), false);
+    asm volatile ("invlpg (%0)" :: "r"(vaddr));
 }
 
 void Pagemap::mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
@@ -117,10 +120,13 @@ Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
     pagemap->PML4 = (PTable*)pmm::requestPage();
-    
-    PTable *pml4 = pagemap->PML4;
-    PTable *kernel_pml4 = kernel_pagemap->PML4;
-    for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
+
+    if (kernel_pagemap != NULL)
+    {
+        PTable *pml4 = pagemap->PML4;
+        PTable *kernel_pml4 = kernel_pagemap->PML4;
+        for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
+    }
 
     return pagemap;
 }
@@ -146,7 +152,7 @@ CRs getCRs()
     );
     return {cr0, cr2, cr3};
 }
-#include <main.hpp>
+
 void init()
 {
     serial::info("Initialising VMM");
@@ -157,7 +163,36 @@ void init()
         return;
     }
 
-    kernel_pagemap->PML4 = (PTable*)getCRs().cr3;
+    kernel_pagemap->PML4 = (PTable*)pmm::requestPage();
+    
+    for (uintptr_t p = 0; p < 0x100000000; p += 0x200000)
+    {
+        kernel_pagemap->mapMem(p, p, Present | ReadWrite | LargerPages);
+        kernel_pagemap->mapMem(p + hhdm_tag->addr, p, Present | ReadWrite | LargerPages);
+    }
+
+    for (size_t i = 0; i < pmrs_tag->entries; i++)
+    {
+        uintptr_t vaddr = pmrs_tag->pmrs[i].base;
+        uintptr_t paddr = kbaddr_tag->physical_base_address + (vaddr - kbaddr_tag->virtual_base_address);
+        uintptr_t flags = ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_EXECUTABLE) ? 0 : NX) | ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_WRITABLE) ? ReadWrite : 0) | Present;
+        for (uintptr_t p = 0; p < pmrs_tag->pmrs[i].length; p += 0x1000)
+        {
+            kernel_pagemap->mapMem(p + vaddr, p + paddr, flags);
+        }
+    }
+
+    for (size_t i = 0; i < mmap_tag->entries; i++)
+    {
+        uintptr_t base = ALIGN_DOWN(mmap_tag->memmap[i].base, 0x200000);
+        uintptr_t top = ALIGN_UP(mmap_tag->memmap[i].base + mmap_tag->memmap[i].length, 0x200000);
+        uintptr_t length = top - base;
+        for (uintptr_t p = 0; p < length; p += 0x200000)
+        {
+            kernel_pagemap->mapMem(p + base, p + base, Present | ReadWrite | LargerPages);
+            kernel_pagemap->mapMem(p + base + hhdm_tag->addr, p + base, Present | ReadWrite | LargerPages);
+        }
+    }
 
     switchPagemap(kernel_pagemap);
 
