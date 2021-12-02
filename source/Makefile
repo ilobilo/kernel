@@ -46,7 +46,10 @@ INTERNALLDFLAGS :=           \
 	-T$(SOURCEDIR)/linker.ld \
 	-nostdlib                \
 	-zmax-page-size=0x1000   \
-	-static
+	-static                  \
+	-pie                     \
+	--no-dynamic-linker      \
+	-ztext
 
 INTERNALCFLAGS  :=             \
 	-target x86_64-pc-none-elf \
@@ -55,7 +58,7 @@ INTERNALCFLAGS  :=             \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
-	-fno-pic                   \
+	-fpie                      \
 	-mno-80387                 \
 	-mno-mmx                   \
 	-mno-3dnow                 \
@@ -71,7 +74,7 @@ INTERNALCPPFLAGS  :=           \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
-	-fno-pic                   \
+	-fpie                      \
 	-mno-80387                 \
 	-mno-mmx                   \
 	-mno-3dnow                 \
