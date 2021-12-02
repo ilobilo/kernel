@@ -43,11 +43,11 @@ void trace()
 {
     static stackframe_t *sf;
     asm("movq %%rbp, %0" : "=r"(sf));
-    sf = sf->frame->frame;
+    sf = sf->frame->frame->frame;
 
     serial::err("Stack trace:");
 
-    for (size_t i = 0; i < 10 && sf; i++)
+    for (size_t i = 0; i < 15 && sf; i++)
     {
         if (!backtrace(sf->rip, i)) break;
         sf = sf->frame;
