@@ -163,36 +163,38 @@ void init()
         return;
     }
 
-    kernel_pagemap->PML4 = (PTable*)pmm::requestPage();
+    kernel_pagemap->PML4 = (PTable*)getCRs().cr3;
+
+    // kernel_pagemap->PML4 = (PTable*)pmm::requestPage();
     
-    for (uintptr_t p = 0; p < 0x100000000; p += 0x200000)
-    {
-        kernel_pagemap->mapMem(p, p, Present | ReadWrite | LargerPages);
-        kernel_pagemap->mapMem(p + hhdm_tag->addr, p, Present | ReadWrite | LargerPages);
-    }
+    // for (uintptr_t p = 0; p < 0x100000000; p += 0x200000)
+    // {
+    //     kernel_pagemap->mapMem(p, p, Present | ReadWrite | LargerPages);
+    //     kernel_pagemap->mapMem(p + hhdm_tag->addr, p, Present | ReadWrite | LargerPages);
+    // }
 
-    for (size_t i = 0; i < pmrs_tag->entries; i++)
-    {
-        uintptr_t vaddr = pmrs_tag->pmrs[i].base;
-        uintptr_t paddr = kbaddr_tag->physical_base_address + (vaddr - kbaddr_tag->virtual_base_address);
-        uintptr_t flags = ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_EXECUTABLE) ? 0 : NX) | ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_WRITABLE) ? ReadWrite : 0) | Present;
-        for (uintptr_t p = 0; p < pmrs_tag->pmrs[i].length; p += 0x1000)
-        {
-            kernel_pagemap->mapMem(p + vaddr, p + paddr, flags);
-        }
-    }
+    // for (size_t i = 0; i < pmrs_tag->entries; i++)
+    // {
+    //     uintptr_t vaddr = pmrs_tag->pmrs[i].base;
+    //     uintptr_t paddr = kbaddr_tag->physical_base_address + (vaddr - kbaddr_tag->virtual_base_address);
+    //     uintptr_t flags = ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_EXECUTABLE) ? 0 : NX) | ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_WRITABLE) ? ReadWrite : 0) | Present;
+    //     for (uintptr_t p = 0; p < pmrs_tag->pmrs[i].length; p += 0x1000)
+    //     {
+    //         kernel_pagemap->mapMem(p + vaddr, p + paddr, flags);
+    //     }
+    // }
 
-    for (size_t i = 0; i < mmap_tag->entries; i++)
-    {
-        uintptr_t base = ALIGN_DOWN(mmap_tag->memmap[i].base, 0x200000);
-        uintptr_t top = ALIGN_UP(mmap_tag->memmap[i].base + mmap_tag->memmap[i].length, 0x200000);
-        uintptr_t length = top - base;
-        for (uintptr_t p = 0; p < length; p += 0x200000)
-        {
-            kernel_pagemap->mapMem(p + base, p + base, Present | ReadWrite | LargerPages);
-            kernel_pagemap->mapMem(p + base + hhdm_tag->addr, p + base, Present | ReadWrite | LargerPages);
-        }
-    }
+    // for (size_t i = 0; i < mmap_tag->entries; i++)
+    // {
+    //     uintptr_t base = ALIGN_DOWN(mmap_tag->memmap[i].base, 0x200000);
+    //     uintptr_t top = ALIGN_UP(mmap_tag->memmap[i].base + mmap_tag->memmap[i].length, 0x200000);
+    //     uintptr_t length = top - base;
+    //     for (uintptr_t p = 0; p < length; p += 0x200000)
+    //     {
+    //         kernel_pagemap->mapMem(p + base, p + base, Present | ReadWrite | LargerPages);
+    //         kernel_pagemap->mapMem(p + base + hhdm_tag->addr, p + base, Present | ReadWrite | LargerPages);
+    //     }
+    // }
 
     switchPagemap(kernel_pagemap);
 
