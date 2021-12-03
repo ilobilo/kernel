@@ -27,6 +27,7 @@
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/panic.hpp>
 #include <stivale2.h>
 #include <kernel.hpp>
 #pragma endregion include
@@ -99,21 +100,11 @@ void main(struct stivale2_struct *stivale2_struct)
     }
     serial::newline();
 
-    if (frm_tag == NULL)
-    {
-        serial::err("Framebuffer has not been initialised!");
-        serial::err("System halted!\n");
-        while (true) asm volatile ("cli; hlt");
-    }
+    if (frm_tag == NULL) PANIC("Could not find framebuffer tag!");
     framebuffer::init();
     ssfn::init();
 
-    if (term_tag == NULL)
-    {
-        serial::err("Terminal has not been initialised!");
-        serial::err("System halted!\n");
-        while (true) asm volatile ("cli; hlt");
-    }
+    if (term_tag == NULL) PANIC("Could not find terminal tag!");
     terminal::init();
 
     terminal::center("Welcome to kernel project");

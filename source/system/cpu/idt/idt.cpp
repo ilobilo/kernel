@@ -3,11 +3,11 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/trace/trace.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/pic/pic.hpp>
+#include <lib/lock.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -17,7 +17,6 @@ namespace kernel::system::cpu::idt {
 DEFINE_LOCK(idt_lock)
 bool initialised = false;
 
-__attribute__((aligned(0x10)))
 idt_entry_t idt[256];
 idtr_t idtr;
 
@@ -25,7 +24,7 @@ int_handler_t interrupt_handlers[256];
 
 void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 {
-    idt_desc_t *descriptor = (idt_desc_t *)&idt[vector];
+    idt_entry_t *descriptor = (idt_entry_t*)&idt[vector];
 
     descriptor->offset_1       = (uint64_t)isr & 0xFFFF;
     descriptor->selector       = 0x28;
@@ -54,12 +53,12 @@ void init()
         return;
     }
 
-    acquire_lock(&idt_lock);
+    acquire_lock(idt_lock);
 
     trace::init();
 
+    idtr.limit = (uint16_t)sizeof(idt_entry_t) * 256 - 1;
     idtr.base = (uintptr_t)&idt[0];
-    idtr.limit = (uint16_t)sizeof(idt_desc_t) * 256 - 1;
 
     for (size_t i = 0; i < 256; i++) idt_set_descriptor(i, int_table[i], 0x8E);
 
@@ -69,7 +68,7 @@ void init()
 
     serial::newline();
     initialised = true;
-    release_lock(&idt_lock);
+    release_lock(idt_lock);
 }
 
 void register_interrupt_handler(uint8_t vector, int_handler_t handler)
@@ -153,6 +152,13 @@ void exception_handler(registers_t *regs)
 
 void irq_handler(registers_t *regs)
 {
+    if (regs->int_no == 32)
+    {
+        if (apic::initialised) apic::eoi();
+        else pic::eoi(32);
+        if (interrupt_handlers[32]) interrupt_handlers[32](regs);
+        return;
+    }
     if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
     if (apic::initialised) apic::eoi();
     else pic::eoi(regs->int_no);

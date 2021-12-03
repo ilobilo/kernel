@@ -28,7 +28,7 @@ enum IRQS
     IRQ15 = 47,
 };
 
-struct idt_desc_t
+struct [[gnu::packed]] idt_entry_t
 {
     uint16_t offset_1;
     uint16_t selector;
@@ -39,29 +39,18 @@ struct idt_desc_t
     uint32_t zero;
 };
 
-struct idt_entry_t
-{
-    uint16_t isr_low;
-    uint16_t kernel_cs;
-    uint8_t ist;
-    uint8_t attributes;
-    uint16_t isr_mid;
-    uint32_t isr_high;
-    uint32_t reserved;
-} __attribute__((packed));
-
-struct idtr_t
+struct [[gnu::packed]] idtr_t
 {
     uint16_t limit;
     uint64_t base;
-} __attribute__((packed));
+};
 
-struct registers_t
+struct [[gnu::packed]] registers_t
 {
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
     uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
     uint64_t int_no, error_code, rip, cs, rflags, rsp, ss;
-} __attribute__((packed));
+};
 
 using int_handler_t = void (*)(registers_t *);
 

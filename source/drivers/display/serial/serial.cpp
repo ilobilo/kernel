@@ -2,8 +2,8 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <lib/lock.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::system::cpu;
@@ -35,7 +35,7 @@ char read()
     return inb(COMS::COM1);
 }
 
-void printc(char c, __attribute__((unused)) void *arg)
+void printc(char c, [[gnu::unused]] void *arg)
 {
     if (!check()) return;
     while (!is_transmit_empty());
@@ -44,48 +44,48 @@ void printc(char c, __attribute__((unused)) void *arg)
 
 void serial_printf(const char *fmt, ...)
 {
-    acquire_lock(&lock);
+    acquire_lock(lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, fmt, args);
     va_end(args);
-    release_lock(&lock);
+    release_lock(lock);
 }
 
 void info(const char *fmt, ...)
 {
-    acquire_lock(&lock);
+    acquire_lock(lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, "[INFO] ", args);
     vfctprintf(&printc, nullptr, fmt, args);
     vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
-    release_lock(&lock);
+    release_lock(lock);
 }
 
 void warn(const char *fmt, ...)
 {
-    acquire_lock(&lock);
+    acquire_lock(lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, "[\033[33mWARN\033[0m] ", args);
     vfctprintf(&printc, nullptr, fmt, args);
     vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
-    release_lock(&lock);
+    release_lock(lock);
 }
 
 void err(const char *fmt, ...)
 {
-    acquire_lock(&lock);
+    acquire_lock(lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, "[\033[31mERROR\033[0m] ", args);
     vfctprintf(&printc, nullptr, fmt, args);
     vfctprintf(&printc, nullptr, "\n", args);
     va_end(args);
-    release_lock(&lock);
+    release_lock(lock);
 }
 
 void newline()

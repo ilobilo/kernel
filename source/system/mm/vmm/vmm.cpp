@@ -121,12 +121,21 @@ Pagemap *newPagemap()
     Pagemap *pagemap = new Pagemap;
     pagemap->PML4 = (PTable*)pmm::requestPage();
 
-    if (kernel_pagemap != NULL)
-    {
-        PTable *pml4 = pagemap->PML4;
-        PTable *kernel_pml4 = kernel_pagemap->PML4;
-        for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
-    }
+    PTable *pml4 = pagemap->PML4;
+    PTable *kernel_pml4 = kernel_pagemap->PML4;
+    for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
+
+    return pagemap;
+}
+
+Pagemap *clonePagemap(Pagemap *old)
+{
+    Pagemap *pagemap = new Pagemap;
+    pagemap->PML4 = (PTable*)pmm::requestPage();
+
+    PTable *pml4 = pagemap->PML4;
+    PTable *old_pml4 = old->PML4;
+    for (size_t i = 0; i < 512; i++) pml4->entries[i] = old_pml4->entries[i];
 
     return pagemap;
 }

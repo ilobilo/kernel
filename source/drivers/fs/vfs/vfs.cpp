@@ -1,9 +1,9 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <lib/string.hpp>
+#include <lib/lock.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -59,7 +59,7 @@ fs_node_t *getchild(fs_node_t *parent, const char *path)
 
     if (*path == '\0')
     {
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
     for (size_t i = 0; i < parent_node->children.size(); i++)
@@ -100,17 +100,17 @@ void remove_child(fs_node_t *parent, const char *name)
 
 fs_node_t *open(fs_node_t *parent, const char *path)
 {
-    acquire_lock(&vfs_lock);
+    acquire_lock(vfs_lock);
     if (!path)
     {
         if (debug) serial::err("VFS: Invalid path!");
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
     if (strchr(path, ' '))
     {
         if (debug) serial::err("VFS: Paths must not contain spaces!");
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
 
@@ -128,7 +128,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
             serial::err("VFS: Couldn't find directory /");
             serial::err("VFS: Is root mounted?");
         }
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
     if (!strcmp(path, "/")) return parent;
@@ -183,29 +183,29 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     }
 
     heap::free(patharr);
-    release_lock(&vfs_lock);
+    release_lock(vfs_lock);
     return child_node;
 
     notfound:
     if (debug) serial::err("VFS: File not found!");
     heap::free(patharr);
-    release_lock(&vfs_lock);
+    release_lock(vfs_lock);
     return NULL;
 }
 
 fs_node_t *create(fs_node_t *parent, const char *path)
 {
-    acquire_lock(&vfs_lock);
+    acquire_lock(vfs_lock);
     if (!path)
     {
         if (debug) serial::err("VFS: Invalid path!");
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
     if (strchr(path, ' '))
     {
         if (debug) serial::err("VFS: Paths must not contain spaces!");
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
 
@@ -223,7 +223,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
             serial::err("VFS: Couldn't find directory /");
             serial::err("VFS: Is root mounted?");
         }
-        release_lock(&vfs_lock);
+        release_lock(vfs_lock);
         return NULL;
     }
 
@@ -270,7 +270,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         goto next;
     }
 
-    release_lock(&vfs_lock);
+    release_lock(vfs_lock);
     return child_node;
 }
 

@@ -1,16 +1,14 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
-#include <lib/math.hpp>
-#include <lib/msr.hpp>
-#include <stivale2.h>
+#include <lib/lock.hpp>
+#include <lib/cpu.hpp>
 #include <main.hpp>
 
 using namespace kernel::drivers::display;
@@ -21,12 +19,13 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 
 DEFINE_LOCK(cpu_lock)
+volatile int cpus_up = 0;
 cpu_t *cpus;
 
 extern "C" void InitSSE();
 static void cpu_init(stivale2_smp_info *cpu)
 {
-    acquire_lock(&cpu_lock);
+    acquire_lock(cpu_lock);
     gdt::reloadall(cpu->lapic_id);
     idt::reload();
 
@@ -41,8 +40,9 @@ static void cpu_init(stivale2_smp_info *cpu)
 
     serial::info("CPU %ld is up", this_cpu->lapic_id);
     this_cpu->up = true;
+    cpus_up++;
 
-    release_lock(&cpu_lock);
+    release_lock(cpu_lock);
     if (cpu->lapic_id != smp_tag->bsp_lapic_id)
     {
         if (apic::initialised) apic::lapic_init(this_cpu->lapic_id);
@@ -82,7 +82,7 @@ void init()
         else cpu_init(&smp_tag->smp_info[i]);
     }
 
-    for (size_t i = 0; i < smp_tag->cpu_count; i++) while (!cpus[i].up);
+    while (cpus_up < smp_tag->cpu_count);
 
     serial::info("All CPUs are up\n");
     initialised = true;

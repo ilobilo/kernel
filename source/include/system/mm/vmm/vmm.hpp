@@ -34,10 +34,10 @@ struct PDEntry
     uint64_t getAddr();
 };
 
-struct PTable
+struct [[gnu::aligned(0x1000)]] PTable
 {
     PDEntry entries[512];
-} __attribute__((aligned(0x1000)));
+};
 
 struct Pagemap
 {
@@ -59,6 +59,7 @@ extern bool initialised;
 extern Pagemap *kernel_pagemap;
 
 Pagemap *newPagemap();
+Pagemap *clonePagemap(Pagemap *old);
 void switchPagemap(Pagemap *pmap);
 
 CRs getCRs();

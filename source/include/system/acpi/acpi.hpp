@@ -24,7 +24,7 @@ namespace kernel::system::acpi {
 #define ACPI_GAS_IO 1
 #define ACPI_GAS_PCI 2
 
-struct RSDP
+struct [[gnu::packed]] RSDP
 {
     unsigned char signature[8];
     uint8_t chksum;
@@ -35,9 +35,9 @@ struct RSDP
     uint64_t xsdtaddr;
     uint8_t extchksum;
     uint8_t reserved[3];
-} __attribute__((packed));
+};
 
-struct SDTHeader
+struct [[gnu::packed]] SDTHeader
 {
     unsigned char signature[4];
     uint32_t length;
@@ -48,72 +48,72 @@ struct SDTHeader
     uint32_t oemrevision;
     uint32_t creatid;
     uint32_t creatrevision;
-} __attribute__((packed));
+};
 
-struct MCFGHeader
+struct [[gnu::packed]] MCFGHeader
 {
     SDTHeader header;
     uint64_t reserved;
-} __attribute__((packed));
+};
 
-struct MADTHeader
+struct [[gnu::packed]] MADTHeader
 {
     SDTHeader sdt;
     uint32_t local_controller_addr;
     uint32_t flags;
     char entries_begin[];
-} __attribute__((packed));
+};
 
-struct MADT
+struct [[gnu::packed]] MADT
 {
     uint8_t type;
     uint8_t length;
-} __attribute__((packed));
+};
 
-struct MADTLapic
+struct [[gnu::packed]] MADTLapic
 {
     MADT madtHeader;
     uint8_t processor_id;
     uint8_t apic_id;
     uint32_t flags;
-} __attribute__((packed));
+};
 
-struct MADTIOApic
+struct [[gnu::packed]] MADTIOApic
 {
     MADT madtHeader;
     uint8_t apic_id;
     uint8_t reserved;
     uint32_t addr;
     uint32_t gsib;
-} __attribute__((packed));
+};
 
-struct MADTIso
+struct [[gnu::packed]] MADTIso
 {
     MADT madtHeader;
     uint8_t bus_source;
     uint8_t irq_source;
     uint32_t gsi;
     uint16_t flags;
-} __attribute__((packed));
+};
 
-struct MADTNmi
+struct [[gnu::packed]] MADTNmi
 {
     MADT madtHeader;
     uint8_t processor;
     uint16_t flags;
     uint8_t lint;
-} __attribute__((packed));
+};
 
-struct GenericAddressStructure
+struct [[gnu::packed]] GenericAddressStructure
 {
     uint8_t AddressSpace;
     uint8_t BitWidth;
     uint8_t BitOffset;
     uint8_t AccessSize;
     uint64_t Address;
-} __attribute__((packed));
+};
 
-struct HPETHeader
+struct [[gnu::packed]] HPETHeader
 {
     SDTHeader header;
     uint8_t hardware_rev_id;
@@ -126,9 +126,9 @@ struct HPETHeader
     uint8_t hpet_number;
     uint16_t minimum_tick;
     uint8_t page_protection;
-} __attribute__((packed));
+};
 
-struct FADTHeader
+struct [[gnu::packed]] FADTHeader
 {
     SDTHeader header;
     uint32_t FirmwareCtrl;
@@ -182,16 +182,16 @@ struct FADTHeader
     GenericAddressStructure X_PMTimerBlock;
     GenericAddressStructure X_GPE0Block;
     GenericAddressStructure X_GPE1Block;
-} __attribute__((packed));
+};
 
-struct deviceconfig
+struct [[gnu::packed]] deviceconfig
 {
     uint64_t baseaddr;
     uint16_t pciseggroup;
     uint8_t startbus;
     uint8_t endbus;
     uint32_t reserved;
-} __attribute__((packed));
+};
 
 extern bool initialised;
 extern bool madt;

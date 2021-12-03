@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <lib/memory.hpp>
+#include <lib/lock.hpp>
 #include <main.hpp>
 
 using namespace kernel::drivers::display;
@@ -13,7 +13,7 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::gdt {
 
-__attribute__((aligned(0x1000)))
+[[gnu::aligned(0x1000)]]
 GDT DefaultGDT = {
     {0, 0, 0, 0x00, 0x00, 0},
     {0xffff, 0, 0, 0x9a, 0x80, 0},
@@ -43,7 +43,7 @@ void reloadtss()
 
 void reloadall(int cpu)
 {
-    acquire_lock(&gdt_lock);
+    acquire_lock(gdt_lock);
 
     uintptr_t base = (uintptr_t)&tss[cpu];
     uintptr_t limit = base + sizeof(tss[cpu]);
@@ -61,7 +61,7 @@ void reloadall(int cpu)
     reloadgdt();
     reloadtss();
 
-    release_lock(&gdt_lock);
+    release_lock(gdt_lock);
 }
 
 void init()

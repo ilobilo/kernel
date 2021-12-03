@@ -34,7 +34,7 @@ static struct stivale2_header_tag_framebuffer framebuffer_hdr_tag = {
     .unused = 0
 };
 
-__attribute__((section(".stivale2hdr"), used))
+[[gnu::section(".stivale2hdr"), gnu::used]]
 static struct stivale2_header stivale_hdr = {
     .entry_point = 0,
     .stack = (uintptr_t)stack + sizeof(stack),

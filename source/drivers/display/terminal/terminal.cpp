@@ -3,8 +3,8 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <lib/string.hpp>
+#include <lib/lock.hpp>
 #include <stivale2.h>
 #include <main.hpp>
 
@@ -32,9 +32,9 @@ void init()
 #pragma region Print
 void print(const char *string)
 {
-    acquire_lock(&lock);
+    acquire_lock(lock);
     write(string, strlen(string));
-    release_lock(&lock);
+    release_lock(lock);
 }
 
 void printi(int num)
@@ -86,9 +86,9 @@ void resetcolour()
 #pragma region Clear
 void reset()
 {
-    acquire_lock(&lock);
+    acquire_lock(lock);
     write("", STIVALE2_TERM_FULL_REFRESH);
-    release_lock(&lock);
+    release_lock(lock);
 }
 
 void clear(const char *ansii_colour)

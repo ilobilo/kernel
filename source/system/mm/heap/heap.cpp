@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <lib/memory.hpp>
+#include <lib/lock.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -56,7 +56,7 @@ void free(void *address)
     check();
     if (!address) return;
 
-    acquire_lock(&heap_lock);
+    acquire_lock(heap_lock);
     heapSegHdr *header = (heapSegHdr*)((uint64_t)address - sizeof(heapSegHdr));
     header->free = true;
     freeSize += header->length + sizeof(heapSegHdr);
@@ -84,14 +84,14 @@ void free(void *address)
         }
     }
     if (debug) serial::info("Free: Freeing %zu Bytes", header->length + sizeof(heapSegHdr));
-    release_lock(&heap_lock);
+    release_lock(heap_lock);
 }
 
 void* malloc(size_t size)
 {
     check();
 
-    acquire_lock(&heap_lock);
+    acquire_lock(heap_lock);
     if (size > pmm::getFreeRam())
     {
         serial::err("Malloc: requested more memory than available!\n");
@@ -118,7 +118,7 @@ void* malloc(size_t size)
                 freeSize -= currentSeg->length + sizeof(heapSegHdr);
 
                 if (debug) serial::info("Malloc: Allocated %zu Bytes", size + sizeof(heapSegHdr));
-                release_lock(&heap_lock);
+                release_lock(heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
             if (currentSeg->length == size)
@@ -128,7 +128,7 @@ void* malloc(size_t size)
                 usedSize += currentSeg->length + sizeof(heapSegHdr);
                 freeSize -= currentSeg->length + sizeof(heapSegHdr);
 
-                release_lock(&heap_lock);
+                release_lock(heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
         }
@@ -136,7 +136,7 @@ void* malloc(size_t size)
         currentSeg = currentSeg->next;
     }
     expandHeap(size);
-    release_lock(&heap_lock);
+    release_lock(heap_lock);
     return malloc(size);
 }
 
