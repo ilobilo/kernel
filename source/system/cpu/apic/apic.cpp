@@ -6,7 +6,7 @@
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/mmio.hpp>
-#include <lib/msr.hpp>
+#include <lib/cpu.hpp>
 #include <lib/io.hpp>
 #include <main.hpp>
 #include <cpuid.h>

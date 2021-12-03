@@ -13,7 +13,7 @@
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
 
-__attribute__((always_inline)) inline bool is_canonical(uint64_t addr)
+[[gnu::always_inline]] inline bool is_canonical(uint64_t addr)
 {
     return ((addr <= 0x00007FFFFFFFFFFF) || ((addr >= 0xFFFF800000000000) && (addr <= 0xFFFFFFFFFFFFFFFF)));
 }

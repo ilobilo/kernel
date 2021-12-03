@@ -5,21 +5,24 @@
 
 namespace kernel::system::cpu::gdt {
 
-struct GDTDescriptor {
+struct [[gnu::packed]] GDTDescriptor
+{
     uint16_t Size;
     uint64_t Offset;
-} __attribute__((packed));
+};
 
-struct GDTEntry {
+struct [[gnu::packed]] GDTEntry
+{
     uint16_t Limit0;
     uint16_t Base0;
     uint8_t Base1;
     uint8_t AccessByte;
     uint8_t Limit1_Flags;
     uint8_t Base2;
-} __attribute__((packed));
+};
 
-struct GDT {
+struct [[gnu::packed, gnu::aligned(0x1000)]] GDT
+{
     GDTEntry Null;
     GDTEntry _16BitCode;
     GDTEntry _16BitData;
@@ -30,10 +33,10 @@ struct GDT {
     GDTEntry UserData;
     GDTEntry UserCode;
     GDTEntry Tss;
-} __attribute__((packed))
-__attribute((aligned(0x1000)));
+};
 
-struct TSS {
+struct [[gnu::packed]] TSS
+{
     uint32_t Reserved0;
     uint64_t RSP[3];
     uint64_t Reserved1;
@@ -41,7 +44,7 @@ struct TSS {
     uint64_t Reserved2;
     uint16_t Reserved3;
     uint16_t IOPBOffset;
-} __attribute__((packed));
+};
 
 extern GDT DefaultGDT;
 extern bool initialised;

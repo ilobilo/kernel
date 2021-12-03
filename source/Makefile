@@ -33,14 +33,14 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 
 CFLAGS = -Ofast -pipe -Werror \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
-	-DKERNEL_VERSION=\"$(VERSION)\"
+	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
 CPPFLAGS = -Ofast -pipe -Werror -Wno-c99-designator \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
-	-DKERNEL_VERSION=\"$(VERSION)\"
+	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
 LDFLAGS = 
-ASMFLAGS = -f elf64
+ASMFLAGS = -f elf64 -g
 
 INTERNALLDFLAGS :=           \
 	-T$(SOURCEDIR)/linker.ld \

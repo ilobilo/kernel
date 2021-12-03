@@ -42,8 +42,7 @@ bool backtrace(uint64_t addr, size_t i)
 void trace()
 {
     static stackframe_t *sf;
-    asm("movq %%rbp, %0" : "=r"(sf));
-    sf = sf->frame->frame->frame;
+    asm volatile ("movq %%rbp, %0" : "=r"(sf));
 
     serial::err("Stack trace:");
 

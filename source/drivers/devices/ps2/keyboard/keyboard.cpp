@@ -4,11 +4,11 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/sched/lock/lock.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/lock.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -127,11 +127,19 @@ static void Keyboard_Handler(idt::registers_t *)
                 break;
             case keys::RIGHT:
                 strcpy(c, "\033[C");
-                printf("%s", c);
+                terminal::cursor_right();
                 break;
             case keys::LEFT:
                 strcpy(c, "\033[D");
-                printf("%s", c);
+                terminal::cursor_left();
+                break;
+            case keys::UP:
+                strcpy(c, "\033[C");
+                terminal::cursor_up();
+                break;
+            case keys::DOWN:
+                strcpy(c, "\033[D");
+                terminal::cursor_down();
                 break;
             default:
                 memset(c, 0, strlen(c));
@@ -189,7 +197,7 @@ char getchar()
 DEFINE_LOCK(getline_lock)
 char *getline()
 {
-    acquire_lock(&getline_lock);
+    acquire_lock(getline_lock);
     reading = true;
     memset(retstr, '\0', 1024);
     while (!enter)
@@ -207,7 +215,7 @@ char *getline()
     enter = false;
     reading = false;
     gi = 0;
-    release_lock(&getline_lock);
+    release_lock(getline_lock);
     return retstr;
 }
 
