@@ -1,4 +1,4 @@
-%include "include/lib/cpu.inc"
+%include "lib/cpu.inc"
 
 [EXTERN int_handler]
 int_common_stub:
