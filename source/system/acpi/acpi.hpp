@@ -8,15 +8,6 @@
 
 namespace kernel::system::acpi {
 
-#define ACPI_TIMER 0x0001
-#define ACPI_BUSMASTER 0x0010
-#define ACPI_GLOBAL 0x0020
-#define ACPI_POWER_BUTTON 0x0100
-#define ACPI_SLEEP_BUTTON 0x0200
-#define ACPI_RTC_ALARM 0x0400
-#define ACPI_PCIE_WAKE 0x4000
-#define ACPI_WAKE 0x8000
-
 #define ACPI_ENABLED 0x0001
 #define ACPI_SLEEP 0x2000
 

@@ -2,6 +2,7 @@
 
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>

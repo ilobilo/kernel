@@ -11,6 +11,9 @@ struct cpu_t
     uint64_t id;
     uint32_t lapic_id;
     gdt::TSS *tss;
+    size_t fpu_storage_size;
+    void (*fpu_save)(void*);
+    void (*fpu_restore)(void*);
     volatile bool up;
 };
 

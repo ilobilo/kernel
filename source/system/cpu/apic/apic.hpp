@@ -7,6 +7,18 @@
 
 namespace kernel::system::cpu::apic {
 
+enum events
+{
+    ACPI_TIMER = 0x0001,
+    ACPI_BUSMASTER = 0x0010,
+    ACPI_GLOBAL = 0x0020,
+    ACPI_POWER_BUTTON = 0x0100,
+    ACPI_SLEEP_BUTTON = 0x0200,
+    ACPI_RTC_ALARM = 0x0400,
+    ACPI_PCIE_WAKE = 0x4000,
+    ACPI_WAKE = 0x8000
+};
+
 extern bool initialised;
 
 uint32_t lapic_read(uint32_t reg);

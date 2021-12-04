@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <kernel/main.hpp>
+#include <lib/cpu.hpp>
 #include <stivale2.h>
 #include <stddef.h>
 
@@ -57,6 +58,8 @@ void *stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
 
 extern "C" void _start(stivale2_struct *stivale2_struct)
 {
+    enableSSE();
+
     kernel::main(stivale2_struct);
 
     while (true) asm volatile ("hlt");
