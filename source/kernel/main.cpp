@@ -29,7 +29,7 @@
 #include <lib/memory.hpp>
 #include <lib/panic.hpp>
 #include <stivale2.h>
-#include <kernel.hpp>
+#include <kernel/kernel.hpp>
 #pragma endregion include
 
 using namespace kernel::drivers::display;
@@ -179,11 +179,11 @@ void main(struct stivale2_struct *stivale2_struct)
     syscall::init();
     terminal::okerr(syscall::initialised);
 
-    terminal::check("Initialising PS2 Keyboard...");
+    terminal::check("Initialising PS/2 Keyboard...");
     ps2::kbd::init();
     terminal::okerr(ps2::kbd::initialised);
 
-    terminal::check("Initialising PS2 Mouse...");
+    terminal::check("Initialising PS/2 Mouse...");
     if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
     terminal::okerr(ps2::mouse::initialised);
 

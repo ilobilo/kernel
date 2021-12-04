@@ -58,8 +58,6 @@ void reloadgdt();
 void reloadtss();
 void init();
 
-void TSS_write(uint64_t RSP0, uint64_t RSP1);
-
 void set_stack(uint64_t cpu, uintptr_t stack);
 uint64_t get_stack(uint64_t cpu);
 

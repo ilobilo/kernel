@@ -219,7 +219,7 @@ extern uint16_t SLP_TYPa;
 extern uint16_t SLP_TYPb;
 extern uint16_t SLP_EN;
 extern uint16_t SCI_EN;
-extern uint8_t  PM1_CNT_LEN;
+extern uint8_t PM1_CNT_LEN;
 
 extern uintptr_t lapic_addr;
 

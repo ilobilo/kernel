@@ -4,9 +4,9 @@
 #include <system/mm/heap/heap.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
+#include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
-#include <main.hpp>
 
 using namespace kernel::drivers::display;
 

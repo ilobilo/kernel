@@ -6,8 +6,6 @@
 
 namespace kernel::system::cpu::smp {
 
-#define KSTACK_SIZE 32768
-
 struct cpu_t
 {
     uint64_t id;

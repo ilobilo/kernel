@@ -24,15 +24,13 @@ int_handler_t interrupt_handlers[256];
 
 void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 {
-    idt_entry_t *descriptor = (idt_entry_t*)&idt[vector];
-
-    descriptor->offset_1       = (uint64_t)isr & 0xFFFF;
-    descriptor->selector       = 0x28;
-    descriptor->ist            = 0;
-    descriptor->type_attr      = type_attr;
-    descriptor->offset_2       = ((uint64_t)isr >> 16) & 0xFFFF;
-    descriptor->offset_3       = ((uint64_t)isr >> 32) & 0xFFFFFFFF;
-    descriptor->zero           = 0;
+    idt[vector].offset_1       = (uint64_t)isr & 0xFFFF;
+    idt[vector].selector       = 0x28;
+    idt[vector].ist            = 0;
+    idt[vector].type_attr      = type_attr;
+    idt[vector].offset_2       = ((uint64_t)isr >> 16) & 0xFFFF;
+    idt[vector].offset_3       = ((uint64_t)isr >> 32) & 0xFFFFFFFF;
+    idt[vector].zero           = 0;
 }
 
 void reload()

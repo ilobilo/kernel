@@ -34,8 +34,8 @@ Contributors are welcome
 - [ ] SB16
 
 ### Peripherals
-- [x] PS2 Keyboard
-- [x] PS2 Mouse
+- [x] PS/2 Keyboard
+- [x] PS/2 Mouse
 
 ### VMs
 - [x] VMWare Tools

@@ -4,11 +4,11 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
+#include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <lib/mmio.hpp>
 #include <lib/io.hpp>
-#include <main.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
@@ -46,7 +46,7 @@ uint16_t SLP_TYPa;
 uint16_t SLP_TYPb;
 uint16_t SLP_EN;
 uint16_t SCI_EN;
-uint8_t  PM1_CNT_LEN;
+uint8_t PM1_CNT_LEN;
 
 uintptr_t lapic_addr = 0;
 

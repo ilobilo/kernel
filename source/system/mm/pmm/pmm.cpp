@@ -2,9 +2,9 @@
 
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmm/pmm.hpp>
+#include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <stivale2.h>
-#include <main.hpp>
 
 using namespace kernel::drivers::display;
 
