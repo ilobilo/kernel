@@ -4,9 +4,9 @@
 #include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <lib/lock.hpp>
-#include <main.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;

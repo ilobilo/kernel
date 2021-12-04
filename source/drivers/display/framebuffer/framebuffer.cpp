@@ -3,9 +3,9 @@
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/heap/heap.hpp>
+#include <kernel/main.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-#include <main.hpp>
 
 using namespace kernel::system::mm;
 

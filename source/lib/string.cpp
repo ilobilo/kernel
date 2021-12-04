@@ -56,7 +56,7 @@ char *strcat(char *destination, const char *source)
     return destination;
 }
 
-char *strchr(const char str[], char ch)
+char *strchr(const char *str, char ch)
 {
     while (*str && *str != ch ) ++str;
     return (char *)(ch == *str ? str : NULL);
@@ -141,9 +141,9 @@ char** strsplit(const char* s, const char* delim)
     return _strsplit(s, delim, NULL);
 }
 
-char** strsplit_count(const char* s, const char* delim, size_t* nb)
+char** strsplit_count(const char* s, const char* delim, size_t &nb)
 {
-    return _strsplit(s, delim, nb);
+    return _strsplit(s, delim, &nb);
 }
 
 char *strstr(const char *str, const char *substring)
@@ -215,7 +215,7 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
     return 0;
 }
 
-void reverse(char s[])
+char *reverse(char s[])
 {
     size_t c, j, i;
     for (i = 0, j = strlen(s) - 1; i < j; i++, j--)
@@ -224,6 +224,7 @@ void reverse(char s[])
         s[i] = s[j];
         s[j] = c;
     }
+    return s;
 }
 
 char char2low(char c)
@@ -249,10 +250,10 @@ char *char2str(char c)
     return str;
 }
 
-char out[10];
-char *int_to_string(int num)
+char *int2string(int num)
 {
     bool isMinus = false;
+    char out[10];
     int g = 0;
     if (num != 0)
     {
@@ -284,12 +285,12 @@ char *int_to_string(int num)
             out[g] = temp[i];
             g++;
         }
-        return out;
+        return strdup(out);
     }
     else return 0;
 }
 
-int string_to_int(char *str)
+int string2int(const char *str)
 {
     int res = 0;
     for (int i = 0; str[i] != '\0'; ++i)
@@ -299,7 +300,7 @@ int string_to_int(char *str)
     return res;
 }
 
-long oct_to_dec(int oct)
+uint64_t oct2dec(int oct)
 {
     int dec = 0, temp = 0;
     while (oct != 0)

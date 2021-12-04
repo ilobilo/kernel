@@ -5,10 +5,10 @@
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
+#include <kernel/main.hpp>
 #include <lib/mmio.hpp>
 #include <lib/cpu.hpp>
 #include <lib/io.hpp>
-#include <main.hpp>
 #include <cpuid.h>
 
 using namespace kernel::drivers::display;
@@ -225,6 +225,9 @@ void init()
 
     idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler);
     ioapic_redirect_irq(acpi::fadthdr->SCI_Interrupt, acpi::fadthdr->SCI_Interrupt + 32);
+
+    // COM1
+    ioapic_redirect_irq(4, 36);
 
     serial::newline();
     initialised = true;

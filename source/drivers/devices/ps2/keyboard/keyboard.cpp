@@ -221,11 +221,11 @@ char *getline()
 
 void init()
 {
-    serial::info("Initialising PS2 keyboard");
+    serial::info("Initialising PS/2 keyboard");
 
     if (initialised)
     {
-        serial::warn("Keyboard driver has already been initialised!\n");
+        serial::warn("PS/2 keyboard has already been initialised!\n");
         return;
     }
 

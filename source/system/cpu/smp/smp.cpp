@@ -7,9 +7,9 @@
 #include <system/cpu/smp/smp.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
+#include <kernel/main.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
-#include <main.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;

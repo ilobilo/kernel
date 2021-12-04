@@ -133,7 +133,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     }
     if (!strcmp(path, "/")) return parent;
 
-    char **patharr = strsplit_count(path, "/", &items);
+    char **patharr = strsplit_count(path, "/", items);
     if (!patharr) return NULL;
     while (!strcmp(patharr[0], ""))
     {
@@ -227,7 +227,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         return NULL;
     }
 
-    char **patharr = strsplit_count(path, "/", &items);
+    char **patharr = strsplit_count(path, "/", items);
     if (!patharr) return NULL;
     while (!strcmp(patharr[0], ""))
     {

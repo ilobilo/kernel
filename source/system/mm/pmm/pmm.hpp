@@ -3,8 +3,8 @@
 #pragma once
 
 #include <system/mm/bitmap/bitmap.hpp>
+#include <kernel/main.hpp>
 #include <stdint.h>
-#include <main.hpp>
 
 namespace kernel::system::mm::pmm {
 

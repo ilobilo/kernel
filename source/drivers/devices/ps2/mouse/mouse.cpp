@@ -232,11 +232,11 @@ static void Mouse_Handler(idt::registers_t *)
 
 void init()
 {
-    serial::info("Initialising PS2 mouse");
+    serial::info("Initialising PS/2 mouse");
 
     if (initialised)
     {
-        serial::warn("Mouse driver has already been initialised!\n");
+        serial::warn("PS/2 mouse has already been initialised!\n");
         return;
     }
 
