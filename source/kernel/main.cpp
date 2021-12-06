@@ -218,6 +218,7 @@ void main(struct stivale2_struct *stivale2_struct)
     srand(rtc::time());
 
     scheduler::init((uint64_t)&test, (void*)35);
+    scheduler::create((uint64_t)&test1, (void*)3534);
 
     serial::info("Starting kernel shell\n");
     while (true) apps::kshell::run();
