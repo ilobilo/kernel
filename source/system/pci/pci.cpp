@@ -135,6 +135,27 @@ size_t count(uint16_t vendor, uint16_t device)
     return num;
 }
 
+size_t count(uint8_t Class, uint8_t subclass, uint8_t progif)
+{
+    if (!initialised)
+    {
+        serial::err("PCI has not been initialised!\n");
+        return 0;
+    }
+    size_t num = 0;
+    for (uint64_t i = 0; i < pcidevices.size(); i++)
+    {
+        if (pcidevices[i]->device->Class == Class)
+        {
+            if (pcidevices[i]->device->subclass == subclass)
+            {
+                if (pcidevices[i]->device->progif == progif) num++;
+            }
+        }
+    }
+    return num;
+}
+
 translatedpcidevice_t *translate(pcidevice_t* device)
 {
     translatedpcidevice_t *pcidevice = (translatedpcidevice_t*)heap::malloc(sizeof(translatedpcidevice_t));

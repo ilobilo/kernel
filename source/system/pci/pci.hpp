@@ -75,6 +75,8 @@ void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t va
 
 translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
+
+size_t count(uint8_t Class, uint8_t subclass, uint8_t progif);
 size_t count(uint16_t vendor, uint16_t device);
 
 void init();
