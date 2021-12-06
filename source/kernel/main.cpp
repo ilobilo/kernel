@@ -4,6 +4,7 @@
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
@@ -64,6 +65,26 @@ int find_module(const char *name)
         if (!strcmp(mod_tag->modules[i].string, name)) return i;
     }
     return -1;
+}
+
+void test(uint64_t i)
+{
+    while (true)
+    {
+        uint64_t sec = rtc::second();
+        serial::err("%d", i);
+        while (rtc::second() < sec + 1);
+    }
+}
+
+void test1(uint64_t i)
+{
+    while (true)
+    {
+        uint64_t sec = rtc::second();
+        serial::err("%d", i);
+        while (rtc::second() < sec + 1);
+    }
 }
 
 void main(struct stivale2_struct *stivale2_struct)
@@ -195,6 +216,9 @@ void main(struct stivale2_struct *stivale2_struct)
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
     srand(rtc::time());
+
+    scheduler::init((uint64_t)&apps::kshell::run, (void*)0);
+    scheduler::create((uint64_t)&test1, (void*)3534);
 
     serial::info("Starting kernel shell\n");
     while (true) apps::kshell::run();

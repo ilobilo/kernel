@@ -1,5 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
+#include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/sched/rtc/rtc.hpp>
@@ -51,6 +52,7 @@ uint64_t get_tick()
 static void PIT_Handler(idt::registers_t *)
 {
     tick++;
+    scheduler::schedule();
 }
 
 void setfreq(uint64_t freq)
