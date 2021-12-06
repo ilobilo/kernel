@@ -39,6 +39,7 @@ void parse(char *cmd, char *arg)
             printf("- free -- Get memory info\n");
             printf("- time -- Get current RTC time\n");
             printf("- timef -- Get current RTC time (Forever loop)\n");
+            printf("- fps -- Show FPS (Forever loop)\n");
             printf("- tick -- Get current PIT tick\n");
             printf("- pci -- List PCI devices\n");
             printf("- crash -- Crash whole system\n");
@@ -247,6 +248,22 @@ void parse(char *cmd, char *arg)
                 pit::sleep(1);
             }
             break;
+        case hash("fps"):
+        {
+            int time, last_time, fps, frames;
+            while (true)
+            {
+                frames++;
+                time = rtc::second();
+                if (time != last_time)
+                {
+                    fps = frames;
+                    frames = 0;
+                    last_time = time;
+                    printf("\r\033[2KFPS: %d", fps);
+                }
+            }
+        }
         case hash("pci"):
             for (size_t i = 0; i < pci::pcidevices.size(); i++)
             {

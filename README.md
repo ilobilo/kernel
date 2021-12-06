@@ -36,6 +36,8 @@ Contributors are welcome
 ### Peripherals
 - [x] PS/2 Keyboard
 - [x] PS/2 Mouse
+- [ ] USB Keyboard
+- [ ] USB Mouse
 
 ### VMs
 - [x] VMWare Tools
@@ -44,10 +46,9 @@ Contributors are welcome
 ### Disk
 - [ ] ATA
 - [ ] ATAPI
-- [ ] AHCI
-- [ ] SCSI
-- [ ] NVMe
 - [ ] FDC
+- [ ] AHCI
+- [ ] NVMe
 
 ### Timers
 - [x] HPET
@@ -86,8 +87,6 @@ Contributors are welcome
 - [ ] OHCI/UHCI
 - [ ] EHCI
 - [ ] XHCI
-- [ ] USB Keyboard
-- [ ] USB Mouse
 
 ### Other
 - [ ] GUI (Window manager)

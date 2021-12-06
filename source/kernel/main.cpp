@@ -24,12 +24,12 @@
 #include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
+#include <kernel/kernel.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/panic.hpp>
 #include <stivale2.h>
-#include <kernel/kernel.hpp>
 #pragma endregion include
 
 using namespace kernel::drivers::display;
@@ -171,13 +171,13 @@ void main(struct stivale2_struct *stivale2_struct)
     devfs::init();
     terminal::okerr(devfs::initialised);
 
-    terminal::check("Initialising PIT...");
-    pit::init();
-    terminal::okerr(pit::initialised);
-
     terminal::check("Initialising System calls...");
     syscall::init();
     terminal::okerr(syscall::initialised);
+
+    terminal::check("Initialising PIT...");
+    pit::init();
+    terminal::okerr(pit::initialised);
 
     terminal::check("Initialising PS/2 Keyboard...");
     ps2::kbd::init();
