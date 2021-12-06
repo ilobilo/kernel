@@ -39,9 +39,12 @@ thread_t *create(uint64_t addr, void *args)
     thread->ctx->rdi = (uint64_t)args;
     acquire_lock(thread_lock);
     thread->state = READY;
-    thread->pagemap = vmm::clonePagemap((current_thread) ? current_thread->pagemap : vmm::kernel_pagemap);
-    thread->next = threads[0];
-    if (initialised) threads.last()->next = thread;
+    thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
+    if (threads.last())
+    {
+        thread->next = threads[0];
+        threads.last()->next = thread;
+    }
     else thread->next = thread;
     release_lock(thread_lock);
     threads.push_back(thread);
@@ -58,9 +61,14 @@ static void switch_thread(thread_t *new_thrd)
 void schedule()
 {
     if (!initialised) return;
+    if (!current_thread)
+    {
+        if (threads[0]) current_thread = threads[0];
+        else return;
+    }
     thread_t *toswitch = current_thread->next;
     while (toswitch->next->state != READY) toswitch = toswitch->next;
-    switch_thread(toswitch->next);
+    switch_thread(toswitch);
 }
 
 void init(uint64_t addr, void *args)
