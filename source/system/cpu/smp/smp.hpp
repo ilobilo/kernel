@@ -2,7 +2,10 @@
 
 #pragma once
 
+#include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/gdt/gdt.hpp>
+
+using namespace kernel::system::sched;
 
 namespace kernel::system::cpu::smp {
 
@@ -14,6 +17,7 @@ struct cpu_t
     size_t fpu_storage_size;
     void (*fpu_save)(void*);
     void (*fpu_restore)(void*);
+    scheduler::thread_t *current_thread;
     volatile bool up;
 };
 

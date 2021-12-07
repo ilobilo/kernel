@@ -39,5 +39,6 @@ extern bool initialised;
 extern Vector<thread_t*> threads;
 
 thread_t *add(uint64_t addr, void *args);
+thread_t *init(uint64_t addr, void *args);
 void schedule();
 }
