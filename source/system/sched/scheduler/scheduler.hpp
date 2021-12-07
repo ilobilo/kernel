@@ -17,29 +17,27 @@ namespace kernel::system::sched::scheduler {
 
 enum state_t
 {
-    INITIAL,
     READY,
     RUNNING,
     BLOCKED,
-    KILLED
+    SLEEPING
 };
 
 struct thread_t
 {
     int id;
     state_t state;
-    cpu_context *ctx;
+    cpu_context *regs;
     vmm::Pagemap *pagemap;
     vfs::fs_node_t *current_dir;
     uintptr_t stack;
     thread_t *next;
+    thread_t *last;
 };
 
 extern bool initialised;
 extern Vector<thread_t*> threads;
 
-thread_t *create(uint64_t addr, void *args);
+thread_t *add(uint64_t addr, void *args);
 void schedule();
-
-void init(uint64_t addr, void *args);
 }

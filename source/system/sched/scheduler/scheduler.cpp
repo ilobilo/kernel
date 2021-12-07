@@ -14,67 +14,71 @@ thread_t *current_thread;
 uint64_t next_id = 0;
 DEFINE_LOCK(thread_lock)
 
-extern "C" void context_switch(cpu_context **old_ctx, cpu_context *new_ctx);
+extern "C" void Switch(cpu_context **oldregs, cpu_context *regs);
 
-static thread_t *alloc()
+thread_t *add(uint64_t addr, void *args)
 {
     thread_t *thread = new thread_t;
+
     acquire_lock(thread_lock);
     thread->stack = (uintptr_t)heap::malloc(TSTACK_SIZE);
-    thread->id = next_id++;
-    thread->state = INITIAL;
-    thread->next = NULL;
-    release_lock(thread_lock);
-    uint64_t sp = (uintptr_t)thread->stack + TSTACK_SIZE;
-    sp -= sizeof(cpu_context);
-    thread->ctx = (cpu_context*)sp;
-    memset(thread->ctx, 0, sizeof(cpu_context));
-    return thread;
-}
 
-thread_t *create(uint64_t addr, void *args)
-{
-    thread_t *thread = alloc();
-    thread->ctx->rip = addr;
-    thread->ctx->rdi = (uint64_t)args;
-    acquire_lock(thread_lock);
+    thread->regs = (cpu_context*)(thread->stack + TSTACK_SIZE - sizeof(cpu_context));
+    memset(thread->regs, 0, sizeof(cpu_context));
+
+    thread->regs->rip = addr;
+    thread->regs->rdi = (uint64_t)args;
+    thread->regs->rsp = (uint64_t)thread->stack;
+
+    thread->id = next_id++;
+    thread->next = NULL;
     thread->state = READY;
     thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
-    if (threads.last())
+    thread->current_dir = vfs::fs_root->ptr;
+
+    if (initialised)
     {
         thread->next = threads[0];
+        thread->last = threads.last();
         threads.last()->next = thread;
     }
-    else thread->next = thread;
-    release_lock(thread_lock);
-    threads.push_back(thread);
-    return thread;
-}
+    else
+    {
+        threads.init();
+        thread->next = thread;
+        thread->last = thread;
+        current_thread = thread;
+        initialised = true;
+    }
 
-static void switch_thread(thread_t *new_thrd)
-{
-    context_switch(&current_thread->ctx, new_thrd->ctx);
-    current_thread = new_thrd;
-    vmm::switchPagemap(current_thread->pagemap);
+    threads.push_back(thread);
+    release_lock(thread_lock);
+
+    return thread;
 }
 
 void schedule()
 {
     if (!initialised) return;
-    if (!current_thread)
-    {
-        if (threads[0]) current_thread = threads[0];
-        else return;
-    }
+
     thread_t *toswitch = current_thread->next;
     while (toswitch->next->state != READY) toswitch = toswitch->next;
-    switch_thread(toswitch);
+
+    Switch(&current_thread->regs, toswitch->regs);
+    vmm::switchPagemap(current_thread->pagemap);
+
+    current_thread->state = READY;
+    current_thread = toswitch;
+    current_thread->state = RUNNING;
 }
 
-void init(uint64_t addr, void *args)
+void block()
 {
-    threads.init();
-    current_thread = create(addr, args);
-    initialised = true;
+    current_thread->state = BLOCKED;
+}
+
+void unblock(thread_t *thread)
+{
+    thread->state = READY;
 }
 }
