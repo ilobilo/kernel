@@ -20,7 +20,8 @@ enum state_t
     READY,
     RUNNING,
     BLOCKED,
-    SLEEPING
+    SLEEPING,
+    KILLED
 };
 
 struct thread_t
@@ -45,6 +46,14 @@ extern bool initialised;
 thread_t *alloc(uint64_t addr, void *args);
 void create(thread_t *thread);
 
-void init();
 void schedule(registers_t *regs);
+
+void block();
+void block(thread_t *thread);
+void unblock(thread_t *thread);
+
+void exit();
+void exit(thread_t *thread);
+
+void init();
 }

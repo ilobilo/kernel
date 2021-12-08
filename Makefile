@@ -1,12 +1,15 @@
 KERNELDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 all: limine stivale2.h
+	@$(MAKE) -s -C $(KERNELDIR)/source clean
 	@$(MAKE) -s -C $(KERNELDIR)/source
 
 bios: limine stivale2.h
+	@$(MAKE) -s -C $(KERNELDIR)/source clean
 	@$(MAKE) -s -C $(KERNELDIR)/source bios
 
 test: limine stivale2.h
+	@$(MAKE) -s -C $(KERNELDIR)/source clean
 	@$(MAKE) -s -C $(KERNELDIR)/source test
 
 stivale2.h:
