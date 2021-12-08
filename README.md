@@ -57,8 +57,8 @@ Contributors are welcome
 
 ### Tasking
 - [x] SMP
-- [ ] Threading
-- [ ] Scheduling
+- [x] Threading
+- [x] Scheduling
 
 ### Filesystem
 - [x] VFS
