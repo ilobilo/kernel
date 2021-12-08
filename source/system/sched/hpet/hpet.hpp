@@ -8,6 +8,7 @@ namespace kernel::system::sched::hpet {
 
 #define HPETSECS(num) ((num) * 1000000)
 #define HPETMSECS(num) ((num) * 10000)
+#define HPETMICSECS(num) ((num) * 10)
 
 struct HPET
 {

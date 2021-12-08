@@ -16,7 +16,7 @@ void printc(char c, void *arg)
     ssfn_putc(c);
 }
 
-void setcolour(uint64_t bg, uint64_t fg)
+void setcolour(uint64_t fg, uint64_t bg)
 {
     bgcolour = bg;
     fgcolour = fg;
@@ -27,6 +27,8 @@ void setcolour(uint64_t bg, uint64_t fg)
 
 void setpos(uint64_t x, uint64_t y)
 {
+    x++;
+    y++;
     pos.X = x * 8 - 8;
     pos.Y = y * 16 - 16;
 
@@ -56,6 +58,8 @@ void printf(const char *fmt, ...)
 
 void printfat(uint64_t x, uint64_t y, const char *fmt, ...)
 {
+    x++;
+    y++;
     ssfn_dst.x = x * 8 - 8;
     ssfn_dst.y = y * 16 - 16;
 
