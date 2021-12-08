@@ -22,6 +22,7 @@ thread_t *alloc(uint64_t addr, void *args)
 
     acquire_lock(thread_lock);
     thread->pid = next_pid++;
+    thread->state = READY;
     thread->stack = (uint8_t*)heap::malloc(TSTACK_SIZE);
     thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     thread->current_dir = vfs::fs_root->ptr;
@@ -61,6 +62,7 @@ void init()
     current_thread->next = current_thread;
     current_thread->thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     current_thread->thread->stack = (uint8_t*)heap::malloc(TSTACK_SIZE);
+    current_thread->thread->state = READY;
 
     serial::newline();
     initialised = true;
