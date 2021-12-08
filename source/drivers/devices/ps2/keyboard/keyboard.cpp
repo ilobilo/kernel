@@ -82,7 +82,7 @@ void clearbuff()
 }
 
 // Main keyboard handler
-static void Keyboard_Handler(idt::registers_t *)
+static void Keyboard_Handler(registers_t *)
 {
     uint8_t scancode = inb(0x60);
 
@@ -230,7 +230,7 @@ void init()
     }
 
     buff[0] = '\0';
-    register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
+    idt::register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
 
     serial::newline();
     initialised = true;

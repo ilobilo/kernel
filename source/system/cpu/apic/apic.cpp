@@ -189,7 +189,7 @@ void setSCIevent(uint16_t value)
     if (acpi::fadthdr->PM1bEventBlock) outw(b, value);
 }
 
-static void SCI_Handler(idt::registers_t *)
+static void SCI_Handler(registers_t *)
 {
     uint16_t event = getSCIevent();
     if (event & ACPI_POWER_BUTTON)

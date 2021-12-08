@@ -55,7 +55,7 @@ namespace kernel::system::cpu::syscall {
 #define SYSCALL_READ  0
 #define SYSCALL_WRITE 1
 
-using syscall_t = void (*)(idt::registers_t *);
+using syscall_t = void (*)(registers_t *);
 
 extern bool initialised;
 

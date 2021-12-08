@@ -1,5 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
+#include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/sched/rtc/rtc.hpp>
@@ -48,8 +49,9 @@ uint64_t get_tick()
     return tick;
 }
 
-static void PIT_Handler(idt::registers_t *)
+static void PIT_Handler(registers_t *regs)
 {
+    scheduler::schedule(regs);
     tick++;
 }
 
@@ -85,7 +87,7 @@ void init(uint64_t freq)
     freqbck = freq;
     setfreq(freq);
 
-    register_interrupt_handler(idt::IRQ0, PIT_Handler);
+    idt::register_interrupt_handler(idt::IRQ0, PIT_Handler);
 
     serial::newline();
     initialised = true;
