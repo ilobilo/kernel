@@ -118,10 +118,11 @@ Follow this steps to build and run the os
 https://discord.gg/fM5GK3RpS7
 
 ## Resources used:
-* Printf: https://github.com/eyalroz/printf
 * Osdev wiki: https://wiki.osdev.org
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
 * LyreOS: https://github.com/lyre-os/lyre
 * PolarisOS: https://github.com/NSG650/Polaris
+* Printf: https://github.com/eyalroz/printf
+* Scalable Screen Font: https://gitlab.com/bztsrc/scalable-font2

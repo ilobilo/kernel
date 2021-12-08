@@ -47,6 +47,66 @@ void create(thread_t *thread)
     te->thread = thread;
 }
 
+void schedule(registers_t *regs)
+{
+    if (!current_thread || !initialised || current_thread->thread->killed) return;
+    current_thread->thread->regs = *regs;
+
+    while (current_thread->next->thread->killed)
+    {
+        threadentry_t *oldnext = current_thread->next;
+        current_thread->next = current_thread->next->next;
+        heap::free(oldnext->thread->stack);
+        heap::free(oldnext->thread);
+        heap::free(oldnext);
+    }
+    if (current_thread->thread->state == RUNNING) current_thread->thread->state = READY;
+    current_thread = current_thread->next;
+    while (current_thread->thread->state != READY) current_thread = current_thread->next; 
+
+    *regs = current_thread->thread->regs;
+    vmm::switchPagemap(current_thread->thread->pagemap);
+    gdt::set_stack((uintptr_t)current_thread->thread->stack);
+    current_thread->thread->state = RUNNING;
+}
+
+void block()
+{
+    asm volatile ("cli");
+    current_thread->thread->state = BLOCKED;
+    asm volatile ("sti");
+}
+
+void block(thread_t *thread)
+{
+    asm volatile ("cli");
+    thread->state = BLOCKED;
+    asm volatile ("sti");
+}
+
+void unblock(thread_t *thread)
+{
+    asm volatile ("cli");
+    thread->state = READY;
+    asm volatile ("sti");
+}
+
+void exit()
+{
+    asm volatile ("cli");
+    current_thread->thread->state = KILLED;
+    current_thread->thread->killed = true;
+    asm volatile ("sti");
+}
+
+void exit(thread_t *thread)
+{
+    asm volatile ("cli");
+    thread->state = KILLED;
+    thread->killed = true;
+    asm volatile ("sti");
+}
+
 void init()
 {
     serial::info("Initialising scheduler");
@@ -66,25 +126,5 @@ void init()
 
     serial::newline();
     initialised = true;
-}
-
-void schedule(registers_t *regs)
-{
-    if (!current_thread || !initialised || current_thread->thread->killed) return;
-    current_thread->thread->regs = *regs;
-
-    while (current_thread->next->thread->killed)
-    {
-        threadentry_t *oldnext = current_thread->next;
-        current_thread->next = current_thread->next->next;
-        heap::free(oldnext->thread->stack);
-        heap::free(oldnext->thread);
-        heap::free(oldnext);
-    }
-    current_thread = current_thread->next;
-    while (current_thread->thread->state != READY) current_thread = current_thread->next; 
-
-    *regs = current_thread->thread->regs;
-    gdt::set_stack((uintptr_t)current_thread->thread->stack);
 }
 }
