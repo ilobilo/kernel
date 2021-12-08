@@ -2,104 +2,87 @@
 
 #include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/display/serial/serial.hpp>
+#include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <lib/memory.hpp>
 
 using namespace kernel::drivers::display;
+using namespace kernel::system::cpu;
 
 namespace kernel::system::sched::scheduler {
 
 bool initialised = false;
-Vector<thread_t*> threads;
-uint64_t next_id = 0;
+threadentry_t *current_thread;
+uint64_t next_pid = 1;
 DEFINE_LOCK(thread_lock)
-
-extern "C" void Switch(cpu_context **oldregs, cpu_context *regs);
 
 thread_t *alloc(uint64_t addr, void *args)
 {
     thread_t *thread = new thread_t;
 
     acquire_lock(thread_lock);
-    thread->stack = (uintptr_t)heap::malloc(TSTACK_SIZE);
-
-    thread->regs = (cpu_context*)(thread->stack + TSTACK_SIZE - sizeof(cpu_context));
-    memset(thread->regs, 0, sizeof(cpu_context));
-
-    thread->regs->rip = addr;
-    thread->regs->rdi = (uint64_t)args;
-    thread->regs->rsp = (uint64_t)thread->stack;
-    thread->regs->rflags = 0x202;
-
-    thread->id = next_id++;
-    thread->next = NULL;
-    thread->state = READY;
+    thread->pid = next_pid++;
+    thread->stack = (uint8_t*)heap::malloc(TSTACK_SIZE);
     thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     thread->current_dir = vfs::fs_root->ptr;
+
+    thread->regs.rflags = 0x202;
+    thread->regs.cs = 0x28;
+    thread->regs.ss = 0x30;
+
+    thread->regs.rip = addr;
+    thread->regs.rdi = (uint64_t)args;
+    thread->regs.rsp = (uint64_t)(thread->stack + TSTACK_SIZE);
     release_lock(thread_lock);
 
     return thread;
 }
 
-thread_t *init(uint64_t addr, void *args);
-thread_t *add(uint64_t addr, void *args)
+void create(thread_t *thread)
 {
-    if (!threads.on) return init(addr, args);
-
-    thread_t *thread = alloc(addr, args);
-
-    acquire_lock(thread_lock);
-    thread->next = threads[0];
-    thread->last = threads.last();
-    threads.last()->next = thread;
-
-    threads.push_back(thread);
-    release_lock(thread_lock);
-
-    return thread;
+    threadentry_t *te = new threadentry_t;
+    te->next = current_thread->next;
+    current_thread->next = te;
+    te->thread = thread;
 }
 
-thread_t *init(uint64_t addr, void *args)
+void init()
 {
-    thread_t *thread;
-    if (!threads.on)
+    serial::info("Initialising scheduler");
+
+    if (initialised)
     {
-        threads.init();
-        thread = alloc(addr, args);
-        thread->next = thread;
-        thread->last = thread;
-        threads.push_back(thread);
+        serial::warn("Scheduler has already been initialised!\n");
+        return;
     }
-    else thread = add(addr, args);
-    
-    this_cpu->current_thread = thread;
 
+    current_thread = new threadentry_t;
+    current_thread->thread = new thread_t;
+    current_thread->next = current_thread;
+    current_thread->thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
+    current_thread->thread->stack = (uint8_t*)heap::malloc(TSTACK_SIZE);
+
+    serial::newline();
     initialised = true;
-    return thread;
 }
 
-void schedule()
+void schedule(registers_t *regs)
 {
-    if (!initialised) return;
+    if (!current_thread || !initialised || current_thread->thread->killed) return;
+    current_thread->thread->regs = *regs;
 
-    thread_t *toswitch = this_cpu->current_thread->next;
-    while (toswitch->next->state != READY) toswitch = toswitch->next;
-    toswitch->state = RUNNING;
+    while (current_thread->next->thread->killed)
+    {
+        threadentry_t *oldnext = current_thread->next;
+        current_thread->next = current_thread->next->next;
+        heap::free(oldnext->thread->stack);
+        heap::free(oldnext->thread);
+        heap::free(oldnext);
+    }
+    current_thread = current_thread->next;
+    while (current_thread->thread->state != READY) current_thread = current_thread->next; 
 
-    Switch(&this_cpu->current_thread->regs, toswitch->regs);
-    vmm::switchPagemap(toswitch->pagemap);
-
-    this_cpu->current_thread->state = READY;
-    this_cpu->current_thread = toswitch;
-}
-
-void block()
-{
-    this_cpu->current_thread->state = BLOCKED;
-}
-
-void unblock(thread_t *thread)
-{
-    thread->state = READY;
+    *regs = current_thread->thread->regs;
+    gdt::set_stack((uintptr_t)current_thread->thread->stack);
 }
 }

@@ -150,13 +150,6 @@ void exception_handler(registers_t *regs)
 
 void irq_handler(registers_t *regs)
 {
-    if (regs->int_no == 32)
-    {
-        if (apic::initialised) apic::eoi();
-        else pic::eoi(32);
-        if (interrupt_handlers[32]) interrupt_handlers[32](regs);
-        return;
-    }
     if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
     if (apic::initialised) apic::eoi();
     else pic::eoi(regs->int_no);

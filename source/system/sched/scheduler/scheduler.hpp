@@ -13,7 +13,7 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
-#define TSTACK_SIZE 32768
+#define TSTACK_SIZE 0x4000
 
 enum state_t
 {
@@ -25,20 +25,26 @@ enum state_t
 
 struct thread_t
 {
-    int id;
+    int pid;
     state_t state;
-    cpu_context *regs;
+    uint8_t *stack;
+    registers_t regs;
     vmm::Pagemap *pagemap;
     vfs::fs_node_t *current_dir;
-    uintptr_t stack;
-    thread_t *next;
-    thread_t *last;
+    volatile bool killed = false;
+};
+
+struct threadentry_t
+{
+    thread_t *thread;
+    threadentry_t *next;
 };
 
 extern bool initialised;
-extern Vector<thread_t*> threads;
 
-thread_t *add(uint64_t addr, void *args);
-thread_t *init(uint64_t addr, void *args);
-void schedule();
+thread_t *alloc(uint64_t addr, void *args);
+void create(thread_t *thread);
+
+void init();
+void schedule(registers_t *regs);
 }

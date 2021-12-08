@@ -44,10 +44,9 @@ Contributors are welcome
 - [ ] VBox Guest Additions
 
 ### Disk
-- [ ] ATA
-- [ ] ATAPI
 - [ ] FDC
-- [ ] AHCI
+- [ ] IDE (ATA/ATAPI)
+- [ ] SATA (AHCI)
 - [ ] NVMe
 
 ### Timers

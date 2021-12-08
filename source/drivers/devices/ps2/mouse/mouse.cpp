@@ -192,7 +192,7 @@ void proccesspacket()
     posold = pos;
 }
 
-static void Mouse_Handler(idt::registers_t *)
+static void Mouse_Handler(registers_t *)
 {
     uint8_t mousedata = inb(0x60);
 
@@ -263,7 +263,7 @@ void init()
 
     asm volatile ("sti");
 
-    register_interrupt_handler(idt::IRQ12, Mouse_Handler);
+    idt::register_interrupt_handler(idt::IRQ12, Mouse_Handler);
 
     serial::newline();
     initialised = true;

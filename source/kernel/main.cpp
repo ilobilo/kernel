@@ -67,26 +67,6 @@ int find_module(const char *name)
     return -1;
 }
 
-void test(uint64_t i)
-{
-    while (true)
-    {
-        uint64_t sec = rtc::second();
-        serial::err("%d", i);
-        while (rtc::second() < sec + 1);
-    }
-}
-
-void test1(uint64_t i)
-{
-    while (true)
-    {
-        uint64_t sec = rtc::second();
-        serial::err("%d", i);
-        while (rtc::second() < sec + 1);
-    }
-}
-
 void main(struct stivale2_struct *stivale2_struct)
 {
     smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
@@ -156,6 +136,10 @@ void main(struct stivale2_struct *stivale2_struct)
     idt::init();
     terminal::okerr(idt::initialised);
 
+    terminal::check("Initialising Scheduler...");
+    scheduler::init();
+    terminal::okerr(scheduler::initialised);
+
     terminal::check("Initialising ACPI...");
     acpi::init();
     terminal::okerr(acpi::initialised);
@@ -217,10 +201,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     srand(rtc::time());
 
-    scheduler::init((uint64_t)&test, (void*)35);
-    scheduler::add((uint64_t)&test1, (void*)3534);
-
     serial::info("Starting kernel shell\n");
-    while (true) apps::kshell::run();
+    scheduler::create(scheduler::alloc((uint64_t)&apps::kshell::run, NULL));
 }
 }

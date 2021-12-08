@@ -93,7 +93,7 @@ void newline()
     serial_printf("\n");
 }
 
-static void COM1_Handler(idt::registers_t *)
+static void COM1_Handler(registers_t *)
 {
     char c = read();
     switch (c)
@@ -126,7 +126,7 @@ void init()
 
     serial_printf("\033[0m");
 
-    register_interrupt_handler(idt::IRQ4, COM1_Handler);
+    idt::register_interrupt_handler(idt::IRQ4, COM1_Handler);
     outb(COMS::COM1 + 1, 0x01);
 
     initialised = true;

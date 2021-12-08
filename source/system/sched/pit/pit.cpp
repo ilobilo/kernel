@@ -49,10 +49,10 @@ uint64_t get_tick()
     return tick;
 }
 
-static void PIT_Handler(idt::registers_t *)
+static void PIT_Handler(registers_t *regs)
 {
+    scheduler::schedule(regs);
     tick++;
-    scheduler::schedule();
 }
 
 void setfreq(uint64_t freq)
@@ -87,7 +87,7 @@ void init(uint64_t freq)
     freqbck = freq;
     setfreq(freq);
 
-    register_interrupt_handler(idt::IRQ0, PIT_Handler);
+    idt::register_interrupt_handler(idt::IRQ0, PIT_Handler);
 
     serial::newline();
     initialised = true;
