@@ -1,5 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
+#pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 

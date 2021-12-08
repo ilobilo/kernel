@@ -44,10 +44,9 @@ Contributors are welcome
 - [ ] VBox Guest Additions
 
 ### Disk
-- [ ] ATA
-- [ ] ATAPI
 - [ ] FDC
-- [ ] AHCI
+- [ ] IDE (ATA/ATAPI)
+- [ ] SATA (AHCI)
 - [ ] NVMe
 
 ### Timers
@@ -58,8 +57,8 @@ Contributors are welcome
 
 ### Tasking
 - [x] SMP
-- [ ] Threading
-- [ ] Scheduling
+- [x] Threading
+- [x] Scheduling
 
 ### Filesystem
 - [x] VFS

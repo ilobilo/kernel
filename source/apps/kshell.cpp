@@ -300,28 +300,31 @@ void parse(char *cmd, char *arg)
 
 void run()
 {
-    if (!current_path)
+    while (true)
     {
-        current_path = vfs::getchild(NULL, "/");
-        current_path->flags = vfs::FS_DIRECTORY;
-    }
-    printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
-    char *command = ps2::kbd::getline();
-    char cmd[10] = "\0";
-
-    for (size_t i = 0; i < strlen(command); i++)
-    {
-        if (command[i] != ' ' && command[i] != '\0')
+        if (!current_path)
         {
-            char c[2] = "\0";
-            c[0] = command[i];
-            strcat(cmd, c);
+            current_path = vfs::getchild(NULL, "/");
+            current_path->flags = vfs::FS_DIRECTORY;
         }
-        else break;
-    }
-    char *arg = strrm(command, cmd);
-    arg = strrm(arg, " ");
+        printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
+        char *command = ps2::kbd::getline();
+        char cmd[10] = "\0";
 
-    parse(cmd, arg);
+        for (size_t i = 0; i < strlen(command); i++)
+        {
+            if (command[i] != ' ' && command[i] != '\0')
+            {
+                char c[2] = "\0";
+                c[0] = command[i];
+                strcat(cmd, c);
+            }
+            else break;
+        }
+        char *arg = strrm(command, cmd);
+        arg = strrm(arg, " ");
+
+        parse(cmd, arg);
+    }
 }
 }

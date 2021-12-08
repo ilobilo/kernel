@@ -16,13 +16,13 @@ namespace kernel::system::cpu::syscall {
 
 bool initialised = false;
 
-static void syscall_read(idt::registers_t *regs)
+static void syscall_read(registers_t *regs)
 {
     char *str = (char*)"Read currently not working!\n";
     S_RAX = (uint64_t)str;
 }
 
-static void syscall_write(idt::registers_t *regs)
+static void syscall_write(registers_t *regs)
 {
     switch (S_RDI_ARG0)
     {
@@ -58,7 +58,7 @@ syscall_t syscalls[] = {
     [1] = syscall_write
 };
 
-static void handler(idt::registers_t *regs)
+static void handler(registers_t *regs)
 {
     if (S_RAX >= ZERO && syscalls[S_RAX]) syscalls[S_RAX](regs);
 }
@@ -92,7 +92,7 @@ void init()
         return;
     }
 
-    register_interrupt_handler(SYSCALL, handler);
+    idt::register_interrupt_handler(SYSCALL, handler);
 
     serial::newline();
     initialised = true;

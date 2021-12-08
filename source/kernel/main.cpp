@@ -4,6 +4,7 @@
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
@@ -135,6 +136,10 @@ void main(struct stivale2_struct *stivale2_struct)
     idt::init();
     terminal::okerr(idt::initialised);
 
+    terminal::check("Initialising Scheduler...");
+    scheduler::init();
+    terminal::okerr(scheduler::initialised);
+
     terminal::check("Initialising ACPI...");
     acpi::init();
     terminal::okerr(acpi::initialised);
@@ -197,6 +202,6 @@ void main(struct stivale2_struct *stivale2_struct)
     srand(rtc::time());
 
     serial::info("Starting kernel shell\n");
-    while (true) apps::kshell::run();
+    scheduler::create(scheduler::alloc((uint64_t)&apps::kshell::run, NULL));
 }
 }
