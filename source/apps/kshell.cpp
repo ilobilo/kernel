@@ -300,6 +300,7 @@ void parse(char *cmd, char *arg)
 
 void run()
 {
+    serial::info("Starting kernel shell\n");
     while (true)
     {
         if (!current_path)

@@ -8,7 +8,7 @@ extern uint64_t bgcolour;
 extern uint64_t fgcolour;
 extern point pos;
 
-void setcolour(uint64_t bg = bgcolour, uint64_t fg = fgcolour);
+void setcolour(uint64_t fg = fgcolour, uint64_t bg = bgcolour);
 
 void setpos(uint64_t x, uint64_t y);
 void setppos(uint64_t x, uint64_t y);

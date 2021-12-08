@@ -10,6 +10,7 @@
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
+#include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/hpet/hpet.hpp>
@@ -65,6 +66,16 @@ int find_module(const char *name)
         if (!strcmp(mod_tag->modules[i].string, name)) return i;
     }
     return -1;
+}
+
+void time()
+{
+    while (true)
+    {
+        int time = rtc::second();
+        ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
+        ssfn::printfat(0, 0, "\r%s", rtc::getTime());
+    }
 }
 
 void main(struct stivale2_struct *stivale2_struct)
@@ -201,7 +212,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     srand(rtc::time());
 
-    serial::info("Starting kernel shell\n");
+    scheduler::create(scheduler::alloc((uint64_t)&time, NULL));
     scheduler::create(scheduler::alloc((uint64_t)&apps::kshell::run, NULL));
 }
 }
