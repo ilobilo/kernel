@@ -15,15 +15,15 @@ namespace kernel::system::cpu::gdt {
 
 [[gnu::aligned(0x1000)]]
 GDT DefaultGDT = {
-    {0, 0, 0, 0x00, 0x00, 0},
-    {0xffff, 0, 0, 0x9a, 0x80, 0},
-    {0xffff, 0, 0, 0x92, 0x80, 0},
-    {0xffff, 0, 0, 0x9a, 0xcf, 0},
-    {0xffff, 0, 0, 0x92, 0xcf, 0},
-    {0, 0, 0, 0x9a, 0xa2, 0},
-    {0, 0, 0, 0x92, 0xa0, 0},
-    {0, 0, 0, 0xF2, 0, 0},
-    {0, 0, 0, 0xFA, 0x20, 0}
+    {0x0000, 0, 0, 0x00, 0x00, 0},
+    {0xFFFF, 0, 0, 0x9A, 0x80, 0},
+    {0xFFFF, 0, 0, 0x92, 0x80, 0},
+    {0xFFFF, 0, 0, 0x9A, 0xCF, 0},
+    {0xFFFF, 0, 0, 0x92, 0xCF, 0},
+    {0x0000, 0, 0, 0x9A, 0xA2, 0},
+    {0x0000, 0, 0, 0x92, 0xA0, 0},
+    {0x0000, 0, 0, 0xF2, 0x00, 0},
+    {0x0000, 0, 0, 0xFA, 0x20, 0}
 };
 
 DEFINE_LOCK(gdt_lock)
@@ -48,15 +48,17 @@ void reloadall(int cpu)
     uintptr_t base = (uintptr_t)&tss[cpu];
     uintptr_t limit = base + sizeof(tss[cpu]);
 
-    DefaultGDT.Tss.Base0 = (base & 0xFFFF);
-    DefaultGDT.Tss.Base1 = (base >> 16) & 0xFF;
-    DefaultGDT.Tss.Base2 = base >> 24;
+    DefaultGDT.TssL.Base0 = base;
+    DefaultGDT.TssL.Base1 = (base >> 16) & 0xFF;
+    DefaultGDT.TssL.Base2 = base >> 24;
 
-    DefaultGDT.Tss.Limit0 = (limit & 0xFFFF);
-    DefaultGDT.Tss.Limit1_Flags = (limit >> 16) & 0x0F;
-    DefaultGDT.Tss.Limit1_Flags |= 0x00 & 0xF0;
+    DefaultGDT.TssL.Limit0 = (limit & 0xFFFF);
+    DefaultGDT.TssL.Limit1_Flags = 0x00;
 
-    DefaultGDT.Tss.AccessByte = 0xE9;
+    DefaultGDT.TssL.AccessByte = 0x89;
+
+    DefaultGDT.TssH.Limit0 = base >> 32;
+    DefaultGDT.TssH.Base0 = base >> 48;
 
     reloadgdt();
     reloadtss();

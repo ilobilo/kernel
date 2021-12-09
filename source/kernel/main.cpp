@@ -74,7 +74,7 @@ void time()
     {
         int time = rtc::second();
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
-        ssfn::printfat(0, 0, "\r%s", rtc::getTime());
+        ssfn::printfat(0, 0, "\r%s     ", rtc::getTime());
     }
 }
 
@@ -139,11 +139,11 @@ void main(struct stivale2_struct *stivale2_struct)
     heap::init();
     terminal::okerr(heap::initialised);
 
-    terminal::check("Initialising Global Descriptor Table...");
+    terminal::check("Initialising GDT...");
     gdt::init();
     terminal::okerr(gdt::initialised);
 
-    terminal::check("Initialising Interrupt Descriptor Table...");
+    terminal::check("Initialising IDT...");
     idt::init();
     terminal::okerr(idt::initialised);
 
@@ -171,11 +171,11 @@ void main(struct stivale2_struct *stivale2_struct)
     smp::init();
     terminal::okerr(smp::initialised);
 
-    terminal::check("Initialising Virtual filesystem...");
+    terminal::check("Initialising VFS...");
     vfs::init();
     terminal::okerr(vfs::initialised);
 
-    terminal::check("Initialising USTAR filesystem...");
+    terminal::check("Initialising Initrd...");
     int m = find_module("initrd");
     if (m != -1 && strstr(cmdline, "initrd"))
     {
@@ -183,7 +183,7 @@ void main(struct stivale2_struct *stivale2_struct)
     }
     terminal::okerr(ustar::initialised);
 
-    terminal::check("Initialising DEV filesystem...");
+    terminal::check("Initialising DEVFS...");
     devfs::init();
     terminal::okerr(devfs::initialised);
 

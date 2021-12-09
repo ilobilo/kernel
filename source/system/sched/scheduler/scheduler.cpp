@@ -107,6 +107,11 @@ void exit(thread_t *thread)
     asm volatile ("sti");
 }
 
+thread_t *running_thread()
+{
+    return current_thread->thread;
+}
+
 void init()
 {
     serial::info("Initialising scheduler");
