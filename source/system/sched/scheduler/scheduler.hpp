@@ -13,7 +13,7 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
-#define TSTACK_SIZE 0x4000
+#define TSTACK_SIZE 32768
 
 enum state_t
 {
@@ -54,6 +54,8 @@ void unblock(thread_t *thread);
 
 void exit();
 void exit(thread_t *thread);
+
+thread_t *running_thread();
 
 void init();
 }

@@ -2,6 +2,7 @@
 
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
@@ -53,9 +54,9 @@ void parse(char *cmd, char *arg)
         case hash("ls"):
         {
             vfs::fs_node_t *node;
-            if (!strncmp(arg, "../", 3) || !strncmp(arg, "..", 2)) node = current_path->parent;
-            else if (!strncmp(arg, "./", 2) || !strncmp(arg, ".", 1) || !strcmp(arg, "")) node = current_path;
-            else if (!strncmp(arg, "/", 1)) node = vfs::open(0, arg);
+            if (!strcmp(arg, "../") || !strcmp(arg, "..")) node = current_path->parent;
+            else if (!strcmp(arg, "./") || !strcmp(arg, ".") || !strcmp(arg, "")) node = current_path;
+            else if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {
@@ -190,7 +191,7 @@ void parse(char *cmd, char *arg)
                 return;
             }
             vfs::fs_node_t *node;
-            if (!strncmp(arg, "/", 1)) node = vfs::open(0, arg);
+            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {
@@ -305,7 +306,7 @@ void run()
     {
         if (!current_path)
         {
-            current_path = vfs::getchild(NULL, "/");
+            current_path = scheduler::running_thread()->current_dir;
             current_path->flags = vfs::FS_DIRECTORY;
         }
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);

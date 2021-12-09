@@ -32,7 +32,8 @@ struct [[gnu::packed, gnu::aligned(0x1000)]] GDT
     GDTEntry _64BitData;
     GDTEntry UserData;
     GDTEntry UserCode;
-    GDTEntry Tss;
+    GDTEntry TssL;
+    GDTEntry TssH;
 };
 
 struct [[gnu::packed]] TSS
