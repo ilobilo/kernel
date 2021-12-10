@@ -16,9 +16,21 @@ struct [[gnu::packed]] GDTEntry
     uint16_t Limit0;
     uint16_t Base0;
     uint8_t Base1;
-    uint8_t AccessByte;
-    uint8_t Limit1_Flags;
+    uint8_t Access;
+    uint8_t Granularity;
     uint8_t Base2;
+};
+
+struct [[gnu::packed]] TSSEntry
+{
+    uint16_t Length;
+    uint16_t Base0;
+    uint8_t  Base1;
+    uint8_t  Flags1;
+    uint8_t  Flags2;
+    uint8_t  Base2;
+    uint32_t Base3;
+    uint32_t Reserved;
 };
 
 struct [[gnu::packed, gnu::aligned(0x1000)]] GDT
@@ -32,8 +44,7 @@ struct [[gnu::packed, gnu::aligned(0x1000)]] GDT
     GDTEntry _64BitData;
     GDTEntry UserData;
     GDTEntry UserCode;
-    GDTEntry TssL;
-    GDTEntry TssH;
+    TSSEntry Tss;
 };
 
 struct [[gnu::packed]] TSS
