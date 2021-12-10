@@ -13,8 +13,8 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::gdt {
 
-[[gnu::aligned(0x1000)]]
-GDT DefaultGDT = {
+[[gnu::aligned(0x1000)]] GDT DefaultGDT
+{
     {0x0000, 0, 0, 0x00, 0x00, 0},
     {0xFFFF, 0, 0, 0x9A, 0x80, 0},
     {0xFFFF, 0, 0, 0x92, 0x80, 0},
@@ -23,7 +23,8 @@ GDT DefaultGDT = {
     {0x0000, 0, 0, 0x9A, 0xA2, 0},
     {0x0000, 0, 0, 0x92, 0xA0, 0},
     {0x0000, 0, 0, 0xF2, 0x00, 0},
-    {0x0000, 0, 0, 0xFA, 0x20, 0}
+    {0x0000, 0, 0, 0xFA, 0x20, 0},
+    {0x0000, 0, 0, 0x89, 0x00, 0}
 };
 
 DEFINE_LOCK(gdt_lock)
@@ -48,17 +49,15 @@ void reloadall(int cpu)
     uintptr_t base = (uintptr_t)&tss[cpu];
     uintptr_t limit = base + sizeof(tss[cpu]);
 
-    DefaultGDT.TssL.Base0 = base;
-    DefaultGDT.TssL.Base1 = (base >> 16) & 0xFF;
-    DefaultGDT.TssL.Base2 = base >> 24;
+    DefaultGDT.Tss.Length = limit;
 
-    DefaultGDT.TssL.Limit0 = (limit & 0xFFFF);
-    DefaultGDT.TssL.Limit1_Flags = 0x00;
-
-    DefaultGDT.TssL.AccessByte = 0x89;
-
-    DefaultGDT.TssH.Limit0 = base >> 32;
-    DefaultGDT.TssH.Base0 = base >> 48;
+    DefaultGDT.Tss.Base0 = base;
+    DefaultGDT.Tss.Base1 = base >> 16;
+    DefaultGDT.Tss.Flags1 = 0x89;
+    DefaultGDT.Tss.Flags2 = 0x00;
+    DefaultGDT.Tss.Base2 = base >> 24;
+    DefaultGDT.Tss.Base3 = base >> 32;
+    DefaultGDT.Tss.Reserved = 0x00;
 
     reloadgdt();
     reloadtss();
