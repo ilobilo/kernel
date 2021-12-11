@@ -138,6 +138,8 @@ void shutdown()
 {
     if (SCI_EN == 1)
     {
+        outw(fadthdr->PM1aControlBlock, (inw(fadthdr->PM1aControlBlock) & 0xE3FF) | ((SLP_TYPa << 10) | ACPI_SLEEP));
+        if (fadthdr->PM1bControlBlock) outw(fadthdr->PM1bControlBlock, (inw(fadthdr->PM1bControlBlock) & 0xE3FF) | ((SLP_TYPb << 10) | ACPI_SLEEP));
         outw(PM1a_CNT, SLP_TYPa | SLP_EN);
         if (PM1b_CNT) outw(PM1b_CNT, SLP_TYPb | SLP_EN);
     }

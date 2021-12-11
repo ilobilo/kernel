@@ -48,6 +48,9 @@ struct Pagemap
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void unmapMem(uint64_t vaddr);
+
+    void setFlags(uint64_t vaddr, uint64_t flags);
+    void remFlags(uint64_t vaddr, uint64_t flags);
 };
 
 struct CRs
