@@ -289,7 +289,6 @@ void init()
                     currfunc = func;
 
                     pcidevices.push_back(translate(pcidevice));
-                    heap::free(pcidevice);
 
                     serial::info("%.4X:%.4X %s %s",
                         pcidevices.last()->device->vendorid,
