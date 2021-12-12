@@ -6,7 +6,8 @@
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/main.hpp>
 #include <lib/memory.hpp>
-#include <lib/math.hpp>
+#include <lib/lock.hpp>
+#include <lib/cpu.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -14,6 +15,7 @@ namespace kernel::system::mm::vmm {
 
 bool initialised = false;
 Pagemap *kernel_pagemap = NULL;
+DEFINE_LOCK(vmm_lock)
 
 PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 {
@@ -34,6 +36,7 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 
 void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
+    acquire_lock(vmm_lock);
     size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
     size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
     size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
@@ -43,25 +46,22 @@ void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
-    if (flags & LargerPages)
-    {
-        pml2->entries[pml2_entry].setAddr(paddr >> 12);
-        pml2->entries[pml2_entry].setflags(flags, true);
-        return;
-    }
-
     pml1 = get_next_lvl(pml2, pml2_entry);
 
     pml1->entries[pml1_entry].setAddr(paddr >> 12);
     pml1->entries[pml1_entry].setflags(flags, true);
+    release_lock(vmm_lock);
 }
 
-void Pagemap::unmapMem(uint64_t vaddr)
+void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
-    size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
-    size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
-    size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
-    size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
+    acquire_lock(vmm_lock);
+    uint64_t paddr = 0;
+
+    size_t pml4_entry = (vaddr_old & ((uint64_t)0x1FF << 39)) >> 39;
+    size_t pml3_entry = (vaddr_old & ((uint64_t)0x1FF << 30)) >> 30;
+    size_t pml2_entry = (vaddr_old & ((uint64_t)0x1FF << 21)) >> 21;
+    size_t pml1_entry = (vaddr_old & ((uint64_t)0x1FF << 12)) >> 12;
 
     PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
 
@@ -69,14 +69,36 @@ void Pagemap::unmapMem(uint64_t vaddr)
     pml2 = get_next_lvl(pml3, pml3_entry);
     pml1 = get_next_lvl(pml2, pml2_entry);
 
-    pml1->entries[pml1_entry].setAddr(0);
-    pml1->entries[pml1_entry].setflags((Present | ReadWrite | UserSuper | WriteThrough | CacheDisable | Accessed | LargerPages | Custom1 | Custom2 | NX), false);
-    asm volatile ("invlpg (%0)" :: "r"(vaddr));
+    paddr = pml1->entries[pml1_entry].getAddr() << 12;
+    pml1->entries[pml1_entry].value = 0;
+    asm volatile ("invlpg (%0)" :: "r"(vaddr_old));
+
+    release_lock(vmm_lock);
+    this->mapMem(vaddr_new, paddr, flags);
 }
 
 void Pagemap::mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
     mapMem(vaddr, paddr, flags | UserSuper);
+}
+
+void Pagemap::unmapMem(uint64_t vaddr)
+{
+    acquire_lock(vmm_lock);
+    size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
+    size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
+    size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
+    size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
+
+    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
+
+    pml3 = get_next_lvl(pml4, pml4_entry);
+    pml2 = get_next_lvl(pml3, pml3_entry);
+    pml1 = get_next_lvl(pml2, pml2_entry);
+
+    pml1->entries[pml1_entry].value = 0;
+    asm volatile ("invlpg (%0)" :: "r"(vaddr));
+    release_lock(vmm_lock);
 }
 
 void Pagemap::setFlags(uint64_t vaddr, uint64_t flags)
@@ -90,12 +112,6 @@ void Pagemap::setFlags(uint64_t vaddr, uint64_t flags)
 
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
-    if (flags & LargerPages)
-    {
-        pml2->entries[pml2_entry].setflags(flags, true);
-        return;
-    }
-
     pml1 = get_next_lvl(pml2, pml2_entry);
 
     pml1->entries[pml1_entry].setflags(flags, true);
@@ -112,12 +128,6 @@ void Pagemap::remFlags(uint64_t vaddr, uint64_t flags)
 
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
-    if (flags & LargerPages)
-    {
-        pml2->entries[pml2_entry].setflags(flags, true);
-        return;
-    }
-
     pml1 = get_next_lvl(pml2, pml2_entry);
 
     pml1->entries[pml1_entry].setflags(flags, false);
@@ -186,24 +196,7 @@ Pagemap *clonePagemap(Pagemap *old)
 
 void switchPagemap(Pagemap *pmap)
 {
-    asm ("mov %0, %%cr3" : : "r" (pmap->PML4));
-}
-
-CRs getCRs()
-{
-    uint64_t cr0, cr2, cr3;
-    asm volatile (
-        "mov %%cr0, %%rax\n\t"
-        "mov %%eax, %0\n\t"
-        "mov %%cr2, %%rax\n\t"
-        "mov %%eax, %1\n\t"
-        "mov %%cr3, %%rax\n\t"
-        "mov %%eax, %2\n\t"
-    : "=m" (cr0), "=m" (cr2), "=m" (cr3)
-    : /* no input */
-    : "%rax"
-    );
-    return {cr0, cr2, cr3};
+    write_cr(3, (uint64_t)pmap->PML4);
 }
 
 void init()
@@ -216,7 +209,7 @@ void init()
         return;
     }
 
-    kernel_pagemap->PML4 = (PTable*)getCRs().cr3;
+    kernel_pagemap->PML4 = (PTable*)read_cr(3);
     switchPagemap(kernel_pagemap);
 
     serial::newline();
