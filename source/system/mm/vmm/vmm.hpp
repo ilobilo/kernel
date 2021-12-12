@@ -46,18 +46,12 @@ struct Pagemap
     PTable *PML4;
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
+    void remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags = (Present | ReadWrite));
     void mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void unmapMem(uint64_t vaddr);
 
     void setFlags(uint64_t vaddr, uint64_t flags);
     void remFlags(uint64_t vaddr, uint64_t flags);
-};
-
-struct CRs
-{
-    uint64_t cr0;
-    uint64_t cr2;
-    uint64_t cr3;
 };
 
 extern bool initialised;
@@ -66,8 +60,6 @@ extern Pagemap *kernel_pagemap;
 Pagemap *newPagemap();
 Pagemap *clonePagemap(Pagemap *old);
 void switchPagemap(Pagemap *pmap);
-
-CRs getCRs();
 
 void init();
 }

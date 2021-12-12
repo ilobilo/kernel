@@ -34,16 +34,16 @@ uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
     return inb(0xcfc + (offset & 3));
 }
 
-void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value)
-{
-    get_addr(bus, dev, func, offset);
-    outb(0xcfc + (offset & 3), value);
-}
-
 uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
 {
     get_addr(bus, dev, func, offset);
     return inw(0xcfc + (offset & 3));
+}
+
+uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inl(0xcfc + (offset & 3));
 }
 
 void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value)
@@ -52,10 +52,10 @@ void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t va
     outw(0xcfc + (offset & 3), value);
 }
 
-uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value)
 {
     get_addr(bus, dev, func, offset);
-    return inl(0xcfc + (offset & 3));
+    outb(0xcfc + (offset & 3), value);
 }
 
 void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value)

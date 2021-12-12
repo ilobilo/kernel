@@ -125,6 +125,14 @@ static void Keyboard_Handler(registers_t *)
             case keys::SCROLLLOCK:
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
                 break;
+            case keys::UP:
+                strcpy(c, "\033[A");
+                terminal::cursor_up();
+                break;
+            case keys::DOWN:
+                strcpy(c, "\033[B");
+                terminal::cursor_down();
+                break;
             case keys::RIGHT:
                 strcpy(c, "\033[C");
                 terminal::cursor_right();
@@ -132,14 +140,6 @@ static void Keyboard_Handler(registers_t *)
             case keys::LEFT:
                 strcpy(c, "\033[D");
                 terminal::cursor_left();
-                break;
-            case keys::UP:
-                strcpy(c, "\033[C");
-                terminal::cursor_up();
-                break;
-            case keys::DOWN:
-                strcpy(c, "\033[D");
-                terminal::cursor_down();
                 break;
             default:
                 memset(c, 0, strlen(c));
@@ -204,10 +204,6 @@ char *getline()
     {
         if (pressed)
         {
-            if (gi >= 1024 - 1)
-            {
-                printf("\nBuffer Overflow");
-            }
             retstr[gi] = getchar();
             gi++;
         }
