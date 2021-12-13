@@ -204,6 +204,10 @@ char *getline()
     {
         if (pressed)
         {
+            if (gi >= 1024 - 1)
+            {
+                printf("\nBuffer Overflow\n");
+            }
             retstr[gi] = getchar();
             gi++;
         }
