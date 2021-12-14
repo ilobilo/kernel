@@ -229,13 +229,6 @@ void parse(char *cmd, char *arg)
             t();
             break;
         }
-        case hash("free"):
-        {
-            uint64_t usable = getmemsize() / 1024 / 1024;
-            uint64_t free = pmm::getFreeRam() / 1024 / 1024;
-            printf("Usable memory: %ld MB\nFree memory: %ld MB\nUsed memory: %ld MB\n", usable, free, usable - free);
-            break;
-        }
         case hash("time"):
             printf("%s\n", rtc::getTime());
             break;

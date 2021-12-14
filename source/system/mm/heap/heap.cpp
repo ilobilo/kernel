@@ -94,11 +94,6 @@ void* malloc(size_t size)
     check();
 
     acquire_lock(heap_lock);
-    if (size > pmm::getFreeRam())
-    {
-        serial::err("Malloc: requested more memory than available!\n");
-        return NULL;
-    }
 
     if (size % blockSize)
     {
@@ -290,7 +285,9 @@ void expandHeap(size_t length)
 
     for (size_t i = 0; i < pageCount; i++)
     {
-        vmm::kernel_pagemap->mapMem((uint64_t)heapEnd, (uint64_t)pmm::requestPage());
+        uint64_t t = (uint64_t)pmm::alloc();
+        if (!t) serial::err("FSF");
+        vmm::kernel_pagemap->mapMem((uint64_t)heapEnd, t);
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
 

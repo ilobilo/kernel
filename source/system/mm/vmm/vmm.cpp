@@ -26,7 +26,7 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
     }
     else
     {
-        ret = (PTable*)pmm::requestPage();
+        ret = (PTable*)pmm::alloc();
         memset(ret, 0, 4096);
         curr_lvl->entries[entry].setAddr((uint64_t)ret >> 12);
         curr_lvl->entries[entry].setflags(Present | ReadWrite, true);
@@ -173,7 +173,7 @@ void PDEntry::setAddr(uint64_t address)
 Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->PML4 = (PTable*)pmm::requestPage();
+    pagemap->PML4 = (PTable*)pmm::alloc();
 
     PTable *pml4 = pagemap->PML4;
     PTable *kernel_pml4 = kernel_pagemap->PML4;
@@ -185,7 +185,7 @@ Pagemap *newPagemap()
 Pagemap *clonePagemap(Pagemap *old)
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->PML4 = (PTable*)pmm::requestPage();
+    pagemap->PML4 = (PTable*)pmm::alloc();
 
     PTable *pml4 = pagemap->PML4;
     PTable *old_pml4 = old->PML4;
