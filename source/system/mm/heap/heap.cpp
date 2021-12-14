@@ -62,6 +62,8 @@ void free(void *address)
     freeSize += header->length + sizeof(heapSegHdr);
     usedSize -= header->length + sizeof(heapSegHdr);
 
+    if (debug) serial::info("Free: Freeing %zu Bytes", header->length + sizeof(heapSegHdr));
+
     if (header->next && header->last)
     {
         if (header->next->free && header->last->free)
@@ -83,10 +85,10 @@ void free(void *address)
             header->mergeNextToThis();
         }
     }
-    if (debug) serial::info("Free: Freeing %zu Bytes", header->length + sizeof(heapSegHdr));
     release_lock(heap_lock);
 }
 
+static volatile bool expanded = false;
 void* malloc(size_t size)
 {
     check();
@@ -116,18 +118,20 @@ void* malloc(size_t size)
                 currentSeg->free = false;
                 usedSize += currentSeg->length + sizeof(heapSegHdr);
                 freeSize -= currentSeg->length + sizeof(heapSegHdr);
-
                 if (debug) serial::info("Malloc: Allocated %zu Bytes", size + sizeof(heapSegHdr));
+
+                expanded = false;
                 release_lock(heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
             if (currentSeg->length == size)
             {
                 currentSeg->free = false;
-                if (debug) serial::info("Malloc: Allocated %zu Bytes", size + sizeof(heapSegHdr));
                 usedSize += currentSeg->length + sizeof(heapSegHdr);
                 freeSize -= currentSeg->length + sizeof(heapSegHdr);
+                if (debug) serial::info("Malloc: Allocated %zu Bytes", size + sizeof(heapSegHdr));
 
+                expanded = false;
                 release_lock(heap_lock);
                 return (void*)((uint64_t)currentSeg + sizeof(heapSegHdr));
             }
@@ -135,7 +139,13 @@ void* malloc(size_t size)
         if (!currentSeg->next) break;
         currentSeg = currentSeg->next;
     }
+    if (expanded)
+    {
+        serial::err("Could not expand the heap!");
+        return NULL;
+    }
     expandHeap(size);
+    expanded = true;
     release_lock(heap_lock);
     return malloc(size);
 }

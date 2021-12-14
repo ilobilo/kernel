@@ -206,7 +206,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     srand(rtc::time());
 
-    scheduler::create(scheduler::alloc((uint64_t)&time, NULL));
-    scheduler::create(scheduler::alloc((uint64_t)&apps::kshell::run, NULL));
+    scheduler::add(scheduler::alloc((uint64_t)&time, NULL));
+    scheduler::add(scheduler::alloc((uint64_t)&apps::kshell::run, NULL));
 }
 }

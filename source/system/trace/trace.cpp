@@ -4,8 +4,8 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/heap/heap.hpp>
 #include <system/trace/trace.hpp>
-#include <lib/string.hpp>
 #include <kernel/main.hpp>
+#include <lib/string.hpp>
 #include <elf.h>
 
 using namespace kernel::drivers::display;

@@ -64,7 +64,7 @@ fs_node_t *getchild(fs_node_t *parent, const char *path)
     }
     for (size_t i = 0; i < parent_node->children.size(); i++)
     {
-        child_node = parent_node->children.at(i);
+        child_node = parent_node->children[i];
         if (!strcmp(child_node->name, path)) return child_node;
     }
     return NULL;
@@ -87,7 +87,7 @@ void remove_child(fs_node_t *parent, const char *name)
     if (!parent) parent = fs_root;
     for (size_t i = 0; i < parent->children.size(); i++)
     {
-        fs_node_t *node = parent->children.at(i);
+        fs_node_t *node = parent->children[i];
         if (!strcmp(node->name, name))
         {
             node->children.destroy();
@@ -168,12 +168,12 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         }
         for (size_t i = 0; i < parent_node->children.size(); i++)
         {
-            if ((parent_node->children.at(i)->flags & 0x07) == FS_MOUNTPOINT || (parent_node->children.at(i)->flags & 0x07) == FS_SYMLINK)
-                child_node = parent_node->children.at(i)->ptr;
-            else child_node = parent_node->children.at(i);
+            if ((parent_node->children[i]->flags & 0x07) == FS_MOUNTPOINT || (parent_node->children[i]->flags & 0x07) == FS_SYMLINK)
+                child_node = parent_node->children[i]->ptr;
+            else child_node = parent_node->children[i];
             if (!strcmp(child_node->name, patharr[cleared]))
             {
-                parent_node = parent_node->children.at(i);
+                parent_node = parent_node->children[i];
                 cleared++;
                 items--;
                 goto next;

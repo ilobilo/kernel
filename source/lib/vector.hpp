@@ -19,14 +19,16 @@ public:
 
     void init()
     {
+        if (on) return;
         cap = 1;
-        vector = (T*)heap::malloc(1 * sizeof(T));
+        vector = (T*)heap::malloc(sizeof(T));
         num = 0;
         on = true;
     }
 
     void init(size_t size)
     {
+        if (on) return;
         cap = size;
         vector = (T*)heap::malloc(size * sizeof(T));
         num = 0;
@@ -35,6 +37,7 @@ public:
 
     void destroy()
     {
+        if (!on) return;
         heap::free(vector);
         on = false;
     }
