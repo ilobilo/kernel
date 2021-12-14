@@ -55,6 +55,8 @@ void unblock(thread_t *thread);
 void exit();
 void exit(thread_t *thread);
 
+int getpid();
+
 thread_t *running_thread();
 
 void init();

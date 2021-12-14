@@ -107,6 +107,11 @@ void exit(thread_t *thread)
     asm volatile ("sti");
 }
 
+int getpid()
+{
+    return current_thread->thread->pid;
+}
+
 thread_t *running_thread()
 {
     return current_thread->thread;

@@ -32,7 +32,7 @@ static void *inner_alloc(size_t count, size_t limit)
             if (++p == count)
             {
                 size_t page = lastI - count;
-                for (size_t i = 0; i < lastI; i++) bitmap.Set(i, true);
+                for (size_t i = page; i < lastI; i++) bitmap.Set(i, true);
                 return (void*)(page * 0x1000);
             }
         }
@@ -67,6 +67,24 @@ void free(void *ptr, size_t count)
     usedRam -= count * 0x1000;
     freeRam += count * 0x1000;
     release_lock(pmm_lock);
+}
+
+void *realloc(void *ptr, size_t oldcount, size_t newcount)
+{
+    if (!ptr) return alloc(newcount);
+
+    if (!newcount)
+    {
+        free(ptr, oldcount);
+        return NULL;
+    }
+
+    if (newcount < oldcount) oldcount = newcount;
+
+    void *newptr = alloc(newcount);
+    memcpy(newptr, ptr, oldcount);
+    free(ptr);
+    return newptr;
 }
 
 size_t freemem()

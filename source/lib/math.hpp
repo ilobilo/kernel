@@ -25,6 +25,8 @@
     (_a_ / _b_) * _b_; \
 })
 
+#define POWER_OF_2(var) (!((var) & ((var) - 1)))
+
 struct point
 {
     long X;
