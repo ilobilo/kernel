@@ -3,6 +3,7 @@
 #pragma once
 
 #include <system/cpu/gdt/gdt.hpp>
+#include <stddef.h>
 
 namespace kernel::system::cpu::smp {
 

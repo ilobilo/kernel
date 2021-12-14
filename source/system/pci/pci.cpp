@@ -2,7 +2,6 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
@@ -11,7 +10,6 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
-using namespace kernel::system::mm;
 
 namespace kernel::system::pci {
 
@@ -158,7 +156,7 @@ size_t count(uint8_t Class, uint8_t subclass, uint8_t progif)
 
 translatedpcidevice_t *translate(pcidevice_t* device)
 {
-    translatedpcidevice_t *pcidevice = (translatedpcidevice_t*)heap::malloc(sizeof(translatedpcidevice_t));
+    translatedpcidevice_t *pcidevice = new translatedpcidevice_t;
 
     pcidevice->device = device;
 
@@ -269,7 +267,7 @@ void init()
                     uint32_t config_8 = readl(bus, dev, func, 0x8);
                     uint32_t config_c = readl(bus, dev, func, 0xc);
 
-                    pcidevice_t *pcidevice = (pcidevice_t*)heap::malloc(sizeof(pcidevice_t));
+                    pcidevice_t *pcidevice = new pcidevice_t;
 
                     pcidevice->vendorid = (uint16_t)config_0;
                     pcidevice->deviceid = (uint16_t)(config_0 >> 16);

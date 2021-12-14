@@ -1,14 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <system/mm/heap/heap.hpp>
+#include <lib/liballoc.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
-
-using namespace kernel::system::mm;
 
 size_t strlen(const char *str)
 {
@@ -95,7 +93,7 @@ char *strrm(char *str, const char *substring)
 char *strdup(const char *src)
 {
     size_t len = strlen(src) + 1;
-    char *s = (char*)heap::malloc(len);
+    char *s = (char*)malloc(len);
     if (s == NULL) return NULL;
     return (char*)memcpy(s, (void*)src, len);
 }
@@ -116,7 +114,7 @@ static char** _strsplit(const char* s, const char* delim, size_t* nb)
         ++nbWords;
     }
     ptrsSize = (nbWords + 1) * sizeof(char*);
-    ptrs = (const char**)heap::malloc(ptrsSize + sLen + 1);
+    ptrs = (const char**)malloc(ptrsSize + sLen + 1);
     data = ptrs;
     if (data)
     {

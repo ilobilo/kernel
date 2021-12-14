@@ -5,6 +5,7 @@
 #include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
+#include <lib/lock.hpp>
 #include <stivale2.h>
 
 using namespace kernel::drivers::display;
@@ -13,10 +14,13 @@ namespace kernel::system::mm::pmm {
 
 Bitmap bitmap;
 bool initialised = false;
-
 static uintptr_t highest_page = 0;
-
 static size_t lastI = 0;
+static size_t usedRam = 0;
+static size_t freeRam = 0;
+
+DEFINE_LOCK(pmm_lock)
+
 static void *inner_alloc(size_t count, size_t limit)
 {
     size_t p = 0;
@@ -39,6 +43,7 @@ static void *inner_alloc(size_t count, size_t limit)
 
 void *alloc(size_t count)
 {
+    acquire_lock(pmm_lock);
     size_t l = lastI;
     void *ret = inner_alloc(count, highest_page / 0x1000);
     if (!ret)
@@ -47,13 +52,31 @@ void *alloc(size_t count)
         ret = inner_alloc(count, 1);
     }
     memset(ret, 0, count * 0x1000);
+    usedRam += count * 0x1000;
+    freeRam -= count * 0x1000;
+    release_lock(pmm_lock);
     return ret;
 }
 
 void free(void *ptr, size_t count)
 {
+    if (!ptr) return;
+    acquire_lock(pmm_lock);
     size_t page = (size_t)ptr / 0x1000;
     for (size_t i = page; i < page + count; i++) bitmap.Set(i, false);
+    usedRam -= count * 0x1000;
+    freeRam += count * 0x1000;
+    release_lock(pmm_lock);
+}
+
+size_t freemem()
+{
+    return freeRam;
+}
+
+size_t usedmem()
+{
+    return usedRam;
 }
 
 void init()
@@ -101,6 +124,8 @@ void init()
             bitmap.Set((mmap_tag->memmap[i].base + t) / 0x1000, false);
         }
     }
+
+    freeRam = getmemsize();
 
     serial::newline();
     initialised = true;

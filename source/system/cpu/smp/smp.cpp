@@ -2,11 +2,11 @@
 
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/apic/apic.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
+#include <lib/liballoc.hpp>
 #include <kernel/main.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
@@ -103,7 +103,7 @@ void init()
         return;
     }
 
-    cpus = (cpu_t*)heap::calloc(smp_tag->cpu_count, sizeof(cpu_t));
+    cpus = (cpu_t*)calloc(smp_tag->cpu_count, sizeof(cpu_t));
 
     for (size_t i = 0; i < smp_tag->cpu_count; i++)
     {

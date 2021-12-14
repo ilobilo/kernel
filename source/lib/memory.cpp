@@ -39,10 +39,7 @@ extern "C" int memcmp(const void *s1, const void *s2, size_t len)
     unsigned char *q = (unsigned char*)s2;
     int charstat = 0;
 
-    if (s1 == s2)
-    {
-        return charstat;
-    }
+    if (s1 == s2) return charstat;
     while (len > 0)
     {
         if (*p != *q)
@@ -59,12 +56,8 @@ extern "C" int memcmp(const void *s1, const void *s2, size_t len)
 
 extern "C" void *memset(void *str, int ch, size_t n)
 {
-    size_t i;
     char *s = (char *)str;
-    for(i = 0; i < n; i++)
-    {
-        s[i] = ch;
-    }
+    for (size_t i = 0; i < n; i++) s[i] = ch;
     return str;
 }
 

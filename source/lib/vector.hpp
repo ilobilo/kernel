@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include <system/mm/heap/heap.hpp>
+#include <lib/liballoc.hpp>
 #include <stddef.h>
-
-using namespace kernel::system::mm;
 
 template<typename T>
 class Vector
@@ -21,7 +19,7 @@ public:
     {
         if (on) return;
         cap = 1;
-        vector = (T*)heap::malloc(sizeof(T));
+        vector = new T;
         num = 0;
         on = true;
     }
@@ -30,7 +28,7 @@ public:
     {
         if (on) return;
         cap = size;
-        vector = (T*)heap::malloc(size * sizeof(T));
+        vector = new T[size];
         num = 0;
         on = true;
     }
@@ -38,7 +36,7 @@ public:
     void destroy()
     {
         if (!on) return;
-        heap::free(vector);
+        delete vector;
         on = false;
     }
 
@@ -52,7 +50,7 @@ public:
         }
         else
         {
-            vector = (T*)heap::realloc(vector, 2 * cap * sizeof(T*));
+            vector = (T*)realloc(vector, 2 * cap * sizeof(T*));
             cap *= 2;
             if (vector)
             {
@@ -112,7 +110,7 @@ public:
     {
         if (!on) this->init();
         cap = size;
-        vector = (T*)heap::realloc(vector, size * sizeof(T));
+        vector = (T*)realloc(vector, size * sizeof(T));
         if (num > size) num = size + 1;
     }
 
@@ -130,7 +128,7 @@ public:
         }
         else
         {
-            vector = (T*)heap::realloc(vector, 2 * cap * sizeof(T*));
+            vector = (T*)realloc(vector, 2 * cap * sizeof(T*));
             cap *= 2;
             if (vector)
             {

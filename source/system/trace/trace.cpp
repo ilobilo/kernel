@@ -2,14 +2,13 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/trace/trace.hpp>
+#include <lib/liballoc.hpp>
 #include <kernel/main.hpp>
 #include <lib/string.hpp>
 #include <elf.h>
 
 using namespace kernel::drivers::display;
-using namespace kernel::system::mm;
 
 namespace kernel::system::trace {
 
@@ -91,7 +90,7 @@ void init()
         entries--;
     }
 
-    symbol_table = (symtable_t*)heap::calloc(entries, sizeof(symtable_t));
+    symbol_table = (symtable_t*)calloc(entries, sizeof(symtable_t));
 
     for (size_t i = 0, t = 0, entriesbck = entries; i < entriesbck; i++)
     {
