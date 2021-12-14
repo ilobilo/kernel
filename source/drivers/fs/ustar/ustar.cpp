@@ -3,12 +3,11 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
-#include <system/mm/heap/heap.hpp>
+#include <lib/liballoc.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::system::mm;
 
 namespace kernel::drivers::fs::ustar {
 
@@ -43,10 +42,10 @@ int parse(unsigned int address)
 
         if (strcmp(header->signature, "ustar")) break;
 
-        if (filecount >= (heap::getsize(headers) / sizeof(header_t)))
+        if (filecount >= (allocsize(headers) / sizeof(header_t)))
         {
             allocated += 5;
-            headers = (header_t*)heap::realloc(headers, allocated * sizeof(header_t));
+            headers = (header_t*)realloc(headers, allocated * sizeof(header_t));
         }
 
         uintptr_t size = getsize(header->size);
@@ -151,7 +150,7 @@ void init(unsigned int address)
         return;
     }
 
-    headers = (header_t*)heap::malloc(allocated * sizeof(header_t));
+    headers = (header_t*)malloc(allocated * sizeof(header_t));
 
     initrd_root = vfs::mount_root(&ustar_fs);
     parse(address);

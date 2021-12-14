@@ -7,10 +7,10 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
+#include <lib/liballoc.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/io.hpp>
@@ -142,28 +142,10 @@ void parse(char *cmd, char *arg)
                     size_t size = 50;
                     if (node->length) size = node->length;
                     char *txt;
-                    if (size <= 50)
-                    {
-                        txt = (char*)heap::calloc(node->length, sizeof(char));
-                        vfs::read_fs(node, 0, size, txt);
-                        printf("%s", txt);
-                    }
-                    else
-                    {
-                        size_t offset = 0;
-                        txt = (char*)heap::calloc(50, sizeof(char));
-                        while (offset < size - (size % 50))
-                        {
-                            memset(txt, 0, 50);
-                            vfs::read_fs(node, offset, 50, txt);
-                            printf("%s", txt);
-                            offset += 50;
-                        }
-                        vfs::read_fs(node, offset, size % 50, txt);
-                        printf("%s", txt);
-                    }
-                    printf("\n");
-                    heap::free(txt);
+                    txt = (char*)calloc(size, sizeof(char));
+                    vfs::read_fs(node, 0, size, txt);
+                    printf("%.*s\n", (int)size, txt);
+                    free(txt);
                     break;
                 }
                 default:
@@ -227,6 +209,14 @@ void parse(char *cmd, char *arg)
             using func = int (*)();
             func t = (func)node->address;
             t();
+            break;
+        }
+        case hash("free"):
+        {
+            uint64_t all = getmemsize() / 1024 / 1024;
+            uint64_t free = pmm::freemem() / 1024 / 1024;
+            uint64_t used = pmm::usedmem() / 1024 / 1024;
+            printf("Usable memory: %ld MB\nFree memory: %ld MB\nUsed memory: %ld MB\n", all, free, used);
             break;
         }
         case hash("time"):

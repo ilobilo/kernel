@@ -11,7 +11,6 @@
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::system::mm;
 
 [[gnu::always_inline]] inline bool is_canonical(uint64_t addr)
 {

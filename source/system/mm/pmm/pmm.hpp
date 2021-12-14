@@ -14,5 +14,8 @@ extern bool initialised;
 void *alloc(size_t count = 1);
 void free(void *ptr, size_t count = 1);
 
+size_t freemem();
+size_t usedmem();
+
 void init();
 }

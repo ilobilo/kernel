@@ -129,9 +129,9 @@ void main(struct stivale2_struct *stivale2_struct)
     vmm::init();
     terminal::okerr(vmm::initialised);
 
-    terminal::check("Initialising Heap...");
-    heap::init();
-    terminal::okerr(heap::initialised);
+    // terminal::check("Initialising Heap...");
+    // heap::init();
+    // terminal::okerr(heap::initialised);
 
     terminal::check("Initialising GDT...");
     gdt::init();

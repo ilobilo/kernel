@@ -1,15 +1,14 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <lib/liballoc.hpp>
 #include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <lib/lock.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::gdt {
 
@@ -75,7 +74,7 @@ void init()
         return;
     }
 
-    tss = (TSS*)heap::calloc(smp_tag->cpu_count, sizeof(TSS));
+    tss = (TSS*)calloc(smp_tag->cpu_count, sizeof(TSS));
 
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = (uint64_t)&DefaultGDT;

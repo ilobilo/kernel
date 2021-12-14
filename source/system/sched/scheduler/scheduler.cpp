@@ -23,7 +23,7 @@ thread_t *alloc(uint64_t addr, void *args)
     acquire_lock(thread_lock);
     thread->pid = next_pid++;
     thread->state = READY;
-    thread->stack = (uint8_t*)heap::malloc(TSTACK_SIZE);
+    thread->stack = (uint8_t*)malloc(TSTACK_SIZE);
     thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     thread->current_dir = vfs::fs_root->ptr;
 
@@ -56,9 +56,9 @@ void schedule(registers_t *regs)
     {
         threadentry_t *oldnext = current_thread->next;
         current_thread->next = current_thread->next->next;
-        heap::free(oldnext->thread->stack);
-        heap::free(oldnext->thread);
-        heap::free(oldnext);
+        free(oldnext->thread->stack);
+        free(oldnext->thread);
+        free(oldnext);
     }
     if (current_thread->thread->state == RUNNING) current_thread->thread->state = READY;
     current_thread = current_thread->next;
@@ -126,7 +126,7 @@ void init()
     current_thread->thread = new thread_t;
     current_thread->next = current_thread;
     current_thread->thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
-    current_thread->thread->stack = (uint8_t*)heap::malloc(TSTACK_SIZE);
+    current_thread->thread->stack = (uint8_t*)malloc(TSTACK_SIZE);
     current_thread->thread->state = READY;
 
     serial::newline();

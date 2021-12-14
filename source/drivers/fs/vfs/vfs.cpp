@@ -73,7 +73,7 @@ fs_node_t *getchild(fs_node_t *parent, const char *path)
 fs_node_t *add_new_child(fs_node_t *parent, const char *name)
 {
     if (!parent) parent = fs_root;
-    fs_node_t *node = (fs_node_t*)heap::calloc(1, sizeof(fs_node_t));
+    fs_node_t *node = (fs_node_t*)calloc(1, sizeof(fs_node_t));
     strcpy(node->name, name);
     node->parent = parent;
     node->fs = parent->fs;
@@ -91,7 +91,7 @@ void remove_child(fs_node_t *parent, const char *name)
         if (!strcmp(node->name, name))
         {
             node->children.destroy();
-            heap::free(node);
+            free(node);
             parent->children.remove(i);
             return;
         }
@@ -182,13 +182,13 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         goto notfound;
     }
 
-    heap::free(patharr);
+    free(patharr);
     release_lock(vfs_lock);
     return child_node;
 
     notfound:
     if (debug) serial::err("VFS: File not found!");
-    heap::free(patharr);
+    free(patharr);
     release_lock(vfs_lock);
     return NULL;
 }
@@ -313,7 +313,7 @@ void init()
         return;
     }
 
-    fs_root = (fs_node_t*)heap::malloc(sizeof(fs_node_t));
+    fs_root = new fs_node_t;
     fs_root->flags = filetypes::FS_MOUNTPOINT;
     fs_root->children.init(1);
     strcpy(fs_root->name, ROOTNAME);

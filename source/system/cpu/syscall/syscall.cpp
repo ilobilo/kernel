@@ -4,13 +4,12 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
-#include <system/mm/heap/heap.hpp>
+#include <lib/liballoc.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
-using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::syscall {
 
@@ -28,24 +27,24 @@ static void syscall_write(registers_t *regs)
     {
         case 0:
         {
-            char *str = (char*)heap::malloc(S_RDX_ARG2 * sizeof(char));
+            char *str = (char*)malloc(S_RDX_ARG2 * sizeof(char));
             memcpy(str, (void*)S_RSI_ARG1, S_RDX_ARG2);
             str[S_RDX_ARG2] = 0;
             printf("%s", str);
             S_RAX = (uint64_t)str;
-            heap::free(str);
+            free(str);
             break;
         }
         case 1:
             break;
         case 2:
         {
-            char *str = (char*)heap::malloc(S_RDX_ARG2 * sizeof(char));
+            char *str = (char*)malloc(S_RDX_ARG2 * sizeof(char));
             memcpy(str, (void*)S_RSI_ARG1, S_RDX_ARG2);
             str[S_RDX_ARG2] = 0;
             serial::err("%s", str);
             S_RAX = (uint64_t)str;
-            heap::free(str);
+            free(str);
             break;
         }
         default:

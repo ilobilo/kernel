@@ -2,12 +2,10 @@
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/heap/heap.hpp>
+#include <lib/liballoc.hpp>
 #include <kernel/main.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-
-using namespace kernel::system::mm;
 
 namespace kernel::drivers::display::framebuffer {
 
@@ -42,12 +40,12 @@ uint32_t getpix(uint32_t x, uint32_t y)
 void framebuffer_restore(uint32_t *frm)
 {
     memcpy((void*)frm_addr, frm, frm_height * frm_pitch);
-    heap::free(frm);
+    free(frm);
 }
 
 uint32_t *framebuffer_backup()
 {
-    uint32_t *frm = (uint32_t*)heap::malloc(frm_height * frm_pitch);
+    uint32_t *frm = (uint32_t*)malloc(frm_height * frm_pitch);
     memcpy(frm, (void*)frm_addr, frm_height * frm_pitch);
     return frm;
 }
