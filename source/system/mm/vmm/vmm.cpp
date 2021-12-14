@@ -1,7 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/serial/serial.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/main.hpp>

@@ -18,7 +18,6 @@
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/apic/apic.hpp>
-#include <system/mm/heap/heap.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -128,10 +127,6 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising VMM...");
     vmm::init();
     terminal::okerr(vmm::initialised);
-
-    // terminal::check("Initialising Heap...");
-    // heap::init();
-    // terminal::okerr(heap::initialised);
 
     terminal::check("Initialising GDT...");
     gdt::init();
