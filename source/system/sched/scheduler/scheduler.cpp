@@ -39,7 +39,7 @@ thread_t *alloc(uint64_t addr, void *args)
     return thread;
 }
 
-void create(thread_t *thread)
+void add(thread_t *thread)
 {
     threadentry_t *te = new threadentry_t;
     te->next = current_thread->next;

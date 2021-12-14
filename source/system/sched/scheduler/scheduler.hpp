@@ -44,7 +44,7 @@ struct threadentry_t
 extern bool initialised;
 
 thread_t *alloc(uint64_t addr, void *args);
-void create(thread_t *thread);
+void add(thread_t *thread);
 
 void schedule(registers_t *regs);
 
