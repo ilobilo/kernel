@@ -109,8 +109,8 @@ void init()
     {
         smp_tag->smp_info[i].extra_argument = (uint64_t)&cpus[i];
 
-        uint64_t stack = (uint64_t)pmm::requestPage();
-        uint64_t sched_stack = (uint64_t)pmm::requestPage();
+        uint64_t stack = (uint64_t)pmm::alloc();
+        uint64_t sched_stack = (uint64_t)pmm::alloc();
 
         gdt::tss[i].RSP[0] = stack;
         gdt::tss[i].IST[1] = sched_stack;
