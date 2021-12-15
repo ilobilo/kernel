@@ -30,6 +30,7 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/panic.hpp>
+#include <lib/buddy.hpp>
 #include <stivale2.h>
 #pragma endregion include
 

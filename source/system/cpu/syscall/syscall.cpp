@@ -95,8 +95,8 @@ static void syscall_reboot(registers_t *regs)
                 acpi::reboot();
                 break;
             case LINUX_REBOOT_CMD_RESTART2:
-                printf("\nRestarting system with command '%s'.\n", S_R10_ARG3);
-                serial::info("Restarting system with command '%s'.", S_R10_ARG3);
+                printf("\nRestarting system with command '%s'.\n", (char*)S_R10_ARG3);
+                serial::info("Restarting system with command '%s'.", (char*)S_R10_ARG3);
                 acpi::reboot();
                 break;
             case LINUX_REBOOT_CMD_SW_SUSPEND: break;
