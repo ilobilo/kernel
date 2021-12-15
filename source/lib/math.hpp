@@ -34,10 +34,10 @@ struct point
 };
 
 int pow(int base, int exponent);
-
 int abs(int num);
-
 int sign(int num);
 
 uint64_t rand();
 void srand(uint64_t seed);
+
+uint64_t to_power_of_2(uint64_t n);

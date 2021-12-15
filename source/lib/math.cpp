@@ -31,3 +31,10 @@ void srand(uint64_t seed)
 {
     next = seed;
 }
+
+uint64_t to_power_of_2(uint64_t n)
+{
+    n = n - 1;
+    while (n & n - 1) n = n & n - 1;
+    return n << 1;
+}
