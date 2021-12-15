@@ -17,7 +17,6 @@ class BuddyAlloc
     public:
     BuddyBlock *head;
     BuddyBlock *tail;
-    size_t alignment = sizeof(BuddyBlock);
     void *data = nullptr;
 
     volatile lock_t lock;
@@ -31,6 +30,7 @@ class BuddyAlloc
     void coalescence();
 
     public:
+    bool debug = false;
     size_t pages = 0;
 
     BuddyAlloc(size_t pagecount);
@@ -46,3 +46,5 @@ class BuddyAlloc
 
     size_t allocsize(void *ptr);
 };
+
+extern BuddyAlloc *heap;
