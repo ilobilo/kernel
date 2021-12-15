@@ -3,19 +3,14 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <lib/memory.hpp>
+#include <lib/panic.hpp>
 #include <lib/buddy.hpp>
 #include <lib/math.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
 
-#define ASSERT(x, msg) ({ \
-    if (!(x)) \
-    { \
-        serial::err("%s", (msg)); \
-        return; \
-    } \
-})
+BuddyAlloc *heap;
 
 BuddyBlock *BuddyAlloc::next(BuddyBlock *block)
 {
@@ -83,13 +78,13 @@ BuddyBlock *BuddyAlloc::find_best(size_t size)
 
 size_t BuddyAlloc::required_size(size_t size)
 {
-    size_t actual_size = this->alignment;
-    
+    size_t actual_size = sizeof(BuddyBlock);
+
     size += sizeof(BuddyBlock);
-    size = ALIGN_UP(size, this->alignment); 
-    
+    size = ALIGN_UP(size, sizeof(BuddyBlock));
+
     while (size > actual_size) actual_size <<= 1;
-    
+
     return actual_size;
 }
 
@@ -97,8 +92,8 @@ void BuddyAlloc::coalescence()
 {
     while (true)
     {
-        BuddyBlock *block = this->head;   
-        BuddyBlock *buddy = this->next(block);   
+        BuddyBlock *block = this->head;
+        BuddyBlock *buddy = this->next(block);
 
         bool no_coalescence = true;
         while (block < this->tail && buddy < this->tail)
@@ -138,7 +133,6 @@ BuddyAlloc::~BuddyAlloc()
 {
     this->head = nullptr;
     this->tail = nullptr;
-    this->alignment = 0;
     pmm::free(this->data);
 }
 
@@ -147,12 +141,12 @@ void BuddyAlloc::expand(size_t pagecount)
     acquire_lock(this->lock);
     ASSERT(pagecount != 0, "Page count can not be zero!");
     size_t size = (pagecount + this->pages) * 0x1000;
-    pagecount = size / 0x1000;
     while (size % 0x1000 || !POWER_OF_2(size))
     {
         size++;
         size = to_power_of_2(size);
     }
+    pagecount = size / 0x1000;
     ASSERT(POWER_OF_2(size), "Size is not power of two!");
 
     this->data = pmm::realloc(this->data, pagecount);
@@ -162,8 +156,10 @@ void BuddyAlloc::expand(size_t pagecount)
     this->head->size = size;
     this->head->free = true;
 
-    this->tail = this->next(this->head);
+    this->tail = next(head);
     this->pages = pagecount;
+
+    if (this->debug) serial::info("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
     release_lock(this->lock);
 }
 
@@ -175,7 +171,6 @@ void BuddyAlloc::setsize(size_t pagecount)
     this->expand(pagecount);
 }
 
-static volatile bool expanded = false;
 void *BuddyAlloc::malloc(size_t size)
 {
     if (size == 0) return NULL;
@@ -193,20 +188,21 @@ void *BuddyAlloc::malloc(size_t size)
 
     if (found != NULL)
     {
+        if (this->debug) serial::info("Allocated %zu bytes");
         found->free = false;
-        expanded = false;
+        this->expanded = false;
         release_lock(this->lock);
-        return (void*)((char*)found + this->alignment);
+        return (void*)((char*)found + sizeof(BuddyBlock));
     }
 
     if (this->expanded)
     {
-        serial::err("Could not expand the heap!");
-        expanded = false;
+        if (this->debug) serial::err("Could not expand the heap!");
+        this->expanded = false;
         release_lock(this->lock);
         return NULL;
     }
-    expanded = true;
+    this->expanded = true;
     release_lock(this->lock);
     this->expand(size / 0x1000 + 1);
     return this->malloc(size);
@@ -225,7 +221,7 @@ void *BuddyAlloc::realloc(void *ptr, size_t size)
 {
     if (!ptr) return this->malloc(size);
 
-    BuddyBlock *block = (BuddyBlock*)((char*)ptr - this->alignment);
+    BuddyBlock *block = (BuddyBlock*)((char*)ptr - sizeof(BuddyBlock));
     size_t oldsize = block->size;
 
     if (size == 0)
@@ -252,8 +248,10 @@ void BuddyAlloc::free(void *ptr)
 
     acquire_lock(this->lock);
 
-    BuddyBlock *block = (BuddyBlock*)((char*)ptr - this->alignment);
+    BuddyBlock *block = (BuddyBlock*)((char*)ptr - sizeof(BuddyBlock));
     block->free = true;
+
+    if (this->debug) serial::info("Freed %zu bytes", block->size - sizeof(BuddyBlock));
 
     this->coalescence();
 
@@ -263,5 +261,5 @@ void BuddyAlloc::free(void *ptr)
 size_t BuddyAlloc::allocsize(void *ptr)
 {
     if (!ptr) return 0;
-    return ((BuddyBlock*)((char*)ptr - this->alignment))->size - sizeof(BuddyBlock);
+    return ((BuddyBlock*)((char*)ptr - sizeof(BuddyBlock)))->size - sizeof(BuddyBlock);
 }
