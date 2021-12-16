@@ -15,6 +15,7 @@ static BuddyBlock *head;
 static BuddyBlock *tail;
 static void *data = nullptr;
 static volatile bool expanded = false;
+static volatile bool initialised = false;
 
 bool buddy_debug = false;
 size_t buddy_pages = 0;
@@ -136,6 +137,7 @@ void coalescence()
 void buddy_init(size_t pagecount)
 {
     buddy_expand(pagecount);
+    initialised = true;
 }
 
 void buddy_expand(size_t pagecount)
@@ -151,7 +153,7 @@ void buddy_expand(size_t pagecount)
     pagecount = size / 0x1000;
     ASSERT(POWER_OF_2(size), "Size is not power of two!");
 
-    data = pmm::realloc(data, pagecount);
+    data = pmm::realloc(data, buddy_pages, pagecount);
     ASSERT(data != NULL, "Could not allocate memory!");
 
     head = (BuddyBlock*)data;
@@ -175,6 +177,7 @@ void buddy_setsize(size_t pagecount)
 
 void *malloc(size_t size)
 {
+    if (!initialised) buddy_init();
     if (size == 0) return NULL;
 
     acquire_lock(buddy_lock);
@@ -243,6 +246,7 @@ void *realloc(void *ptr, size_t size)
 
 void free(void *ptr)
 {
+    if (!initialised) return;
     if (ptr == NULL) return;
 
     ASSERT(head <= ptr, "Head is not smaller than pointer!");
@@ -262,6 +266,7 @@ void free(void *ptr)
 
 size_t allocsize(void *ptr)
 {
+    if (!initialised) buddy_init();
     if (!ptr) return 0;
     return ((BuddyBlock*)((char*)ptr - sizeof(BuddyBlock)))->size - sizeof(BuddyBlock);
 }
