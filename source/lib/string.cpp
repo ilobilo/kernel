@@ -1,9 +1,9 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <lib/liballoc.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
+#include <lib/buddy.hpp>
 #include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
