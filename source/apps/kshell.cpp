@@ -10,9 +10,9 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <lib/liballoc.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/buddy.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -213,10 +213,10 @@ void parse(char *cmd, char *arg)
         }
         case hash("free"):
         {
-            uint64_t all = getmemsize() / 1024 / 1024;
-            uint64_t free = pmm::freemem() / 1024 / 1024;
-            uint64_t used = pmm::usedmem() / 1024 / 1024;
-            printf("Usable memory: %ld MB\nFree memory: %ld MB\nUsed memory: %ld MB\n", all, free, used);
+            uint64_t all = getmemsize() / 1024;
+            uint64_t free = pmm::freemem() / 1024;
+            uint64_t used = pmm::usedmem() / 1024;
+            printf("Usable memory: %ld KB\nFree memory: %ld KB\nUsed memory: %ld KB\n", all, free, used);
             break;
         }
         case hash("time"):

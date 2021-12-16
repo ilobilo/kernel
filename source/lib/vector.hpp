@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <lib/liballoc.hpp>
+#include <lib/buddy.hpp>
 #include <stddef.h>
 
 template<typename T>

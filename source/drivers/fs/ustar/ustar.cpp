@@ -3,9 +3,9 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
-#include <lib/liballoc.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/buddy.hpp>
 
 using namespace kernel::drivers::display;
 

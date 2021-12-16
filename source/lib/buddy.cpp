@@ -6,18 +6,27 @@
 #include <lib/panic.hpp>
 #include <lib/buddy.hpp>
 #include <lib/math.hpp>
+#include <lib/lock.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
 
-BuddyAlloc *heap;
+static BuddyBlock *head;
+static BuddyBlock *tail;
+static void *data = nullptr;
+static volatile bool expanded = false;
 
-BuddyBlock *BuddyAlloc::next(BuddyBlock *block)
+bool buddy_debug = false;
+size_t buddy_pages = 0;
+
+DEFINE_LOCK(buddy_lock);
+
+BuddyBlock *next(BuddyBlock *block)
 {
     return (BuddyBlock*)((char*)block + block->size);
 }
 
-BuddyBlock *BuddyAlloc::split(BuddyBlock *block, size_t size)
+BuddyBlock *split(BuddyBlock *block, size_t size)
 {
     if (block != NULL && size != 0)
     {
@@ -25,7 +34,7 @@ BuddyBlock *BuddyAlloc::split(BuddyBlock *block, size_t size)
         {
             size_t sz = block->size >> 1;
             block->size = sz;
-            block = this->next(block);
+            block = next(block);
             block->size = sz;
             block->free = true;
         }
@@ -34,25 +43,25 @@ BuddyBlock *BuddyAlloc::split(BuddyBlock *block, size_t size)
     return NULL;
 }
 
-BuddyBlock *BuddyAlloc::find_best(size_t size)
+BuddyBlock *find_best(size_t size)
 {
     if (size == 0) return NULL;
 
     BuddyBlock *best_block = NULL;
-    BuddyBlock *block = this->head;
-    BuddyBlock *buddy = this->next(block);
+    BuddyBlock *block = head;
+    BuddyBlock *buddy = next(block);
 
-    if (buddy == this->tail && block->free) return this->split(block, size);
+    if (buddy == tail && block->free) return split(block, size);
 
-    while (block < this->tail && buddy < this->tail)
+    while (block < tail && buddy < tail)
     {
         if (block->free && buddy->free && block->size == buddy->size)
         {
             block->size <<= 1;
             if (size <= block->size && (best_block == NULL || block->size <= best_block->size)) best_block = block;
 
-            block = this->next(buddy);
-            if (block < this->tail) buddy = this->next(block);
+            block = next(buddy);
+            if (block < tail) buddy = next(block);
             continue;
         }
 
@@ -61,22 +70,22 @@ BuddyBlock *BuddyAlloc::find_best(size_t size)
 
         if (block->size <= buddy->size)
         {
-            block = this->next(buddy);
-            if (block < this->tail) buddy = this->next(block);
+            block = next(buddy);
+            if (block < tail) buddy = next(block);
         }
         else
         {
             block = buddy;
-            buddy = this->next(buddy);
+            buddy = next(buddy);
         }
     }
 
-    if (best_block != NULL) return this->split(best_block, size);
+    if (best_block != NULL) return split(best_block, size);
 
     return NULL;
 }
 
-size_t BuddyAlloc::required_size(size_t size)
+size_t required_size(size_t size)
 {
     size_t actual_size = sizeof(BuddyBlock);
 
@@ -88,35 +97,35 @@ size_t BuddyAlloc::required_size(size_t size)
     return actual_size;
 }
 
-void BuddyAlloc::coalescence()
+void coalescence()
 {
     while (true)
     {
-        BuddyBlock *block = this->head;
-        BuddyBlock *buddy = this->next(block);
+        BuddyBlock *block = head;
+        BuddyBlock *buddy = next(block);
 
         bool no_coalescence = true;
-        while (block < this->tail && buddy < this->tail)
+        while (block < tail && buddy < tail)
         {
             if (block->free && buddy->free && block->size == buddy->size)
             {
                 block->size <<= 1;
-                block = this->next(block);
-                if (block < this->tail)
+                block = next(block);
+                if (block < tail)
                 {
-                    buddy = this->next(block);
+                    buddy = next(block);
                     no_coalescence = false;
                 }
             }
             else if (block->size < buddy->size)
             {
                 block = buddy;
-                buddy = this->next(buddy);
+                buddy = next(buddy);
             }
             else
             {
-                block = this->next(buddy);
-                if (block < this->tail) buddy = this->next(block);
+                block = next(buddy);
+                if (block < tail) buddy = next(block);
             }
         }
 
@@ -124,23 +133,16 @@ void BuddyAlloc::coalescence()
     }
 }
 
-BuddyAlloc::BuddyAlloc(size_t pagecount)
+void buddy_init(size_t pagecount)
 {
-    expand(pagecount);
+    buddy_expand(pagecount);
 }
 
-BuddyAlloc::~BuddyAlloc()
+void buddy_expand(size_t pagecount)
 {
-    this->head = nullptr;
-    this->tail = nullptr;
-    pmm::free(this->data);
-}
-
-void BuddyAlloc::expand(size_t pagecount)
-{
-    acquire_lock(this->lock);
+    acquire_lock(buddy_lock);
     ASSERT(pagecount != 0, "Page count can not be zero!");
-    size_t size = (pagecount + this->pages) * 0x1000;
+    size_t size = (pagecount + buddy_pages) * 0x1000;
     while (size % 0x1000 || !POWER_OF_2(size))
     {
         size++;
@@ -149,117 +151,137 @@ void BuddyAlloc::expand(size_t pagecount)
     pagecount = size / 0x1000;
     ASSERT(POWER_OF_2(size), "Size is not power of two!");
 
-    this->data = pmm::realloc(this->data, pagecount);
+    data = pmm::realloc(data, pagecount);
     ASSERT(data != NULL, "Could not allocate memory!");
 
-    this->head = (BuddyBlock*)data;
-    this->head->size = size;
-    this->head->free = true;
+    head = (BuddyBlock*)data;
+    head->size = size;
+    head->free = true;
 
-    this->tail = next(head);
-    this->pages = pagecount;
+    tail = next(head);
+    buddy_pages = pagecount;
 
-    if (this->debug) serial::info("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
-    release_lock(this->lock);
+    if (buddy_debug) serial::info("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
+    release_lock(buddy_lock);
 }
 
-void BuddyAlloc::setsize(size_t pagecount)
+void buddy_setsize(size_t pagecount)
 {
     ASSERT(pagecount != 0, "Page count can not be zero!");
-    ASSERT(pagecount > this->pages, "Page count needs to be higher than current size!");
-    pagecount = pagecount - this->pages;
-    this->expand(pagecount);
+    ASSERT(pagecount > buddy_pages, "Page count needs to be higher than current size!");
+    pagecount = pagecount - buddy_pages;
+    buddy_expand(pagecount);
 }
 
-void *BuddyAlloc::malloc(size_t size)
+void *malloc(size_t size)
 {
     if (size == 0) return NULL;
 
-    acquire_lock(this->lock);
+    acquire_lock(buddy_lock);
 
-    size_t actual_size = this->required_size(size);
+    size_t actual_size = required_size(size);
 
-    BuddyBlock *found = this->find_best(actual_size);
+    BuddyBlock *found = find_best(actual_size);
     if (found == NULL)
     {
-        this->coalescence();
-        found = this->find_best(actual_size);
+        coalescence();
+        found = find_best(actual_size);
     }
 
     if (found != NULL)
     {
-        if (this->debug) serial::info("Allocated %zu bytes");
+        if (buddy_debug) serial::info("Malloc: Allocated %zu bytes");
         found->free = false;
-        this->expanded = false;
-        release_lock(this->lock);
+        expanded = false;
+        release_lock(buddy_lock);
         return (void*)((char*)found + sizeof(BuddyBlock));
     }
 
-    if (this->expanded)
+    if (expanded)
     {
-        if (this->debug) serial::err("Could not expand the heap!");
-        this->expanded = false;
-        release_lock(this->lock);
+        if (buddy_debug) serial::err("Malloc: Could not expand the heap!");
+        expanded = false;
+        release_lock(buddy_lock);
         return NULL;
     }
-    this->expanded = true;
-    release_lock(this->lock);
-    this->expand(size / 0x1000 + 1);
-    return this->malloc(size);
+    expanded = true;
+    release_lock(buddy_lock);
+    buddy_expand(size / 0x1000 + 1);
+    return malloc(size);
 }
 
-void *BuddyAlloc::calloc(size_t num, size_t size)
+void *calloc(size_t num, size_t size)
 {
-    void *ptr = this->malloc(num * size);
+    void *ptr = malloc(num * size);
     if (!ptr) return NULL;
 
     memset(ptr, 0, num * size);
     return ptr;
 }
 
-void *BuddyAlloc::realloc(void *ptr, size_t size)
+void *realloc(void *ptr, size_t size)
 {
-    if (!ptr) return this->malloc(size);
+    if (!ptr) return malloc(size);
 
     BuddyBlock *block = (BuddyBlock*)((char*)ptr - sizeof(BuddyBlock));
     size_t oldsize = block->size;
 
     if (size == 0)
     {
-        this->free(ptr);
+        free(ptr);
         return NULL;
     }
     if (size < oldsize) oldsize = size;
 
-    void *newptr = this->malloc(size);
+    void *newptr = malloc(size);
     if (newptr == NULL) return ptr;
 
     memcpy(newptr, ptr, oldsize);
-    this->free(ptr);
+    free(ptr);
     return newptr;
 }
 
-void BuddyAlloc::free(void *ptr)
+void free(void *ptr)
 {
     if (ptr == NULL) return;
 
-    ASSERT(this->head <= ptr, "Head is not smaller than pointer!");
-    ASSERT(ptr < this->tail, "Pointer is not smaller than tail!");
+    ASSERT(head <= ptr, "Head is not smaller than pointer!");
+    ASSERT(ptr < tail, "Pointer is not smaller than tail!");
 
-    acquire_lock(this->lock);
+    acquire_lock(buddy_lock);
 
     BuddyBlock *block = (BuddyBlock*)((char*)ptr - sizeof(BuddyBlock));
     block->free = true;
 
-    if (this->debug) serial::info("Freed %zu bytes", block->size - sizeof(BuddyBlock));
+    if (buddy_debug) serial::info("Freed %zu bytes", block->size - sizeof(BuddyBlock));
 
-    this->coalescence();
+    coalescence();
 
-    release_lock(this->lock);
+    release_lock(buddy_lock);
 }
 
-size_t BuddyAlloc::allocsize(void *ptr)
+size_t allocsize(void *ptr)
 {
     if (!ptr) return 0;
     return ((BuddyBlock*)((char*)ptr - sizeof(BuddyBlock)))->size - sizeof(BuddyBlock);
+}
+
+void *operator new(size_t size)
+{
+    return malloc(size);
+}
+
+void *operator new[](size_t size)
+{
+    return malloc(size);
+}
+
+void operator delete(void *ptr)
+{
+    free(ptr);
+}
+
+void operator delete[](void *ptr)
+{
+    free(ptr);
 }
