@@ -6,8 +6,8 @@
 #include <system/cpu/smp/smp.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
-#include <lib/liballoc.hpp>
 #include <kernel/main.hpp>
+#include <lib/buddy.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
 #include <cpuid.h>

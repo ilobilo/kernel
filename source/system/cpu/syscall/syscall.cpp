@@ -6,10 +6,10 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/acpi/acpi.hpp>
-#include <lib/liballoc.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <linux/reboot.h>
+#include <lib/buddy.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::system::sched;

@@ -3,9 +3,9 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
-#include <lib/liballoc.hpp>
 #include <kernel/main.hpp>
 #include <lib/memory.hpp>
+#include <lib/buddy.hpp>
 #include <lib/lock.hpp>
 
 using namespace kernel::drivers::display;

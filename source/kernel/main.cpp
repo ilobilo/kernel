@@ -125,8 +125,6 @@ void main(struct stivale2_struct *stivale2_struct)
     pmm::init();
     terminal::okerr(pmm::initialised);
 
-    heap = new BuddyAlloc(8);
-
     terminal::check("Initialising VMM...");
     vmm::init();
     terminal::okerr(vmm::initialised);
