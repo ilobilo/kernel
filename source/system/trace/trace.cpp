@@ -94,7 +94,7 @@ void init()
 
     symbol_table = static_cast<symtable_t*>(calloc(entries, sizeof(symtable_t)));
 
-    for (size_t i = 0, t = 0, entriesbck = entries; i < entriesbck; i++)
+    for (size_t i = 0, entriesbck = entries; i < entriesbck; i++)
     {
         symbol_table[i].addr = symtab[i].st_value;
         symbol_table[i].name = &strtab[symtab[i].st_name];

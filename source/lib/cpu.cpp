@@ -120,7 +120,6 @@ void enableSSE()
 
 void enableSMEP()
 {
-    uint64_t cr4 = 0;
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(7, &a, &b, &c, &d))
     {
@@ -133,7 +132,6 @@ void enableSMEP()
 
 void enableSMAP()
 {
-    uint64_t cr4 = 0;
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(7, &a, &b, &c, &d))
     {
@@ -147,7 +145,6 @@ void enableSMAP()
 
 void enableUMIP()
 {
-    uint64_t cr4 = 0;
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(7, &a, &b, &c, &d))
     {

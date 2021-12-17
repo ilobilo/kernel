@@ -172,6 +172,13 @@ void PDEntry::setAddr(uint64_t address)
 Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
+
+    if (kernel_pagemap == nullptr)
+    {
+        pagemap->PML4 = reinterpret_cast<PTable*>(read_cr(3));
+        return pagemap;
+    }
+
     pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
 
     PTable *pml4 = pagemap->PML4;
@@ -208,7 +215,7 @@ void init()
         return;
     }
 
-    kernel_pagemap->PML4 = reinterpret_cast<PTable*>(read_cr(3));
+    kernel_pagemap = newPagemap();
     switchPagemap(kernel_pagemap);
 
     serial::newline();

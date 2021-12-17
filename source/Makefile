@@ -31,11 +31,11 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CFLAGS = -Ofast -pipe -Werror \
+CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
-CPPFLAGS = -Ofast -pipe -Werror -Wno-c99-designator \
+CPPFLAGS = -Ofast -pipe -Werror -Wall -Wextra -Wno-c99-designator \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
@@ -58,6 +58,7 @@ INTERNALCFLAGS  :=             \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
+	-fsanitize=undefined       \
 	-fpie                      \
 	-mno-80387                 \
 	-mno-mmx                   \
@@ -74,6 +75,7 @@ INTERNALCPPFLAGS  :=           \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
+	-fsanitize=undefined       \
 	-fpie                      \
 	-mno-80387                 \
 	-mno-mmx                   \

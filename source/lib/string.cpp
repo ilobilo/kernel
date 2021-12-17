@@ -10,6 +10,7 @@
 
 size_t strlen(const char *str)
 {
+    if (str == nullptr) return 0;
     size_t length = 0;
     while(str[length]) length++;
     return length;
@@ -31,7 +32,7 @@ char *strcpy(char *destination, const char *source)
 
 char *strncpy(char *destination, const char *source, size_t n)
 {
-    if (!destination) return nullptr;
+    if (destination == nullptr) return nullptr;
     char *ptr = destination;
     for (size_t i = 0; i < n && *source != '\0'; i++)
     {
@@ -45,29 +46,29 @@ char *strncpy(char *destination, const char *source, size_t n)
 
 char *strcat(char *destination, const char *source)
 {
+    if (destination == nullptr) return nullptr;
     char *ptr = destination + strlen(destination);
-    while (*source != '\0')
-    {
-        *ptr++ = *source++;
-    }
-    *ptr = '\0';
+    while (*source != '\0') *ptr++ = *source++;
     return destination;
 }
 
 char *strchr(const char *str, char ch)
 {
+    if (str == nullptr || ch == 0) return nullptr;
     while (*str && *str != ch ) ++str;
     return const_cast<char*>(ch == *str ? str : nullptr);
 }
 
 int strcmp(const char *a, const char *b)
 {
+    if (a == nullptr || b == nullptr) return 1;
     while (*a && *a == *b) { ++a; ++b; }
     return *a - *b;
 }
 
 int strncmp(const char *a, const char *b, size_t n)
 {
+    if (a == nullptr || b == nullptr) return 1;
     for (size_t i = 0; i < n; i++)
     {
         if (a[i] != b[i]) return 1;
@@ -75,13 +76,14 @@ int strncmp(const char *a, const char *b, size_t n)
     return 0;
 }
 
-char *strrm(char *str, const char *substring)
+char *strrm(char *str, const char *substr)
 {
+    if (str == nullptr || substr == nullptr) return nullptr;
     char *p, *q, *r;
-    if (*substring && (q = r = strstr(str, substring)) != nullptr)
+    if (*substr && (q = r = strstr(str, substr)) != nullptr)
     {
-        size_t len = strlen(substring);
-        while ((r = strstr(p = r + len, substring)) != nullptr)
+        size_t len = strlen(substr);
+        while ((r = strstr(p = r + len, substr)) != nullptr)
         {
             while (p < r) *q++ = *p++;
         }
@@ -144,9 +146,9 @@ char** strsplit_count(const char* s, const char* delim, size_t &nb)
     return _strsplit(s, delim, &nb);
 }
 
-char *strstr(const char *str, const char *substring)
+char *strstr(const char *str, const char *substr)
 {
-    const char *a = str, *b = substring;
+    const char *a = str, *b = substr;
     while (true)
     {
         if (!*b) return (char *)str;
@@ -154,15 +156,15 @@ char *strstr(const char *str, const char *substring)
         if (*a++ != *b++)
         {
             a = ++str;
-            b = substring;
+            b = substr;
         }
     }
 }
 
-int lstrstr(const char *str, const char *substring, int skip)
+int lstrstr(const char *str, const char *substr, int skip)
 {
     int count = 0;
-    const char *a = str, *b = substring;
+    const char *a = str, *b = substr;
     while (true)
     {
         if (!*b)
@@ -174,18 +176,18 @@ int lstrstr(const char *str, const char *substring, int skip)
         if (*a++ != *b++)
         {
             a = ++str;
-            b = substring;
+            b = substr;
         }
         if (*str == '\n') count++;
     }
     return -1;
 }
 
-char *getline(const char *str, const char *substring, char *buffer, int skip)
+char *getline(const char *str, const char *substr, char *buffer, int skip)
 {
     int i = 0;
     const char *strbck = str;
-    const char *a = str, *b = substring;
+    const char *a = str, *b = substr;
     while (true)
     {
         if (!*b)
@@ -206,7 +208,7 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
         if (*a++ != *b++)
         {
             a = ++str;
-            b = substring;
+            b = substr;
             i++;
         }
     }

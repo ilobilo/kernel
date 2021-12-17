@@ -23,16 +23,16 @@ char *strchr(const char *str, char ch);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t n);
 
-char *strrm(char *str, const char *substring);
+char *strrm(char *str, const char *substr);
 char *strdup(const char *src);
 
 char** strsplit(const char* s, const char* delim);
 char** strsplit_count(const char* s, const char* delim, size_t &nb);
 
-char *strstr(const char *str, const char *substring);
-int lstrstr(const char *str, const char *substring, int skip = 0);
+char *strstr(const char *str, const char *substr);
+int lstrstr(const char *str, const char *substr, int skip = 0);
 
-char *getline(const char *str, const char *substring, char *buffer, int skip = 0);
+char *getline(const char *str, const char *substr, char *buffer, int skip = 0);
 
 char char2low(char c);
 char char2up(char c);

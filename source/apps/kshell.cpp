@@ -69,7 +69,6 @@ void parse(char *cmd, char *arg)
                 break;
             }
 
-            size_t size = 0;
             for (size_t i = 0; i < node->children.size(); i++)
             {
                 switch (node->children.at(i)->flags & 0x07)
@@ -103,7 +102,6 @@ void parse(char *cmd, char *arg)
                 {
                     case vfs::FS_FILE:
                         printf("%s ", node->children.at(i)->name);
-                        size += node->length;
                         break;
                 }
             }
@@ -232,7 +230,7 @@ void parse(char *cmd, char *arg)
             break;
         case hash("fps"):
         {
-            int time, last_time, fps, frames;
+            int time = 0, last_time = 0, fps = 0, frames = 0;
             while (true)
             {
                 frames++;

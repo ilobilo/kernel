@@ -125,7 +125,7 @@ void init()
         else cpu_init(&smp_tag->smp_info[i]);
     }
 
-    while (cpus_up < smp_tag->cpu_count);
+    while (static_cast<uint64_t>(cpus_up) < smp_tag->cpu_count);
 
     serial::info("All CPUs are up\n");
     initialised = true;

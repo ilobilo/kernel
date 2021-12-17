@@ -44,12 +44,12 @@ static void *inner_alloc(size_t count, size_t limit)
 void *alloc(size_t count)
 {
     acquire_lock(pmm_lock);
-    size_t l = lastI;
+    size_t i = lastI;
     void *ret = inner_alloc(count, highest_page / 0x1000);
     if (!ret)
     {
         lastI = 0;
-        ret = inner_alloc(count, 1);
+        ret = inner_alloc(count, i);
     }
     memset(ret, 0, count * 0x1000);
     usedRam += count * 0x1000;
