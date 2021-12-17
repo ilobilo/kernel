@@ -17,20 +17,6 @@ void send(vmware_cmd &cmd)
     asm volatile("in %%dx, %0" : "+a"(cmd.ax), "+b"(cmd.bx), "+c"(cmd.cx), "+d"(cmd.dx), "+S"(cmd.si), "+D"(cmd.di));
 }
 
-static void send_hb(vmware_cmd &cmd)
-{
-    cmd.magic = VMWARE_MAGIC;
-    cmd.port = VMWARE_PORTHB;
-    asm volatile("cld; rep; outsb" : "+a"(cmd.ax), "+b"(cmd.bx), "+c"(cmd.cx), "+d"(cmd.dx), "+S"(cmd.si), "+D"(cmd.di));
-}
-
-static void get_hb(vmware_cmd &cmd)
-{
-    cmd.magic = VMWARE_MAGIC;
-    cmd.port = VMWARE_PORTHB;
-    asm volatile("cld; rep; insb" : "+a"(cmd.ax), "+b"(cmd.bx), "+c"(cmd.cx), "+d"(cmd.dx), "+S"(cmd.si), "+D"(cmd.di));
-}
-
 bool is_vmware_backdoor()
 {
     vmware_cmd cmd;

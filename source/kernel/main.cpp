@@ -69,7 +69,6 @@ void time()
 {
     while (true)
     {
-        int time = rtc::second();
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
         ssfn::printfat(0, 0, "\r%s     ", rtc::getTime());
     }

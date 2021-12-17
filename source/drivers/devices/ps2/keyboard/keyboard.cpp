@@ -150,7 +150,7 @@ static void Keyboard_Handler(registers_t *)
 
                     if (kbd_mod.ctrl)
                     {
-                        if (ch >= 'A' && ch <= '_' || ch == '?' || ch == '0')
+                        if ((ch >= 'A' && ch <= '_') || ch == '?' || ch == '0')
                         {
                             printf("%c", escapes[char2num(ch)]);
                         }
@@ -229,7 +229,7 @@ void init()
         return;
     }
 
-    buff[0] = '\0';
+    buff = static_cast<char*>(calloc(1024, sizeof(char)));
     idt::register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
 
     serial::newline();
