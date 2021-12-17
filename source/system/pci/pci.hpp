@@ -4,6 +4,7 @@
 
 #include <system/pci/pcidesc.hpp>
 #include <lib/vector.hpp>
+#include <lib/io.hpp>
 #include <stdint.h>
 
 namespace kernel::system::pci {
@@ -24,6 +25,44 @@ struct pcidevice_t
     uint8_t bist;
 };
 
+static inline void get_addr(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    uint32_t address = (bus << 16) | (dev << 11) | (func << 8) | (offset & ~(3)) | 0x80000000;
+    outl(0xcf8, address);
+}
+
+static inline uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inb(0xCFC + (offset & 3));
+}
+static inline uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inw(0xCFC + (offset & 3));
+}
+static inline uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+{
+    get_addr(bus, dev, func, offset);
+    return inl(0xCFC + (offset & 3));
+}
+
+static inline void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value)
+{
+    get_addr(bus, dev, func, offset);
+    outb(0xCFC + (offset & 3), value);
+}
+static inline void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value)
+{
+    get_addr(bus, dev, func, offset);
+    outw(0xCFC + (offset & 3), value);
+}
+static inline void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value)
+{
+    get_addr(bus, dev, func, offset);
+    outl(0xCFC + (offset & 3), value);
+}
+
 struct translatedpcidevice_t
 {
     pcidevice_t *device;
@@ -35,6 +74,37 @@ struct translatedpcidevice_t
     uint8_t bus;
     uint8_t dev;
     uint8_t func;
+
+    void get_addr(uint32_t offset)
+    {
+        kernel::system::pci::get_addr(this->bus, this->dev, this->func, offset);
+    }
+
+    uint8_t readb(uint32_t offset)
+    {
+        return kernel::system::pci::readb(this->bus, this->dev, this->func, offset);
+    }
+    uint16_t readw(uint32_t offset)
+    {
+        return kernel::system::pci::readw(this->bus, this->dev, this->func, offset);
+    }
+    uint32_t readl(uint32_t offset)
+    {
+        return kernel::system::pci::readl(this->bus, this->dev, this->func, offset);
+    }
+
+    void writeb(uint32_t offset, uint8_t value)
+    {
+        kernel::system::pci::writeb(this->bus, this->dev, this->func, offset, value);
+    }
+    void writew(uint32_t offset, uint16_t value)
+    {
+        kernel::system::pci::writew(this->bus, this->dev, this->func, offset, value);
+    }
+    void writel(uint32_t offset, uint32_t value)
+    {
+        kernel::system::pci::writel(this->bus, this->dev, this->func, offset, value);
+    }
 };
 
 struct pciheader0
@@ -122,14 +192,6 @@ extern bool initialised;
 extern bool legacy;
 
 extern vector<translatedpcidevice_t*> pcidevices;
-
-uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
-uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
-uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
-
-void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value);
-void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value);
-void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value);
 
 translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
