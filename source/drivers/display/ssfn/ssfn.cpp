@@ -100,9 +100,9 @@ void pprintfat(uint64_t x, uint64_t y, const char *fmt, ...)
 extern "C" uint64_t _binary_font_sfn_start;
 void init()
 {
-    ssfn_src = (ssfn_font_t*)&_binary_font_sfn_start;
+    ssfn_src = reinterpret_cast<ssfn_font_t*>(&_binary_font_sfn_start);
 
-    ssfn_dst.ptr = (uint8_t*)framebuffer::frm_addr;
+    ssfn_dst.ptr = reinterpret_cast<uint8_t*>(framebuffer::frm_addr);
     ssfn_dst.w = framebuffer::frm_width;
     ssfn_dst.h = framebuffer::frm_height;
     ssfn_dst.p = framebuffer::frm_pitch;

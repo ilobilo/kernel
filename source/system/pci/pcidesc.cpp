@@ -44,7 +44,7 @@ const char *getvendorname(uint16_t vendorid)
         case 0x10DE:
             return "NVIDIA";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", vendorid);
     return ret;
 }
@@ -108,7 +108,7 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
         }
         break;
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", deviceid);
     return ret;
 }
@@ -122,7 +122,7 @@ const char *unclasssubclassname(uint8_t subclasscode)
         case 0x01:
             return "VGA-Compatible Unclassified Device";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -152,7 +152,7 @@ const char *mscsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -182,7 +182,7 @@ const char *netsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -200,7 +200,7 @@ const char *dispsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -220,7 +220,7 @@ const char *multimediasubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -236,7 +236,7 @@ const char *memsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -268,7 +268,7 @@ const char *bridgesubclassname(uint8_t subclasscode){
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -292,7 +292,7 @@ const char *simplecomsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -318,7 +318,7 @@ const char *basesyspersubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -340,7 +340,7 @@ const char *inputdevsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -354,7 +354,7 @@ const char *dockstatsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -382,7 +382,7 @@ const char *procsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -412,7 +412,7 @@ const char *sbcsubclassname(uint8_t subclasscode){
         case 0x80:
             return "SerialBusController - Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -438,7 +438,7 @@ const char *wirelsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -450,7 +450,7 @@ const char *intelsubclassname(uint8_t subclasscode)
         case 0x00:
             return "I20";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -468,7 +468,7 @@ const char *satcomsubclassname(uint8_t subclasscode)
         case 0x03:
             return "Satellite Data Controller";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -484,7 +484,7 @@ const char *encryptsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -504,7 +504,7 @@ const char *signprocsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -550,7 +550,7 @@ const char *getsubclassname(uint8_t classcode, uint8_t subclasscode)
         case 0x11:
             return signprocsubclassname(subclasscode);
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", subclasscode);
     return ret;
 }
@@ -833,7 +833,7 @@ const char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progi
             }
             break;
     }
-    char *ret = (char*)calloc(6, sizeof(char));
+    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", progif);
     return ret;
 }

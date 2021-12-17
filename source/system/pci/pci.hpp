@@ -121,7 +121,7 @@ struct pciheader2
 extern bool initialised;
 extern bool legacy;
 
-extern Vector<translatedpcidevice_t*> pcidevices;
+extern vector<translatedpcidevice_t*> pcidevices;
 
 uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);
 uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset);

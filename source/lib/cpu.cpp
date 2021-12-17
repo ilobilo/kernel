@@ -10,13 +10,13 @@ uint64_t rdmsr(uint32_t msr)
 {
     uint32_t edx, eax;
     asm volatile("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr) : "memory");
-    return ((uint64_t)edx << 32) | eax;
+    return (static_cast<uint64_t>(edx) << 32) | eax;
 }
 
 void wrmsr(uint32_t msr, uint64_t value)
 {
     uint32_t edx = value >> 32;
-    uint32_t eax = (uint32_t)value;
+    uint32_t eax = static_cast<uint32_t>(value);
     asm volatile("wrmsr" : : "a"(eax), "d"(edx), "c"(msr) : "memory");
 }
 
@@ -88,7 +88,7 @@ uint64_t read_cr(uint64_t reg)
 void wrxcr(uint32_t i, uint64_t value)
 {
     uint32_t edx = value >> 32;
-    uint32_t eax = (uint32_t)value;
+    uint32_t eax = static_cast<uint64_t>(value);
     asm volatile("xsetbv" : : "a"(eax), "d"(edx), "c"(i) : "memory");
 }
 
@@ -114,16 +114,8 @@ void fxrstor(void *region)
 
 void enableSSE()
 {
-    uint64_t cr0 = 0;
-    cr0 = read_cr(0);
-    cr0 &= ~(1 << 2);
-    cr0 |=  (1 << 1);
-    write_cr(0, cr0);
-
-    uint64_t cr4 = 0;
-    cr4 = read_cr(4);
-    cr4 |= (3 << 9);
-    write_cr(4, cr4);
+    write_cr(0, (read_cr(0) & ~(1 << 2)) | (1 << 1));
+    write_cr(4, read_cr(4) | (3 << 9));
 }
 
 void enableSMEP()
@@ -134,9 +126,7 @@ void enableSMEP()
     {
         if ((b & CPUID_SMEP))
         {
-            cr4 = read_cr(4);
-            cr4 |= (1 << 20);
-            write_cr(4, cr4);
+            write_cr(4, read_cr(4) | (1 << 20));
         }
     }
 }
@@ -149,9 +139,7 @@ void enableSMAP()
     {
         if ((b & CPUID_SMAP))
         {
-            cr4 = read_cr(4);
-            cr4 |= (1 << 21);
-            write_cr(4, cr4);
+            write_cr(4, read_cr(4) | (1 << 21));
             asm volatile ("clac");
         }
     }
@@ -165,9 +153,7 @@ void enableUMIP()
     {
         if ((c & CPUID_UMIP))
         {
-            cr4 = read_cr(4);
-            cr4 |= (1 << 11);
-            write_cr(4, cr4);
+            write_cr(4, read_cr(4) | (1 << 11));
         }
     }
 }

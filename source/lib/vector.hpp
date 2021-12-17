@@ -6,13 +6,14 @@
 #include <stddef.h>
 
 template<typename T>
-class Vector
+class vector
 {
-private:
-    T *vector = NULL;
+    private:
+    T *vector = nullptr;
     size_t cap = 0;
     size_t num = 0;
-public:
+
+    public:
     volatile bool on = false;
 
     void init()
@@ -50,7 +51,7 @@ public:
         }
         else
         {
-            vector = (T*)realloc(vector, 2 * cap * sizeof(T*));
+            vector = static_cast<T*>(realloc(vector, 2 * cap * sizeof(T)));
             cap *= 2;
             if (vector)
             {
@@ -110,7 +111,7 @@ public:
     {
         if (!on) this->init();
         cap = size;
-        vector = (T*)realloc(vector, size * sizeof(T));
+        vector = static_cast<T*>(realloc(vector, size * sizeof(T)));
         if (num > size) num = size + 1;
     }
 
@@ -128,7 +129,7 @@ public:
         }
         else
         {
-            vector = (T*)realloc(vector, 2 * cap * sizeof(T*));
+            vector = static_cast<T*>(realloc(vector, 2 * cap * sizeof(T)));
             cap *= 2;
             if (vector)
             {

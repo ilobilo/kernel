@@ -1,3 +1,5 @@
+; Copyright (C) 2021  ilobilo
+
 %include "lib/cpu.inc"
 
 [EXTERN int_handler]

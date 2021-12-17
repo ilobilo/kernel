@@ -27,6 +27,13 @@
 
 #define POWER_OF_2(var) (!((var) & ((var) - 1)))
 
+#define TO_POWER_OF_2(var) \
+({ \
+    typeof(var) i = (var) - 1; \
+    while (i & i - 1) i = i & i - 1; \
+    i <<= 1; \
+})
+
 struct point
 {
     long X;
@@ -40,4 +47,5 @@ int sign(int num);
 uint64_t rand();
 void srand(uint64_t seed);
 
-uint64_t to_power_of_2(uint64_t n);
+uint64_t oct2dec(int n);
+int intlen(int n);

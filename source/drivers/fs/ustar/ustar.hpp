@@ -56,7 +56,7 @@ const char *cat(const char *name);
 
 int getid(const char *name);
 
-int search(const char *filename, char **contents);
+char *read(const char *filename);
 
 void init(unsigned int address);
 }

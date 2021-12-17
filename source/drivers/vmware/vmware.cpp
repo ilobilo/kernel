@@ -10,25 +10,25 @@ namespace kernel::drivers::vmware {
 
 bool initialised = false;
 
-void send(vmware_cmd *cmd)
+void send(vmware_cmd &cmd)
 {
-    cmd->magic = VMWARE_MAGIC;
-    cmd->port = VMWARE_PORT;
-    asm volatile("in %%dx, %0" : "+a"(cmd->ax), "+b"(cmd->bx), "+c"(cmd->cx), "+d"(cmd->dx), "+S"(cmd->si), "+D"(cmd->di));
+    cmd.magic = VMWARE_MAGIC;
+    cmd.port = VMWARE_PORT;
+    asm volatile("in %%dx, %0" : "+a"(cmd.ax), "+b"(cmd.bx), "+c"(cmd.cx), "+d"(cmd.dx), "+S"(cmd.si), "+D"(cmd.di));
 }
 
-static void send_hb(vmware_cmd *cmd)
+static void send_hb(vmware_cmd &cmd)
 {
-    cmd->magic = VMWARE_MAGIC;
-    cmd->port = VMWARE_PORTHB;
-    asm volatile("cld; rep; outsb" : "+a"(cmd->ax), "+b"(cmd->bx), "+c"(cmd->cx), "+d"(cmd->dx), "+S"(cmd->si), "+D"(cmd->di));
+    cmd.magic = VMWARE_MAGIC;
+    cmd.port = VMWARE_PORTHB;
+    asm volatile("cld; rep; outsb" : "+a"(cmd.ax), "+b"(cmd.bx), "+c"(cmd.cx), "+d"(cmd.dx), "+S"(cmd.si), "+D"(cmd.di));
 }
 
-static void get_hb(vmware_cmd *cmd)
+static void get_hb(vmware_cmd &cmd)
 {
-    cmd->magic = VMWARE_MAGIC;
-    cmd->port = VMWARE_PORTHB;
-    asm volatile("cld; rep; insb" : "+a"(cmd->ax), "+b"(cmd->bx), "+c"(cmd->cx), "+d"(cmd->dx), "+S"(cmd->si), "+D"(cmd->di));
+    cmd.magic = VMWARE_MAGIC;
+    cmd.port = VMWARE_PORTHB;
+    asm volatile("cld; rep; insb" : "+a"(cmd.ax), "+b"(cmd.bx), "+c"(cmd.cx), "+d"(cmd.dx), "+S"(cmd.si), "+D"(cmd.di));
 }
 
 bool is_vmware_backdoor()
@@ -36,7 +36,7 @@ bool is_vmware_backdoor()
     vmware_cmd cmd;
     cmd.bx = ~VMWARE_MAGIC;
     cmd.command = CMD_GETVERSION;
-    send(&cmd);
+    send(cmd);
 
     if (cmd.bx != VMWARE_MAGIC || cmd.ax == 0xFFFFFFFF) return false;
     return true;
@@ -57,7 +57,7 @@ void handle_mouse()
 
     cmd.bx = 0;
     cmd.command = CMD_ABSPOINTER_STATUS;
-    send(&cmd);
+    send(cmd);
 
     if (cmd.ax == 0xFFFF0000)
     {
@@ -70,7 +70,7 @@ void handle_mouse()
 
     cmd.bx = 4;
     cmd.command = CMD_ABSPOINTER_DATA;
-    send(&cmd);
+    send(cmd);
 
     buttons = (cmd.ax & 0xFFFF);
     mouse::pos.X = (cmd.bx * framebuffer::frm_width) / 0xFFFF;
@@ -108,19 +108,19 @@ void mouse_absolute()
 
     cmd.bx = ABSPOINTER_ENABLE;
     cmd.command = CMD_ABSPOINTER_COMMAND;
-    send(&cmd);
+    send(cmd);
 
     cmd.bx = 0;
     cmd.command = CMD_ABSPOINTER_STATUS;
-    send(&cmd);
+    send(cmd);
 
     cmd.bx = 1;
     cmd.command = CMD_ABSPOINTER_DATA;
-    send(&cmd);
+    send(cmd);
 
     cmd.bx = ABSPOINTER_ABSOLUTE;
     cmd.command = CMD_ABSPOINTER_COMMAND;
-    send(&cmd);
+    send(cmd);
 
     mouse::vmware = true;
 }
@@ -131,7 +131,7 @@ void mouse_relative()
 
     cmd.bx = ABSPOINTER_RELATIVE;
     cmd.command = CMD_ABSPOINTER_COMMAND;
-    send(&cmd);
+    send(cmd);
 
     mouse::vmware = false;
 }

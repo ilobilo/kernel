@@ -56,7 +56,7 @@ void parse(char *cmd, char *arg)
             vfs::fs_node_t *node;
             if (!strcmp(arg, "../") || !strcmp(arg, "..")) node = current_path->parent;
             else if (!strcmp(arg, "./") || !strcmp(arg, ".") || !strcmp(arg, "")) node = current_path;
-            else if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            else if (!strncmp(arg, "/", 1)) node = vfs::open(nullptr, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {
@@ -127,7 +127,7 @@ void parse(char *cmd, char *arg)
         case hash("cat"):
         {
             vfs::fs_node_t *node;
-            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            if (!strncmp(arg, "/", 1)) node = vfs::open(nullptr, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {
@@ -142,9 +142,9 @@ void parse(char *cmd, char *arg)
                     size_t size = 50;
                     if (node->length) size = node->length;
                     char *txt;
-                    txt = (char*)calloc(size, sizeof(char));
+                    txt = static_cast<char*>(calloc(size, sizeof(char)));
                     vfs::read_fs(node, 0, size, txt);
-                    printf("%.*s\n", (int)size, txt);
+                    printf("%.*s\n", static_cast<int>(size), txt);
                     free(txt);
                     break;
                 }
@@ -173,7 +173,7 @@ void parse(char *cmd, char *arg)
                 return;
             }
             vfs::fs_node_t *node;
-            if (!strncmp(arg, "/", 1)) node = vfs::open(NULL, arg);
+            if (!strncmp(arg, "/", 1)) node = vfs::open(nullptr, arg);
             else node = vfs::open(current_path, arg);
             if (!node)
             {
@@ -206,9 +206,7 @@ void parse(char *cmd, char *arg)
                 printf("\033[31m%s is not an executable file!%s\n", arg, terminal::colour);
                 return;
             }
-            using func = int (*)();
-            func t = (func)node->address;
-            t();
+            reinterpret_cast<int (*)()>(node->address)();
             break;
         }
         case hash("free"):
@@ -259,7 +257,7 @@ void parse(char *cmd, char *arg)
             }
             break;
         case hash("crash"):
-            ((int (*)())vfs::open(NULL, "/bin/crash")->address)();
+            reinterpret_cast<int (*)()>(vfs::open(nullptr, "/bin/crash")->address)();
             break;
         case hash("shutdown"):
         case hash("poweroff"):

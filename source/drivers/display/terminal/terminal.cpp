@@ -17,14 +17,13 @@ uint16_t rows;
 
 char *colour = (char*)"\033[0m";
 
-void (*write)(const char *string, uint64_t length);
+void (*write)(const char *, uint64_t);
 
 void init()
 {
     serial::info("Initialising terminal\n");
 
-    void *write_ptr = (void*)term_tag->term_write;
-    write = (void (*)(const char *string, uint64_t length))write_ptr;
+    write = reinterpret_cast<void (*)(const char *, uint64_t)>(term_tag->term_write);
     columns = term_tag->cols;
     rows = term_tag->rows;
 }
@@ -72,13 +71,13 @@ void printc(char c)
 #pragma region Colour
 void setcolour(const char *ascii_colour)
 {
-    colour = (char*)ascii_colour;
+    colour = const_cast<char*>(ascii_colour);
     printf("%s", colour);
 }
 
 void resetcolour()
 {
-    colour = (char*)"\033[0m";
+    colour = const_cast<char*>("\033[0m");
     printf("%s", colour);
 }
 #pragma endregion Colour
@@ -139,39 +138,6 @@ void okerr(bool ok)
     else printf("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
 }
 #pragma endregion Misc
-
-/* Printf
-void printf(char *c, ...)
-{
-    char *s;
-    va_list lst;
-    va_start(lst, c);
-    while(*c != '\0')
-    {
-        if(*c != '%')
-        {
-            printc(*c);
-            c++;
-            continue;
-        }
-
-        c++;
-
-        if(*c == '\0')
-        {
-            break;
-        }
-
-        switch(*c)
-        {
-            case 's': print(va_arg(lst, char*)); break;
-            case 'c': printc(va_arg(lst, int)); break;
-            case 'd': case 'i': printi(va_arg(lst, int)); break;
-        }
-        c++;
-    }
-}
-*/
 }
 
 void _putchar(char character)

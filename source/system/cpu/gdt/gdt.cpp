@@ -45,7 +45,7 @@ void reloadall(int cpu)
 {
     acquire_lock(gdt_lock);
 
-    uintptr_t base = (uintptr_t)&tss[cpu];
+    uintptr_t base = reinterpret_cast<uintptr_t>(&tss[cpu]);
     uintptr_t limit = base + sizeof(tss[cpu]);
 
     DefaultGDT.Tss.Length = limit;
@@ -74,10 +74,10 @@ void init()
         return;
     }
 
-    tss = (TSS*)calloc(smp_tag->cpu_count, sizeof(TSS));
+    tss = static_cast<TSS*>(calloc(smp_tag->cpu_count, sizeof(TSS)));
 
     gdtDescriptor.Size = sizeof(GDT) - 1;
-    gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
+    gdtDescriptor.Offset = reinterpret_cast<uint64_t>(&DefaultGDT);
 
     reloadall(smp_tag->bsp_lapic_id);
 

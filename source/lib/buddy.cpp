@@ -14,8 +14,8 @@ using namespace kernel::system::mm;
 static BuddyBlock *head;
 static BuddyBlock *tail;
 static void *data = nullptr;
-static volatile bool expanded = false;
-static volatile bool initialised = false;
+static bool expanded = false;
+static bool initialised = false;
 
 bool buddy_debug = false;
 size_t buddy_pages = 0;
@@ -24,12 +24,12 @@ DEFINE_LOCK(buddy_lock);
 
 BuddyBlock *next(BuddyBlock *block)
 {
-    return (BuddyBlock*)((char*)block + block->size);
+    return reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(block) + block->size);
 }
 
 BuddyBlock *split(BuddyBlock *block, size_t size)
 {
-    if (block != NULL && size != 0)
+    if (block != nullptr && size != 0)
     {
         while (size < block->size)
         {
@@ -41,14 +41,14 @@ BuddyBlock *split(BuddyBlock *block, size_t size)
         }
         if (size <= block->size) return block;
     }
-    return NULL;
+    return nullptr;
 }
 
 BuddyBlock *find_best(size_t size)
 {
-    if (size == 0) return NULL;
+    if (size == 0) return nullptr;
 
-    BuddyBlock *best_block = NULL;
+    BuddyBlock *best_block = nullptr;
     BuddyBlock *block = head;
     BuddyBlock *buddy = next(block);
 
@@ -59,15 +59,15 @@ BuddyBlock *find_best(size_t size)
         if (block->free && buddy->free && block->size == buddy->size)
         {
             block->size <<= 1;
-            if (size <= block->size && (best_block == NULL || block->size <= best_block->size)) best_block = block;
+            if (size <= block->size && (best_block == nullptr || block->size <= best_block->size)) best_block = block;
 
             block = next(buddy);
             if (block < tail) buddy = next(block);
             continue;
         }
 
-        if (block->free && size <= block->size && (best_block == NULL || block->size <= best_block->size)) best_block = block;
-        if (buddy->free && size <= buddy->size && (best_block == NULL || buddy->size < best_block->size)) best_block = buddy;
+        if (block->free && size <= block->size && (best_block == nullptr || block->size <= best_block->size)) best_block = block;
+        if (buddy->free && size <= buddy->size && (best_block == nullptr || buddy->size < best_block->size)) best_block = buddy;
 
         if (block->size <= buddy->size)
         {
@@ -81,9 +81,9 @@ BuddyBlock *find_best(size_t size)
         }
     }
 
-    if (best_block != NULL) return split(best_block, size);
+    if (best_block != nullptr) return split(best_block, size);
 
-    return NULL;
+    return nullptr;
 }
 
 size_t required_size(size_t size)
@@ -148,15 +148,15 @@ void buddy_expand(size_t pagecount)
     while (size % 0x1000 || !POWER_OF_2(size))
     {
         size++;
-        size = to_power_of_2(size);
+        size = TO_POWER_OF_2(size);
     }
     pagecount = size / 0x1000;
     ASSERT(POWER_OF_2(size), "Size is not power of two!");
 
     data = pmm::realloc(data, buddy_pages, pagecount);
-    ASSERT(data != NULL, "Could not allocate memory!");
+    ASSERT(data != nullptr, "Could not allocate memory!");
 
-    head = (BuddyBlock*)data;
+    head = static_cast<BuddyBlock*>(data);
     head->size = size;
     head->free = true;
 
@@ -178,34 +178,34 @@ void buddy_setsize(size_t pagecount)
 void *malloc(size_t size)
 {
     if (!initialised) buddy_init();
-    if (size == 0) return NULL;
+    if (size == 0) return nullptr;
 
     acquire_lock(buddy_lock);
 
     size_t actual_size = required_size(size);
 
     BuddyBlock *found = find_best(actual_size);
-    if (found == NULL)
+    if (found == nullptr)
     {
         coalescence();
         found = find_best(actual_size);
     }
 
-    if (found != NULL)
+    if (found != nullptr)
     {
-        if (buddy_debug) serial::info("Malloc: Allocated %zu bytes");
+        if (buddy_debug) serial::info("Allocated %zu bytes", size);
         found->free = false;
         expanded = false;
         release_lock(buddy_lock);
-        return (void*)((char*)found + sizeof(BuddyBlock));
+        return reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(found) + sizeof(BuddyBlock));
     }
 
     if (expanded)
     {
-        if (buddy_debug) serial::err("Malloc: Could not expand the heap!");
+        if (buddy_debug) serial::err("Could not expand the heap!");
         expanded = false;
         release_lock(buddy_lock);
-        return NULL;
+        return nullptr;
     }
     expanded = true;
     release_lock(buddy_lock);
@@ -216,7 +216,7 @@ void *malloc(size_t size)
 void *calloc(size_t num, size_t size)
 {
     void *ptr = malloc(num * size);
-    if (!ptr) return NULL;
+    if (!ptr) return nullptr;
 
     memset(ptr, 0, num * size);
     return ptr;
@@ -226,18 +226,18 @@ void *realloc(void *ptr, size_t size)
 {
     if (!ptr) return malloc(size);
 
-    BuddyBlock *block = (BuddyBlock*)((char*)ptr - sizeof(BuddyBlock));
+    BuddyBlock *block = reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock));
     size_t oldsize = block->size;
 
     if (size == 0)
     {
         free(ptr);
-        return NULL;
+        return nullptr;
     }
     if (size < oldsize) oldsize = size;
 
     void *newptr = malloc(size);
-    if (newptr == NULL) return ptr;
+    if (newptr == nullptr) return ptr;
 
     memcpy(newptr, ptr, oldsize);
     free(ptr);
@@ -247,14 +247,14 @@ void *realloc(void *ptr, size_t size)
 void free(void *ptr)
 {
     if (!initialised) return;
-    if (ptr == NULL) return;
+    if (ptr == nullptr) return;
 
     ASSERT(head <= ptr, "Head is not smaller than pointer!");
     ASSERT(ptr < tail, "Pointer is not smaller than tail!");
 
     acquire_lock(buddy_lock);
 
-    BuddyBlock *block = (BuddyBlock*)((char*)ptr - sizeof(BuddyBlock));
+    BuddyBlock *block = reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock));
     block->free = true;
 
     if (buddy_debug) serial::info("Freed %zu bytes", block->size - sizeof(BuddyBlock));
@@ -268,7 +268,7 @@ size_t allocsize(void *ptr)
 {
     if (!initialised) buddy_init();
     if (!ptr) return 0;
-    return ((BuddyBlock*)((char*)ptr - sizeof(BuddyBlock)))->size - sizeof(BuddyBlock);
+    return (reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock)))->size - sizeof(BuddyBlock);
 }
 
 void *operator new(size_t size)

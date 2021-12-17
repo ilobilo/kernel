@@ -33,11 +33,11 @@ unsigned int getsize(const char *s)
 
 int parse(unsigned int address)
 {
-    address += (((getsize(((file_header_t*)((uintptr_t)address))->size) + 511) / 512) + 1) * 512;
+    address += (((getsize(reinterpret_cast<file_header_t*>(address)->size)) + 511) / 512 + 1) * 512;
     unsigned int i;
     for (i = 0; ; i++)
     {
-        file_header_t *header = (file_header_t*)((uintptr_t)address);
+        file_header_t *header = reinterpret_cast<file_header_t*>(address);
         memmove(header->name, header->name + 1, strlen(header->name));
 
         if (strcmp(header->signature, "ustar")) break;
@@ -45,7 +45,7 @@ int parse(unsigned int address)
         if (filecount >= (allocsize(headers) / sizeof(header_t)))
         {
             allocated += 5;
-            headers = (header_t*)realloc(headers, allocated * sizeof(header_t));
+            headers = static_cast<header_t*>(realloc(headers, allocated * sizeof(header_t)));
         }
 
         uintptr_t size = getsize(header->size);
@@ -55,7 +55,7 @@ int parse(unsigned int address)
         headers[i].address = address + 512;
         filecount++;
 
-        vfs::fs_node_t *node = vfs::open_r(NULL, headers[i].header->name);
+        vfs::fs_node_t *node = vfs::open_r(nullptr, headers[i].header->name);
 
         node->mask = string2int(headers[i].header->mode);
         node->address = headers[i].address;
@@ -111,19 +111,18 @@ int getid(const char *name)
     return 0;
 }
 
-int search(const char *filename, char **contents)
+char *read(const char *filename)
 {
-    if (!check()) return 0;
+    if (!check()) return nullptr;
 
     for (uint64_t i = 0; i < filecount; i++)
     {
         if (!strcmp(headers[i].header->name, filename))
         {
-            *contents = (char*)((uintptr_t)headers[i].address);
-            return 1;
+            return reinterpret_cast<char*>(headers[i].address);
         }
     }
-    return 0;
+    return nullptr;
 }
 
 static size_t ustar_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
@@ -131,7 +130,7 @@ static size_t ustar_read(vfs::fs_node_t *node, size_t offset, size_t size, char 
     if (!size) size = node->length;
     if (offset > node->length) return 0;
     if (offset + size > node->length) size = node->length - offset;
-    memcpy(buffer, (char*)(node->address + offset), size);
+    memcpy(buffer, reinterpret_cast<uint8_t*>(node->address + offset), size);
     return size;
 }
 
@@ -150,7 +149,7 @@ void init(unsigned int address)
         return;
     }
 
-    headers = (header_t*)malloc(allocated * sizeof(header_t));
+    headers = static_cast<header_t*>(malloc(allocated * sizeof(header_t)));
 
     initrd_root = vfs::mount_root(&ustar_fs);
     parse(address);

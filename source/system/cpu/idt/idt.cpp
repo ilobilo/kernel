@@ -24,13 +24,13 @@ int_handler_t interrupt_handlers[256];
 
 void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 {
-    idt[vector].offset_1       = (uint64_t)isr & 0xFFFF;
-    idt[vector].selector       = 0x28;
-    idt[vector].ist            = 0;
-    idt[vector].type_attr      = type_attr;
-    idt[vector].offset_2       = ((uint64_t)isr >> 16) & 0xFFFF;
-    idt[vector].offset_3       = ((uint64_t)isr >> 32) & 0xFFFFFFFF;
-    idt[vector].zero           = 0;
+    idt[vector].offset_1 = reinterpret_cast<uint64_t>(isr);
+    idt[vector].selector = 0x28;
+    idt[vector].ist = 0;
+    idt[vector].type_attr = type_attr;
+    idt[vector].offset_2 = reinterpret_cast<uint64_t>(isr) >> 16;
+    idt[vector].offset_3 = reinterpret_cast<uint64_t>(isr) >> 32;
+    idt[vector].zero = 0;
 }
 
 void reload()
@@ -55,8 +55,8 @@ void init()
 
     trace::init();
 
-    idtr.limit = (uint16_t)sizeof(idt_entry_t) * 256 - 1;
-    idtr.base = (uintptr_t)&idt[0];
+    idtr.limit = sizeof(idt_entry_t) * 256 - 1;
+    idtr.base = reinterpret_cast<uintptr_t>(&idt[0]);
 
     for (size_t i = 0; i < 256; i++) idt_set_descriptor(i, int_table[i], 0x8E);
 
