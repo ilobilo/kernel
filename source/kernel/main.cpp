@@ -77,16 +77,16 @@ void time()
 
 void main(struct stivale2_struct *stivale2_struct)
 {
-    smp_tag = (stivale2_struct_tag_smp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
-    mmap_tag = (stivale2_struct_tag_memmap (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
-    rsdp_tag = (stivale2_struct_tag_rsdp (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
-    frm_tag = (stivale2_struct_tag_framebuffer (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
-    term_tag = (stivale2_struct_tag_terminal (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID);
-    mod_tag = (stivale2_struct_tag_modules (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
-    cmd_tag = (stivale2_struct_tag_cmdline (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
-    kfilev2_tag = (stivale2_struct_tag_kernel_file_v2 (*))stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID);
+    smp_tag = static_cast<stivale2_struct_tag_smp*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID));
+    mmap_tag = static_cast<stivale2_struct_tag_memmap*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID));
+    rsdp_tag = static_cast<stivale2_struct_tag_rsdp*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID));
+    frm_tag = static_cast<stivale2_struct_tag_framebuffer*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID));
+    term_tag = static_cast<stivale2_struct_tag_terminal*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));
+    mod_tag = static_cast<stivale2_struct_tag_modules*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID));
+    cmd_tag = static_cast<stivale2_struct_tag_cmdline*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID));
+    kfilev2_tag = static_cast<stivale2_struct_tag_kernel_file_v2*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID));
 
-    cmdline = (char *)cmd_tag->cmdline;
+    cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
 
     if (!strstr(cmdline, "nocom")) serial::init();
 
@@ -106,11 +106,11 @@ void main(struct stivale2_struct *stivale2_struct)
     }
     serial::newline();
 
-    if (frm_tag == NULL) PANIC("Could not find framebuffer tag!");
+    if (frm_tag == nullptr) PANIC("Could not find framebuffer tag!");
     framebuffer::init();
     ssfn::init();
 
-    if (term_tag == NULL) PANIC("Could not find terminal tag!");
+    if (term_tag == nullptr) PANIC("Could not find terminal tag!");
     terminal::init();
 
     terminal::center("Welcome to kernel project");
@@ -202,7 +202,7 @@ void main(struct stivale2_struct *stivale2_struct)
 
     srand(rtc::time());
 
-    scheduler::add(scheduler::alloc((uint64_t)&time, NULL));
-    scheduler::add(scheduler::alloc((uint64_t)&apps::kshell::run, NULL));
+    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(&time), nullptr));
+    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(&apps::kshell::run), nullptr));
 }
 }

@@ -57,7 +57,7 @@ void init()
         return;
     }
 
-    hpet = (HPET*)acpi::hpethdr->address.Address;
+    hpet = reinterpret_cast<HPET*>(acpi::hpethdr->address.Address);
     clk = hpet->general_capabilities >> 32;
 
     mmoutq(&hpet->general_configuration, 0);

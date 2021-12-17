@@ -60,20 +60,20 @@ fs_node_t *getchild(fs_node_t *parent, const char *path)
     if (*path == '\0')
     {
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
     for (size_t i = 0; i < parent_node->children.size(); i++)
     {
         child_node = parent_node->children[i];
         if (!strcmp(child_node->name, path)) return child_node;
     }
-    return NULL;
+    return nullptr;
 }
 
 fs_node_t *add_new_child(fs_node_t *parent, const char *name)
 {
     if (!parent) parent = fs_root;
-    fs_node_t *node = (fs_node_t*)calloc(1, sizeof(fs_node_t));
+    fs_node_t *node = static_cast<fs_node_t*>(calloc(1, sizeof(fs_node_t)));
     strcpy(node->name, name);
     node->parent = parent;
     node->fs = parent->fs;
@@ -105,13 +105,13 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     {
         if (debug) serial::err("VFS: Invalid path!");
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
     if (strchr(path, ' '))
     {
         if (debug) serial::err("VFS: Paths must not contain spaces!");
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
 
     fs_node_t *parent_node;
@@ -129,12 +129,12 @@ fs_node_t *open(fs_node_t *parent, const char *path)
             serial::err("VFS: Is root mounted?");
         }
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
     if (!strcmp(path, "/")) return parent;
 
     char **patharr = strsplit_count(path, "/", items);
-    if (!patharr) return NULL;
+    if (!patharr) return nullptr;
     while (!strcmp(patharr[0], ""))
     {
         items--;
@@ -190,7 +190,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     if (debug) serial::err("VFS: File not found!");
     free(patharr);
     release_lock(vfs_lock);
-    return NULL;
+    return nullptr;
 }
 
 fs_node_t *create(fs_node_t *parent, const char *path)
@@ -200,13 +200,13 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     {
         if (debug) serial::err("VFS: Invalid path!");
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
     if (strchr(path, ' '))
     {
         if (debug) serial::err("VFS: Paths must not contain spaces!");
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
 
     fs_node_t *parent_node;
@@ -224,11 +224,11 @@ fs_node_t *create(fs_node_t *parent, const char *path)
             serial::err("VFS: Is root mounted?");
         }
         release_lock(vfs_lock);
-        return NULL;
+        return nullptr;
     }
 
     char **patharr = strsplit_count(path, "/", items);
-    if (!patharr) return NULL;
+    if (!patharr) return nullptr;
     while (!strcmp(patharr[0], ""))
     {
         items--;
@@ -315,9 +315,9 @@ void init()
 
     fs_root = new fs_node_t;
     fs_root->flags = filetypes::FS_MOUNTPOINT;
-    fs_root->children.init(1);
+    fs_root->children.init();
     strcpy(fs_root->name, ROOTNAME);
-    fs_root->fs = NULL;
+    fs_root->fs = nullptr;
 
     serial::newline();
     initialised = true;

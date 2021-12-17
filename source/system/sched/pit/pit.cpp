@@ -62,8 +62,8 @@ void setfreq(uint64_t freq)
 
     outb(0x43, 0x36);
 
-    uint8_t l = (uint8_t)(divisor & 0xFF);
-    uint8_t h = (uint8_t)((divisor >> 8) & 0xFF );
+    uint8_t l = static_cast<uint8_t>(divisor);
+    uint8_t h = static_cast<uint8_t>(divisor >> 8);
 
     outb(0x40, l);
     outb(0x40, h);

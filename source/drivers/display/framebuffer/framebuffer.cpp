@@ -24,46 +24,40 @@ bool mousedrawn;
 
 void putpix(uint32_t x, uint32_t y, uint32_t colour)
 {
-    *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = colour;
+    *reinterpret_cast<uint32_t*>(frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = colour;
 }
 
 void putpix(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint64_t b)
 {
-    *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = (r << 16) | (g << 8) | b;
+    *reinterpret_cast<uint32_t*>(frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = (r << 16) | (g << 8) | b;
 }
 
 uint32_t getpix(uint32_t x, uint32_t y)
 {
-    return *(uint32_t*)((uint64_t)frm_addr + (x * 4) + (y * frm_pixperscanline * 4));
+    return *reinterpret_cast<uint32_t*>(frm_addr + (x * 4) + (y * frm_pixperscanline * 4));
 }
 
 void framebuffer_restore(uint32_t *frm)
 {
-    memcpy((void*)frm_addr, frm, frm_height * frm_pitch);
+    memcpy(reinterpret_cast<void*>(frm_addr), frm, frm_height * frm_pitch);
     free(frm);
 }
 
 uint32_t *framebuffer_backup()
 {
     uint32_t *frm = (uint32_t*)malloc(frm_height * frm_pitch);
-    memcpy(frm, (void*)frm_addr, frm_height * frm_pitch);
+    memcpy(frm, reinterpret_cast<void*>(frm_addr), frm_height * frm_pitch);
     return frm;
 }
 
 void drawvertline(int x, int y, int dy, uint32_t colour)
 {
-    for (int i = 0; i < dy; i++)
-    {
-        putpix(x, y + i, colour);
-    }
+    for (int i = 0; i < dy; i++) putpix(x, y + i, colour);
 }
 
 void drawhorline(int x, int y, int dx, uint32_t colour)
 {
-    for (int i = 0; i < dx; i++)
-    {
-        putpix(x + i, y, colour);
-    }
+    for (int i = 0; i < dx; i++) putpix(x + i, y, colour);
 }
 
 void drawdiagline(int x0, int y0, int x1, int y1, uint32_t colour)
@@ -127,10 +121,7 @@ void drawline(int x0, int y0, int x1, int y1, uint32_t colour)
         drawhorline(x0, y0, dx, colour);
         return;
     }
-    if (dx == 0)
-    {
-        drawvertline(x0, y0, dy, colour);
-    }
+    if (dx == 0) drawvertline(x0, y0, dy, colour);
     drawdiagline(x0, y0, dx, dy, colour);
 }
 
@@ -144,10 +135,7 @@ void drawrectangle(int x, int y, int w, int h, uint32_t colour)
 
 void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour)
 {
-    for (int i = 0; i < h; i++)
-    {
-        drawline(x, y + i, x + w, y + i, colour);
-    }
+    for (int i = 0; i < h; i++) drawline(x, y + i, x + w, y + i, colour);
 }
 
 void drawcircle(int cx, int cy, int radius, uint32_t colour)

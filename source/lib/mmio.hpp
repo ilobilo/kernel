@@ -4,11 +4,11 @@
 
 #include <stdint.h>
 
-#define FLAT_PTR(PTR) (*((uintptr_t *(*))(PTR)))
-#define BYTE_PTR(PTR) (*((uint8_t *)(PTR)))
-#define WORD_PTR(PTR) (*((uint16_t *)(PTR)))
-#define DWORD_PTR(PTR) (*((uint32_t *)(PTR)))
-#define QWORD_PTR(PTR) (*((uint64_t *)(PTR)))
+#define FLAT_PTR(PTR) (*reinterpret_cast<uintptr_t*>(PTR))
+#define BYTE_PTR(PTR) (*reinterpret_cast<uint8_t*>(PTR))
+#define WORD_PTR(PTR) (*reinterpret_cast<uint16_t*>(PTR))
+#define DWORD_PTR(PTR) (*reinterpret_cast<uint32_t*>(PTR))
+#define QWORD_PTR(PTR) (*reinterpret_cast<uint64_t*>(PTR))
 
 void mmoutb(void *addr, uint8_t value);
 void mmoutw(void *addr, uint16_t value);

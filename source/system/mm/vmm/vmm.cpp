@@ -13,7 +13,7 @@ using namespace kernel::drivers::display;
 namespace kernel::system::mm::vmm {
 
 bool initialised = false;
-Pagemap *kernel_pagemap = NULL;
+Pagemap *kernel_pagemap = nullptr;
 DEFINE_LOCK(vmm_lock)
 
 PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
@@ -21,13 +21,13 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
     PTable *ret;
     if (curr_lvl->entries[entry].getflag(Present))
     {
-        ret = (PTable*)((uint64_t)curr_lvl->entries[entry].getAddr() << 12);
+        ret = reinterpret_cast<PTable*>(static_cast<uint64_t>(curr_lvl->entries[entry].getAddr()) << 12);
     }
     else
     {
         ret = (PTable*)pmm::alloc();
         memset(ret, 0, 4096);
-        curr_lvl->entries[entry].setAddr((uint64_t)ret >> 12);
+        curr_lvl->entries[entry].setAddr(reinterpret_cast<uint64_t>(ret) >> 12);
         curr_lvl->entries[entry].setflags(Present | ReadWrite, true);
     }
     return ret;
@@ -134,7 +134,7 @@ void Pagemap::remFlags(uint64_t vaddr, uint64_t flags)
 
 void PDEntry::setflag(PT_Flag flag, bool enabled)
 {
-    uint64_t bitSel = (uint64_t)flag;
+    uint64_t bitSel = static_cast<uint64_t>(flag);
     value &= ~bitSel;
     if (enabled) value |= bitSel;
 }
@@ -148,7 +148,7 @@ void PDEntry::setflags(uint64_t flags, bool enabled)
 
 bool PDEntry::getflag(PT_Flag flag)
 {
-    uint64_t bitSel = (uint64_t)flag;
+    uint64_t bitSel = static_cast<uint64_t>(flag);
     return (value & (bitSel > 0)) ? true : false;
 }
 
@@ -172,7 +172,7 @@ void PDEntry::setAddr(uint64_t address)
 Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->PML4 = (PTable*)pmm::alloc();
+    pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
 
     PTable *pml4 = pagemap->PML4;
     PTable *kernel_pml4 = kernel_pagemap->PML4;
@@ -195,7 +195,7 @@ Pagemap *clonePagemap(Pagemap *old)
 
 void switchPagemap(Pagemap *pmap)
 {
-    write_cr(3, (uint64_t)pmap->PML4);
+    write_cr(3, reinterpret_cast<uint64_t>(pmap->PML4));
 }
 
 void init()
@@ -208,7 +208,7 @@ void init()
         return;
     }
 
-    kernel_pagemap->PML4 = (PTable*)read_cr(3);
+    kernel_pagemap->PML4 = reinterpret_cast<PTable*>(read_cr(3));
     switchPagemap(kernel_pagemap);
 
     serial::newline();

@@ -23,7 +23,7 @@ thread_t *alloc(uint64_t addr, void *args)
     acquire_lock(thread_lock);
     thread->pid = next_pid++;
     thread->state = READY;
-    thread->stack = (uint8_t*)malloc(TSTACK_SIZE);
+    thread->stack = static_cast<uint8_t*>(malloc(TSTACK_SIZE));
     thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     thread->current_dir = vfs::fs_root->ptr;
 
@@ -32,8 +32,8 @@ thread_t *alloc(uint64_t addr, void *args)
     thread->regs.ss = 0x30;
 
     thread->regs.rip = addr;
-    thread->regs.rdi = (uint64_t)args;
-    thread->regs.rsp = (uint64_t)(thread->stack + TSTACK_SIZE);
+    thread->regs.rdi = reinterpret_cast<uint64_t>(args);
+    thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack + TSTACK_SIZE);
     release_lock(thread_lock);
 
     return thread;
@@ -66,7 +66,7 @@ void schedule(registers_t *regs)
 
     *regs = current_thread->thread->regs;
     vmm::switchPagemap(current_thread->thread->pagemap);
-    gdt::set_stack((uintptr_t)current_thread->thread->stack);
+    gdt::set_stack(reinterpret_cast<uintptr_t>(current_thread->thread->stack));
     current_thread->thread->state = RUNNING;
 }
 
@@ -131,7 +131,7 @@ void init()
     current_thread->thread = new thread_t;
     current_thread->next = current_thread;
     current_thread->thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
-    current_thread->thread->stack = (uint8_t*)malloc(TSTACK_SIZE);
+    current_thread->thread->stack = static_cast<uint8_t*>(malloc(TSTACK_SIZE));
     current_thread->thread->state = READY;
 
     serial::newline();

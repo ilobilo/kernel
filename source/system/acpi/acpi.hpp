@@ -196,10 +196,10 @@ extern FADTHeader *fadthdr;
 extern HPETHeader *hpethdr;
 extern SDTHeader *rsdt;
 
-extern Vector<MADTLapic*> lapics;
-extern Vector<MADTIOApic*> ioapics;
-extern Vector<MADTIso*> isos;
-extern Vector<MADTNmi*> nmis;
+extern vector<MADTLapic*> lapics;
+extern vector<MADTIOApic*> ioapics;
+extern vector<MADTIso*> isos;
+extern vector<MADTNmi*> nmis;
 
 extern uint32_t *SMI_CMD;
 extern uint8_t ACPI_ENABLE;

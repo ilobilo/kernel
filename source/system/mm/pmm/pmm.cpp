@@ -33,12 +33,12 @@ static void *inner_alloc(size_t count, size_t limit)
             {
                 size_t page = lastI - count;
                 for (size_t i = page; i < lastI; i++) bitmap.Set(i, true);
-                return (void*)(page * 0x1000);
+                return reinterpret_cast<void*>(page * 0x1000);
             }
         }
         else p = 0;
     }
-    return NULL;
+    return nullptr;
 }
 
 void *alloc(size_t count)
@@ -62,7 +62,7 @@ void free(void *ptr, size_t count)
 {
     if (!ptr) return;
     acquire_lock(pmm_lock);
-    size_t page = (size_t)ptr / 0x1000;
+    size_t page = reinterpret_cast<size_t>(ptr) / 0x1000;
     for (size_t i = page; i < page + count; i++) bitmap.Set(i, false);
     usedRam -= count * 0x1000;
     freeRam += count * 0x1000;
@@ -76,7 +76,7 @@ void *realloc(void *ptr, size_t oldcount, size_t newcount)
     if (!newcount)
     {
         free(ptr, oldcount);
-        return NULL;
+        return nullptr;
     }
 
     usedRam = usedRam - oldcount * 0x1000 + newcount * 0x1000;
@@ -127,7 +127,7 @@ void init()
 
         if (mmap_tag->memmap[i].length >= bitmapSize)
         {
-            bitmap.buffer = (uint8_t*)mmap_tag->memmap[i].base;
+            bitmap.buffer = reinterpret_cast<uint8_t*>(mmap_tag->memmap[i].base);
             memset(bitmap.buffer, 0xFF, bitmapSize);
 
             mmap_tag->memmap[i].length -= bitmapSize;

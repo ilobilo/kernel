@@ -32,8 +32,8 @@ static void cpu_init(stivale2_smp_info *cpu)
 
     vmm::switchPagemap(vmm::kernel_pagemap);
 
-    set_kernel_gs((uintptr_t)cpu->extra_argument);
-    set_user_gs((uintptr_t)cpu->extra_argument);
+    set_kernel_gs(static_cast<uintptr_t>(cpu->extra_argument));
+    set_user_gs(static_cast<uintptr_t>(cpu->extra_argument));
 
     this_cpu->lapic_id = cpu->lapic_id;
     this_cpu->tss = &gdt::tss[this_cpu->lapic_id];
@@ -69,7 +69,7 @@ static void cpu_init(stivale2_smp_info *cpu)
         }
         wrxcr(0, xcr0);
         
-        this_cpu->fpu_storage_size = (size_t)c;
+        this_cpu->fpu_storage_size = c;
         
         this_cpu->fpu_save = xsave;
         this_cpu->fpu_restore = xrstor;
@@ -103,14 +103,14 @@ void init()
         return;
     }
 
-    cpus = (cpu_t*)calloc(smp_tag->cpu_count, sizeof(cpu_t));
+    cpus = static_cast<cpu_t*>(calloc(smp_tag->cpu_count, sizeof(cpu_t)));
 
     for (size_t i = 0; i < smp_tag->cpu_count; i++)
     {
         smp_tag->smp_info[i].extra_argument = (uint64_t)&cpus[i];
 
-        uint64_t stack = (uint64_t)pmm::alloc();
-        uint64_t sched_stack = (uint64_t)pmm::alloc();
+        uint64_t stack = reinterpret_cast<uint64_t>(pmm::alloc());
+        uint64_t sched_stack = reinterpret_cast<uint64_t>(pmm::alloc());
 
         gdt::tss[i].RSP[0] = stack;
         gdt::tss[i].IST[1] = sched_stack;
@@ -120,7 +120,7 @@ void init()
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
             smp_tag->smp_info[i].target_stack = stack;
-            smp_tag->smp_info[i].goto_address = (uintptr_t)cpu_init;
+            smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);
         }
         else cpu_init(&smp_tag->smp_info[i]);
     }

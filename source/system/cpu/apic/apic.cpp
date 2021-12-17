@@ -31,13 +31,13 @@ static inline uint32_t reg2x2apic(uint32_t reg)
 uint32_t lapic_read(uint32_t reg)
 {
     if (x2apic) return rdmsr(reg2x2apic(reg));
-    return mmind((void*)(acpi::lapic_addr + reg));
+    return mmind(reinterpret_cast<void*>(acpi::lapic_addr + reg));
 }
 
 void lapic_write(uint32_t reg, uint32_t value)
 {
     if (x2apic) wrmsr(reg2x2apic(reg), value);
-    else mmoutd((void*)(acpi::lapic_addr + reg), value);
+    else mmoutd(reinterpret_cast<void*>(acpi::lapic_addr + reg), value);
 }
 
 static void lapic_set_nmi(uint8_t vec, uint8_t current_processor_id, uint8_t processor_id, uint16_t flags, uint8_t lint)
@@ -84,14 +84,14 @@ void lapic_init(uint8_t processor_id)
 
 uint32_t ioapic_read(uintptr_t ioapic_address, size_t reg)
 {
-    mmoutd((void*)ioapic_address, reg & 0xFF);
-    return mmind((void*)(ioapic_address + 16));
+    mmoutd(reinterpret_cast<void*>(ioapic_address), reg & 0xFF);
+    return mmind(reinterpret_cast<void*>(ioapic_address + 16));
 }
 
 void ioapic_write(uintptr_t ioapic_address, size_t reg, uint32_t data)
 {
-    mmoutd((void*)ioapic_address, reg & 0xFF);
-    mmoutd((void*)(ioapic_address + 16), data);
+    mmoutd(reinterpret_cast<void*>(ioapic_address), reg & 0xFF);
+    mmoutd(reinterpret_cast<void*>(ioapic_address + 16), data);
 }
 
 static uint32_t get_gsi_count(uintptr_t ioapic_address)
@@ -106,7 +106,7 @@ static acpi::MADTIOApic *get_ioapic_by_gsi(uint32_t gsi)
         acpi::MADTIOApic *ioapic = acpi::ioapics[i];
         if (ioapic->gsib <= gsi && ioapic->gsib + get_gsi_count(ioapic->addr) > gsi) return ioapic;
     }
-    return NULL;
+    return nullptr;
 }
 
 void ioapic_redirect_gsi(uint32_t gsi, uint8_t vec, uint16_t flags)
@@ -151,7 +151,7 @@ void ioapic_redirect_irq(uint32_t irq, uint8_t vect)
 
 void apic_send_ipi(uint32_t lapic_id, uint32_t flags)
 {
-    if (x2apic) wrmsr(0x830, ((uint64_t)lapic_id << 32) | flags);
+    if (x2apic) wrmsr(0x830, (static_cast<uint64_t>(lapic_id) << 32) | flags);
     else
     {
         lapic_write(0x310, (lapic_id << 24));

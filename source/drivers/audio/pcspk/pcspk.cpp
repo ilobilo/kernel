@@ -11,8 +11,8 @@ void play(uint64_t freq)
 {
     uint64_t div = 1193180 / freq;
     outb(0x43, 0xB6);
-    outb(0x42, (uint8_t)div);
-    outb(0x42, (uint8_t)(div >> 8));
+    outb(0x42, static_cast<uint8_t>(div));
+    outb(0x42, static_cast<uint8_t>(div >> 8));
 
     outb(0x61, inb(0x61) | 0x3);
 }

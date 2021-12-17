@@ -24,7 +24,7 @@ int sign(int num)
 uint64_t rand()
 {
     next = next * 1103515245 + 12345;
-    return (uint64_t)(next / 65536) % 32768;
+    return next / 65536 % 32768;
 }
 
 void srand(uint64_t seed)
@@ -32,9 +32,30 @@ void srand(uint64_t seed)
     next = seed;
 }
 
-uint64_t to_power_of_2(uint64_t n)
+uint64_t oct2dec(int oct)
 {
-    n = n - 1;
-    while (n & n - 1) n = n & n - 1;
-    return n << 1;
+    int dec = 0, temp = 0;
+    while (oct != 0)
+    {
+        dec = dec + (oct % 10) * pow(8, temp);
+        temp++;
+        oct = oct / 10;
+    }
+    return dec;
+}
+
+int intlen(int n)
+{
+    int digits = 0;
+    if (n <= 0)
+    {
+        n = -n;
+        ++digits;
+    }
+    while (n)
+    {
+        n /= 10;
+        ++digits;
+    }
+    return digits;
 }

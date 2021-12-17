@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -40,6 +41,3 @@ char *char2str(char c);
 
 char *int2string(int num);
 int string2int(const char *str);
-uint64_t oct2dec(int n);
-
-int intlen(int n);

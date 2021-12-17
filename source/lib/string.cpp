@@ -17,7 +17,7 @@ size_t strlen(const char *str)
 
 char *strcpy(char *destination, const char *source)
 {
-    if (destination == NULL) return NULL;
+    if (destination == nullptr) return nullptr;
     char *ptr = destination;
     while (*source != '\0')
     {
@@ -31,7 +31,7 @@ char *strcpy(char *destination, const char *source)
 
 char *strncpy(char *destination, const char *source, size_t n)
 {
-    if (!destination) return NULL;
+    if (!destination) return nullptr;
     char *ptr = destination;
     for (size_t i = 0; i < n && *source != '\0'; i++)
     {
@@ -57,13 +57,13 @@ char *strcat(char *destination, const char *source)
 char *strchr(const char *str, char ch)
 {
     while (*str && *str != ch ) ++str;
-    return (char *)(ch == *str ? str : NULL);
+    return const_cast<char*>(ch == *str ? str : nullptr);
 }
 
 int strcmp(const char *a, const char *b)
 {
     while (*a && *a == *b) { ++a; ++b; }
-    return (int)(unsigned char)(*a) - (int)(unsigned char)(*b);
+    return *a - *b;
 }
 
 int strncmp(const char *a, const char *b, size_t n)
@@ -78,10 +78,10 @@ int strncmp(const char *a, const char *b, size_t n)
 char *strrm(char *str, const char *substring)
 {
     char *p, *q, *r;
-    if (*substring && (q = r = strstr(str, substring)) != NULL)
+    if (*substring && (q = r = strstr(str, substring)) != nullptr)
     {
         size_t len = strlen(substring);
-        while ((r = strstr(p = r + len, substring)) != NULL)
+        while ((r = strstr(p = r + len, substring)) != nullptr)
         {
             while (p < r) *q++ = *p++;
         }
@@ -93,15 +93,15 @@ char *strrm(char *str, const char *substring)
 char *strdup(const char *src)
 {
     size_t len = strlen(src) + 1;
-    char *s = (char*)malloc(len);
-    if (s == NULL) return NULL;
-    return (char*)memcpy(s, (void*)src, len);
+    char *s = static_cast<char*>(malloc(len));
+    if (s == nullptr) return nullptr;
+    return static_cast<char*>(memcpy(s, const_cast<void*>(reinterpret_cast<const void*>(src)), len));
 }
 
 static char** _strsplit(const char* s, const char* delim, size_t* nb)
 {
     void* data;
-    char* _s = (char*)s;
+    char* _s = const_cast<char*>(s);
     const char** ptrs;
     size_t ptrsSize;
     size_t nbWords = 1;
@@ -114,11 +114,11 @@ static char** _strsplit(const char* s, const char* delim, size_t* nb)
         ++nbWords;
     }
     ptrsSize = (nbWords + 1) * sizeof(char*);
-    ptrs = (const char**)malloc(ptrsSize + sLen + 1);
+    ptrs = static_cast<const char**>(malloc(ptrsSize + sLen + 1));
     data = ptrs;
     if (data)
     {
-        *ptrs = _s = strcpy(((char*)data) + ptrsSize, s);
+        *ptrs = _s = strcpy((static_cast<char*>(data)) + ptrsSize, s);
         if (nbWords > 1)
         {
             while (( _s = strstr(_s, delim)))
@@ -128,15 +128,15 @@ static char** _strsplit(const char* s, const char* delim, size_t* nb)
                 *++ptrs = _s;
             }
         }
-        *++ptrs = NULL;
+        *++ptrs = nullptr;
     }
     if (nb) *nb = data ? nbWords : 0;
-    return (char**)data;
+    return static_cast<char**>(data);
 }
 
 char** strsplit(const char* s, const char* delim)
 {
-    return _strsplit(s, delim, NULL);
+    return _strsplit(s, delim, nullptr);
 }
 
 char** strsplit_count(const char* s, const char* delim, size_t &nb)
@@ -150,7 +150,7 @@ char *strstr(const char *str, const char *substring)
     while (true)
     {
         if (!*b) return (char *)str;
-        if (!*a) return NULL;
+        if (!*a) return nullptr;
         if (*a++ != *b++)
         {
             a = ++str;
@@ -196,7 +196,7 @@ char *getline(const char *str, const char *substring, char *buffer, int skip)
                 while (strbck[i - 1] != '\n') i--;
                 while (strbck[t] != '\n') t++;
                 int size = t - i;
-                memcpy(buffer, (void*)&strbck[i], size);
+                memcpy(buffer, const_cast<void*>(reinterpret_cast<const void*>(&strbck[i])), size);
                 buffer[size] = 0;
                 return buffer;
             }
@@ -296,32 +296,4 @@ int string2int(const char *str)
         res = res * 10 + str[i] - '0';
     }
     return res;
-}
-
-uint64_t oct2dec(int oct)
-{
-    int dec = 0, temp = 0;
-    while (oct != 0)
-    {
-        dec = dec + (oct % 10) * pow(8, temp);
-        temp++;
-        oct = oct / 10;
-    }
-    return dec;
-}
-
-int intlen(int n)
-{
-    int digits = 0;
-    if (n <= 0)
-    {
-        n = -n;
-        ++digits;
-    }
-    while (n)
-    {
-        n /= 10;
-        ++digits;
-    }
-    return digits;
 }

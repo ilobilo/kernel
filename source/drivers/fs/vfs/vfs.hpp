@@ -55,7 +55,7 @@ struct fs_node_t
     fs_node_t *ptr;
     fs_t *fs;
     fs_node_t *parent;
-    Vector<fs_node_t*> children;
+    vector<fs_node_t*> children;
 };
 
 struct dirent_t

@@ -1,4 +1,5 @@
-[bits 64]
+; Copyright (C) 2021  ilobilo
+
 LoadGDT:
     lgdt [rdi]
     mov ax, 0x30

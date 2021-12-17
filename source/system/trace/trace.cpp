@@ -32,9 +32,10 @@ bool backtrace(uint64_t addr, size_t i)
 {
     symtable_t symtable = lookup(addr);
 
+    if (!strcmp(symtable.name, "<unknown>") || symtable.addr == 0) return false;
     serial::err("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
-
     if (!strcmp(symtable.name, "_start")) return false;
+
     return true;
 }
 
@@ -42,6 +43,7 @@ void trace()
 {
     static stackframe_t *sf;
     asm volatile ("movq %%rbp, %0" : "=r"(sf));
+    sf = sf->frame->frame->frame;
 
     serial::err("Stack trace:");
 
@@ -54,8 +56,8 @@ void trace()
 
 void init()
 {
-    Elf64_Ehdr *header = (Elf64_Ehdr*)kfilev2_tag->kernel_file;
-    Elf64_Shdr *sections = (Elf64_Shdr*)((char*)kfilev2_tag->kernel_file + header->e_shoff);
+    Elf64_Ehdr *header = reinterpret_cast<Elf64_Ehdr*>(kfilev2_tag->kernel_file);
+    Elf64_Shdr *sections = reinterpret_cast<Elf64_Shdr*>(kfilev2_tag->kernel_file + header->e_shoff);
     Elf64_Sym *symtab;
     char *strtab;
 
@@ -64,11 +66,11 @@ void init()
         switch (sections[i].sh_type)
         {
             case SHT_SYMTAB:
-                symtab = (Elf64_Sym*)((char*)kfilev2_tag->kernel_file + sections[i].sh_offset);
+                symtab = reinterpret_cast<Elf64_Sym*>(kfilev2_tag->kernel_file + sections[i].sh_offset);
                 entries = sections[i].sh_size / sections[i].sh_entsize;
                 break;
             case SHT_STRTAB:
-                strtab = (char*)((char*)kfilev2_tag->kernel_file + sections[i].sh_offset);
+                strtab = reinterpret_cast<char*>(kfilev2_tag->kernel_file + sections[i].sh_offset);
                 break;
         }
     }
@@ -90,7 +92,7 @@ void init()
         entries--;
     }
 
-    symbol_table = (symtable_t*)calloc(entries, sizeof(symtable_t));
+    symbol_table = static_cast<symtable_t*>(calloc(entries, sizeof(symtable_t)));
 
     for (size_t i = 0, t = 0, entriesbck = entries; i < entriesbck; i++)
     {

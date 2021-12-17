@@ -31,10 +31,10 @@ FADTHeader *fadthdr;
 HPETHeader *hpethdr;
 SDTHeader *rsdt;
 
-Vector<MADTLapic*> lapics;
-Vector<MADTIOApic*> ioapics;
-Vector<MADTIso*> isos;
-Vector<MADTNmi*> nmis;
+vector<MADTLapic*> lapics;
+vector<MADTIOApic*> ioapics;
+vector<MADTIso*> isos;
+vector<MADTNmi*> nmis;
 
 uint32_t *SMI_CMD;
 uint8_t ACPI_ENABLE;
@@ -60,25 +60,25 @@ void madt_init()
 
     lapic_addr = madthdr->local_controller_addr;
     
-    for (uint8_t *madt_ptr = (uint8_t*)madthdr->entries_begin; (uintptr_t)madt_ptr < (uintptr_t)madthdr + madthdr->sdt.length; madt_ptr += *(madt_ptr + 1))
+    for (uint8_t *madt_ptr = reinterpret_cast<uint8_t*>(madthdr->entries_begin); reinterpret_cast<uintptr_t>(madt_ptr) < reinterpret_cast<uintptr_t>(madthdr) + madthdr->sdt.length; madt_ptr += *(madt_ptr + 1))
     {
         switch (*(madt_ptr))
         {
             case 0:
                 serial::info("ACPI/MADT: Found local APIC %ld", lapics.size());
-                lapics.push_back((MADTLapic*)madt_ptr);
+                lapics.push_back(reinterpret_cast<MADTLapic*>(madt_ptr));
                 break;
             case 1:
                 serial::info("ACPI/MADT: Found I/O APIC %ld", ioapics.size());
-                ioapics.push_back((MADTIOApic*)madt_ptr);
+                ioapics.push_back(reinterpret_cast<MADTIOApic*>(madt_ptr));
                 break;
             case 2:
                 serial::info("ACPI/MADT: Found ISO %ld", isos.size());
-                isos.push_back((MADTIso*)madt_ptr);
+                isos.push_back(reinterpret_cast<MADTIso*>(madt_ptr));
                 break;
             case 4:
                 serial::info("ACPI/MADT: Found NMI %ld", nmis.size());
-                nmis.push_back((MADTNmi*)madt_ptr);
+                nmis.push_back(reinterpret_cast<MADTNmi*>(madt_ptr));
                 break;
             case 5:
                 lapic_addr = QWORD_PTR(madt_ptr + 4);
@@ -90,8 +90,8 @@ void madt_init()
 void dsdt_init()
 {
     uint64_t dsdtaddr = ((is_canonical(fadthdr->X_Dsdt) && use_xstd) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
-    uint8_t *S5Addr = (uint8_t*)dsdtaddr + 36;
-    uint64_t dsdtlength = ((SDTHeader*)dsdtaddr)->length;
+    uint8_t *S5Addr = reinterpret_cast<uint8_t*>(dsdtaddr) + 36;
+    uint64_t dsdtlength = reinterpret_cast<SDTHeader*>(dsdtaddr)->length;
 
     dsdtaddr *= 2;
     while (dsdtlength-- > 0)
@@ -114,7 +114,7 @@ void dsdt_init()
 
         if (*S5Addr == 0xA) S5Addr++;
         SLP_TYPb = *(S5Addr) << 10;
-        SMI_CMD = (uint32_t*)((uintptr_t)fadthdr->SMI_CommandPort);
+        SMI_CMD = reinterpret_cast<uint32_t*>(fadthdr->SMI_CommandPort);
 
         ACPI_ENABLE = fadthdr->AcpiEnable;
         ACPI_DISABLE = fadthdr->AcpiDisable;
@@ -139,6 +139,7 @@ void shutdown()
     {
         outw(fadthdr->PM1aControlBlock, (inw(fadthdr->PM1aControlBlock) & 0xE3FF) | ((SLP_TYPa << 10) | ACPI_SLEEP));
         if (fadthdr->PM1bControlBlock) outw(fadthdr->PM1bControlBlock, (inw(fadthdr->PM1bControlBlock) & 0xE3FF) | ((SLP_TYPb << 10) | ACPI_SLEEP));
+
         outw(PM1a_CNT, SLP_TYPa | SLP_EN);
         if (PM1b_CNT) outw(PM1b_CNT, SLP_TYPb | SLP_EN);
     }
@@ -149,7 +150,7 @@ void reboot()
     switch (fadthdr->ResetReg.AddressSpace)
     {
         case ACPI_GAS_MMIO:
-            *((uint8_t*)((uintptr_t)fadthdr->ResetReg.Address)) = fadthdr->ResetValue;
+            *reinterpret_cast<uint8_t*>(fadthdr->ResetReg.Address) = fadthdr->ResetValue;
             break;
         case ACPI_GAS_IO:
             outb(fadthdr->ResetReg.Address, fadthdr->ResetValue);
@@ -167,8 +168,8 @@ void *findtable(const char *signature, size_t skip)
     for (size_t i = 0; i < entries; i++)
     {
         SDTHeader *newsdthdr;
-        if (use_xstd) newsdthdr = (SDTHeader*)*(uint64_t*)((uint64_t)rsdt + sizeof(SDTHeader) + (i * 8));
-        else newsdthdr = (SDTHeader*)((uintptr_t)*(uint32_t*)((uint32_t)((uintptr_t)rsdt) + sizeof(SDTHeader) + (i * 4)));
+        if (use_xstd) newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(rsdt) + sizeof(SDTHeader) + (i * 8)));
+        else newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(rsdt) + sizeof(SDTHeader) + (i * 4)));
         
         if (!newsdthdr || !strcmp((const char*)newsdthdr->signature, "")) continue;
 
@@ -192,26 +193,26 @@ void init()
         return;
     }
 
-    rsdp = (RSDP*)rsdp_tag->rsdp;
+    rsdp = reinterpret_cast<RSDP*>(rsdp_tag->rsdp);
 
     if (rsdp->revision >= 2 && rsdp->xsdtaddr)
     {
         use_xstd = true;
-        rsdt = (SDTHeader*)rsdp->xsdtaddr;
+        rsdt = reinterpret_cast<SDTHeader*>(rsdp->xsdtaddr);
         serial::info("Found XSDT at: 0x%X", rsdp->xsdtaddr);
     }
     else
     {
         use_xstd = false;
-        rsdt = (SDTHeader*)((uintptr_t)rsdp->rsdtaddr);
+        rsdt = reinterpret_cast<SDTHeader*>(rsdp->rsdtaddr);
         serial::info("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
-    mcfghdr = (MCFGHeader*)findtable("MCFG", 0);
-    madthdr = (MADTHeader*)findtable("APIC", 0);
+    mcfghdr = reinterpret_cast<MCFGHeader*>(findtable("MCFG", 0));
+    madthdr = reinterpret_cast<MADTHeader*>(findtable("APIC", 0));
     if (madthdr) madt = true;
-    fadthdr = (FADTHeader*)findtable("FACP", 0);
-    hpethdr = (HPETHeader*)findtable("HPET", 0);
+    fadthdr = reinterpret_cast<FADTHeader*>(findtable("FACP", 0));
+    hpethdr = reinterpret_cast<HPETHeader*>(findtable("HPET", 0));
 
     outb(fadthdr->SMI_CommandPort, fadthdr->AcpiEnable);
     while (!(inw(fadthdr->PM1aControlBlock) & 1));
