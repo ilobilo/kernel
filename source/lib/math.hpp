@@ -34,6 +34,17 @@
     i <<= 1; \
 })
 
+#define ALIGN_UP_2(align, var) \
+({ \
+    typeof(var) a = (var); \
+    while (a % (align) || !POWER_OF_2(a)) \
+    { \
+        a++; \
+        a = TO_POWER_OF_2(a); \
+    } \
+    a; \
+})
+
 struct point
 {
     long X;

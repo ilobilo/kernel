@@ -16,10 +16,8 @@ SECTIONS
 {
     . = 0xffffffff80000000;
 
-    __kernelstart = .;
-
     .text : {
-        *(.text*)
+        *(.text .text.*)
     } :text
 
     . += CONSTANT(MAXPAGESIZE);
@@ -29,23 +27,21 @@ SECTIONS
     } :rodata
 
     .rodata : {
-        *(.rodata*)
+        *(.rodata .rodata.*)
     } :rodata
 
     . += CONSTANT(MAXPAGESIZE);
 
     .data : {
-        *(.data*)
+        *(.data .data.*)
     } :data
 
     .bss : {
         *(COMMON)
-        *(.bss*)
+        *(.bss .bss.*)
     } :data
 
     .dynamic : {
         *(.dynamic)
     } :data :dynamic
-
-    __kernelend = .;
 }
