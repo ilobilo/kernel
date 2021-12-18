@@ -45,9 +45,13 @@ Contributors are welcome
 
 ### Disk
 - [ ] FDC
-- [ ] IDE (ATA/ATAPI)
-- [ ] SATA (AHCI)
+- [ ] IDE
+- [x] SATA (AHCI)
 - [ ] NVMe
+
+### Partitions
+- [ ] MBR
+- [ ] GPT
 
 ### Timers
 - [x] HPET
