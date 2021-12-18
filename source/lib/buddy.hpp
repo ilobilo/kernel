@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <lib/lock.hpp>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -11,20 +12,60 @@ struct BuddyBlock
     bool free;
 };
 
-extern bool buddy_debug;
-extern size_t buddy_pages;
+class BuddyAlloc
+{
+    private:
+    BuddyBlock *head = nullptr;
+    BuddyBlock *tail = nullptr;
+    void *data = nullptr;
+    bool expanded = false;
+    volatile lock_t lock;
 
-void buddy_init(size_t pagecount = 16);
+    BuddyBlock *next(BuddyBlock *block);
+    BuddyBlock *split(BuddyBlock *block, size_t size);
 
-void buddy_expand(size_t pagecount);
-void buddy_setsize(size_t pagecount);
+    BuddyBlock *find_best(size_t size);
+    size_t required_size(size_t size);
+    void coalescence();
 
-void *malloc(size_t size);
-void *calloc(size_t num, size_t size);
-void *realloc(void *ptr, size_t size);
-void free(void *ptr);
+    public:
+    bool debug = false;
+    size_t pages = 0;
 
-size_t allocsize(void *ptr);
+    void expand(size_t pagecount);
+    void setsize(size_t pagecount);
+
+    void *malloc(size_t size);
+    void *calloc(size_t num, size_t size);
+    void *realloc(void *ptr, size_t size);
+    void free(void *ptr);
+
+    size_t allocsize(void *ptr);
+};
+
+extern BuddyAlloc kheap;
+
+static inline void *malloc(size_t size)
+{
+    return kheap.malloc(size);
+}
+static inline void *calloc(size_t num, size_t size)
+{
+    return kheap.calloc(num, size);
+}
+static inline void *realloc(void *ptr, size_t size)
+{
+    return kheap.realloc(ptr, size);
+}
+static inline void free(void *ptr)
+{
+    kheap.free(ptr);
+}
+
+static inline size_t allocsize(void *ptr)
+{
+    return kheap.allocsize(ptr);
+}
 
 void *operator new(size_t size);
 void *operator new[](size_t size);
