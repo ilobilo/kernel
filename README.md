@@ -48,12 +48,12 @@ Contributors are welcome
 ### Disk
 - [ ] FDC
 - [ ] IDE
-- [x] SATA (AHCI)
+- [x] SATA
 - [ ] NVMe
 
 ### Partitions
-- [ ] MBR
-- [ ] GPT
+- [x] MBR
+- [x] GPT
 
 ### Timers
 - [x] HPET
@@ -65,6 +65,7 @@ Contributors are welcome
 - [x] SMP
 - [x] Threading
 - [x] Scheduling
+- [ ] SMP-Aware Scheduler
 
 ### Filesystem
 - [x] VFS

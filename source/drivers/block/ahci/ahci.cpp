@@ -53,9 +53,6 @@ void AHCIDriver::probePorts()
                 ports[portCount]->portNum = portCount;
                 ports[portCount]->buffer = static_cast<uint8_t*>(pmm::alloc());
 
-                ports[portCount]->interface = drivemgr::SATA;
-                ports[portCount]->type = (portType == SATA ? drivemgr::ATA : drivemgr::ATAPI);
-
                 portCount++;
             }
         }
