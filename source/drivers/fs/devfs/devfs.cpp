@@ -19,7 +19,6 @@ uint64_t count = 0;
 vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mask, const char *name)
 {
     vfs::fs_node_t *node = vfs::open_r(devfs_root, name);
-    node->children.destroy();
     node->fs = fs;
     if (mask) node->mask = mask;
     node->inode = count;
@@ -28,19 +27,19 @@ vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mask, const char *name)
 }
 
 #pragma region null
-static size_t read_null([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, [[gnu::unused]] size_t size, [[gnu::unused]] char *buffer)
+static size_t read_null(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     return 0;
 }
-static size_t write_null([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, [[gnu::unused]] size_t size, [[gnu::unused]] char *buffer)
+static size_t write_null(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     return 0;
 }
-static void open_null([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] uint8_t read, [[gnu::unused]] uint8_t write)
+static void open_null(vfs::fs_node_t *node, uint8_t read, uint8_t write)
 {
     return;
 }
-static void close_null([[gnu::unused]] vfs::fs_node_t *node)
+static void close_null(vfs::fs_node_t *node)
 {
     return;
 }
@@ -54,20 +53,20 @@ static vfs::fs_t null_fs = {
 #pragma endregion null
 
 #pragma region zero
-static size_t read_zero([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, [[gnu::unused]] size_t size, char *buffer)
+static size_t read_zero(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     memset(buffer, 0x00, size);
     return 1;
 }
-static size_t write_zero([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, [[gnu::unused]] size_t size, [[gnu::unused]] char *buffer)
+static size_t write_zero(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     return 0;
 }
-static void open_zero([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] uint8_t read, [[gnu::unused]] uint8_t write)
+static void open_zero(vfs::fs_node_t *node, uint8_t read, uint8_t write)
 {
     return;
 }
-static void close_zero([[gnu::unused]] vfs::fs_node_t *node)
+static void close_zero(vfs::fs_node_t *node)
 {
     return;
 }
@@ -81,7 +80,7 @@ static vfs::fs_t zero_fs = {
 #pragma endregion zero
 
 #pragma region rand
-static size_t read_rand([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, size_t size, char *buffer)
+static size_t read_rand(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     size_t s = 0;
     while (s < size)
@@ -98,11 +97,11 @@ static vfs::fs_t rand_fs = {
 #pragma endregion rand
 
 #pragma region tty
-static size_t read_ttys([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, [[gnu::unused]] size_t size, [[gnu::unused]] char *buffer)
+static size_t read_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     return 0;
 }
-static size_t write_ttys([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, size_t size, char *buffer)
+static size_t write_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
     serial::serial_printf("%.*s", static_cast<int>(size), buffer);
@@ -114,11 +113,11 @@ static vfs::fs_t ttys_fs = {
     .write = &write_ttys
 };
 
-static size_t read_tty([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, [[gnu::unused]] size_t size, [[gnu::unused]] char *buffer)
+static size_t read_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     return 0;
 }
-static size_t write_tty([[gnu::unused]] vfs::fs_node_t *node, [[gnu::unused]] size_t offset, size_t size, char *buffer)
+static size_t write_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
     printf("%.*s", static_cast<int>(size), buffer);

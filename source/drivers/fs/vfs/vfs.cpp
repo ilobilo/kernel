@@ -77,7 +77,6 @@ fs_node_t *add_new_child(fs_node_t *parent, const char *name)
     strcpy(node->name, name);
     node->parent = parent;
     node->fs = parent->fs;
-    node->children.init(1);
     parent->children.push_back(node);
     return node;
 }
@@ -287,7 +286,6 @@ fs_node_t *mount_root(fs_t *fs)
     fs_root->ptr = node;
     node->flags = FS_DIRECTORY;
     node->fs = fs;
-    node->children.init();
     return node;
 }
 
@@ -315,7 +313,6 @@ void init()
 
     fs_root = new fs_node_t;
     fs_root->flags = filetypes::FS_MOUNTPOINT;
-    fs_root->children.init();
     strcpy(fs_root->name, ROOTNAME);
     fs_root->fs = nullptr;
 

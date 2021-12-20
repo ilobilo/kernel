@@ -35,7 +35,7 @@ CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
-CPPFLAGS = -Ofast -pipe -Werror -Wall -Wextra -Wno-c99-designator \
+CPPFLAGS = -Ofast -pipe -Werror -Wall -Wextra -Wno-c99-designator -Wno-unused-parameter \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
@@ -59,6 +59,7 @@ INTERNALCFLAGS  :=             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fsanitize=undefined       \
+	-fno-rtti                  \
 	-fpie                      \
 	-mno-80387                 \
 	-mno-mmx                   \
@@ -76,6 +77,7 @@ INTERNALCPPFLAGS  :=           \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fsanitize=undefined       \
+	-fno-rtti                  \
 	-fpie                      \
 	-mno-80387                 \
 	-mno-mmx                   \

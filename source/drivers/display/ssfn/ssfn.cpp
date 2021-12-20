@@ -11,7 +11,7 @@ uint64_t bgcolour;
 uint64_t fgcolour = 0xFFFFFF;
 point pos;
 
-void printc(char c, [[gnu::unused]] void *arg)
+void printc(char c, void *arg)
 {
     ssfn_putc(c);
 }

@@ -11,9 +11,10 @@
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
+#include <drivers/block/drive/drive.hpp>
+#include <drivers/block/ahci/ahci.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
-#include <drivers/disk/ahci/ahci.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <system/sched/pit/pit.hpp>
@@ -37,7 +38,7 @@
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::audio;
-using namespace kernel::drivers::disk;
+using namespace kernel::drivers::block;
 using namespace kernel::drivers::fs;
 using namespace kernel::drivers;
 using namespace kernel::system::sched;
@@ -165,6 +166,10 @@ void main(struct stivale2_struct *stivale2_struct)
     terminal::check("Initialising AHCI...");
     ahci::init();
     terminal::okerr(ahci::initialised);
+
+    terminal::check("Initialising Drive Manager...");
+    drivemgr::init();
+    terminal::okerr(drivemgr::initialised);
 
     terminal::check("Initialising VFS...");
     vfs::init();

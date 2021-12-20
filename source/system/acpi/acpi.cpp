@@ -53,11 +53,6 @@ void madt_init()
 {
     serial::newline();
 
-    lapics.init(1);
-    ioapics.init(1);
-    isos.init(1);
-    nmis.init(1);
-
     lapic_addr = madthdr->local_controller_addr;
     
     for (uint8_t *madt_ptr = reinterpret_cast<uint8_t*>(madthdr->entries_begin); reinterpret_cast<uintptr_t>(madt_ptr) < reinterpret_cast<uintptr_t>(madthdr) + madthdr->sdt.length; madt_ptr += *(madt_ptr + 1))
@@ -168,8 +163,8 @@ void *findtable(const char *signature, size_t skip)
     for (size_t i = 0; i < entries; i++)
     {
         SDTHeader *newsdthdr;
-        if (use_xstd) newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(rsdt) + sizeof(SDTHeader) + (i * 8)));
-        else newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(rsdt) + sizeof(SDTHeader) + (i * 4)));
+        if (use_xstd) newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(rsdt) + sizeof(SDTHeader) + (i * 8)));
+        else newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(rsdt) + sizeof(SDTHeader) + (i * 4)));
         
         if (!newsdthdr || !strcmp((const char*)newsdthdr->signature, "")) continue;
 

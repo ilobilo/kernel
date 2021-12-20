@@ -11,6 +11,7 @@ Contributors are welcome
 - [x] IDT
 - [x] TSS
 - [x] PCI
+- [ ] PCIe
 
 ### Display
 - [x] Drawing on framebuffer
@@ -42,6 +43,7 @@ Contributors are welcome
 ### VMs
 - [x] VMWare Tools
 - [ ] VBox Guest Additions
+- [ ] Virtio (Network/Block)
 
 ### Disk
 - [ ] FDC
