@@ -3,7 +3,7 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/lock.hpp>
 #include <stivale2.h>

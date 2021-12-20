@@ -4,7 +4,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <lib/mmio.hpp>

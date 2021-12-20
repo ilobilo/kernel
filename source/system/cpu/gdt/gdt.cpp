@@ -3,7 +3,7 @@
 #include <drivers/display/serial/serial.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/buddy.hpp>
 #include <lib/lock.hpp>

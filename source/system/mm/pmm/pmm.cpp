@@ -2,7 +2,7 @@
 
 #include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmm/pmm.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/lock.hpp>
