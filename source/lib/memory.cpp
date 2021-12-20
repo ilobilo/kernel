@@ -1,6 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -9,11 +9,11 @@ uint64_t getmemsize()
     static uint64_t meminbytes = 0;
     if (meminbytes > 0) return meminbytes;
 
-    for (uint64_t i = 0; i < kernel::mmap_tag->entries; i++)
+    for (uint64_t i = 0; i < mmap_tag->entries; i++)
     {
-        if (kernel::mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
+        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
 
-        meminbytes += kernel::mmap_tag->memmap[i].length;
+        meminbytes += mmap_tag->memmap[i].length;
     }
 
     return meminbytes;

@@ -2,7 +2,7 @@
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/serial/serial.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/buddy.hpp>

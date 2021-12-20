@@ -1,9 +1,27 @@
 // Copyright (C) 2021  ilobilo
 
+#include <drivers/display/framebuffer/framebuffer.hpp>
+#include <drivers/display/terminal/terminal.hpp>
+#include <drivers/display/ssfn/ssfn.hpp>
 #include <kernel/main.hpp>
+#include <lib/string.hpp>
+#include <lib/panic.hpp>
 #include <lib/cpu.hpp>
 #include <stivale2.h>
 #include <stddef.h>
+
+using namespace kernel::drivers::display;
+
+struct stivale2_struct_tag_smp *smp_tag;
+struct stivale2_struct_tag_memmap *mmap_tag;
+struct stivale2_struct_tag_rsdp *rsdp_tag;
+struct stivale2_struct_tag_framebuffer *frm_tag;
+struct stivale2_struct_tag_terminal *term_tag;
+struct stivale2_struct_tag_modules *mod_tag;
+struct stivale2_struct_tag_cmdline *cmd_tag;
+struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
+
+char *cmdline;
 
 static uint8_t stack[8192];
 
@@ -56,11 +74,38 @@ void *stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
     }
 }
 
+int find_module(const char *name)
+{
+    for (uint64_t i = 0; i < mod_tag->module_count; i++)
+    {
+        if (!strcmp(mod_tag->modules[i].string, name)) return i;
+    }
+    return -1;
+}
+
 extern "C" void _start(stivale2_struct *stivale2_struct)
 {
-    enableSSE();
+    smp_tag = static_cast<stivale2_struct_tag_smp*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID));
+    mmap_tag = static_cast<stivale2_struct_tag_memmap*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID));
+    rsdp_tag = static_cast<stivale2_struct_tag_rsdp*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID));
+    frm_tag = static_cast<stivale2_struct_tag_framebuffer*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID));
+    term_tag = static_cast<stivale2_struct_tag_terminal*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));
+    mod_tag = static_cast<stivale2_struct_tag_modules*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID));
+    cmd_tag = static_cast<stivale2_struct_tag_cmdline*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID));
+    kfilev2_tag = static_cast<stivale2_struct_tag_kernel_file_v2*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID));
 
-    kernel::main(stivale2_struct);
+    cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
+
+    if (!strstr(cmdline, "nocom")) serial::init();
+
+    if (frm_tag == nullptr) PANIC("Could not find framebuffer tag!");
+    framebuffer::init();
+    ssfn::init();
+
+    if (term_tag == nullptr) PANIC("Could not find terminal tag!");
+    terminal::init();
+
+    kernel::main();
 
     while (true) asm volatile ("hlt");
 }

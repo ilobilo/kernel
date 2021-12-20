@@ -3,7 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <system/trace/trace.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/buddy.hpp>
 #include <elf.h>
