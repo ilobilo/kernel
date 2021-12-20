@@ -35,7 +35,7 @@ char read()
     return inb(COMS::COM1);
 }
 
-void printc(char c, [[gnu::unused]] void *arg)
+void printc(char c, void *arg)
 {
     if (!check()) return;
     while (!is_transmit_empty());

@@ -68,22 +68,18 @@ int parse(unsigned int address)
         {
             case filetypes::REGULAR_FILE:
                 node->flags = vfs::FS_FILE;
-                node->children.destroy();
                 break;
             case filetypes::SYMLINK:
                 node->flags = vfs::FS_SYMLINK;
-                node->children.destroy();
                 break;
             case filetypes::DIRECTORY:
                 node->flags = vfs::FS_DIRECTORY;
                 break;
             case filetypes::CHARDEV:
                 node->flags = vfs::FS_CHARDEVICE;
-                node->children.destroy();
                 break;
             case filetypes::BLOCKDEV:
                 node->flags = vfs::FS_BLOCKDEVICE;
-                node->children.destroy();
                 break;
         }
 

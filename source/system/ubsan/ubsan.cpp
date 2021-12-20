@@ -8,7 +8,7 @@ using namespace kernel::drivers::display;
 
 static void print(const char *message, source_location loc)
 {
-    if (strstr(loc.file, "acpi.cpp") && loc.line == 172 && loc.column == 55) return;
+    if (strstr(loc.file, "acpi.cpp") && loc.line == 167 && loc.column == 55) return;
     serial::warn("Ubsan: %s at file %s, line %d, column %d", message, loc.file, loc.line, loc.column);
 }
 

@@ -237,7 +237,6 @@ void init()
         legacy = true;
     }
 
-    pcidevices.init(5);
     if (!legacy)
     {
         int entries = ((acpi::mcfghdr->header.length) - sizeof(acpi::MCFGHeader)) / sizeof(acpi::deviceconfig);
