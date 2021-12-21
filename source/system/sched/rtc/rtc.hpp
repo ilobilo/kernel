@@ -4,9 +4,11 @@
 
 namespace kernel::system::sched::rtc {
 
-int year(), month(), day(), hour(), minute(), second();
+uint64_t century(), year(), month(), day(), hour(), minute(), second();
 
-int time();
+uint64_t time();
+uint64_t epoch();
+uint64_t seconds_since_boot();
 
 void sleep(uint64_t sec);
 

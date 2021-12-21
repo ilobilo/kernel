@@ -16,11 +16,11 @@ vfs::fs_node_t *devfs_root;
 
 uint64_t count = 0;
 
-vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mask, const char *name)
+vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mode, const char *name)
 {
     vfs::fs_node_t *node = vfs::open_r(devfs_root, name);
     node->fs = fs;
-    if (mask) node->mask = mask;
+    if (mode) node->mode = mode;
     node->inode = count;
     count++;
     return node;
@@ -148,7 +148,7 @@ void init()
     }
 
     devfs_root = vfs::mount(0, 0, "/dev");
-    devfs_root->mask = 0755;
+    devfs_root->mode = 0755;
 
     vfs::fs_node_t *null = add(&null_fs, 0666, "null");
     null->flags = vfs::FS_CHARDEVICE;
