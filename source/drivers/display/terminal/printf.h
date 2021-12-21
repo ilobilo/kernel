@@ -36,8 +36,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef _PRINTF_H_
-#define _PRINTF_H_
+#ifndef PRINTF_H_
+#define PRINTF_H_
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -56,28 +56,30 @@ __attribute__((format(__printf__, (one_based_format_index), (first_arg))))
 # define ATTR_VPRINTF(one_based_format_index)
 #endif
 
-#define PRINTF_ALIAS_STANDARD_FUNCTION_NAMES 
-#ifdef PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
-# define printf    printf_
-# define sprintf   sprintf_
-# define vsprintf  vsprintf_
-# define snprintf  snprintf_
-# define vsnprintf vsnprintf_
-# define vprintf   vprintf_
+#ifndef PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
+#define PRINTF_ALIAS_STANDARD_FUNCTION_NAMES 1
 #endif
 
+#if PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
+# define printf_    printf
+# define sprintf_   sprintf
+# define vsprintf_  vsprintf
+# define snprintf_  snprintf
+# define vsnprintf_ vsnprintf
+# define vprintf_   vprintf
+#endif
 
 /**
  * Output a character to a custom device like UART, used by the printf() function
  * This function is declared here only. You have to write your custom implementation somewhere
  * @param character Character to output
  */
-void _putchar(char character);
+void putchar_(char character);
 
 
 /**
  * Tiny printf implementation
- * You have to implement _putchar if you use printf()
+ * You have to implement putchar_ if you use printf()
  * To avoid conflicts with the regular printf() API it is overridden by macro defines
  * and internal underscore-appended functions like printf_() are used
  * @param format A string that specifies the format of the output
@@ -137,7 +139,7 @@ int vfctprintf(void (*out)(char character, void* arg), void* arg, const char* fo
 }
 #endif
 
-#ifdef PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
+#if PRINTF_ALIAS_STANDARD_FUNCTION_NAMES
 # undef printf_
 # undef sprintf_
 # undef vsprintf_
@@ -146,4 +148,4 @@ int vfctprintf(void (*out)(char character, void* arg), void* arg, const char* fo
 # undef vprintf_
 #endif
 
-#endif  // _PRINTF_H_
+#endif  // PRINTF_H_

@@ -12,12 +12,9 @@ using namespace kernel::drivers::display;
 namespace kernel::drivers::fs::ustar {
 
 bool initialised = false;
-uint64_t filecount;
-header_t *headers;
+vector<header_t*> headers;
 
 vfs::fs_node_t *initrd_root;
-
-uint64_t allocated = 10;
 
 unsigned int getsize(const char *s)
 {
@@ -38,33 +35,27 @@ int parse(unsigned int address)
     for (i = 0; ; i++)
     {
         file_header_t *header = reinterpret_cast<file_header_t*>(address);
-        memmove(header->name, header->name + 1, strlen(header->name));
-
         if (strcmp(header->signature, "ustar")) break;
 
-        if (filecount >= (allocsize(headers) / sizeof(header_t)))
-        {
-            allocated += 5;
-            headers = static_cast<header_t*>(realloc(headers, allocated * sizeof(header_t)));
-        }
-
+        memmove(header->name, header->name + 1, strlen(header->name));
         uintptr_t size = getsize(header->size);
         if (header->name[strlen(header->name) - 1] == '/') header->name[strlen(header->name) - 1] = 0;
-        headers[i].size = size;
-        headers[i].header = header;
-        headers[i].address = address + 512;
-        filecount++;
 
-        vfs::fs_node_t *node = vfs::open_r(nullptr, headers[i].header->name);
+        headers.push_back(new header_t);
+        headers.last()->header = header;
+        headers.last()->size = size;
+        headers.last()->address = address + 512;
 
-        node->mode = string2int(headers[i].header->mode);
-        node->address = headers[i].address;
-        node->length = headers[i].size;
-        node->gid = getsize(header->gid);
-        node->uid = getsize(header->uid);
+        vfs::fs_node_t *node = vfs::open_r(nullptr, headers.last()->header->name);
+
+        node->mode = string2int(headers.last()->header->mode);
+        node->address = headers.last()->address;
+        node->length = headers.last()->size;
+        node->gid = getsize(headers.last()->header->gid);
+        node->uid = getsize(headers.last()->header->uid);
         node->inode = i;
 
-        switch (headers[i].header->typeflag[0])
+        switch (headers.last()->header->typeflag[0])
         {
             case filetypes::REGULAR_FILE:
                 node->flags = vfs::FS_FILE;
@@ -86,39 +77,6 @@ int parse(unsigned int address)
         address += (((size + 511) / 512) + 1) * 512;
     }
     return i;
-}
-
-bool check()
-{
-    if (!initialised)
-    {
-        printf("\033[31mUSTAR filesystem has not been initialised!%s\n", terminal::colour);
-        return false;
-    }
-    return true;
-}
-
-int getid(const char *name)
-{
-    for (uint64_t i = 0; i < filecount; ++i)
-    {
-        if(!strcmp(headers[i].header->name, name)) return i;
-    }
-    return 0;
-}
-
-char *read(const char *filename)
-{
-    if (!check()) return nullptr;
-
-    for (uint64_t i = 0; i < filecount; i++)
-    {
-        if (!strcmp(headers[i].header->name, filename))
-        {
-            return reinterpret_cast<char*>(headers[i].address);
-        }
-    }
-    return nullptr;
 }
 
 static size_t ustar_read(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
@@ -144,8 +102,6 @@ void init(unsigned int address)
         serial::warn("USTAR initrd has already been mounted!\n");
         return;
     }
-
-    headers = static_cast<header_t*>(malloc(allocated * sizeof(header_t)));
 
     initrd_root = vfs::mount_root(&ustar_fs);
     parse(address);
