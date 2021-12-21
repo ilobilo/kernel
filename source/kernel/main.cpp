@@ -169,7 +169,7 @@ void main()
 
     srand(rtc::time());
 
-    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(&time), nullptr));
-    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(&apps::kshell::run), nullptr));
+    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(time), nullptr));
+    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(apps::kshell::run), nullptr));
 }
 }

@@ -205,6 +205,11 @@ void switchPagemap(Pagemap *pmap)
     write_cr(3, reinterpret_cast<uint64_t>(pmap->PML4));
 }
 
+PTable *getPagemap()
+{
+    return reinterpret_cast<PTable*>(read_cr(3));
+}
+
 void init()
 {
     serial::info("Initialising VMM");
