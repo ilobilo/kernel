@@ -57,7 +57,7 @@ int parse(unsigned int address)
 
         vfs::fs_node_t *node = vfs::open_r(nullptr, headers[i].header->name);
 
-        node->mask = string2int(headers[i].header->mode);
+        node->mode = string2int(headers[i].header->mode);
         node->address = headers[i].address;
         node->length = headers[i].size;
         node->gid = getsize(header->gid);

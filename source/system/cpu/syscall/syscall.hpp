@@ -54,6 +54,18 @@ namespace kernel::system::cpu::syscall {
 
 #define SYSCALL_READ 0
 #define SYSCALL_WRITE 1
+#define SYSCALL_GETPID 39
+#define SYSCALL_EXIT 60
+#define SYSCALL_UNAME 63
+#define SYSCALL_CHDIR 80
+#define SYSCALL_RENAME 82
+#define SYSCALL_MKDIR 83
+#define SYSCALL_RMDIR 84
+#define SYSCALL_CHMOD 90
+#define SYSCALL_CHOWN 92
+#define SYSCALL_SYSINFO 99
+#define SYSCALL_REBOOT 169
+#define SYSCALL_TIME 201
 
 using syscall_t = void (*)(registers_t *);
 

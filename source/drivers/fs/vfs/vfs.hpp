@@ -45,7 +45,7 @@ struct fs_t
 struct fs_node_t
 {
     char name[FILENAME_LENGTH];
-    uint64_t mask;
+    uint64_t mode;
     uint64_t uid;
     uint64_t gid;
     uint64_t flags;
