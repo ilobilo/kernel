@@ -45,18 +45,8 @@ struct header_t
 };
 
 extern bool initialised;
-extern uint64_t filecount;
-extern header_t *headers;
-
+extern vector<header_t*> headers;
 extern vfs::fs_node_t *initrd_root;
-
-void list();
-
-const char *cat(const char *name);
-
-int getid(const char *name);
-
-char *read(const char *filename);
 
 void init(unsigned int address);
 }

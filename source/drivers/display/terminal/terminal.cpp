@@ -140,7 +140,7 @@ void okerr(bool ok)
 #pragma endregion Misc
 }
 
-void _putchar(char character)
+void putchar_(char character)
 {
     kernel::drivers::display::terminal::printc(character);
 }
