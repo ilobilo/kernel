@@ -60,6 +60,7 @@ extern Pagemap *kernel_pagemap;
 Pagemap *newPagemap();
 Pagemap *clonePagemap(Pagemap *old);
 void switchPagemap(Pagemap *pmap);
+PTable *getPagemap();
 
 void init();
 }

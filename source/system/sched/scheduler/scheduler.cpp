@@ -50,6 +50,9 @@ void add(thread_t *thread)
 void schedule(registers_t *regs)
 {
     if (!current_thread || !initialised || current_thread->thread->killed) return;
+
+    current_thread->thread->stack = reinterpret_cast<uint8_t*>(gdt::get_stack());
+    current_thread->thread->pagemap->PML4 = vmm::getPagemap();
     current_thread->thread->regs = *regs;
 
     while (current_thread->next->thread->killed)
@@ -67,6 +70,7 @@ void schedule(registers_t *regs)
     *regs = current_thread->thread->regs;
     vmm::switchPagemap(current_thread->thread->pagemap);
     gdt::set_stack(reinterpret_cast<uintptr_t>(current_thread->thread->stack));
+
     current_thread->thread->state = RUNNING;
 }
 
