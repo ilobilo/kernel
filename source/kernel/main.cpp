@@ -35,7 +35,7 @@
 #include <lib/log.hpp>
 #include <stivale2.h>
 #pragma endregion include
-#include <lib/log.hpp>
+
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::audio;
 using namespace kernel::drivers::block;

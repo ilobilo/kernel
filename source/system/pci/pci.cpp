@@ -2,6 +2,7 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
+#include <system/pci/pcidesc.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/log.hpp>
@@ -14,9 +15,9 @@ namespace kernel::system::pci {
 bool initialised = false;
 bool legacy = false;
 
-vector<translatedpcidevice_t*> pcidevices;
+vector<pcidevice_t*> pcidevices;
 
-translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
+pcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
     if (!initialised)
     {
@@ -44,7 +45,7 @@ translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, i
     return nullptr;
 }
 
-translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
+pcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
 {
     if (!initialised)
     {
@@ -113,10 +114,10 @@ void enumfunc(uint64_t devaddr, uint64_t func, uint64_t dev, uint64_t bus)
     uint64_t offset = func << 12;
     uint64_t funcaddr = devaddr + offset;
 
-    pcidevice_t *pcidevice = reinterpret_cast<pcidevice_t*>(funcaddr);
+    pciheader_t *pcidevice = reinterpret_cast<pciheader_t*>(funcaddr);
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
-    translatedpcidevice_t *tpcidevice = new translatedpcidevice_t;
+    pcidevice_t *tpcidevice = new pcidevice_t;
     tpcidevice->device = pcidevice;
 
     tpcidevice->bus = bus;
@@ -143,7 +144,7 @@ void enumdevice(uint64_t busaddr, uint64_t dev, uint64_t bus)
     uint64_t offset = dev << 15;
     uint64_t devaddr = busaddr + offset;
 
-    pcidevice_t *pcidevice = reinterpret_cast<pcidevice_t*>(devaddr);
+    pciheader_t *pcidevice = reinterpret_cast<pciheader_t*>(devaddr);
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
     for (uint64_t func = 0; func < 8; func++)
@@ -157,7 +158,7 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     uint64_t offset = bus << 20;
     uint64_t busaddr = baseaddr + offset;
 
-    pcidevice_t *pcidevice = reinterpret_cast<pcidevice_t*>(busaddr);
+    pciheader_t *pcidevice = reinterpret_cast<pciheader_t*>(busaddr);
     if (pcidevice->deviceid == 0 || pcidevice->deviceid == 0xFFFF) return;
 
     for (uint64_t dev = 0; dev < 32; dev++)
@@ -166,7 +167,7 @@ void enumbus(uint64_t baseaddr, uint64_t bus)
     }
 }
 
-void checkbus(int bus)
+void checkbus(size_t bus)
 {
     for (size_t dev = 0; dev < 32; dev++)
     {
@@ -174,8 +175,8 @@ void checkbus(int bus)
         {
             if (readl(bus, dev, func, 0) == 0xFFFFFFFF) continue;
 
-            translatedpcidevice_t *tpcidevice = new translatedpcidevice_t;
-            tpcidevice->device = new pcidevice_t;
+            pcidevice_t *tpcidevice = new pcidevice_t;
+            tpcidevice->device = new pciheader_t;
 
             tpcidevice->bus = bus;
             tpcidevice->dev = dev;

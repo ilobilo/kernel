@@ -256,11 +256,11 @@ class AHCIPort : public drivemgr::Drive
 class AHCIDriver
 {
     public:
-    AHCIDriver(pci::pcidevice_t *pcidevice);
+    AHCIDriver(pci::pciheader_t *pcidevice);
 
     void probePorts();
 
-    pci::pcidevice_t *pcidevice;
+    pci::pciheader_t *pcidevice;
     HBAMemory *ABAR;
     AHCIPort *ports[32];
     uint8_t portCount;

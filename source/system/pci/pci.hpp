@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include <system/pci/pcidesc.hpp>
 #include <lib/vector.hpp>
 #include <lib/io.hpp>
 #include <stdint.h>
 
 namespace kernel::system::pci {
 
-struct pcidevice_t
+struct pciheader_t
 {
     uint16_t vendorid;
     uint16_t deviceid;
@@ -63,9 +62,9 @@ static inline void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offse
     outl(0xCFC + (offset & 3), value);
 }
 
-struct translatedpcidevice_t
+struct pcidevice_t
 {
-    pcidevice_t *device;
+    pciheader_t *device;
     const char *vendorstr;
     const char *devicestr;
     const char *progifstr;
@@ -109,7 +108,7 @@ struct translatedpcidevice_t
 
 struct pciheader0
 {
-    pcidevice_t device;
+    pciheader_t device;
     uint32_t BAR0;
     uint32_t BAR1;
     uint32_t BAR2;
@@ -133,7 +132,7 @@ struct pciheader0
 // PCI-to-PCI bridge
 struct pciheader1
 {
-    pcidevice_t device;
+    pciheader_t device;
     uint32_t BAR0;
     uint32_t BAR1;
     uint8_t primBus;
@@ -163,7 +162,7 @@ struct pciheader1
 // PCI-to-CardBus bridge
 struct pciheader2
 {
-    pcidevice_t device;
+    pciheader_t device;
     uint32_t cbusSocketBase;
     uint8_t capListOffset;
     uint8_t rsv0;
@@ -191,10 +190,10 @@ struct pciheader2
 extern bool initialised;
 extern bool legacy;
 
-extern vector<translatedpcidevice_t*> pcidevices;
+extern vector<pcidevice_t*> pcidevices;
 
-translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
-translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
+pcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
+pcidevice_t *search(uint16_t vendor, uint16_t device, int skip);
 
 size_t count(uint8_t Class, uint8_t subclass, uint8_t progif);
 size_t count(uint16_t vendor, uint16_t device);

@@ -215,7 +215,7 @@ bool AHCIPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), true);
 }
 
-AHCIDriver::AHCIDriver(pci::pcidevice_t *pcidevice)
+AHCIDriver::AHCIDriver(pci::pciheader_t *pcidevice)
 {
     this->pcidevice = pcidevice;
     log("Registering AHCI driver #%zu", devices.size() + 1);
