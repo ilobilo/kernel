@@ -1,13 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <lib/memory.hpp>
 #include <lib/panic.hpp>
 #include <lib/buddy.hpp>
 #include <lib/math.hpp>
+#include <lib/log.hpp>
 
-using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
 
 BuddyAlloc kheap;
@@ -144,7 +143,7 @@ void BuddyAlloc::expand(size_t pagecount)
     this->tail = this->next(this->head);
     this->pages = pagecount;
 
-    if (this->debug) serial::info("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
+    if (this->debug) log("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
     release_lock(this->lock);
 }
 
@@ -174,7 +173,7 @@ void *BuddyAlloc::malloc(size_t size)
 
     if (found != nullptr)
     {
-        if (this->debug) serial::info("Allocated %zu bytes", size);
+        if (this->debug) log("Allocated %zu bytes", size);
         found->free = false;
         this->expanded = false;
         release_lock(this->lock);
@@ -183,7 +182,7 @@ void *BuddyAlloc::malloc(size_t size)
 
     if (this->expanded)
     {
-        if (this->debug) serial::err("Could not expand the heap!");
+        if (this->debug) error("Could not expand the heap!");
         this->expanded = false;
         release_lock(this->lock);
         return nullptr;
@@ -239,7 +238,7 @@ void BuddyAlloc::free(void *ptr)
     BuddyBlock *block = reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock));
     block->free = true;
 
-    if (this->debug) serial::info("Freed %zu bytes", block->size - sizeof(BuddyBlock));
+    if (this->debug) log("Freed %zu bytes", block->size - sizeof(BuddyBlock));
 
     this->coalescence();
 

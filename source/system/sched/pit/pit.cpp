@@ -1,14 +1,13 @@
 // Copyright (C) 2021  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
-using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
 
 namespace kernel::system::sched::pit {
@@ -76,11 +75,11 @@ void resetfreq()
 
 void init(uint64_t freq)
 {
-    serial::info("Initialising PIT");
+    log("Initialising PIT");
 
     if (initialised)
     {
-        serial::warn("PIT has already been initialised!\n");
+        warn("PIT has already been initialised!\n");
         return;
     }
 

@@ -2,6 +2,7 @@
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <drivers/display/serial/serial.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <kernel/main.hpp>
 #include <lib/string.hpp>

@@ -3,9 +3,8 @@
 #pragma once
 
 #include <lib/vector.hpp>
+#include <lib/log.hpp>
 #include <stdint.h>
-
-using namespace kernel::drivers::display;
 
 namespace kernel::drivers::block::drivemgr {
 
@@ -98,13 +97,13 @@ class Drive
 
     virtual bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     {
-        serial::err("Read function for this device is not available!");
+        error("Read function for this device is not available!");
         return false;
     }
 
     virtual bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     {
-        serial::err("Write function for this device is not available!");
+        error("Write function for this device is not available!");
         return false;
     }
 };

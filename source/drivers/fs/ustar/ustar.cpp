@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/buddy.hpp>
+#include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -42,20 +42,20 @@ int parse(unsigned int address)
         if (header->name[strlen(header->name) - 1] == '/') header->name[strlen(header->name) - 1] = 0;
 
         headers.push_back(new header_t);
-        headers.last()->header = header;
-        headers.last()->size = size;
-        headers.last()->address = address + 512;
+        headers.back()->header = header;
+        headers.back()->size = size;
+        headers.back()->address = address + 512;
 
-        vfs::fs_node_t *node = vfs::open_r(nullptr, headers.last()->header->name);
+        vfs::fs_node_t *node = vfs::open_r(nullptr, headers.back()->header->name);
 
-        node->mode = string2int(headers.last()->header->mode);
-        node->address = headers.last()->address;
-        node->length = headers.last()->size;
-        node->gid = getsize(headers.last()->header->gid);
-        node->uid = getsize(headers.last()->header->uid);
+        node->mode = string2int(headers.back()->header->mode);
+        node->address = headers.back()->address;
+        node->length = headers.back()->size;
+        node->gid = getsize(headers.back()->header->gid);
+        node->uid = getsize(headers.back()->header->uid);
         node->inode = i;
 
-        switch (headers.last()->header->typeflag[0])
+        switch (headers.back()->header->typeflag[0])
         {
             case filetypes::REGULAR_FILE:
                 node->flags = vfs::FS_FILE;
@@ -95,11 +95,11 @@ static vfs::fs_t ustar_fs = {
 
 void init(unsigned int address)
 {
-    serial::info("Mounting USTAR initrd");
+    log("Mounting USTAR initrd");
 
     if (initialised)
     {
-        serial::warn("USTAR initrd has already been mounted!\n");
+        warn("USTAR initrd has already been mounted!\n");
         return;
     }
 

@@ -1,6 +1,5 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/pic/pic.hpp>
@@ -9,10 +8,10 @@
 #include <kernel/main.hpp>
 #include <lib/mmio.hpp>
 #include <lib/cpu.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 #include <cpuid.h>
 
-using namespace kernel::drivers::display;
 using namespace kernel::system::sched;
 
 namespace kernel::system::cpu::apic {
@@ -204,17 +203,17 @@ static void SCI_Handler(registers_t *)
 
 void init()
 {
-    serial::info("Initialising APIC");
+    log("Initialising APIC");
 
     if (initialised)
     {
-        serial::warn("APIC has already been initialised!\n");
+        warn("APIC has already been initialised!\n");
         return;
     }
 
     if (!acpi::madt || !acpi::madthdr)
     {
-        serial::err("MADT table could not be found!\n");
+        error("MADT table could not be found!\n");
         return;
     }
 

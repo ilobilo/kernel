@@ -1,12 +1,10 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/terminal/printf.h>
-#include <drivers/display/serial/serial.hpp>
+#include <drivers/display/terminal/terminal.hpp>
 #include <drivers/block/drive/drive.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <lib/memory.hpp>
-
-using namespace kernel::drivers::display;
+#include <lib/log.hpp>
 
 namespace kernel::drivers::block::drivemgr {
 
@@ -24,7 +22,7 @@ void addDrive(Drive *drive, type type)
 
     if (drive->parttable.gpt.Signature == 0x5452415020494645)
     {
-        serial::info("Found GPT on disk #%zu!", drives.size() - 1);
+        log("Found GPT on disk #%zu!", drives.size() - 1);
         drive->partstyle = GPT;
 
         uint32_t entries_pr = 512 / drive->parttable.gpt.EntrySize;
@@ -38,7 +36,7 @@ void addDrive(Drive *drive, type type)
                 GPTPart gptpart = reinterpret_cast<GPTPart*>(drive->buffer)[part];
                 if (gptpart.TypeLow || gptpart.TypeHigh)
                 {
-                    serial::info("- Found partition #%zu", drive->partitions.size());
+                    log("- Found partition #%zu", drive->partitions.size());
                     Partition *partition = new Partition;
                     sprintf(partition->Label, "GPT Part #%zu", drive->partitions.size());
                     partition->StartLBA = gptpart.StartLBA;
@@ -55,14 +53,14 @@ void addDrive(Drive *drive, type type)
     }
     else if (drive->parttable.mbr.Signature[0] == 0x55 && drive->parttable.mbr.Signature[1] == 0xAA)
     {
-        serial::info("Found MBR on disk #%zu!", drives.size() - 1);
+        log("Found MBR on disk #%zu!", drives.size() - 1);
         drive->partstyle = MBR;
 
         for (size_t p = 0; p < 4; p++)
         {
             if (drive->parttable.mbr.Partitions[p].LBAFirst != 0)
             {
-                serial::info("- Found partition #%zu", drive->partitions.size());
+                log("- Found partition #%zu", drive->partitions.size());
                 Partition *partition = new Partition;
                 sprintf(partition->Label, "MBR Part #%zu", drive->partitions.size());
                 partition->StartLBA = drive->parttable.mbr.Partitions[p].LBAFirst;
@@ -77,7 +75,7 @@ void addDrive(Drive *drive, type type)
     }
     else
     {
-        serial::warn("No partition table present on drive #%zu", drives.size() - 1);
+        warn("No partition table present on drive #%zu", drives.size() - 1);
     }
 }
 
@@ -94,11 +92,11 @@ void addAHCI()
 
 void init()
 {
-    serial::info("Initialising drive manager");
+    log("Initialising drive manager");
 
     if (initialised)
     {
-        serial::warn("Drive manager has already been initialised!\n");
+        warn("Drive manager has already been initialised!\n");
         return;
     }
 

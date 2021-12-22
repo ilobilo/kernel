@@ -1,13 +1,13 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/trace/trace.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/pic/pic.hpp>
 #include <lib/lock.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -43,11 +43,11 @@ void reload()
 extern "C" void *int_table[];
 void init()
 {
-    serial::info("Initialising IDT");
+    log("Initialising IDT");
 
     if (initialised)
     {
-        serial::warn("IDT has already been initialised!\n");
+        warn("IDT has already been initialised!\n");
         return;
     }
 
@@ -113,8 +113,8 @@ static const char *exception_messages[32] = {
 static volatile bool halt = true;
 void exception_handler(registers_t *regs)
 {
-    serial::err("System exception! %s", (char*)exception_messages[regs->int_no & 0xff]);
-    serial::err("Error code: 0x%lX", regs->error_code);
+    error("System exception! %s", (char*)exception_messages[regs->int_no & 0xff]);
+    error("Error code: 0x%lX", regs->error_code);
 
     switch (regs->int_no)
     {
@@ -143,7 +143,7 @@ void exception_handler(registers_t *regs)
     }
 
     printf("[\033[31mPANIC\033[0m] System halted!\n");
-    serial::err("System halted!\n");
+    error("System halted!\n");
     trace::trace();
     asm volatile ("cli; hlt");
 }

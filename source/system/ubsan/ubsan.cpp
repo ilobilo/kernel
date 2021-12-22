@@ -1,15 +1,13 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/ubsan/ubsan.hpp>
 #include <lib/string.hpp>
-
-using namespace kernel::drivers::display;
+#include <lib/log.hpp>
 
 static void print(const char *message, source_location loc)
 {
     if (strstr(loc.file, "acpi.cpp") && loc.line == 167 && loc.column == 55) return;
-    serial::warn("Ubsan: %s at file %s, line %d, column %d", message, loc.file, loc.line, loc.column);
+    warn("Ubsan: %s at file %s, line %d, column %d", message, loc.file, loc.line, loc.column);
 }
 
 extern "C" void __ubsan_handle_add_overflow(overflow_data *data)

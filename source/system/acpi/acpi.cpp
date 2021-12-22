@@ -1,13 +1,13 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <lib/mmio.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -60,19 +60,19 @@ void madt_init()
         switch (*(madt_ptr))
         {
             case 0:
-                serial::info("ACPI/MADT: Found local APIC %ld", lapics.size());
+                log("ACPI/MADT: Found local APIC %ld", lapics.size());
                 lapics.push_back(reinterpret_cast<MADTLapic*>(madt_ptr));
                 break;
             case 1:
-                serial::info("ACPI/MADT: Found I/O APIC %ld", ioapics.size());
+                log("ACPI/MADT: Found I/O APIC %ld", ioapics.size());
                 ioapics.push_back(reinterpret_cast<MADTIOApic*>(madt_ptr));
                 break;
             case 2:
-                serial::info("ACPI/MADT: Found ISO %ld", isos.size());
+                log("ACPI/MADT: Found ISO %ld", isos.size());
                 isos.push_back(reinterpret_cast<MADTIso*>(madt_ptr));
                 break;
             case 4:
-                serial::info("ACPI/MADT: Found NMI %ld", nmis.size());
+                log("ACPI/MADT: Found NMI %ld", nmis.size());
                 nmis.push_back(reinterpret_cast<MADTNmi*>(madt_ptr));
                 break;
             case 5:
@@ -97,8 +97,8 @@ void dsdt_init()
 
     if (dsdtlength <= 0)
     {
-        serial::err("_S5 not present in ACPI");
-        serial::err("ACPI shutdown may not be possible");
+        error("_S5 not present in ACPI");
+        error("ACPI shutdown may not be possible");
         return;
     }
 
@@ -123,8 +123,8 @@ void dsdt_init()
         SCI_EN = 1;
         return;
     }
-    serial::err("Failed to parse _S5 in ACPI");
-    serial::err("ACPI shutdown may not be possible");
+    error("Failed to parse _S5 in ACPI");
+    error("ACPI shutdown may not be possible");
     SCI_EN = 0;
 }
 
@@ -180,11 +180,11 @@ void *findtable(const char *signature, size_t skip)
 
 void init()
 {
-    serial::info("Initialising ACPI");
+    log("Initialising ACPI");
 
     if (initialised)
     {
-        serial::warn("ACPI has already been initialised!\n");
+        warn("ACPI has already been initialised!\n");
         return;
     }
 
@@ -194,13 +194,13 @@ void init()
     {
         use_xstd = true;
         rsdt = reinterpret_cast<SDTHeader*>(rsdp->xsdtaddr);
-        serial::info("Found XSDT at: 0x%X", rsdp->xsdtaddr);
+        log("Found XSDT at: 0x%X", rsdp->xsdtaddr);
     }
     else
     {
         use_xstd = false;
         rsdt = reinterpret_cast<SDTHeader*>(rsdp->rsdtaddr);
-        serial::info("Found RSDT at: 0x%X", rsdp->rsdtaddr);
+        log("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
     mcfghdr = reinterpret_cast<MCFGHeader*>(findtable("MCFG", 0));

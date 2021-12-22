@@ -1,11 +1,9 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <lib/string.hpp>
 #include <lib/lock.hpp>
-
-using namespace kernel::drivers::display;
+#include <lib/log.hpp>
 
 namespace kernel::drivers::fs::vfs {
 
@@ -102,13 +100,13 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     acquire_lock(vfs_lock);
     if (!path)
     {
-        if (debug) serial::err("VFS: Invalid path!");
+        if (debug) error("VFS: Invalid path!");
         release_lock(vfs_lock);
         return nullptr;
     }
     if (strchr(path, ' '))
     {
-        if (debug) serial::err("VFS: Paths must not contain spaces!");
+        if (debug) error("VFS: Paths must not contain spaces!");
         release_lock(vfs_lock);
         return nullptr;
     }
@@ -124,8 +122,8 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     {
         if (debug)
         {
-            serial::err("VFS: Couldn't find directory /");
-            serial::err("VFS: Is root mounted?");
+            error("VFS: Couldn't find directory /");
+            error("VFS: Is root mounted?");
         }
         release_lock(vfs_lock);
         return nullptr;
@@ -186,7 +184,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     return child_node;
 
     notfound:
-    if (debug) serial::err("VFS: File not found!");
+    if (debug) error("VFS: File not found!");
     free(patharr);
     release_lock(vfs_lock);
     return nullptr;
@@ -197,13 +195,13 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     acquire_lock(vfs_lock);
     if (!path)
     {
-        if (debug) serial::err("VFS: Invalid path!");
+        if (debug) error("VFS: Invalid path!");
         release_lock(vfs_lock);
         return nullptr;
     }
     if (strchr(path, ' '))
     {
-        if (debug) serial::err("VFS: Paths must not contain spaces!");
+        if (debug) error("VFS: Paths must not contain spaces!");
         release_lock(vfs_lock);
         return nullptr;
     }
@@ -219,8 +217,8 @@ fs_node_t *create(fs_node_t *parent, const char *path)
     {
         if (debug)
         {
-            serial::err("VFS: Couldn't find directory /");
-            serial::err("VFS: Is root mounted?");
+            error("VFS: Couldn't find directory /");
+            error("VFS: Is root mounted?");
         }
         release_lock(vfs_lock);
         return nullptr;
@@ -303,11 +301,11 @@ fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
 
 void init()
 {
-    serial::info("Installing VFS");
+    log("Installing VFS");
 
     if (initialised)
     {
-        serial::warn("VFS has already been installed!\n");
+        warn("VFS has already been installed!\n");
         return;
     }
 

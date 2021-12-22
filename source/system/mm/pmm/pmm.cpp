@@ -1,14 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/lock.hpp>
+#include <lib/log.hpp>
 #include <stivale2.h>
-
-using namespace kernel::drivers::display;
 
 namespace kernel::system::mm::pmm {
 
@@ -102,11 +100,11 @@ size_t usedmem()
 
 void init()
 {
-    serial::info("Initialising PMM");
+    log("Initialising PMM");
 
     if (initialised)
     {
-        serial::warn("PMM has already been initialised!\n");
+        warn("PMM has already been initialised!\n");
         return;
     }
 

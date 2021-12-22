@@ -1,11 +1,10 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <lib/memory.hpp>
+#include <lib/log.hpp>
 
-using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
 
 namespace kernel::drivers::block::ahci {
@@ -121,7 +120,7 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {
-        serial::err("Can not write to ATAPI drive!");
+        error("Can not write to ATAPI drive!");
         return false;
     }
 
@@ -177,7 +176,7 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
     while ((hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000) spin++;
     if (spin == 1000000)
     {
-        serial::err("AHCI: Port is hung!");
+        error("AHCI: Port is hung!");
         release_lock(this->lock);
         return false;
     }
@@ -189,7 +188,7 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
         if ((hbaport->CommandIssue & (1 << slot)) == 0) break;
         if (hbaport->InterruptStatus & HBA_PxIS_TFES)
         {
-            serial::err("AHCI: %s error!", (write) ? "write" : "read");
+            error("AHCI: %s error!", (write) ? "write" : "read");
             release_lock(this->lock);
             return false;
         }
@@ -197,7 +196,7 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
 
     if (hbaport->InterruptStatus & HBA_PxIS_TFES)
     {
-        serial::err("AHCI: %s error!", (write) ? "write" : "read");
+        error("AHCI: %s error!", (write) ? "write" : "read");
         release_lock(this->lock);
         return false;
     }
@@ -219,7 +218,7 @@ bool AHCIPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 AHCIDriver::AHCIDriver(pci::pcidevice_t *pcidevice)
 {
     this->pcidevice = pcidevice;
-    serial::info("Registering AHCI driver #%zu", devices.size() + 1);
+    log("Registering AHCI driver #%zu", devices.size() + 1);
 
     ABAR = reinterpret_cast<HBAMemory*>(reinterpret_cast<pci::pciheader0*>(pcidevice)->BAR5);
 
@@ -234,18 +233,18 @@ AHCIDriver::AHCIDriver(pci::pcidevice_t *pcidevice)
 
 void init()
 {
-    serial::info("Initialising AHCI driver");
+    log("Initialising AHCI driver");
 
     if (initialised)
     {
-        serial::warn("AHCI driver has already been initialised!\n");
+        warn("AHCI driver has already been initialised!\n");
         return;
     }
 
     size_t count = pci::count(0x01, 0x06, 0x01);
     if (count == 0)
     {
-        serial::err("No AHCI devices found!\n");
+        error("No AHCI devices found!\n");
         return;
     }
 

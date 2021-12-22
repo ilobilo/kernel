@@ -3,12 +3,12 @@
 #include <drivers/devices/ps2/keyboard/kbscancodetable.hpp>
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/lock.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -221,11 +221,11 @@ char *getline()
 
 void init()
 {
-    serial::info("Initialising PS/2 keyboard");
+    log("Initialising PS/2 keyboard");
 
     if (initialised)
     {
-        serial::warn("PS/2 keyboard has already been initialised!\n");
+        warn("PS/2 keyboard has already been initialised!\n");
         return;
     }
 

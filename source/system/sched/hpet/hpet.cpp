@@ -1,13 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/mmio.hpp>
-
-using namespace kernel::drivers::display;
+#include <lib/log.hpp>
 
 namespace kernel::system::sched::hpet {
 
@@ -44,16 +42,16 @@ void sleep(uint64_t sec)
 
 void init()
 {
-    serial::info("Initialising HPET");
+    log("Initialising HPET");
 
     if (initialised)
     {
-        serial::warn("HPET has already been initialised!\n");
+        warn("HPET has already been initialised!\n");
         return;
     }
     if (!acpi::hpethdr)
     {
-        serial::err("HPET table not found!\n");
+        error("HPET table not found!\n");
         return;
     }
 

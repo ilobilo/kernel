@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/buddy.hpp>
+#include <lib/log.hpp>
 
 namespace kernel::drivers::display::framebuffer {
 
@@ -237,7 +237,7 @@ void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
 
 void init()
 {
-    serial::info("Initialising framebuffer\n");
+    log("Initialising framebuffer\n");
 
     frm_addr = frm_tag->framebuffer_addr;
     frm_width = frm_tag->framebuffer_width;

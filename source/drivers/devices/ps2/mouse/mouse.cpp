@@ -1,11 +1,10 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
-#include <drivers/display/terminal/terminal.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <system/cpu/idt/idt.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -232,11 +231,11 @@ static void Mouse_Handler(registers_t *)
 
 void init()
 {
-    serial::info("Initialising PS/2 mouse");
+    log("Initialising PS/2 mouse");
 
     if (initialised)
     {
-        serial::warn("PS/2 mouse has already been initialised!\n");
+        warn("PS/2 mouse has already been initialised!\n");
         return;
     }
 
