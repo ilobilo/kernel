@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/trace/trace.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/buddy.hpp>
+#include <lib/log.hpp>
 #include <elf.h>
 
 using namespace kernel::drivers::display;
@@ -33,7 +33,7 @@ bool backtrace(uint64_t addr, size_t i)
     symtable_t symtable = lookup(addr);
 
     if (!strcmp(symtable.name, "<unknown>") || symtable.addr == 0) return false;
-    serial::err("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
+    error("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
     if (!strcmp(symtable.name, "_start")) return false;
 
     return true;
@@ -45,7 +45,7 @@ void trace()
     sf = reinterpret_cast<stackframe_t*>(__builtin_frame_address(0));
     sf = sf->frame->frame->frame;
 
-    serial::err("Stack trace:");
+    error("Stack trace:");
 
     for (size_t i = 0; i < 15 && sf; i++)
     {

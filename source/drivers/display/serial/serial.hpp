@@ -12,8 +12,8 @@ enum COMS
 
 extern bool initialised;
 
-void printc(char c, void *arg);
-void serial_printf(const char *fmt, ...);
+void printc(char c, void *arg = nullptr);
+void print(const char *fmt, ...);
 void newline();
 
 void info(const char *fmt, ...);

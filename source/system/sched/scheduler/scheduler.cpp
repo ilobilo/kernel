@@ -1,12 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <lib/memory.hpp>
+#include <lib/log.hpp>
 
-using namespace kernel::drivers::display;
 using namespace kernel::system::cpu;
 
 namespace kernel::system::sched::scheduler {
@@ -123,11 +122,11 @@ thread_t *running_thread()
 
 void init()
 {
-    serial::info("Initialising scheduler");
+    log("Initialising scheduler");
 
     if (initialised)
     {
-        serial::warn("Scheduler has already been initialised!\n");
+        warn("Scheduler has already been initialised!\n");
         return;
     }
 

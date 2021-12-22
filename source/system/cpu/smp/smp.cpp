@@ -1,6 +1,5 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -10,9 +9,9 @@
 #include <lib/buddy.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
+#include <lib/log.hpp>
 #include <cpuid.h>
 
-using namespace kernel::drivers::display;
 using namespace kernel::system::mm;
 
 namespace kernel::system::cpu::smp {
@@ -81,7 +80,7 @@ static void cpu_init(stivale2_smp_info *cpu)
         this_cpu->fpu_restore = fxrstor;
 	}
 
-    serial::info("CPU %ld is up", this_cpu->lapic_id);
+    log("CPU %ld is up", this_cpu->lapic_id);
     this_cpu->up = true;
     cpus_up++;
 
@@ -95,11 +94,11 @@ static void cpu_init(stivale2_smp_info *cpu)
 
 void init()
 {
-    serial::info("Initialising SMP");
+    log("Initialising SMP");
 
     if (initialised)
     {
-        serial::warn("CPUs are already up!\n");
+        warn("CPUs are already up!\n");
         return;
     }
 
@@ -127,7 +126,7 @@ void init()
 
     while (static_cast<uint64_t>(cpus_up) < smp_tag->cpu_count);
 
-    serial::info("All CPUs are up\n");
+    log("All CPUs are up\n");
     initialised = true;
 }
 }

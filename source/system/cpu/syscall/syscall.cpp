@@ -3,7 +3,6 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
@@ -13,6 +12,7 @@
 #include <lib/string.hpp>
 #include <linux/reboot.h>
 #include <lib/buddy.hpp>
+#include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -51,7 +51,7 @@ static void syscall_write(registers_t *regs)
             char *str = static_cast<char*>(malloc(RDX_ARG2 * sizeof(char)));
             memcpy(str, reinterpret_cast<void*>(RSI_ARG1), RDX_ARG2);
             str[RDX_ARG2] = 0;
-            serial::err("%s", str);
+            error("%s", str);
             RAX = allocsize(str);
             free(str);
             break;
@@ -214,23 +214,23 @@ static void syscall_reboot(registers_t *regs)
                 break;
             case LINUX_REBOOT_CMD_HALT:
                 printf("\nSystem halted.\n");
-                serial::info("System halted.");
+                log("System halted.");
                 asm volatile ("cli; hlt");
                 break;
             case LINUX_REBOOT_CMD_KEXEC: break;
             case LINUX_REBOOT_CMD_POWER_OFF:
                 printf("\nPower down.\n");
-                serial::info("Power down.");
+                log("Power down.");
                 acpi::shutdown();
                 break;
             case LINUX_REBOOT_CMD_RESTART:
                 printf("\nRestarting system.\n");
-                serial::info("Restarting system.");
+                log("Restarting system.");
                 acpi::reboot();
                 break;
             case LINUX_REBOOT_CMD_RESTART2:
                 printf("\nRestarting system with command '%s'.\n", reinterpret_cast<char*>(R10_ARG3));
-                serial::info("Restarting system with command '%s'.", reinterpret_cast<char*>(R10_ARG3));
+                log("Restarting system with command '%s'.", reinterpret_cast<char*>(R10_ARG3));
                 acpi::reboot();
                 break;
             case LINUX_REBOOT_CMD_SW_SUSPEND: break;
@@ -289,11 +289,11 @@ const char *err(const char *string, int length)
 
 void init()
 {
-    serial::info("Initialising System calls");
+    log("Initialising System calls");
 
     if (initialised)
     {
-        serial::warn("System calls have already been initialised!\n");
+        warn("System calls have already been initialised!\n");
         return;
     }
 

@@ -1,14 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/buddy.hpp>
 #include <lib/lock.hpp>
-
-using namespace kernel::drivers::display;
+#include <lib/log.hpp>
 
 namespace kernel::system::cpu::gdt {
 
@@ -66,11 +64,11 @@ void reloadall(int cpu)
 
 void init()
 {
-    serial::info("Initialising GDT");
+    log("Initialising GDT");
 
     if (initialised)
     {
-        serial::warn("GDT has already been initialised!\n");
+        warn("GDT has already been initialised!\n");
         return;
     }
 

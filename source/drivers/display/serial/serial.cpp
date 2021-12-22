@@ -11,7 +11,7 @@ using namespace kernel::system::cpu;
 namespace kernel::drivers::display::serial {
 
 bool initialised = false;
-DEFINE_LOCK(lock)
+DEFINE_LOCK(serial_lock)
 
 bool check()
 {
@@ -42,55 +42,19 @@ void printc(char c, void *arg)
     outb(COMS::COM1, c);
 }
 
-void serial_printf(const char *fmt, ...)
+void print(const char *fmt, ...)
 {
-    acquire_lock(lock);
+    acquire_lock(serial_lock);
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, fmt, args);
     va_end(args);
-    release_lock(lock);
-}
-
-void info(const char *fmt, ...)
-{
-    acquire_lock(lock);
-    va_list args;
-    va_start(args, fmt);
-    vfctprintf(&printc, nullptr, "[INFO] ", args);
-    vfctprintf(&printc, nullptr, fmt, args);
-    vfctprintf(&printc, nullptr, "\n", args);
-    va_end(args);
-    release_lock(lock);
-}
-
-void warn(const char *fmt, ...)
-{
-    acquire_lock(lock);
-    va_list args;
-    va_start(args, fmt);
-    vfctprintf(&printc, nullptr, "[\033[33mWARN\033[0m] ", args);
-    vfctprintf(&printc, nullptr, fmt, args);
-    vfctprintf(&printc, nullptr, "\n", args);
-    va_end(args);
-    release_lock(lock);
-}
-
-void err(const char *fmt, ...)
-{
-    acquire_lock(lock);
-    va_list args;
-    va_start(args, fmt);
-    vfctprintf(&printc, nullptr, "[\033[31mERROR\033[0m] ", args);
-    vfctprintf(&printc, nullptr, fmt, args);
-    vfctprintf(&printc, nullptr, "\n", args);
-    va_end(args);
-    release_lock(lock);
+    release_lock(serial_lock);
 }
 
 void newline()
 {
-    serial_printf("\n");
+    print("\n");
 }
 
 static void COM1_Handler(registers_t *)
@@ -104,12 +68,12 @@ static void COM1_Handler(registers_t *)
         case 8:
         case 127:
             printf("\b ");
-            serial_printf("\b ");
+            print("\b ");
             c = '\b';
             break;
     }
     printf("%c", c);
-    serial_printf("%c", c);
+    print("%c", c);
 }
 
 void init()
@@ -124,7 +88,7 @@ void init()
     outb(COMS::COM1 + 2, 0xC7);
     outb(COMS::COM1 + 4, 0x0B);
 
-    serial_printf("\033[0m");
+    print("\033[0m");
 
     idt::register_interrupt_handler(idt::IRQ4, COM1_Handler);
     outb(COMS::COM1 + 1, 0x01);

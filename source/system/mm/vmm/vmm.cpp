@@ -1,14 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/display/serial/serial.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/main.hpp>
 #include <lib/memory.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
-
-using namespace kernel::drivers::display;
+#include <lib/log.hpp>
 
 namespace kernel::system::mm::vmm {
 
@@ -212,11 +210,11 @@ PTable *getPagemap()
 
 void init()
 {
-    serial::info("Initialising VMM");
+    log("Initialising VMM");
 
     if (initialised)
     {
-        serial::warn("VMM has already been initialised!\n");
+        warn("VMM has already been initialised!\n");
         return;
     }
 

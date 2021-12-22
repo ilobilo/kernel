@@ -1,8 +1,8 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/vmware/vmware.hpp>
+#include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -124,16 +124,16 @@ void mouse_relative()
 
 void init()
 {
-    serial::info("Initialising VMWare tools");
+    log("Initialising VMWare tools");
 
     if (initialised)
     {
-        serial::warn("VMWare tools have already been initialised!\n");
+        warn("VMWare tools have already been initialised!\n");
         return;
     }
     if (!is_vmware_backdoor())
     {
-        serial::err("VMWare backdoor is not available!\n");
+        error("VMWare backdoor is not available!\n");
         return;
     }
 

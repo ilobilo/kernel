@@ -9,7 +9,7 @@ template<typename T>
 class vector
 {
     private:
-    T *vector = nullptr;
+    T *data = nullptr;
     size_t cap = 0;
     size_t num = 0;
 
@@ -20,7 +20,7 @@ class vector
     {
         if (on) return;
         cap = 1;
-        vector = new T;
+        data = new T;
         num = 0;
         on = true;
     }
@@ -29,7 +29,7 @@ class vector
     {
         if (on) return;
         cap = size;
-        vector = new T[size];
+        data = new T[size];
         num = 0;
         on = true;
     }
@@ -37,25 +37,25 @@ class vector
     void destroy()
     {
         if (!on) return;
-        delete vector;
+        delete data;
         on = false;
     }
 
-    void push_back(const T &data)
+    void push_back(const T &item)
     {
         if (!on) this->init();
         if (num < cap)
         {
-            *(vector + num) = data;
+            *(data + num) = item;
             num++;
         }
         else
         {
-            vector = static_cast<T*>(realloc(vector, 2 * cap * sizeof(T)));
+            data = static_cast<T*>(realloc(data, 2 * cap * sizeof(T)));
             cap *= 2;
-            if (vector)
+            if (data)
             {
-                *(vector + num) = data;
+                *(data + num) = item;
                 num++;
             }
         }
@@ -65,6 +65,7 @@ class vector
     {
         if (!on) return;
         num--;
+        *(data + num) = nullptr;
     }
 
     void remove(size_t pos)
@@ -72,29 +73,29 @@ class vector
         if (!on) return;
         for (size_t i = 1; i < (num - 1); i++)
         {
-            *(vector + pos + i - 1) = *(vector + pos + i);
+            *(data + pos + i - 1) = *(data + pos + i);
         }
         num--;
     }
 
     T &operator[](size_t pos)
     {
-        return *(this->vector + pos);
+        return *(this->data + pos);
     }
 
     T &at(size_t pos)
     {
-        return *(this->vector + pos);
+        return *(this->data + pos);
     }
 
-    T &first()
+    T &front()
     {
-        return *this->vector;
+        return *this->data;
     }
 
-    T &last()
+    T &back()
     {
-        return *(this->vector + num - 1);
+        return *(this->data + num - 1);
     }
 
     size_t size()
@@ -111,33 +112,33 @@ class vector
     {
         if (!on) this->init();
         cap = size;
-        vector = static_cast<T*>(realloc(vector, size * sizeof(T)));
+        data = static_cast<T*>(realloc(data, size * sizeof(T)));
         if (num > size) num = size + 1;
     }
 
-    void insert(size_t pos, const T &data)
+    void insert(size_t pos, const T &item)
     {
         if (!on) this->init();
         if (num < cap)
         {
             for (size_t i = num - pos; i > 0; i--)
             {
-                *(vector + pos + i) = *(vector + pos + i - 1);
+                *(data + pos + i) = *(data + pos + i - 1);
             }
-            *(vector + pos) = data;
+            *(data + pos) = item;
             num++;
         }
         else
         {
-            vector = static_cast<T*>(realloc(vector, 2 * cap * sizeof(T)));
+            data = static_cast<T*>(realloc(data, 2 * cap * sizeof(T)));
             cap *= 2;
-            if (vector)
+            if (data)
             {
                 for (size_t i = num - pos; i > 0; i--)
                 {
-                    *(vector + pos + i) = *(vector + pos + i - 1);
+                    *(data + pos + i) = *(data + pos + i - 1);
                 }
-                *(vector + pos) = data;
+                *(data + pos) = item;
                 num++;
             }
         }

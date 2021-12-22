@@ -1,11 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
+#include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
 
@@ -104,7 +104,7 @@ static size_t read_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *
 static size_t write_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
 {
     if (!size) size = strlen(buffer);
-    serial::serial_printf("%.*s", static_cast<int>(size), buffer);
+    serial::print("%.*s", static_cast<int>(size), buffer);
     return size;
 }
 static vfs::fs_t ttys_fs = {
@@ -139,11 +139,11 @@ static void addtty(const char *name, bool serial)
 
 void init()
 {
-    serial::info("Mounting and populating DEVFS");
+    log("Mounting and populating DEVFS");
 
     if (initialised)
     {
-        serial::warn("DEV filesystem has already been mounted!\n");
+        warn("DEV filesystem has already been mounted!\n");
         return;
     }
 

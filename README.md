@@ -13,10 +13,6 @@ Contributors are welcome
 - [x] PCI
 - [ ] PCIe
 
-### Display
-- [x] Drawing on framebuffer
-- [x] Serial debugging
-
 ### Memory
 - [x] PMM
 - [x] VMM
@@ -29,31 +25,42 @@ Contributors are welcome
 - [x] Shutdown
 - [x] Reboot
 
-### Audio
+### Device drivers
+#### Audio
 - [x] PC speaker
 - [ ] AC97
 - [ ] SB16
 
-### Peripherals
+#### I/O
 - [x] PS/2 Keyboard
 - [x] PS/2 Mouse
-- [ ] USB Keyboard
-- [ ] USB Mouse
+- [x] Serial
 
-### VMs
+#### VMs
 - [x] VMWare Tools
 - [ ] VBox Guest Additions
-- [ ] Virtio (Network/Block)
+- [ ] Virtio
 
-### Disk
+#### Storage
 - [ ] FDC
 - [ ] IDE
 - [x] SATA
 - [ ] NVMe
+- [ ] Virtio block
 
-### Partitions
-- [x] MBR
-- [x] GPT
+#### Network
+- [ ] RTL8139
+- [ ] RTL8169
+- [ ] I217
+- [ ] PCNET
+- [ ] IEEE 802.11
+- [ ] Virtio network
+
+#### USB
+- [ ] UHCI
+- [ ] OHCI
+- [ ] EHCI
+- [ ] XHCI
 
 ### Timers
 - [x] HPET
@@ -67,35 +74,28 @@ Contributors are welcome
 - [x] Scheduling
 - [ ] SMP-Aware Scheduler
 
-### Filesystem
+### Partition tables
+- [x] MBR
+- [x] GPT
+
+### Filesystems
 - [x] VFS
+- [ ] Working VFS
 - [x] DEVFS
 - [x] Initrd
 - [ ] Ext2
 - [ ] Fat32
+- [ ] Echfs
 - [ ] ISO9660
 
 ### Userspace
 - [x] System calls
 - [ ] ELF
 - [ ] Userspace
+- [ ] Signals
 - [ ] Libc
 - [ ] Bash
 - [ ] Coreutils
-
-### Network
-- [ ] ARP
-- [ ] ICMP
-- [ ] TCP
-- [ ] UDP
-
-### USB
-- [ ] OHCI/UHCI
-- [ ] EHCI
-- [ ] XHCI
-
-### Other
-- [ ] GUI (Window manager)
 
 ## Building And Running
 

@@ -6,7 +6,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
@@ -33,9 +32,10 @@
 #include <lib/memory.hpp>
 #include <lib/panic.hpp>
 #include <lib/buddy.hpp>
+#include <lib/log.hpp>
 #include <stivale2.h>
 #pragma endregion include
-
+#include <lib/log.hpp>
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::audio;
 using namespace kernel::drivers::block;
@@ -59,24 +59,24 @@ void time()
 
 void main()
 {
-    serial::info("Welcome to kernel project");
+    log("Welcome to kernel project");
     terminal::center("Welcome to kernel project");
 
-    if (!strcmp(KERNEL_VERSION, "0")) serial::info("Git version: %s\n", GIT_VERSION);
-    else serial::info("Version: %s\n", KERNEL_VERSION);
+    if (!strcmp(KERNEL_VERSION, "0")) log("Git version: %s\n", GIT_VERSION);
+    else log("Version: %s\n", KERNEL_VERSION);
     if (!strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
-    serial::info("CPU cores available: %d", smp_tag->cpu_count);
-    serial::info("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
+    log("CPU cores available: %d", smp_tag->cpu_count);
+    log("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
 
-    serial::info("Kernel cmdline: %s", cmdline);
-    serial::info("Available kernel modules:");
+    log("Kernel cmdline: %s", cmdline);
+    log("Available kernel modules:");
     for (uint64_t t = 0; t < mod_tag->module_count; t++)
     {
-        serial::info("%d) %s", t + 1, mod_tag->modules[t].string);
+        log("%d) %s", t + 1, mod_tag->modules[t].string);
     }
     serial::newline();
 

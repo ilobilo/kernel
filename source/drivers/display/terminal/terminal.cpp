@@ -2,10 +2,10 @@
 
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/lock.hpp>
+#include <lib/log.hpp>
 #include <stivale2.h>
 
 namespace kernel::drivers::display::terminal {
@@ -21,7 +21,7 @@ void (*write)(const char *, uint64_t);
 
 void init()
 {
-    serial::info("Initialising terminal\n");
+    log("Initialising terminal\n");
 
     write = reinterpret_cast<void (*)(const char *, uint64_t)>(term_tag->term_write);
     columns = term_tag->cols;

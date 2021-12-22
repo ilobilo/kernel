@@ -1,11 +1,10 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
-#include <lib/string.hpp>
+#include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
@@ -21,7 +20,7 @@ translatedpcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, i
 {
     if (!initialised)
     {
-        serial::err("PCI has not been initialised!\n");
+        error("PCI has not been initialised!\n");
         return nullptr;
     }
     for (uint64_t i = 0; i < pcidevices.size(); i++)
@@ -49,7 +48,7 @@ translatedpcidevice_t *search(uint16_t vendor, uint16_t device, int skip)
 {
     if (!initialised)
     {
-        serial::err("PCI has not been initialised!\n");
+        error("PCI has not been initialised!\n");
         return nullptr;
     }
     for (uint64_t i = 0; i < pcidevices.size(); i++)
@@ -74,7 +73,7 @@ size_t count(uint16_t vendor, uint16_t device)
 {
     if (!initialised)
     {
-        serial::err("PCI has not been initialised!\n");
+        error("PCI has not been initialised!\n");
         return 0;
     }
     size_t num = 0;
@@ -92,7 +91,7 @@ size_t count(uint8_t Class, uint8_t subclass, uint8_t progif)
 {
     if (!initialised)
     {
-        serial::err("PCI has not been initialised!\n");
+        error("PCI has not been initialised!\n");
         return 0;
     }
     size_t num = 0;
@@ -132,11 +131,11 @@ void enumfunc(uint64_t devaddr, uint64_t func, uint64_t dev, uint64_t bus)
 
     pcidevices.push_back(tpcidevice);
 
-    serial::info("%.4X:%.4X %s %s",
-        pcidevices.last()->device->vendorid,
-        pcidevices.last()->device->deviceid,
-        pcidevices.last()->vendorstr,
-        pcidevices.last()->devicestr);
+    log("%.4X:%.4X %s %s",
+        pcidevices.back()->device->vendorid,
+        pcidevices.back()->device->deviceid,
+        pcidevices.back()->vendorstr,
+        pcidevices.back()->devicestr);
 }
 
 void enumdevice(uint64_t busaddr, uint64_t dev, uint64_t bus)
@@ -208,11 +207,11 @@ void checkbus(int bus)
 
             pcidevices.push_back(tpcidevice);
 
-            serial::info("%.4X:%.4X %s %s",
-                pcidevices.last()->device->vendorid,
-                pcidevices.last()->device->deviceid,
-                pcidevices.last()->vendorstr,
-                pcidevices.last()->devicestr);
+            log("%.4X:%.4X %s %s",
+                pcidevices.back()->device->vendorid,
+                pcidevices.back()->device->deviceid,
+                pcidevices.back()->vendorstr,
+                pcidevices.back()->devicestr);
 
             if (tpcidevice->device->Class == 0x06 && tpcidevice->device->subclass == 0x04)
             {
@@ -224,16 +223,16 @@ void checkbus(int bus)
 
 void init()
 {
-    serial::info("Initialising PCI");
+    log("Initialising PCI");
 
     if (initialised)
     {
-        serial::warn("PCI has already been initialised!\n");
+        warn("PCI has already been initialised!\n");
         return;
     }
     if (!acpi::mcfghdr)
     {
-        serial::warn("MCFG was not found!");
+        warn("MCFG was not found!");
         legacy = true;
     }
 

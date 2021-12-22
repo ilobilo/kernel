@@ -3,7 +3,6 @@
 #include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
-#include <drivers/display/serial/serial.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
@@ -13,6 +12,7 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/buddy.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
@@ -280,7 +280,7 @@ void parse(char *cmd, char *arg)
 
 void run()
 {
-    serial::info("Starting kernel shell\n");
+    log("Starting kernel shell\n");
     while (true)
     {
         if (!current_path)
