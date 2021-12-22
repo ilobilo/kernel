@@ -11,7 +11,7 @@ VERSION = 0
 CC = clang
 CPP = clang++
 LD = ld.lld
-AS = nasm
+ASM = nasm
 
 CXXFILT = llvm-cxxfilt
 
@@ -126,8 +126,8 @@ $(KERNEL):
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -c $< -o $@
 
 %_asm.o: %.asm
-	@printf "AS\t%s\n" $(lastword $(subst /, ,$<))
-	$(AS) $(ASMFLAGS) $< -o $@
+	@printf "ASM\t%s\n" $(lastword $(subst /, ,$<))
+	$(ASM) $(ASMFLAGS) $< -o $@
 
 .PHONY: initrd
 initrd:
