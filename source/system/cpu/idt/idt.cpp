@@ -17,20 +17,20 @@ namespace kernel::system::cpu::idt {
 DEFINE_LOCK(idt_lock)
 bool initialised = false;
 
-idt_entry_t idt[256];
-idtr_t idtr;
+IDTEntry idt[256];
+IDTPtr idtr;
 
 int_handler_t interrupt_handlers[256];
 
 void idt_set_descriptor(uint8_t vector, void *isr, uint8_t type_attr)
 {
-    idt[vector].offset_1 = reinterpret_cast<uint64_t>(isr);
-    idt[vector].selector = 0x28;
-    idt[vector].ist = 0;
-    idt[vector].type_attr = type_attr;
-    idt[vector].offset_2 = reinterpret_cast<uint64_t>(isr) >> 16;
-    idt[vector].offset_3 = reinterpret_cast<uint64_t>(isr) >> 32;
-    idt[vector].zero = 0;
+    idt[vector].Offset1 = reinterpret_cast<uint64_t>(isr);
+    idt[vector].Selector = 0x28;
+    idt[vector].IST = 0;
+    idt[vector].TypeAttr = type_attr;
+    idt[vector].Offset2 = reinterpret_cast<uint64_t>(isr) >> 16;
+    idt[vector].Offset3 = reinterpret_cast<uint64_t>(isr) >> 32;
+    idt[vector].Zero = 0;
 }
 
 void reload()
@@ -55,8 +55,8 @@ void init()
 
     trace::init();
 
-    idtr.limit = sizeof(idt_entry_t) * 256 - 1;
-    idtr.base = reinterpret_cast<uintptr_t>(&idt[0]);
+    idtr.Limit = sizeof(IDTEntry) * 256 - 1;
+    idtr.Base = reinterpret_cast<uintptr_t>(&idt[0]);
 
     for (size_t i = 0; i < 256; i++) idt_set_descriptor(i, int_table[i], 0x8E);
 

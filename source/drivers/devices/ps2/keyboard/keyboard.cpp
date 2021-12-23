@@ -117,13 +117,13 @@ static void Keyboard_Handler(registers_t *)
                 kbd_mod.alt = 1;
                 break;
             case keys::CAPSLOCK:
-                kbd_mod.capslock = (!kbd_mod.capslock) ? 1 : 0;
+                kbd_mod.capslock = (!kbd_mod.capslock) ? true : false;
                 break;
             case keys::NUMLOCK:
-                kbd_mod.numlock = (!kbd_mod.numlock) ? 1 : 0;
+                kbd_mod.numlock = (!kbd_mod.numlock) ? true : false;
                 break;
             case keys::SCROLLLOCK:
-                kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? 1 : 0;
+                kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? true : false;
                 break;
             case keys::UP:
                 strcpy(c, "\033[A");

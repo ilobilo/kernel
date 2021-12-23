@@ -29,27 +29,27 @@ enum IRQS
     IRQ15 = 47,
 };
 
-struct [[gnu::packed]] idt_entry_t
+struct [[gnu::packed]] IDTEntry
 {
-    uint16_t offset_1;
-    uint16_t selector;
-    uint8_t ist;
-    uint8_t type_attr;
-    uint16_t offset_2;
-    uint32_t offset_3;
-    uint32_t zero;
+    uint16_t Offset1;
+    uint16_t Selector;
+    uint8_t IST;
+    uint8_t TypeAttr;
+    uint16_t Offset2;
+    uint32_t Offset3;
+    uint32_t Zero;
 };
 
-struct [[gnu::packed]] idtr_t
+struct [[gnu::packed]] IDTPtr
 {
-    uint16_t limit;
-    uint64_t base;
+    uint16_t Limit;
+    uint64_t Base;
 };
 
 using int_handler_t = void (*)(registers_t *);
 
-extern idt_entry_t idt[];
-extern idtr_t idtr;
+extern IDTEntry idt[];
+extern IDTPtr idtr;
 
 extern int_handler_t interrupt_handlers[];
 
