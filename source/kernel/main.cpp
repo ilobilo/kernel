@@ -57,6 +57,12 @@ void time()
     }
 }
 
+extern "C" void (*__init_array_start)(), (*__init_array_end)();
+void constructors_init()
+{
+    for (void (**ctor)() = &__init_array_start; ctor < &__init_array_end; ctor++) (*ctor)();
+}
+
 void main()
 {
     log("Welcome to kernel project");
@@ -83,6 +89,7 @@ void main()
     terminal::check("Initialising PMM...");
     pmm::init();
     terminal::okerr(pmm::initialised);
+    constructors_init();
 
     terminal::check("Initialising VMM...");
     vmm::init();
