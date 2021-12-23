@@ -73,10 +73,7 @@ void addDrive(Drive *drive, type type)
             }
         }
     }
-    else
-    {
-        warn("No partition table present on drive #%zu", drives.size() - 1);
-    }
+    else warn("No partition table present on drive #%zu", drives.size() - 1);
 }
 
 void addAHCI()
