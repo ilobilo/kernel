@@ -8,12 +8,12 @@ namespace kernel::drivers::ps2::kbd {
 
 struct kbd_mod_t
 {
-    int shift : 1;
-    int ctrl : 1;
-    int alt : 1;
-    int numlock : 1;
-    int capslock : 1;
-    int scrolllock : 1;
+    bool shift : 1;
+    bool ctrl : 1;
+    bool alt : 1;
+    bool numlock : 1;
+    bool capslock : 1;
+    bool scrolllock : 1;
 };
 
 extern bool initialised;

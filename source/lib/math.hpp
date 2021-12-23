@@ -3,6 +3,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define DIV_ROUNDUP(A, B) \
 ({ \
@@ -47,8 +48,8 @@
 
 struct point
 {
-    long X;
-    long Y;
+    size_t X;
+    size_t Y;
 };
 
 int pow(int base, int exponent);

@@ -23,7 +23,7 @@ namespace kernel::drivers::vmware {
 #define ABSPOINTER_RELATIVE 0xF5
 #define ABSPOINTER_ABSOLUTE 0x53424152
 
-struct vmware_cmd
+struct CMD
 {
     union {
         uint32_t ax;
@@ -47,7 +47,7 @@ struct vmware_cmd
 
 extern bool initialised;
 
-void vmware_send(vmware_cmd *cmd);
+void vmware_send(CMD *cmd);
 bool is_vmware_backdoor();
 
 void handle_mouse();

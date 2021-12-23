@@ -36,18 +36,6 @@ void close_fs(fs_node_t *node)
     else return;
 }
 
-dirent_t *readdir_fs(fs_node_t *node, uint64_t index)
-{
-    if ((node->flags & 0x07) == FS_DIRECTORY && node->fs->readdir != 0) return node->fs->readdir(node, index);
-    else return 0;
-}
-
-fs_node_t *finddir_fs(fs_node_t *node, char *name)
-{
-    if ((node->flags & 0x07) == FS_DIRECTORY && node->fs->finddir != 0) return node->fs->finddir(node, name);
-    else return 0;
-}
-
 fs_node_t *getchild(fs_node_t *parent, const char *path)
 {
     fs_node_t *parent_node;

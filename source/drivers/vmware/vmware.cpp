@@ -10,7 +10,7 @@ namespace kernel::drivers::vmware {
 
 bool initialised = false;
 
-void send(vmware_cmd &cmd)
+void send(CMD &cmd)
 {
     cmd.magic = VMWARE_MAGIC;
     cmd.port = VMWARE_PORT;
@@ -19,7 +19,7 @@ void send(vmware_cmd &cmd)
 
 bool is_vmware_backdoor()
 {
-    vmware_cmd cmd;
+    CMD cmd;
     cmd.bx = ~VMWARE_MAGIC;
     cmd.command = CMD_GETVERSION;
     send(cmd);
@@ -39,7 +39,7 @@ mouse::mousestate getmousestate()
 
 void handle_mouse()
 {
-    vmware_cmd cmd;
+    CMD cmd;
 
     cmd.bx = 0;
     cmd.command = CMD_ABSPOINTER_STATUS;
@@ -90,7 +90,7 @@ void handle_mouse()
 
 void mouse_absolute()
 {
-    vmware_cmd cmd;
+    CMD cmd;
 
     cmd.bx = ABSPOINTER_ENABLE;
     cmd.command = CMD_ABSPOINTER_COMMAND;
@@ -113,7 +113,7 @@ void mouse_absolute()
 
 void mouse_relative()
 {
-    vmware_cmd cmd;
+    CMD cmd;
 
     cmd.bx = ABSPOINTER_RELATIVE;
     cmd.command = CMD_ABSPOINTER_COMMAND;

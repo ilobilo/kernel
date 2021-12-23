@@ -16,9 +16,5 @@ void printc(char c, void *arg = nullptr);
 void print(const char *fmt, ...);
 void newline();
 
-void info(const char *fmt, ...);
-void warn(const char *fmt, ...);
-void err(const char *fmt, ...);
-
 void init();
 }
