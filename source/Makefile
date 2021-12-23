@@ -40,62 +40,59 @@ CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter
 LDFLAGS = 
 ASMFLAGS = -f elf64 -g
 
-INTERNALLDFLAGS :=           \
+override INTERNALLDFLAGS :=  \
 	-T$(SOURCEDIR)/linker.ld \
 	-nostdlib                \
 	-zmax-page-size=0x1000   \
-	-static                  \
-	-pie                     \
-	--no-dynamic-linker      \
-	-ztext
+	-static
 
-INTERNALCFLAGS  :=             \
+override INTERNALCFLAGS :=     \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/            \
 	-std=gnu17                 \
-	-nostdlib                  \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fno-omit-frame-pointer    \
 	-fsanitize=undefined       \
 	-fno-rtti                  \
-	-fpie                      \
+	-fno-pic                   \
+	-mabi=sysv                 \
 	-mno-80387                 \
 	-mno-mmx                   \
 	-mno-3dnow                 \
-	-mno-red-zone              \
 	-mno-sse                   \
 	-mno-sse2                  \
+	-mno-red-zone              \
 	-mcmodel=kernel
 
-INTERNALCPPFLAGS  :=           \
+override INTERNALCPPFLAGS :=   \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/            \
 	-std=gnu++17               \
-	-nostdlib                  \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fsanitize=undefined       \
 	-fno-omit-frame-pointer    \
 	-fno-rtti                  \
-	-fpie                      \
+	-fno-pic                   \
+	-mabi=sysv                 \
 	-mno-80387                 \
 	-mno-mmx                   \
 	-mno-3dnow                 \
-	-mno-red-zone              \
 	-mno-sse                   \
 	-mno-sse2                  \
+	-mno-red-zone              \
 	-mcmodel=kernel
 
-CFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
-CPPFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
-ASMFILES = $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")
+override CFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
+override CPPFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
+override ASMFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")
 
-OBJ = $(CFILES:.c=.o)
-OBJ += $(CPPFILES:.cpp=.o)
-OBJ += $(ASMFILES:.asm=_asm.o)
+override OBJ = $(CFILES:.c=.o)
+override OBJ += $(CPPFILES:.cpp=.o)
+override OBJ += $(ASMFILES:.asm=_asm.o)
 
 .PHONY: all
 all: $(KERNEL) initrd
