@@ -167,13 +167,11 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         goto notfound;
     }
 
-    free(patharr);
     release_lock(vfs_lock);
     return child_node;
 
     notfound:
     if (debug) error("VFS: File not found!");
-    free(patharr);
     release_lock(vfs_lock);
     return nullptr;
 }

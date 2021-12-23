@@ -102,9 +102,9 @@ char *strdup(const char *src)
 
 static char** _strsplit(const char* s, const char* delim, size_t* nb)
 {
-    void* data;
-    char* _s = const_cast<char*>(s);
-    const char** ptrs;
+    void *data;
+    char *_s = const_cast<char*>(s);
+    const char **ptrs;
     size_t ptrsSize;
     size_t nbWords = 1;
     size_t sLen = strlen(s);
