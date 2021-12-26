@@ -49,7 +49,7 @@ Contributors are welcome
 - [ ] Virtio block
 
 #### Network
-- [ ] RTL8139
+- [x] RTL8139
 - [ ] RTL8169
 - [ ] I217
 - [ ] PCNET

@@ -6,6 +6,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/devices/ps2/mouse/mouse.hpp>
+#include <drivers/net/rtl8139/rtl8139.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
@@ -39,6 +40,7 @@
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::audio;
 using namespace kernel::drivers::block;
+using namespace kernel::drivers::net;
 using namespace kernel::drivers::fs;
 using namespace kernel::drivers;
 using namespace kernel::system::sched;
@@ -166,6 +168,10 @@ void main()
     terminal::check("Initialising PS/2 Mouse...");
     if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
     terminal::okerr(ps2::mouse::initialised);
+
+    terminal::check("Initialising RTL8139...");
+    rtl8139::init();
+    terminal::okerr(rtl8139::initialised);
 
     terminal::check("Initialising VMWare tools...");
     vmware::init();

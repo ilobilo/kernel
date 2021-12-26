@@ -19,12 +19,13 @@ LIMINE = $(SOURCEDIR)/../limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS = -M q35 \
+QEMUFLAGS = -M q35 -serial stdio \
 	-cpu max -smp 12 -m 512M \
 	-boot d -rtc base=localtime \
-	-serial stdio -drive format=raw,file=$(DISK) \
+	-drive format=raw,file=$(DISK) \
 	-audiodev id=audio,driver=alsa \
-	-machine pcspk-audiodev=audio
+	-machine pcspk-audiodev=audio \
+	-net nic,model=rtl8139 -net user
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -53,6 +54,7 @@ override INTERNALCFLAGS :=     \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
+	-fno-use-cxa-atexit        \
 	-fno-omit-frame-pointer    \
 	-fsanitize=undefined       \
 	-fno-rtti                  \
@@ -73,6 +75,7 @@ override INTERNALCPPFLAGS :=   \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
+	-fno-use-cxa-atexit        \
 	-fsanitize=undefined       \
 	-fno-omit-frame-pointer    \
 	-fno-rtti                  \
