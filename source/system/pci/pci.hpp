@@ -8,6 +8,27 @@
 
 namespace kernel::system::pci {
 
+#define PCI_VENDOR_ID 0x00
+#define PCI_DEVICE_ID 0x02
+#define PCI_COMMAND 0x04
+#define PCI_STATUS 0x06
+#define PCI_REVISION_ID 0x08
+#define PCI_PROG_IF 0x09
+#define PCI_SUBCLASS 0x0A
+#define PCI_CLASS 0x0B
+#define PCI_CACHE_LINE_SIZE 0x0C
+#define PCI_LATENCY_TIMER 0x0D
+#define PCI_HEADER_TYPE 0x0E
+#define PCI_BIST 0x0f
+#define PCI_BAR0 0x10
+#define PCI_BAR1 0x14
+#define PCI_BAR2 0x18
+#define PCI_BAR3 0x1C
+#define PCI_BAR4 0x20
+#define PCI_BAR5 0x24
+#define PCI_INTERRUPT_LINE 0x3C
+#define PCI_INTERRUPT_PIN 0x3D
+
 struct pciheader_t
 {
     uint16_t vendorid;
@@ -62,6 +83,7 @@ static inline void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offse
     outl(0xCFC + (offset & 3), value);
 }
 
+extern bool legacy;
 struct pcidevice_t
 {
     pciheader_t *device;
@@ -103,6 +125,18 @@ struct pcidevice_t
     void writel(uint32_t offset, uint32_t value)
     {
         kernel::system::pci::writel(this->bus, this->dev, this->func, offset, value);
+    }
+
+    void bus_mastering(bool enable)
+    {
+        uint32_t command = this->device->command;
+        if(!(command & (1 << 2)))
+        {
+            if (enable) command |= (1 << 2);
+            else command &= ~(1 << 2);
+            this->writew(PCI_COMMAND, command);
+            if (legacy) this->device->command = this->readw(PCI_COMMAND);
+        }
     }
 };
 

@@ -215,12 +215,13 @@ bool AHCIPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), true);
 }
 
-AHCIDriver::AHCIDriver(pci::pciheader_t *pcidevice)
+AHCIDriver::AHCIDriver(pci::pcidevice_t *pcidevice)
 {
     this->pcidevice = pcidevice;
-    log("Registering AHCI driver #%zu", devices.size() + 1);
+    log("Registering AHCI driver #%zu", devices.size());
 
-    ABAR = reinterpret_cast<HBAMemory*>(reinterpret_cast<pci::pciheader0*>(pcidevice)->BAR5);
+    if (pci::legacy) ABAR = reinterpret_cast<HBAMemory*>(pcidevice->readl(PCI_BAR5));
+    else ABAR = reinterpret_cast<HBAMemory*>(reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR5);
 
     probePorts();
 
@@ -251,7 +252,7 @@ void init()
     devices.init(count);
     for (size_t i = 0; i < count; i++)
     {
-        devices.push_back(new AHCIDriver(pci::search(0x01, 0x06, 0x01, i)->device));
+        devices.push_back(new AHCIDriver(pci::search(0x01, 0x06, 0x01, i)));
     }
 
     serial::newline();

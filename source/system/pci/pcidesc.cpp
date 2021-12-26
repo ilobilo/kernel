@@ -43,6 +43,8 @@ const char *getvendorname(uint16_t vendorid)
             return "AMD";
         case 0x10DE:
             return "NVIDIA";
+        case 0x10EC:
+            return "Realtek";
     }
     char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", vendorid);
@@ -105,8 +107,15 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller";
                 case 0x2930:
                     return "82801I (ICH9 Family) SMBus Controller";
-        }
-        break;
+            }
+            break;
+        case 0x10EC:    
+            switch (deviceid)
+            {
+                case 0x8139:
+                    return "RTL-8100/8101L/8139 PCI Fast Ethernet Adapter";
+            }
+            break;
     }
     char *ret = static_cast<char*>(calloc(6, sizeof(char)));
     sprintf(ret, "%.4X", deviceid);

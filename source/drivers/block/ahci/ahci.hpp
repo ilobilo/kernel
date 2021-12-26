@@ -255,15 +255,16 @@ class AHCIPort : public drivemgr::Drive
 
 class AHCIDriver
 {
-    public:
-    AHCIDriver(pci::pciheader_t *pcidevice);
-
-    void probePorts();
-
-    pci::pciheader_t *pcidevice;
+    private:
+    pci::pcidevice_t *pcidevice;
     HBAMemory *ABAR;
+
+    public:
     AHCIPort *ports[32];
     uint8_t portCount;
+
+    void probePorts();
+    AHCIDriver(pci::pcidevice_t *pcidevice);
 };
 
 extern bool initialised;
