@@ -1,6 +1,5 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/syscall/syscall.hpp>

@@ -1,7 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
-#include <drivers/devices/ps2/mouse/mouse.hpp>
+#include <drivers/ps2/mouse/mouse.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/log.hpp>

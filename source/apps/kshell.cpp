@@ -1,8 +1,8 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
+#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>

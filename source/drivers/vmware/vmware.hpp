@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <drivers/devices/ps2/mouse/mouse.hpp>
+#include <drivers/ps2/mouse/mouse.hpp>
 #include <stdint.h>
 #include <stddef.h>
 

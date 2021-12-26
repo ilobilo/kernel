@@ -1,7 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/devices/ps2/keyboard/kbscancodetable.hpp>
-#include <drivers/devices/ps2/keyboard/keyboard.hpp>
+#include <drivers/ps2/keyboard/kbscancodetable.hpp>
+#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
