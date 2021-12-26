@@ -1,7 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/lock.hpp>

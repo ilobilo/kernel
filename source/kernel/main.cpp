@@ -2,10 +2,9 @@
 
 #pragma region include
 #include <drivers/display/framebuffer/framebuffer.hpp>
-#include <drivers/devices/ps2/keyboard/keyboard.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
-#include <drivers/devices/ps2/mouse/mouse.hpp>
+#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
@@ -13,6 +12,7 @@
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/block/drive/drive.hpp>
 #include <drivers/block/ahci/ahci.hpp>
+#include <drivers/ps2/mouse/mouse.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/hpet/hpet.hpp>
