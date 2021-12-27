@@ -91,7 +91,7 @@ void sleep(uint64_t sec)
 char timestr[30];
 char *getTime()
 {
-    sprintf(timestr, "%ld/%ld/%ld %ld:%ld:%ld", century() * 100 + year(), month(),
+    sprintf(timestr, "%.4ld/%.2ld/%.2ld %.2ld:%.2ld:%.2ld", century() * 100 + year(), month(),
         day(), hour(),
         minute(), second());
     return timestr;

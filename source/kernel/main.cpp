@@ -55,7 +55,7 @@ void time()
     while (true)
     {
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
-        ssfn::printfat(0, 0, "\r%s     ", rtc::getTime());
+        ssfn::printfat(0, 0, "\r%s", rtc::getTime());
     }
 }
 

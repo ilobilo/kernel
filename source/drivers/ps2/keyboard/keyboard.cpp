@@ -28,6 +28,28 @@ volatile bool enter = false;
 
 kbd_mod_t kbd_mod;
 
+static bool wait_in()
+{
+    uint64_t timeout = 100000U;
+    while (--timeout) if (!(inb(0x64) & (1 << 1))) return false;
+    return true;
+}
+
+static bool wait_out()
+{
+	uint64_t timeout = 100000;
+	while (--timeout) if (inb(0x64) & (1 << 0)) return false;
+	return true;
+}
+
+static uint8_t kbd_write(uint8_t write)
+{
+	wait_in();
+	outb(0x60, write);
+	wait_out();
+	return inb(0x60);
+}
+
 // Scancode to ascii
 char get_ascii_char(uint8_t key_code)
 {
@@ -81,6 +103,17 @@ void clearbuff()
     }
 }
 
+// Update keyboard LEDs
+void update_leds()
+{
+    uint8_t value = 0b000;
+    if (kbd_mod.scrolllock) value |= (1 << 0);
+    if (kbd_mod.numlock) value |= (1 << 1);
+    if (kbd_mod.capslock) value |= (1 << 2);
+    kbd_write(0xED);
+    kbd_write(value);
+}
+
 // Main keyboard handler
 static void Keyboard_Handler(registers_t *)
 {
@@ -92,13 +125,13 @@ static void Keyboard_Handler(registers_t *)
         {
             case keys::L_SHIFT_UP:
             case keys::R_SHIFT_UP:
-                kbd_mod.shift = 0;
+                kbd_mod.shift = false;
                 break;
             case keys::CTRL_UP:
-                kbd_mod.ctrl = 0;
+                kbd_mod.ctrl = false;
                 break;
             case keys::ALT_UP:
-                kbd_mod.alt = 0;
+                kbd_mod.alt = false;
                 break;
         }
     }
@@ -108,22 +141,25 @@ static void Keyboard_Handler(registers_t *)
         {
             case keys::L_SHIFT_DOWN:
             case keys::R_SHIFT_DOWN:
-                kbd_mod.shift = 1;
+                kbd_mod.shift = true;
                 break;
             case keys::CTRL_DOWN:
-                kbd_mod.ctrl = 1;
+                kbd_mod.ctrl = true;
                 break;
             case keys::ALT_DOWN:
-                kbd_mod.alt = 1;
+                kbd_mod.alt = true;
                 break;
             case keys::CAPSLOCK:
                 kbd_mod.capslock = (!kbd_mod.capslock) ? true : false;
+                update_leds();
                 break;
             case keys::NUMLOCK:
                 kbd_mod.numlock = (!kbd_mod.numlock) ? true : false;
+                update_leds();
                 break;
             case keys::SCROLLLOCK:
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? true : false;
+                update_leds();
                 break;
             case keys::UP:
                 strcpy(c, "\033[A");
@@ -207,6 +243,11 @@ char *getline()
             if (gi >= 1024 - 1)
             {
                 printf("\nBuffer Overflow\n");
+                enter = false;
+                reading = false;
+                gi = 0;
+                release_lock(getline_lock);
+                return nullptr;
             }
             retstr[gi] = getchar();
             gi++;
@@ -228,6 +269,12 @@ void init()
         warn("PS/2 keyboard has already been initialised!\n");
         return;
     }
+
+    // Set scancode table 2
+    // kbd_write(0xF0);
+    // kbd_write(2);
+
+    update_leds();
 
     buff = static_cast<char*>(calloc(1024, sizeof(char)));
     idt::register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
