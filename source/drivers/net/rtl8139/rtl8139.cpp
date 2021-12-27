@@ -2,57 +2,44 @@
 
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <system/cpu/idt/idt.hpp>
-#include <system/pci/pci.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::system::cpu;
-using namespace kernel::system;
 
 namespace kernel::drivers::net::rtl8139 {
 
 bool initialised = false;
-static pci::pcidevice_t *pcidevice = nullptr;
-static uint16_t IOBase = 0;
-static uint8_t BARType = 0;
-static uint8_t *RXBuffer = nullptr;
-static uint32_t current_packet = 0;
-static uint8_t TSAD[4] = { 0x20, 0x24, 0x28, 0x2C };
-static uint8_t TSD[4] = { 0x10, 0x14, 0x18, 0x1C };
-size_t curr_tx = 0;
-uint8_t MAC[6];
-
-void send(void *data, uint64_t length)
-{
-    void *tdata = malloc(length);
-    memcpy(tdata, data, length);
-    outl(IOBase + TSAD[curr_tx], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
-    outl(IOBase + TSD[curr_tx++], length);
-    if (curr_tx > 3) curr_tx = 0;
-    free(tdata);
-}
-
-void recive()
-{
-    uint16_t *t = reinterpret_cast<uint16_t*>(RXBuffer + current_packet);
-    uint16_t length = *(t + 1);
-    t += 2;
-    void *packet = malloc(length);
-    memcpy(packet, t, length);
-    current_packet = (current_packet + length + 7) & ~3;
-    if (current_packet > 8192) current_packet -= 8192;
-    outw(IOBase + 0x38, current_packet - 0x10);
-}
+static bool first = true;
+vector<RTL8139*> devices;
 
 static void RTL8139_Handler(registers_t *regs)
 {
-    uint16_t status = inw(IOBase + 0x3E);
-    if (status & (1 << 2)) log("RTL8139: Packet sent!");
-    if (status & (1 << 0)) recive();
-    outw(IOBase + 0x3E, 0x05);
+    for (size_t i = 0; i < devices.size(); i++)
+    {
+        RTL8139 *device = devices[i];
+        uint16_t status = device->status();
+        if (status & (1 << 2)) log("RTL8139: Card #%zu: Packet sent!", i);
+        if (status & (1 << 0))
+        {
+            device->recive();
+            log("RTL8139: Card #%zu: Packet recived!", i);
+        }
+        device->irq_reset();
+    }
 }
 
-void read_mac()
+uint16_t RTL8139::status()
+{
+    return inw(this->IOBase + 0x3E);
+}
+
+void RTL8139::irq_reset()
+{
+    return outw(this->IOBase + 0x3E, 0x05);
+}
+
+void RTL8139::read_mac()
 {
     uint32_t mac1 = inl(IOBase + 0x00);
     uint16_t mac2 = inw(IOBase + 0x04);
@@ -64,16 +51,38 @@ void read_mac()
     MAC[4] = mac2;
     MAC[5] = mac2 >> 8;
 
-    log("RTL8139: MAC Address: %X:%X:%X:%X:%X:%X", MAC[0], MAC[1], MAC[2], MAC[3], MAC[4], MAC[5]);
+    log("MAC Address: %X:%X:%X:%X:%X:%X", MAC[0], MAC[1], MAC[2], MAC[3], MAC[4], MAC[5]);
 }
 
-void reset()
+void RTL8139::send(void *data, uint64_t length)
+{
+    void *tdata = malloc(length);
+    memcpy(tdata, data, length);
+    outl(this->IOBase + this->TSAD[this->curr_tx], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
+    outl(this->IOBase + this->TSD[this->curr_tx++], length);
+    if (this->curr_tx > 3) this->curr_tx = 0;
+    free(tdata);
+}
+
+void RTL8139::recive()
+{
+    uint16_t *t = reinterpret_cast<uint16_t*>(this->RXBuffer + this->current_packet);
+    uint16_t length = *(t + 1);
+    t += 2;
+    void *packet = malloc(length);
+    memcpy(packet, t, length);
+    this->current_packet = (this->current_packet + length + 7) & ~3;
+    if (this->current_packet > 8192) this->current_packet -= 8192;
+    outw(this->IOBase + 0x38, this->current_packet - 0x10);
+}
+
+void RTL8139::reset()
 {
     outb(IOBase + 0x37, 0x10);
     while ((inb(IOBase + 0x37) & 0x10));
 }
 
-void activate()
+void RTL8139::activate()
 {
     outb(IOBase + 0x52, 0x00);
 
@@ -87,6 +96,35 @@ void activate()
     outb(IOBase + 0x37, 0x0C);
 }
 
+RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
+{
+    this->pcidevice = pcidevice;
+    log("Registering RTL8139 driver #%zu", devices.size());
+
+    uint32_t BAR0 = 0;
+    if (pci::legacy) BAR0 = pcidevice->readl(PCI_BAR0);
+    else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR0;
+
+    this->BARType = BAR0 & 0x01;
+    this->IOBase = BAR0 & (~0x03);
+
+    pcidevice->bus_mastering(true);
+
+    this->activate();
+
+    uint8_t IRQ = 0;
+    if (pci::legacy) IRQ = pcidevice->readl(PCI_INTERRUPT_LINE);
+    else IRQ = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->intLine;
+
+    if (first)
+    {
+        first = false;
+        idt::register_interrupt_handler(IRQ + 32, RTL8139_Handler);
+    }
+
+    this->read_mac();
+}
+
 void init()
 {
     log("Initialising RTL8139");
@@ -97,31 +135,18 @@ void init()
         return;
     }
 
-    pcidevice = pci::search(0x10EC, 0x8139, 0);
-    if (!pcidevice)
+    size_t count = pci::count(0x10EC, 0x8139);
+    if (count == 0)
     {
-        error("RTL8139 card not found!");
+        error("No RTL8139 cards found!\n");
         return;
     }
 
-    uint32_t BAR0 = 0;
-    if (pci::legacy) BAR0 = pcidevice->readl(PCI_BAR0);
-    else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR0;
-
-    BARType = BAR0 & 0x01;
-    IOBase = BAR0 & (~0x03);
-
-    pcidevice->bus_mastering(true);
-
-    activate();
-
-    uint8_t IRQ = 0;
-    if (pci::legacy) IRQ = pcidevice->readl(PCI_INTERRUPT_LINE);
-    else IRQ = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->intLine;
-
-    idt::register_interrupt_handler(IRQ + 32, RTL8139_Handler);
-
-    read_mac();
+    devices.init(count);
+    for (size_t i = 0; i < count; i++)
+    {
+        devices.push_back(new RTL8139(pci::search(0x10EC, 0x8139, i)));
+    }
 
     serial::newline();
     initialised = true;
