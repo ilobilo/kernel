@@ -4,6 +4,11 @@ Contributors are welcome
 
 ## [LICENSE](LICENSE)
 
+## Need to fix/update
+- [ ] VFS
+- [ ] Scheduler
+- [ ] Some of the syscalls
+
 ## TODO
 
 ### System
@@ -34,7 +39,7 @@ Contributors are welcome
 #### I/O
 - [x] PS/2 Keyboard
 - [x] PS/2 Mouse
-- [x] Serial
+- [x] COM
 
 #### VMs
 - [x] VMWare Tools
@@ -72,7 +77,6 @@ Contributors are welcome
 - [x] SMP
 - [x] Threading
 - [x] Scheduling
-- [ ] SMP-Aware Scheduler
 
 ### Partition tables
 - [x] MBR
@@ -80,7 +84,6 @@ Contributors are welcome
 
 ### Filesystems
 - [x] VFS
-- [ ] Working VFS
 - [x] DEVFS
 - [x] Initrd
 - [ ] Ext2
@@ -99,13 +102,15 @@ Contributors are welcome
 
 ### Network stack
 - [ ] Ethernet
-- [ ] IP
-- [ ] ICMP
+- [ ] ARP
+- [ ] IPv4
+- [ ] ICMPv4
+- [ ] TCP
 - [ ] UDP
 - [ ] DHCP
-- [ ] TCP
 - [ ] HTTP
 - [ ] Telnet
+- [ ] SSL
 
 ## Building And Running
 
