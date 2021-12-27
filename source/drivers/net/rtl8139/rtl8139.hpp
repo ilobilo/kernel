@@ -3,6 +3,7 @@
 #pragma once
 
 #include <system/pci/pci.hpp>
+#include <lib/lock.hpp>
 #include <stdint.h>
 
 using namespace kernel::system;
@@ -13,6 +14,7 @@ class RTL8139
 {
     private:
     pci::pcidevice_t *pcidevice;
+    volatile lock_t lock;
     
     uint16_t IOBase = 0;
     uint8_t BARType = 0;
