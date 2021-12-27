@@ -130,13 +130,10 @@ struct pcidevice_t
     void bus_mastering(bool enable)
     {
         uint32_t command = this->device->command;
-        if(!(command & (1 << 2)))
-        {
-            if (enable) command |= (1 << 2);
-            else command &= ~(1 << 2);
-            this->writew(PCI_COMMAND, command);
-            if (legacy) this->device->command = this->readw(PCI_COMMAND);
-        }
+        if (enable) command |= (1 << 2);
+        else command &= ~(1 << 2);
+        this->writew(PCI_COMMAND, command);
+        if (legacy) this->device->command = this->readw(PCI_COMMAND);
     }
 };
 

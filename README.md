@@ -52,7 +52,7 @@ Contributors are welcome
 - [x] RTL8139
 - [ ] RTL8169
 - [ ] I217
-- [ ] PCNET
+- [ ] AMD PCNET
 - [ ] IEEE 802.11
 - [ ] Virtio network
 
@@ -96,6 +96,16 @@ Contributors are welcome
 - [ ] Libc
 - [ ] Bash
 - [ ] Coreutils
+
+### Network stack
+- [ ] Ethernet
+- [ ] IP
+- [ ] ICMP
+- [ ] UDP
+- [ ] DHCP
+- [ ] TCP
+- [ ] HTTP
+- [ ] Telnet
 
 ## Building And Running
 
