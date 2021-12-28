@@ -44,14 +44,14 @@ void RTL8139::read_mac()
     uint32_t mac1 = inl(IOBase + 0x00);
     uint16_t mac2 = inw(IOBase + 0x04);
 
-    MAC[0] = mac1;
-    MAC[1] = mac1 >> 8;
-    MAC[2] = mac1 >> 16;
-    MAC[3] = mac1 >> 24;
-    MAC[4] = mac2;
-    MAC[5] = mac2 >> 8;
+    this->MAC[0] = mac1;
+    this->MAC[1] = mac1 >> 8;
+    this->MAC[2] = mac1 >> 16;
+    this->MAC[3] = mac1 >> 24;
+    this->MAC[4] = mac2;
+    this->MAC[5] = mac2 >> 8;
 
-    log("MAC Address: %X:%X:%X:%X:%X:%X", MAC[0], MAC[1], MAC[2], MAC[3], MAC[4], MAC[5]);
+    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4],this-> MAC[5]);
 }
 
 void RTL8139::send(void *data, uint64_t length)

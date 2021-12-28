@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <drivers/net/cardmgr/cardmgr.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/lock.hpp>
 #include <stdint.h>
@@ -10,7 +11,7 @@ using namespace kernel::system;
 
 namespace kernel::drivers::net::rtl8139 {
 
-class RTL8139
+class RTL8139 : public cardmgr::NetCard
 {
     private:
     pci::pcidevice_t *pcidevice;
@@ -26,8 +27,6 @@ class RTL8139
     size_t curr_tx = 0;
 
     public:
-    uint8_t MAC[6];
-
     void send(void *data, uint64_t length);
     void recive();
 
