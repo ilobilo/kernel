@@ -12,6 +12,7 @@
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
+#include <drivers/net/e1000/e1000.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <drivers/ps2/mouse/mouse.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
@@ -137,6 +138,10 @@ void main()
     terminal::check("Initialising RTL8139...");
     rtl8139::init();
     terminal::okerr(rtl8139::initialised);
+
+    terminal::check("Initialising E1000...");
+    e1000::init();
+    terminal::okerr(e1000::initialised);
 
     terminal::check("Initialising Drive Manager...");
     drivemgr::init();

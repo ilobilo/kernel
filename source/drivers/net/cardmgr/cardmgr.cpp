@@ -2,6 +2,7 @@
 
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <drivers/net/cardmgr/cardmgr.hpp>
+#include <drivers/net/e1000/e1000.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
@@ -25,6 +26,14 @@ void addRTL8139()
     }
 }
 
+void addE1000()
+{
+    for (size_t i = 0; i < e1000::devices.size(); i++)
+    {
+        addCard(e1000::devices[i], E1000);
+    }
+}
+
 void init()
 {
     log("Initialising Network card manager");
@@ -36,6 +45,7 @@ void init()
     }
 
     addRTL8139();
+    addE1000();
 
     serial::newline();
     initialised = true;

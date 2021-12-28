@@ -56,8 +56,10 @@ Contributors are welcome
 #### Network
 - [x] RTL8139
 - [ ] RTL8169
-- [ ] I217
+- [x] E1000
+- [ ] Intel 8254x
 - [ ] AMD PCNET
+- [ ] Ne2000
 - [ ] IEEE 802.11
 - [ ] Virtio network
 
@@ -86,10 +88,12 @@ Contributors are welcome
 - [x] VFS
 - [x] DEVFS
 - [x] Initrd
+- [ ] Echfs
+- [ ] SFS
 - [ ] Ext2
 - [ ] Fat32
-- [ ] Echfs
 - [ ] ISO9660
+- [ ] NTFS
 
 ### Userspace
 - [x] System calls

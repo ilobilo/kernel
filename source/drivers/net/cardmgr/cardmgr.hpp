@@ -10,7 +10,8 @@ namespace kernel::drivers::net::cardmgr {
 
 enum type_t
 {
-    RTL8139
+    RTL8139,
+    E1000
 };
 
 class NetCard
