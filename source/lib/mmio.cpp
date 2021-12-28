@@ -12,7 +12,7 @@ void mmoutw(void *addr, uint16_t value)
     asm volatile("mov %1, %0" : "=m"(WORD_PTR(addr)) : "r"(value) : "memory");
 }
 
-void mmoutd(void *addr, uint32_t value)
+void mmoutl(void *addr, uint32_t value)
 {
     asm volatile("mov %1, %0" : "=m"(DWORD_PTR(addr)) : "r"(value) : "memory");
 }
@@ -36,7 +36,7 @@ uint16_t mminw(void *addr)
 	return ret;
 }
 
-uint32_t mmind(void *addr)
+uint32_t mminl(void *addr)
 {
 	uint32_t ret;
 	asm volatile("mov %1, %0" : "=r"(ret) : "m"(DWORD_PTR(addr)) : "memory");

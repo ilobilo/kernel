@@ -8,6 +8,10 @@
 
 namespace kernel::system::pci {
 
+#define PCI_BAR_MEM 0x00
+#define PCI_BAR_IO 0x01
+#define PCI_BAR_NONE 0x03
+
 enum offsets
 {
     PCI_VENDOR_ID = 0x00,
@@ -152,6 +156,8 @@ struct pcidevice_t
         this->writew(PCI_COMMAND, command);
         if (legacy) this->device->command = this->readw(PCI_COMMAND);
     }
+
+    uint32_t get_bar(uint8_t type);
 };
 
 struct pciheader0

@@ -36,7 +36,7 @@ uint16_t RTL8139::status()
 
 void RTL8139::irq_reset()
 {
-    return outw(this->IOBase + 0x3E, 0x05);
+    outw(this->IOBase + 0x3E, 0x05);
 }
 
 void RTL8139::read_mac()
@@ -134,11 +134,11 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
 
 void init()
 {
-    log("Initialising RTL8139");
+    log("Initialising RTL8139 driver");
 
     if (initialised)
     {
-        warn("RTL8139 has already been initialised!\n");
+        warn("RTL8139 driver has already been initialised!\n");
         return;
     }
 

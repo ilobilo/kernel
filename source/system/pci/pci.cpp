@@ -17,6 +17,42 @@ bool legacy = false;
 
 vector<pcidevice_t*> pcidevices;
 
+uint32_t pcidevice_t::get_bar(uint8_t type)
+{
+    if (legacy)
+    {
+        uint32_t bar = this->readl(PCI_BAR0);
+        if ((bar & 0x01) == type) return bar;
+        bar = this->readl(PCI_BAR1);
+        if ((bar & 0x01) == type) return bar;
+        bar = this->readl(PCI_BAR2);
+        if ((bar & 0x01) == type) return bar;
+        bar = this->readl(PCI_BAR3);
+        if ((bar & 0x01) == type) return bar;
+        bar = this->readl(PCI_BAR4);
+        if ((bar & 0x01) == type) return bar;
+        bar = this->readl(PCI_BAR5);
+        if ((bar & 0x01) == type) return bar;
+    }
+    else
+    {
+        pciheader0 *hdr = reinterpret_cast<pciheader0*>(this->device);
+        uint32_t bar = hdr->BAR0;
+        if ((bar & 0x01) == type) return bar;
+        bar = hdr->BAR1;
+        if ((bar & 0x01) == type) return bar;
+        bar = hdr->BAR2;
+        if ((bar & 0x01) == type) return bar;
+        bar = hdr->BAR3;
+        if ((bar & 0x01) == type) return bar;
+        bar = hdr->BAR4;
+        if ((bar & 0x01) == type) return bar;
+        bar = hdr->BAR5;
+        if ((bar & 0x01) == type) return bar;
+    }
+    return 0xFFFFFFFF;
+}
+
 pcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
 {
     if (!initialised)

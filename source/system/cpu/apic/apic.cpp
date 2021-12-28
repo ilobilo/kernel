@@ -30,13 +30,13 @@ static inline uint32_t reg2x2apic(uint32_t reg)
 uint32_t lapic_read(uint32_t reg)
 {
     if (x2apic) return rdmsr(reg2x2apic(reg));
-    return mmind(reinterpret_cast<void*>(acpi::lapic_addr + reg));
+    return mminl(reinterpret_cast<void*>(acpi::lapic_addr + reg));
 }
 
 void lapic_write(uint32_t reg, uint32_t value)
 {
     if (x2apic) wrmsr(reg2x2apic(reg), value);
-    else mmoutd(reinterpret_cast<void*>(acpi::lapic_addr + reg), value);
+    else mmoutl(reinterpret_cast<void*>(acpi::lapic_addr + reg), value);
 }
 
 static void lapic_set_nmi(uint8_t vec, uint8_t current_processor_id, uint8_t processor_id, uint16_t flags, uint8_t lint)
@@ -83,14 +83,14 @@ void lapic_init(uint8_t processor_id)
 
 uint32_t ioapic_read(uintptr_t ioapic_address, size_t reg)
 {
-    mmoutd(reinterpret_cast<void*>(ioapic_address), reg & 0xFF);
-    return mmind(reinterpret_cast<void*>(ioapic_address + 16));
+    mmoutl(reinterpret_cast<void*>(ioapic_address), reg & 0xFF);
+    return mminl(reinterpret_cast<void*>(ioapic_address + 16));
 }
 
 void ioapic_write(uintptr_t ioapic_address, size_t reg, uint32_t data)
 {
-    mmoutd(reinterpret_cast<void*>(ioapic_address), reg & 0xFF);
-    mmoutd(reinterpret_cast<void*>(ioapic_address + 16), data);
+    mmoutl(reinterpret_cast<void*>(ioapic_address), reg & 0xFF);
+    mmoutl(reinterpret_cast<void*>(ioapic_address + 16), data);
 }
 
 static uint32_t get_gsi_count(uintptr_t ioapic_address)
