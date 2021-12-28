@@ -4,13 +4,14 @@
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
+#include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
+#include <drivers/net/cardmgr/cardmgr.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
-#include <drivers/block/drive/drive.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <drivers/ps2/mouse/mouse.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
@@ -82,9 +83,9 @@ void main()
 
     log("Kernel cmdline: %s", cmdline);
     log("Available kernel modules:");
-    for (uint64_t t = 0; t < mod_tag->module_count; t++)
+    for (size_t i = 0; i < mod_tag->module_count; i++)
     {
-        log("%d) %s", t + 1, mod_tag->modules[t].string);
+        log("%zu) %s", i, mod_tag->modules[i].string);
     }
     serial::newline();
 
@@ -133,9 +134,17 @@ void main()
     ahci::init();
     terminal::okerr(ahci::initialised);
 
+    terminal::check("Initialising RTL8139...");
+    rtl8139::init();
+    terminal::okerr(rtl8139::initialised);
+
     terminal::check("Initialising Drive Manager...");
     drivemgr::init();
     terminal::okerr(drivemgr::initialised);
+
+    terminal::check("Initialising Network Card Manager...");
+    cardmgr::init();
+    terminal::okerr(cardmgr::initialised);
 
     terminal::check("Initialising VFS...");
     vfs::init();
@@ -168,10 +177,6 @@ void main()
     terminal::check("Initialising PS/2 Mouse...");
     if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
     terminal::okerr(ps2::mouse::initialised);
-
-    terminal::check("Initialising RTL8139...");
-    rtl8139::init();
-    terminal::okerr(rtl8139::initialised);
 
     terminal::check("Initialising VMWare tools...");
     vmware::init();
