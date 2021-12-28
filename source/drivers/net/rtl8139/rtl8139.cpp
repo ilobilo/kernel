@@ -74,6 +74,9 @@ void RTL8139::recive()
     t += 2;
     void *packet = malloc(length);
     memcpy(packet, t, length);
+
+    // Handle packet here
+
     this->current_packet = (this->current_packet + length + 7) & ~3;
     if (this->current_packet > 8192) this->current_packet -= 8192;
     outw(this->IOBase + 0x38, this->current_packet - 0x10);
@@ -106,18 +109,18 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
     log("Registering RTL8139 driver #%zu", devices.size());
 
     uint32_t BAR0 = 0;
-    if (pci::legacy) BAR0 = pcidevice->readl(PCI_BAR0);
+    if (pci::legacy) BAR0 = pcidevice->readl(pci::PCI_BAR0);
     else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR0;
 
     this->BARType = BAR0 & 0x01;
     this->IOBase = BAR0 & (~0x03);
 
-    pcidevice->bus_mastering(true);
+    pcidevice->command(pci::CMD_BUS_MAST, true);
 
     this->activate();
 
     uint8_t IRQ = 0;
-    if (pci::legacy) IRQ = pcidevice->readl(PCI_INTERRUPT_LINE);
+    if (pci::legacy) IRQ = pcidevice->readl(pci::PCI_INTERRUPT_LINE);
     else IRQ = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->intLine;
 
     if (first)
