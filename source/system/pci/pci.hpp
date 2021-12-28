@@ -8,26 +8,43 @@
 
 namespace kernel::system::pci {
 
-#define PCI_VENDOR_ID 0x00
-#define PCI_DEVICE_ID 0x02
-#define PCI_COMMAND 0x04
-#define PCI_STATUS 0x06
-#define PCI_REVISION_ID 0x08
-#define PCI_PROG_IF 0x09
-#define PCI_SUBCLASS 0x0A
-#define PCI_CLASS 0x0B
-#define PCI_CACHE_LINE_SIZE 0x0C
-#define PCI_LATENCY_TIMER 0x0D
-#define PCI_HEADER_TYPE 0x0E
-#define PCI_BIST 0x0f
-#define PCI_BAR0 0x10
-#define PCI_BAR1 0x14
-#define PCI_BAR2 0x18
-#define PCI_BAR3 0x1C
-#define PCI_BAR4 0x20
-#define PCI_BAR5 0x24
-#define PCI_INTERRUPT_LINE 0x3C
-#define PCI_INTERRUPT_PIN 0x3D
+enum offsets
+{
+    PCI_VENDOR_ID = 0x00,
+    PCI_DEVICE_ID = 0x02,
+    PCI_COMMAND = 0x04,
+    PCI_STATUS = 0x06,
+    PCI_REVISION_ID = 0x08,
+    PCI_PROG_IF = 0x09,
+    PCI_SUBCLASS = 0x0A,
+    PCI_CLASS = 0x0B,
+    PCI_CACHE_LINE_SIZE = 0x0C,
+    PCI_LATENCY_TIMER = 0x0D,
+    PCI_HEADER_TYPE = 0x0E,
+    PCI_BIST = 0x0f,
+    PCI_BAR0 = 0x10,
+    PCI_BAR1 = 0x14,
+    PCI_BAR2 = 0x18,
+    PCI_BAR3 = 0x1C,
+    PCI_BAR4 = 0x20,
+    PCI_BAR5 = 0x24,
+    PCI_INTERRUPT_LINE = 0x3C,
+    PCI_INTERRUPT_PIN = 0x3D
+};
+
+enum cmds
+{
+    CMD_IO_SPACE = (1 << 0),
+    CMD_MEM_SPACE = (1 << 1),
+    CMD_BUS_MAST = (1 << 2),
+    CMD_SPEC_CYC = (1 << 3),
+    CMD_MEM_WRITE = (1 << 4),
+    CMD_VGA_PS = (1 << 5),
+    CMD_PAR_ERR = (1 << 6),
+    CMD_SERR = (1 << 8),
+    CMD_FAST_B2B = (1 << 9),
+    CMD_INT_DIS = (1 << 10),
+};
 
 struct pciheader_t
 {
@@ -127,11 +144,11 @@ struct pcidevice_t
         kernel::system::pci::writel(this->bus, this->dev, this->func, offset, value);
     }
 
-    void bus_mastering(bool enable)
+    void command(uint64_t cmd, bool enable)
     {
         uint32_t command = this->device->command;
-        if (enable) command |= (1 << 2);
-        else command &= ~(1 << 2);
+        if (enable) command |= cmd;
+        else command &= ~cmd;
         this->writew(PCI_COMMAND, command);
         if (legacy) this->device->command = this->readw(PCI_COMMAND);
     }
