@@ -93,6 +93,8 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82G33/G31/P35/P31 Express DRAM Controller";
                 case 0x10d3:
                     return "82574L Gigabit Network Connection";
+                case 0x100e:
+                    return "82540EM Gigabit Ethernet Controller";
                 case 0x2934:
                     return "82801I (ICH9 Family) USB UHCI Controller";
                 case 0x2935:

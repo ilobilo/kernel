@@ -31,10 +31,11 @@ class RTL8139 : public cardmgr::NetCard
     void recive();
 
     void reset();
-    void activate();
+    void start();
 
     uint16_t status();
     void irq_reset();
+
     void read_mac();
 
     RTL8139(pci::pcidevice_t *pcidevice);

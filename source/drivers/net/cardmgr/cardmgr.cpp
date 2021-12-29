@@ -20,6 +20,7 @@ void addCard(NetCard *card, type_t type)
 
 void addRTL8139()
 {
+    if (!rtl8139::initialised) return;
     for (size_t i = 0; i < rtl8139::devices.size(); i++)
     {
         addCard(rtl8139::devices[i], RTL8139);
@@ -28,6 +29,7 @@ void addRTL8139()
 
 void addE1000()
 {
+    if (!e1000::initialised) return;
     for (size_t i = 0; i < e1000::devices.size(); i++)
     {
         addCard(e1000::devices[i], E1000);

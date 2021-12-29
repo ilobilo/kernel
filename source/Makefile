@@ -26,7 +26,6 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
 	-net nic,model=e1000,macaddr=12-34-56-78-90-47 -net user \
-	-net nic,model=rtl8139,macaddr=12-24-65-24-65-23 -net user \
 	-net nic,model=rtl8139 -net user
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
@@ -38,7 +37,7 @@ CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -g
 
-CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter 
+CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter
 
 LDFLAGS = 
 ASMFLAGS = -f elf64 -g
