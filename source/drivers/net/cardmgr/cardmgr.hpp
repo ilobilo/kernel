@@ -20,6 +20,7 @@ class NetCard
     char name[32] = "New network card";
     uint8_t MAC[6];
     type_t type;
+    uint64_t uniqueid;
 
     virtual void send(void *data, uint64_t length)
     {

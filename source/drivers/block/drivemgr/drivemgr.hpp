@@ -94,6 +94,7 @@ class Drive
     partStyle partstyle;
     vector<Partition*> partitions;
     type_t type;
+    uint64_t uniqueid;
 
     virtual bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     {
@@ -117,6 +118,7 @@ struct Partition
     uint64_t Flags;
     partStyle partstyle;
     Drive *parent;
+    size_t i;
 
     bool read(size_t offset, size_t count, uint8_t *buffer)
     {

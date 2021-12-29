@@ -55,11 +55,7 @@ Contributors are welcome
 
 #### Network
 - [x] RTL8139
-- [ ] RTL8169
 - [x] E1000
-- [ ] AM79C970A (PCNet II)
-- [ ] AM79C973 (PCNet III)
-- [ ] IEEE 802.11
 - [ ] Virtio network
 
 #### USB

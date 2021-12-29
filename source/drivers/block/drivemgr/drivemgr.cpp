@@ -4,6 +4,7 @@
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <lib/memory.hpp>
+#include <lib/math.hpp>
 #include <lib/log.hpp>
 
 namespace kernel::drivers::block::drivemgr {
@@ -15,6 +16,7 @@ void addDrive(Drive *drive, type_t type)
 {
     drives.push_back(drive);
     drive->type = type;
+    drive->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
     sprintf(drive->name, "Drive #%zu", drives.size() - 1);
 
     drive->read(0, 2, drive->buffer);
@@ -46,6 +48,7 @@ void addDrive(Drive *drive, type_t type)
                     if (gptpart.Attributes & 1) partition->Flags |= EFISYS;
                     partition->partstyle = GPT;
                     partition->parent = drive;
+                    partition->i = drive->partitions.size() - 1;
                     drive->partitions.push_back(partition);
                 }
             }
@@ -69,6 +72,7 @@ void addDrive(Drive *drive, type_t type)
                 partition->Flags = PRESENT | BOOTABLE;
                 partition->partstyle = MBR;
                 partition->parent = drive;
+                partition->i = drive->partitions.size() - 1;
                 drive->partitions.push_back(partition);
             }
         }

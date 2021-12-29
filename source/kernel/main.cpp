@@ -190,8 +190,6 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    srand(rtc::time());
-
     scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(time), nullptr));
     scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(apps::kshell::run), nullptr));
 }
