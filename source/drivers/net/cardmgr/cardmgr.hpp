@@ -11,6 +11,7 @@ namespace kernel::drivers::net::cardmgr {
 enum type_t
 {
     RTL8139,
+    AM79C970A,
     E1000
 };
 
