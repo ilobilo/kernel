@@ -89,7 +89,7 @@ void RTL8139::reset()
     while ((inb(IOBase + 0x37) & 0x10));
 }
 
-void RTL8139::activate()
+void RTL8139::start()
 {
     outb(IOBase + 0x52, 0x00);
 
@@ -113,11 +113,11 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
     else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR0;
 
     this->BARType = BAR0 & 0x01;
-    this->IOBase = BAR0 & (~0x03);
+    this->IOBase = pcidevice->get_bar(PCI_BAR_IO) & ~1;
 
     pcidevice->command(pci::CMD_BUS_MAST, true);
 
-    this->activate();
+    this->start();
 
     uint8_t IRQ = 0;
     if (pci::legacy) IRQ = pcidevice->readl(pci::PCI_INTERRUPT_LINE);

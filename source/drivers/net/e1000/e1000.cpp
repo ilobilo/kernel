@@ -150,7 +150,6 @@ void E1000::recive()
 
 void E1000::rxinit()
 {
-    acquire_lock(this->lock);
     uint8_t *ptr = static_cast<uint8_t*>(malloc(sizeof(RXDesc) * E1000_NUM_RX_DESC + 16));
     RXDesc *descs = reinterpret_cast<RXDesc*>(ptr);
     for (size_t i = 0; i < E1000_NUM_RX_DESC; i++)
@@ -168,12 +167,10 @@ void E1000::rxinit()
     this->outcmd(REG_RXDESCTAIL, E1000_NUM_RX_DESC);
     this->rxcurr = 0;
     this->outcmd(REG_RCTRL, RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RCTL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC | RCTL_BSIZE_8192);
-    release_lock(this->lock);
 }
 
 void E1000::txinit()
 {
-    acquire_lock(this->lock);
     uint8_t *ptr = static_cast<uint8_t*>(malloc(sizeof(TXDesc) * E1000_NUM_TX_DESC + 16));
     TXDesc *descs = reinterpret_cast<TXDesc*>(ptr);
     for (size_t i = 0; i < E1000_NUM_TX_DESC; i++)
@@ -192,7 +189,6 @@ void E1000::txinit()
     this->outcmd(REG_TCTRL, TCTL_EN | TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT) | TCTL_RTLC);
     this->outcmd(REG_TCTRL, 0b0110000000000111111000011111010);
     this->outcmd(REG_TIPG, 0x0060200A);
-    release_lock(this->lock);
 }
 
 void E1000::intenable()
@@ -204,6 +200,7 @@ void E1000::intenable()
 
 bool E1000::start()
 {
+    acquire_lock(this->lock);
     this->detecteeprom();
     if (!this->read_mac()) return false;
     log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4],this-> MAC[5]);
@@ -213,6 +210,7 @@ bool E1000::start()
     this->intenable();
     this->rxinit();
     this->txinit();
+    release_lock(this->lock);
     return true;
 }
 
