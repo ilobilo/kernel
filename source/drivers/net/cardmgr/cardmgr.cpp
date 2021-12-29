@@ -1,6 +1,5 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/net/am79c970a/am79c970a.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <drivers/net/cardmgr/cardmgr.hpp>
 #include <drivers/net/e1000/e1000.hpp>
@@ -28,15 +27,6 @@ void addRTL8139()
     }
 }
 
-void addAM79C970A()
-{
-    if (!am79c970a::initialised) return;
-    for (size_t i = 0; i < am79c970a::devices.size(); i++)
-    {
-        addCard(am79c970a::devices[i], AM79C970A);
-    }
-}
-
 void addE1000()
 {
     if (!e1000::initialised) return;
@@ -57,10 +47,7 @@ void init()
     }
 
     addRTL8139();
-    addAM79C970A();
     addE1000();
-
-    cards[0]->send(new char[10], 10);
 
     serial::newline();
     initialised = true;

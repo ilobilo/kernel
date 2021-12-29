@@ -5,7 +5,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/block/drivemgr/drivemgr.hpp>
-#include <drivers/net/am79c970a/am79c970a.hpp>
 #include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <drivers/net/cardmgr/cardmgr.hpp>
@@ -139,10 +138,6 @@ void main()
     terminal::check("Initialising RTL8139...");
     rtl8139::init();
     terminal::okerr(rtl8139::initialised);
-
-    terminal::check("Initialising AM79C970A...");
-    am79c970a::init();
-    terminal::okerr(am79c970a::initialised);
 
     terminal::check("Initialising E1000...");
     e1000::init();
