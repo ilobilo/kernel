@@ -111,13 +111,6 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82801I (ICH9 Family) SMBus Controller";
             }
             break;
-        case 0x1022:
-            switch (deviceid)
-            {
-                case 0x2000:
-                    return "79c970 [PCnet32 LANCE]";
-            }
-            break;
         case 0x10EC:    
             switch (deviceid)
             {

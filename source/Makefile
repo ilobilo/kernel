@@ -26,7 +26,6 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
 	-net nic,model=e1000,macaddr=12-34-56-78-90-47 -net user \
-	-net nic,model=pcnet,macaddr=56-24-65-24-65-23 -net user \
 	-net nic,model=rtl8139 -net user
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
