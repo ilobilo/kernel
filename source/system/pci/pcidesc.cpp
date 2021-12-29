@@ -93,6 +93,8 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82G33/G31/P35/P31 Express DRAM Controller";
                 case 0x10d3:
                     return "82574L Gigabit Network Connection";
+                case 0x100e:
+                    return "82540EM Gigabit Ethernet Controller";
                 case 0x2934:
                     return "82801I (ICH9 Family) USB UHCI Controller";
                 case 0x2935:
@@ -107,6 +109,13 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller";
                 case 0x2930:
                     return "82801I (ICH9 Family) SMBus Controller";
+            }
+            break;
+        case 0x1022:
+            switch (deviceid)
+            {
+                case 0x2000:
+                    return "79c970 [PCnet32 LANCE]";
             }
             break;
         case 0x10EC:    
