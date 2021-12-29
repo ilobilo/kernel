@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 namespace kernel::system::sched::rtc {
 
 uint64_t century(), year(), month(), day(), hour(), minute(), second();

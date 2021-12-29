@@ -4,6 +4,7 @@
 #include <drivers/net/cardmgr/cardmgr.hpp>
 #include <drivers/net/e1000/e1000.hpp>
 #include <lib/memory.hpp>
+#include <lib/math.hpp>
 #include <lib/log.hpp>
 
 namespace kernel::drivers::net::cardmgr {
@@ -16,6 +17,7 @@ void addCard(NetCard *card, type_t type)
     log("Registering network card #%zu", cards.size());
     cards.push_back(card);
     cards.front()->type = type;
+    cards.front()->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
 }
 
 void addRTL8139()

@@ -41,20 +41,14 @@ static void cpu_init(stivale2_smp_info *cpu)
     enableSMEP();
     enableSMAP();
     enableUMIP();
-    
-    uint64_t cr4 = 0;
+
     uint32_t a = 0, b = 0, c = 0, d = 0;
     __get_cpuid(1, &a, &b, &c, &d);
     if ((c & bit_XSAVE))
     {
-        cr4 = read_cr(4);
-        cr4 |= (1 << 18);
-        write_cr(4, cr4);
+        write_cr(4, read_cr(4) | (1 << 18));
         
-        uint64_t xcr0 = 0;
-        xcr0 |= (1 << 0);
-        xcr0 |= (1 << 1);
-        
+        uint64_t xcr0 = (0 | (1 << 0)) | (1 << 1);
         if ((c & bit_AVX)) xcr0 |= (1 << 2);
         
         if (__get_cpuid(7, &a, &b, &c, &d))

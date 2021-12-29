@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define RAND_MAX 32768
+
 #define DIV_ROUNDUP(A, B) \
 ({ \
     typeof(A) _a_ = A; \
@@ -55,6 +57,8 @@ struct point
 int pow(int base, int exponent);
 int abs(int num);
 int sign(int num);
+
+uint64_t jdn(uint8_t days, uint8_t months, uint16_t years);
 
 uint64_t rand();
 void srand(uint64_t seed);
