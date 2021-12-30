@@ -24,5 +24,5 @@ struct [[gnu::packed]] ethHdr
 };
 
 void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *data, size_t length, uint16_t protocol);
-void recive(nicmgr::NetCard *nic, ethHdr *frame, size_t length);
+void receive(nicmgr::NetCard *nic, ethHdr *frame, size_t length);
 }

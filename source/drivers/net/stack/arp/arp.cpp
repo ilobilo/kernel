@@ -63,7 +63,7 @@ void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *dip)
     ethernet::send(nic, broadcastMAC, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
 }
 
-void recive(nicmgr::NetCard *nic, arpHdr *packet, size_t length)
+void receive(nicmgr::NetCard *nic, arpHdr *packet, size_t length)
 {
     if (!init)
     {

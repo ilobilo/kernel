@@ -26,8 +26,8 @@ static void E1000_Handler(registers_t *regs)
         if (status & 0x04) device->startlink();
         else if (status & 0x80)
         {
-            device->recive();
-            log("E1000: Card #%zu: Packet recived!", i);
+            device->receive();
+            log("E1000: Card #%zu: Packet received!", i);
         }
     }
 }
@@ -133,7 +133,7 @@ void E1000::send(uint8_t *data, uint64_t length)
     free(tdata);
 }
 
-void E1000::recive()
+void E1000::receive()
 {
     uint16_t old_cur = 0;
     while ((this->rxdescs[this->rxcurr]->status & 0x01))
@@ -147,7 +147,7 @@ void E1000::recive()
         this->rxcurr = (this->rxcurr + 1) % E1000_NUM_RX_DESC;
         this->outcmd(REG_RXDESCTAIL, old_cur);
 
-        ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
         free(packet);
     }
 }

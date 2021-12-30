@@ -149,7 +149,7 @@ class E1000 : public nicmgr::NetCard
 
     public:
     void send(uint8_t *data, uint64_t length);
-    void recive();
+    void receive();
 
     uint32_t status();
     void irq_reset();

@@ -22,7 +22,7 @@ void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *data, size_t length, uin
     free(frame);
 }
 
-void recive(nicmgr::NetCard *nic, ethHdr *frame, size_t length)
+void receive(nicmgr::NetCard *nic, ethHdr *frame, size_t length)
 {
     void *data = reinterpret_cast<uint8_t*>(frame) + sizeof(ethHdr);
     length -= sizeof(ethHdr);
@@ -31,12 +31,12 @@ void recive(nicmgr::NetCard *nic, ethHdr *frame, size_t length)
     switch (realtype)
     {
         case TYPE_ARP:
-            log("Ethernet: Recived ARP packet!");
-            arp::recive(nic, reinterpret_cast<arp::arpHdr*>(data), length);
+            log("Ethernet: Received ARP packet!");
+            arp::receive(nic, reinterpret_cast<arp::arpHdr*>(data), length);
             break;
         case TYPE_IP:
-            log("Ethernet: Recived IP packet!");
-            // ipv4::recive(nic, reinterpret_cast<ipv4::ipv4Hdr*>(data));
+            log("Ethernet: Received IP packet!");
+            // ipv4::receive(nic, reinterpret_cast<ipv4::ipv4Hdr*>(data));
             break;
     }
 }
