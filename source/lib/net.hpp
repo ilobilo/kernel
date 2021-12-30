@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+uint8_t flip8(uint8_t num, size_t bits);
+uint16_t flip16(uint16_t num);
+uint32_t flip32(uint32_t num);
+
 uint8_t htonb(uint8_t num, size_t bits);
 uint8_t ntohb(uint8_t num, size_t bits);
 

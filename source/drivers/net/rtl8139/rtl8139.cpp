@@ -58,31 +58,28 @@ void RTL8139::read_mac()
 
 void RTL8139::send(uint8_t *data, uint64_t length)
 {
-    acquire_lock(this->lock);
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
     outl(this->IOBase + this->TSAD[this->curr_tx], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
     outl(this->IOBase + this->TSD[this->curr_tx++], length);
     if (this->curr_tx > 3) this->curr_tx = 0;
     free(tdata);
-    release_lock(this->lock);
 }
 
 void RTL8139::recive()
 {
-    acquire_lock(this->lock);
     uint16_t *t = reinterpret_cast<uint16_t*>(this->RXBuffer + this->current_packet);
     uint16_t length = *(t + 1);
     t += 2;
     void *packet = malloc(length);
     memcpy(packet, t, length);
 
-    ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
-
     this->current_packet = (this->current_packet + length + 7) & ~3;
     if (this->current_packet > 8192) this->current_packet -= 8192;
     outw(this->IOBase + 0x38, this->current_packet - 0x10);
-    release_lock(this->lock);
+
+    ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+    free(packet);
 }
 
 void RTL8139::reset()

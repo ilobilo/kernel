@@ -15,7 +15,6 @@ class RTL8139 : public nicmgr::NetCard
 {
     private:
     pci::pcidevice_t *pcidevice;
-    volatile lock_t lock;
 
     uint16_t IOBase = 0;
     uint8_t BARType = 0;

@@ -63,42 +63,40 @@ void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *dip)
     ethernet::send(nic, broadcastMAC, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
 }
 
-void recive(nicmgr::NetCard *nic, arpHdr *frame, size_t length)
+void recive(nicmgr::NetCard *nic, arpHdr *packet, size_t length)
 {
     if (!init)
     {
         table_add(broadcastMAC, broadcastIP);
         init = true;
     }
-    if (memcmp(frame->ip.dip, nic->IPv4, 4)) return;
+    if (memcmp(packet->ip.dip, nic->IPv4, 4)) return;
 
     uint8_t dmac[6];
     uint8_t dip[4];
 
-    memcpy(dmac, frame->ip.smac, 6);
-    memcpy(dip, frame->ip.sip, 4);
+    memcpy(dmac, packet->ip.smac, 6);
+    memcpy(dip, packet->ip.sip, 4);
 
-    switch (ntohs(frame->opcode))
+    switch (ntohs(packet->opcode))
     {
         case ARP_REQUEST:
             log("ARP: Request!");
 
-            memcpy(frame->ip.dmac, dmac, 6);
-            memcpy(frame->ip.dip, dip, 4);
+            memcpy(packet->ip.dmac, dmac, 6);
+            memcpy(packet->ip.dip, dip, 4);
 
-            memcpy(frame->ip.smac, nic->MAC, 6);
-            memcpy(frame->ip.sip, nic->IPv4, 4);
+            memcpy(packet->ip.smac, nic->MAC, 6);
+            memcpy(packet->ip.sip, nic->IPv4, 4);
 
-            frame->opcode = htons(ARP_REPLY);
+            packet->opcode = htons(ARP_REPLY);
 
-            frame->hwsize = 6;
-            frame->prosize = 4;
-            frame->hwtype = htons(HWTYPE_ETHERNET);
-            frame->protype = htons(ethernet::TYPE_IP);
+            packet->hwsize = 6;
+            packet->prosize = 4;
+            packet->hwtype = htons(HWTYPE_ETHERNET);
+            packet->protype = htons(ethernet::TYPE_IP);
 
-            ethernet::send(nic, dmac, reinterpret_cast<uint8_t*>(frame), sizeof(arpHdr), ethernet::TYPE_ARP);
-
-            log("ARP: Replied!");
+            ethernet::send(nic, dmac, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
             break;
         case ARP_REPLY:
             log("ARP: Reply!");

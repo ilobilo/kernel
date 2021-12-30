@@ -16,7 +16,7 @@ int bcdtobin(int value)
 
 uint64_t century()
 {
-    if (acpi::fadthdr->Century == 0) return 20;
+    if (acpi::fadthdr && acpi::fadthdr->Century == 0) return 20;
     outb(0x70, 0x32);
     return bcdtobin(inb(0x71));
 }

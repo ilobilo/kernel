@@ -19,8 +19,8 @@ class vector
     void init()
     {
         if (on) return;
-        cap = 1;
         data = new T;
+        cap = allocsize(data) / sizeof(T);
         num = 0;
         on = true;
     }
@@ -28,8 +28,8 @@ class vector
     void init(size_t size)
     {
         if (on) return;
-        cap = size;
         data = new T[size];
+        cap = allocsize(data) / sizeof(T);
         num = 0;
         on = true;
     }
@@ -51,8 +51,8 @@ class vector
         }
         else
         {
-            data = static_cast<T*>(realloc(data, 2 * cap * sizeof(T)));
-            cap *= 2;
+            data = static_cast<T*>(realloc(data, (cap + 2) * sizeof(T)));
+            cap = allocsize(data) / sizeof(T);
             if (data)
             {
                 *(data + num) = item;
@@ -111,9 +111,16 @@ class vector
     void resize(size_t size)
     {
         if (!on) this->init();
-        cap = size;
         data = static_cast<T*>(realloc(data, size * sizeof(T)));
+        cap = allocsize(data) / sizeof(T);
         if (num > size) num = size + 1;
+    }
+
+    void expand(size_t size)
+    {
+        if (!on) this->init();
+        data = static_cast<T*>(realloc(data, size * sizeof(T)));
+        cap = allocsize(data) / sizeof(T);
     }
 
     void insert(size_t pos, const T &item)
@@ -130,8 +137,8 @@ class vector
         }
         else
         {
-            data = static_cast<T*>(realloc(data, 2 * cap * sizeof(T)));
-            cap *= 2;
+            data = static_cast<T*>(realloc(data, (cap + 1) * sizeof(T)));
+            cap = allocsize(data) / sizeof(T);
             if (data)
             {
                 for (size_t i = num - pos; i > 0; i--)
