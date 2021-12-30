@@ -7,8 +7,8 @@
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
-#include <drivers/net/cardmgr/cardmgr.hpp>
 #include <system/cpu/syscall/syscall.hpp>
+#include <drivers/net/nicmgr/nicmgr.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
@@ -148,8 +148,8 @@ void main()
     terminal::okerr(drivemgr::initialised);
 
     terminal::check("Initialising Network Card Manager...");
-    cardmgr::init();
-    terminal::okerr(cardmgr::initialised);
+    nicmgr::init();
+    terminal::okerr(nicmgr::initialised);
 
     terminal::check("Initialising VFS...");
     vfs::init();

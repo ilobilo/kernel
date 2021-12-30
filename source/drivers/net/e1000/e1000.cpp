@@ -1,11 +1,13 @@
 // Copyright (C) 2021  ilobilo
 
+#include <drivers/net/stack/ethernet/ethernet.hpp>
 #include <drivers/net/e1000/e1000.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/memory.hpp>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
 
+using namespace kernel::drivers::net::stack;
 using namespace kernel::system::cpu;
 
 namespace kernel::drivers::net::e1000 {
@@ -112,10 +114,11 @@ bool E1000::read_mac()
         }
         else return false;
     }
+    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
     return true;
 }
 
-void E1000::send(void *data, uint64_t length)
+void E1000::send(uint8_t *data, uint64_t length)
 {
     acquire_lock(this->lock);
     this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(data);
@@ -135,10 +138,10 @@ void E1000::recive()
     uint16_t old_cur = 0;
     while ((this->rxdescs[this->rxcurr]->status & 0x01))
     {
-        // Handle packet
+        uint8_t *packet = reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr);
+        uint16_t length = this->rxdescs[this->rxcurr]->length;
 
-        // uint8_t *packet = reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr);
-        // uint16_t length = this->rxdescs[this->rxcurr]->length;
+        ethernet::recive(reinterpret_cast<ethernet::ethHdr*>(packet), length);
 
         this->rxdescs[this->rxcurr]->status = 0;
         old_cur = this->rxcurr;
@@ -203,7 +206,6 @@ bool E1000::start()
     acquire_lock(this->lock);
     this->detecteeprom();
     if (!this->read_mac()) return false;
-    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4],this-> MAC[5]);
     // this->startlink();
     for (size_t i = 0; i < 0x80; i++) this->outcmd(0x5200 + i * 4, 0);
 
