@@ -1,6 +1,5 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/net/stack/ethernet/ethernet.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <drivers/net/nicmgr/nicmgr.hpp>
 #include <drivers/net/e1000/e1000.hpp>

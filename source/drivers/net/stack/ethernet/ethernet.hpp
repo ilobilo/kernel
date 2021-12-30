@@ -7,9 +7,12 @@
 
 namespace kernel::drivers::net::stack::ethernet {
 
+#define HWTYPE_ETHERNET 0x01
+
 enum protocol_t
 {
-    TYPE_ARP = 0x0806
+    TYPE_ARP = 0x0806,
+    TYPE_IP = 0x0800
 };
 
 struct [[gnu::packed]] ethHdr
@@ -21,5 +24,5 @@ struct [[gnu::packed]] ethHdr
 };
 
 void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *data, size_t length, uint16_t protocol);
-void recive(ethHdr *frame, size_t length);
+void recive(nicmgr::NetCard *nic, ethHdr *frame, size_t length);
 }
