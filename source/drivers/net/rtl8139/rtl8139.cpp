@@ -1,10 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
+#include <drivers/net/stack/ethernet/ethernet.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
+using namespace kernel::drivers::net::stack;
 using namespace kernel::system::cpu;
 
 namespace kernel::drivers::net::rtl8139 {
@@ -51,10 +53,10 @@ void RTL8139::read_mac()
     this->MAC[4] = mac2;
     this->MAC[5] = mac2 >> 8;
 
-    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4],this-> MAC[5]);
+    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
 }
 
-void RTL8139::send(void *data, uint64_t length)
+void RTL8139::send(uint8_t *data, uint64_t length)
 {
     acquire_lock(this->lock);
     void *tdata = malloc(length);
@@ -75,7 +77,7 @@ void RTL8139::recive()
     void *packet = malloc(length);
     memcpy(packet, t, length);
 
-    // Handle packet here
+    ethernet::recive(reinterpret_cast<ethernet::ethHdr*>(packet), length);
 
     this->current_packet = (this->current_packet + length + 7) & ~3;
     if (this->current_packet > 8192) this->current_packet -= 8192;

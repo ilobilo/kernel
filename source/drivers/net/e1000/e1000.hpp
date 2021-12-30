@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <drivers/net/cardmgr/cardmgr.hpp>
+#include <drivers/net/nicmgr/nicmgr.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/lock.hpp>
 #include <stdint.h>
@@ -119,7 +119,7 @@ struct [[gnu::packed]] TXDesc
     uint16_t special;
 };
 
-class E1000 : public cardmgr::NetCard
+class E1000 : public nicmgr::NetCard
 {
     private:
     pci::pcidevice_t *pcidevice;
@@ -150,7 +150,7 @@ class E1000 : public cardmgr::NetCard
     public:
     uint8_t MAC[6];
 
-    void send(void *data, uint64_t length);
+    void send(uint8_t *data, uint64_t length);
     void recive();
 
     uint32_t status();
