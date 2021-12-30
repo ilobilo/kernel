@@ -77,7 +77,7 @@ void RTL8139::recive()
     void *packet = malloc(length);
     memcpy(packet, t, length);
 
-    ethernet::recive(reinterpret_cast<ethernet::ethHdr*>(packet), length);
+    ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
 
     this->current_packet = (this->current_packet + length + 7) & ~3;
     if (this->current_packet > 8192) this->current_packet -= 8192;

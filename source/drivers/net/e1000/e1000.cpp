@@ -141,7 +141,7 @@ void E1000::recive()
         uint8_t *packet = reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr);
         uint16_t length = this->rxdescs[this->rxcurr]->length;
 
-        ethernet::recive(reinterpret_cast<ethernet::ethHdr*>(packet), length);
+        ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
 
         this->rxdescs[this->rxcurr]->status = 0;
         old_cur = this->rxcurr;

@@ -100,8 +100,8 @@ Contributors are welcome
 - [ ] Coreutils
 
 ### Network stack
-- [ ] Ethernet
-- [ ] ARP
+- [x] Ethernet
+- [x] ARP
 - [ ] IPv4
 - [ ] ICMPv4
 - [ ] TCP

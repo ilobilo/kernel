@@ -19,6 +19,7 @@ class NetCard
     public:
     char name[32] = "New network card";
     uint8_t MAC[6];
+    uint8_t IPv4[4];
     type_t type;
     uint64_t uniqueid;
 
