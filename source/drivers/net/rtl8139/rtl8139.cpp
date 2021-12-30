@@ -24,8 +24,8 @@ static void RTL8139_Handler(registers_t *regs)
         if (status & (1 << 2)) log("RTL8139: Card #%zu: Packet sent!", i);
         if (status & (1 << 0))
         {
-            device->recive();
-            log("RTL8139: Card #%zu: Packet recived!", i);
+            device->receive();
+            log("RTL8139: Card #%zu: Packet received!", i);
         }
         device->irq_reset();
     }
@@ -66,7 +66,7 @@ void RTL8139::send(uint8_t *data, uint64_t length)
     free(tdata);
 }
 
-void RTL8139::recive()
+void RTL8139::receive()
 {
     uint16_t *t = reinterpret_cast<uint16_t*>(this->RXBuffer + this->current_packet);
     uint16_t length = *(t + 1);
@@ -78,7 +78,7 @@ void RTL8139::recive()
     if (this->current_packet > 8192) this->current_packet -= 8192;
     outw(this->IOBase + 0x38, this->current_packet - 0x10);
 
-    ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+    ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
     free(packet);
 }
 

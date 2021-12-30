@@ -44,5 +44,5 @@ void table_add(uint8_t *mac, uint8_t *ip);
 bool table_search(uint8_t *mac, uint8_t *ip);
 
 void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *dip);
-void recive(nicmgr::NetCard *nic, arpHdr *packet, size_t length);
+void receive(nicmgr::NetCard *nic, arpHdr *packet, size_t length);
 }

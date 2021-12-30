@@ -27,7 +27,7 @@ class RTL8139 : public nicmgr::NetCard
 
     public:
     void send(uint8_t *data, uint64_t length);
-    void recive();
+    void receive();
 
     void reset();
     void start();
