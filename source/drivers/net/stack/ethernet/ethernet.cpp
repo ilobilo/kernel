@@ -11,7 +11,7 @@ namespace kernel::drivers::net::stack::ethernet {
 void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *data, size_t length, uint16_t protocol)
 {
     ethHdr *frame = static_cast<ethHdr*>(malloc(sizeof(ethHdr) + length));
-    void *frmdata = (uint8_t*)frame + sizeof(ethHdr);
+    void *frmdata = reinterpret_cast<uint8_t*>(frame) + sizeof(ethHdr);
 
     memcpy(frame->smac, nic->MAC, 6);
     memcpy(frame->dmac, dmac, 6);
@@ -24,7 +24,7 @@ void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *data, size_t length, uin
 
 void recive(nicmgr::NetCard *nic, ethHdr *frame, size_t length)
 {
-    void *data = (uint8_t*)frame + sizeof(ethHdr);
+    void *data = reinterpret_cast<uint8_t*>(frame) + sizeof(ethHdr);
     length -= sizeof(ethHdr);
     uint16_t realtype = ntohs(frame->type);
 
@@ -36,7 +36,7 @@ void recive(nicmgr::NetCard *nic, ethHdr *frame, size_t length)
             break;
         case TYPE_IP:
             log("Ethernet: Recived IP packet!");
-            // ip::recive(data, length);
+            // ipv4::recive(nic, reinterpret_cast<ipv4::ipv4Hdr*>(data));
             break;
     }
 }

@@ -23,8 +23,8 @@ static void E1000_Handler(registers_t *regs)
         E1000 *device = devices[i];
         device->irq_reset();
         uint32_t status = device->status();
-        /* if (status & 0x04) device->startlink();
-        else */ if (status & 0x80)
+        if (status & 0x04) device->startlink();
+        else if (status & 0x80)
         {
             device->recive();
             log("E1000: Card #%zu: Packet recived!", i);
@@ -120,8 +120,9 @@ bool E1000::read_mac()
 
 void E1000::send(uint8_t *data, uint64_t length)
 {
-    acquire_lock(this->lock);
-    this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(data);
+    void *tdata = malloc(length);
+    memcpy(tdata, data, length);
+    this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(tdata);
     this->txdescs[this->txcurr]->length = length;
     this->txdescs[this->txcurr]->cmd = CMD_EOP | CMD_IFCS | CMD_RS;
     this->txdescs[this->txcurr]->status = 0;
@@ -129,26 +130,26 @@ void E1000::send(uint8_t *data, uint64_t length)
     this->txcurr = (this->txcurr + 1) % E1000_NUM_TX_DESC;
     this->outcmd(REG_TXDESCTAIL, this->txcurr);
     while (!(this->txdescs[old_cur]->status & 0xFF));
-    release_lock(this->lock);
+    free(tdata);
 }
 
 void E1000::recive()
 {
-    acquire_lock(this->lock);
     uint16_t old_cur = 0;
     while ((this->rxdescs[this->rxcurr]->status & 0x01))
     {
-        uint8_t *packet = reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr);
         uint16_t length = this->rxdescs[this->rxcurr]->length;
-
-        ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+        uint8_t *packet = static_cast<uint8_t*>(malloc(length));
+        memcpy(packet, reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr), length);
 
         this->rxdescs[this->rxcurr]->status = 0;
         old_cur = this->rxcurr;
         this->rxcurr = (this->rxcurr + 1) % E1000_NUM_RX_DESC;
         this->outcmd(REG_RXDESCTAIL, old_cur);
+
+        ethernet::recive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+        free(packet);
     }
-    release_lock(this->lock);
 }
 
 void E1000::rxinit()
@@ -201,12 +202,17 @@ void E1000::intenable()
     this->incmd(0xC0);
 }
 
+void E1000::startlink()
+{
+    this->outcmd(REG_CTRL, this->incmd(REG_CTRL) | ECTRL_SLU);
+}
+
 bool E1000::start()
 {
     acquire_lock(this->lock);
     this->detecteeprom();
     if (!this->read_mac()) return false;
-    // this->startlink();
+    this->startlink();
     for (size_t i = 0; i < 0x80; i++) this->outcmd(0x5200 + i * 4, 0);
 
     this->intenable();

@@ -148,15 +148,13 @@ class E1000 : public nicmgr::NetCard
     void intenable();
 
     public:
-    uint8_t MAC[6];
-
     void send(uint8_t *data, uint64_t length);
     void recive();
 
     uint32_t status();
     void irq_reset();
 
-    // void startlink();
+    void startlink();
     bool start();
 
     E1000(pci::pcidevice_t *pcidevice);
