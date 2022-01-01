@@ -23,12 +23,20 @@ static void E1000_Handler(registers_t *regs)
         E1000 *device = devices[i];
         device->irq_reset();
         uint32_t status = device->status();
-        if (status & 0x04) device->startlink();
-        else if (status & 0x80)
+        if (status & (1 << 24)) warn("E1000: Card #%zu: Time out!", i);
+        if (status & (1 << 23)) warn("E1000: Card #%zu: Non-fatal error!", i);
+        if (status & (1 << 22)) error("E1000: Card #%zu: Fatal error!", i);
+        if (status & (1 << 7))
         {
+            log("E1000: Card #%zu: Packets received!", i);
             device->receive();
-            log("E1000: Card #%zu: Packet received!", i);
         }
+        if (status & (1 << 2))
+        {
+            log("E1000: Card #%zu: Link status changed!", i);
+            device->startlink();
+        }
+        if (status & (1 << 0)) log("E1000: Card #%zu: Packet sent!", i);
     }
 }
 
@@ -120,6 +128,7 @@ bool E1000::read_mac()
 
 void E1000::send(uint8_t *data, uint64_t length)
 {
+    acquire_lock(this->lock);
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
     this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(tdata);
@@ -131,12 +140,13 @@ void E1000::send(uint8_t *data, uint64_t length)
     this->outcmd(REG_TXDESCTAIL, this->txcurr);
     while (!(this->txdescs[old_cur]->status & 0xFF));
     free(tdata);
+    release_lock(this->lock);
 }
 
 void E1000::receive()
 {
     uint16_t old_cur = 0;
-    while ((this->rxdescs[this->rxcurr]->status & 0x01))
+    for (size_t i = 0; this->rxdescs[this->rxcurr]->status & 0x01; i++)
     {
         uint16_t length = this->rxdescs[this->rxcurr]->length;
         uint8_t *packet = static_cast<uint8_t*>(malloc(length));
@@ -149,6 +159,7 @@ void E1000::receive()
 
         ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
         free(packet);
+        log("E1000: Packet #%zu handled!", i);
     }
 }
 
@@ -225,7 +236,7 @@ bool E1000::start()
 E1000::E1000(pci::pcidevice_t *pcidevice)
 {
     this->pcidevice = pcidevice;
-    log("Registering E1000 driver #%zu", devices.size());
+    log("Registering card #%zu", devices.size());
 
     uint32_t BAR0 = 0;
     if (pci::legacy) BAR0 = pcidevice->readl(pci::PCI_BAR0);

@@ -30,7 +30,7 @@ class NetCard
 };
 
 extern bool initialised;
-extern vector<NetCard*> cards;
+extern vector<NetCard*> nics;
 
 void init();
 }
