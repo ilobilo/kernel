@@ -1,7 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/net/stack/ethernet/ethernet.hpp>
-#include <drivers/net/stack/arp/arp.hpp>
 #include <lib/memory.hpp>
 #include <lib/net.hpp>
 #include <lib/log.hpp>
@@ -22,17 +21,17 @@ void send(nicmgr::NetCard *nic, uint8_t *dmac, uint8_t *data, size_t length, uin
     free(frame);
 }
 
-void receive(nicmgr::NetCard *nic, ethHdr *frame, size_t length)
+void receive(nicmgr::NetCard *nic, ethHdr *packet, size_t length)
 {
-    void *data = reinterpret_cast<uint8_t*>(frame) + sizeof(ethHdr);
+    // void *data = reinterpret_cast<uint8_t*>(packet) + sizeof(ethHdr);
     length -= sizeof(ethHdr);
-    uint16_t realtype = ntohs(frame->type);
+    uint16_t realtype = ntohs(packet->type);
 
     switch (realtype)
     {
         case TYPE_ARP:
             log("Ethernet: Received ARP packet!");
-            arp::receive(nic, reinterpret_cast<arp::arpHdr*>(data), length);
+            // arp::receive(nic, reinterpret_cast<arp::arpHdr*>(data), length);
             break;
         case TYPE_IP:
             log("Ethernet: Received IP packet!");

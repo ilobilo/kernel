@@ -21,11 +21,17 @@ static void RTL8139_Handler(registers_t *regs)
     {
         RTL8139 *device = devices[i];
         uint16_t status = device->status();
+        if (status & (1 << 15)) error("RTL8139: Card #%zu: System error!", i);
+        if (status & (1 << 14)) warn("RTL8139: Card #%zu: Time out!", i);
+        if (status & (1 << 13)) warn("RTL8139: Card #%zu: Cable length change!", i);
+        if (status & (1 << 4)) error("RTL8139: Card #%zu: RX buffer overflow!", i);
+        if (status & (1 << 3)) error("RTL8139: Card #%zu: Error while sending packet!", i);
         if (status & (1 << 2)) log("RTL8139: Card #%zu: Packet sent!", i);
+        if (status & (1 << 1)) error("RTL8139: Card #%zu: Error while receiving packet!", i);
         if (status & (1 << 0))
         {
-            device->receive();
             log("RTL8139: Card #%zu: Packet received!", i);
+            device->receive();
         }
         device->irq_reset();
     }
@@ -58,12 +64,14 @@ void RTL8139::read_mac()
 
 void RTL8139::send(uint8_t *data, uint64_t length)
 {
+    acquire_lock(this->lock);
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
     outl(this->IOBase + this->TSAD[this->curr_tx], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
     outl(this->IOBase + this->TSD[this->curr_tx++], length);
     if (this->curr_tx > 3) this->curr_tx = 0;
     free(tdata);
+    release_lock(this->lock);
 }
 
 void RTL8139::receive()
@@ -105,7 +113,7 @@ void RTL8139::start()
 RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
 {
     this->pcidevice = pcidevice;
-    log("Registering RTL8139 driver #%zu", devices.size());
+    log("Registering card #%zu", devices.size());
 
     uint32_t BAR0 = 0;
     if (pci::legacy) BAR0 = pcidevice->readl(pci::PCI_BAR0);

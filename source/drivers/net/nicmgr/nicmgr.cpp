@@ -10,14 +10,15 @@
 namespace kernel::drivers::net::nicmgr {
 
 bool initialised = false;
-vector<NetCard*> cards;
+vector<NetCard*> nics;
 
 void addCard(NetCard *card, type_t type)
 {
-    log("Registering network card #%zu", cards.size());
-    cards.push_back(card);
-    cards.front()->type = type;
-    cards.front()->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
+    log("Registering network card #%zu", nics.size());
+    nics.push_back(card);
+    nics.front()->type = type;
+    nics.front()->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
+
 }
 
 void addRTL8139()
