@@ -147,7 +147,7 @@ void main()
     drivemgr::init();
     terminal::okerr(drivemgr::initialised);
 
-    terminal::check("Initialising Network Card Manager...");
+    terminal::check("Initialising NIC Manager...");
     nicmgr::init();
     terminal::okerr(nicmgr::initialised);
 

@@ -119,7 +119,7 @@ struct [[gnu::packed]] TXDesc
     uint16_t special;
 };
 
-class E1000 : public nicmgr::NetCard
+class E1000 : public nicmgr::NIC
 {
     private:
     pci::pcidevice_t *pcidevice;

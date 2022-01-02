@@ -23,20 +23,20 @@ static void E1000_Handler(registers_t *regs)
         E1000 *device = devices[i];
         device->irq_reset();
         uint32_t status = device->status();
-        if (status & (1 << 24)) warn("E1000: Card #%zu: Time out!", i);
-        if (status & (1 << 23)) warn("E1000: Card #%zu: Non-fatal error!", i);
+        if (status & (1 << 24)) if (device->debug) warn("E1000: Card #%zu: Time out!", i);
+        if (status & (1 << 23)) if (device->debug) warn("E1000: Card #%zu: Non-fatal error!", i);
         if (status & (1 << 22)) error("E1000: Card #%zu: Fatal error!", i);
         if (status & (1 << 7))
         {
-            log("E1000: Card #%zu: Packets received!", i);
+            if (device->debug) log("E1000: Card #%zu: Packets received!", i);
             device->receive();
         }
         if (status & (1 << 2))
         {
-            log("E1000: Card #%zu: Link status changed!", i);
+            if (device->debug) log("E1000: Card #%zu: Link status changed!", i);
             device->startlink();
         }
-        if (status & (1 << 0)) log("E1000: Card #%zu: Packet sent!", i);
+        if (status & (1 << 0)) if (device->debug) log("E1000: Card #%zu: Packet sent!", i);
     }
 }
 
@@ -122,7 +122,7 @@ bool E1000::read_mac()
         }
         else return false;
     }
-    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
+    if (this->debug) log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
     return true;
 }
 
@@ -148,6 +148,8 @@ void E1000::receive()
     uint16_t old_cur = 0;
     for (size_t i = 0; this->rxdescs[this->rxcurr]->status & 0x01; i++)
     {
+        if (this->debug) log("E1000: Handling packet #%zu!", i);
+
         uint16_t length = this->rxdescs[this->rxcurr]->length;
         uint8_t *packet = static_cast<uint8_t*>(malloc(length));
         memcpy(packet, reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr), length);
@@ -159,7 +161,6 @@ void E1000::receive()
 
         ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
         free(packet);
-        log("E1000: Packet #%zu handled!", i);
     }
 }
 

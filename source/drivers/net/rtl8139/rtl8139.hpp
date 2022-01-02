@@ -11,7 +11,7 @@ using namespace kernel::system;
 
 namespace kernel::drivers::net::rtl8139 {
 
-class RTL8139 : public nicmgr::NetCard
+class RTL8139 : public nicmgr::NIC
 {
     private:
     pci::pcidevice_t *pcidevice;
