@@ -14,14 +14,15 @@ enum type_t
     E1000
 };
 
-class NetCard
+class NIC
 {
     public:
-    char name[32] = "New network card";
+    char name[32] = "New NIC";
     uint8_t MAC[6];
     uint8_t IPv4[4];
     type_t type;
     uint64_t uniqueid;
+    bool debug = NET_DEBUG;
 
     virtual void send(uint8_t *data, uint64_t length)
     {
@@ -30,7 +31,7 @@ class NetCard
 };
 
 extern bool initialised;
-extern vector<NetCard*> nics;
+extern vector<NIC*> nics;
 
 void init();
 }

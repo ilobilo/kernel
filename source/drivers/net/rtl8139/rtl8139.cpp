@@ -21,16 +21,16 @@ static void RTL8139_Handler(registers_t *regs)
     {
         RTL8139 *device = devices[i];
         uint16_t status = device->status();
-        if (status & (1 << 15)) error("RTL8139: Card #%zu: System error!", i);
-        if (status & (1 << 14)) warn("RTL8139: Card #%zu: Time out!", i);
-        if (status & (1 << 13)) warn("RTL8139: Card #%zu: Cable length change!", i);
-        if (status & (1 << 4)) error("RTL8139: Card #%zu: RX buffer overflow!", i);
-        if (status & (1 << 3)) error("RTL8139: Card #%zu: Error while sending packet!", i);
-        if (status & (1 << 2)) log("RTL8139: Card #%zu: Packet sent!", i);
-        if (status & (1 << 1)) error("RTL8139: Card #%zu: Error while receiving packet!", i);
+        if (status & (1 << 15)) error("RTL8139: Card #%zu: Error!", i);
+        if (status & (1 << 14)) if (device->debug) warn("RTL8139: Card #%zu: Time out!", i);
+        if (status & (1 << 13)) if (device->debug) warn("RTL8139: Card #%zu: Cable length change!", i);
+        if (status & (1 << 4)) if (device->debug) error("RTL8139: Card #%zu: RX buffer overflow!", i);
+        if (status & (1 << 3)) if (device->debug) error("RTL8139: Card #%zu: Error while sending packet!", i);
+        if (status & (1 << 2)) if (device->debug) log("RTL8139: Card #%zu: Packet sent!", i);
+        if (status & (1 << 1)) if (device->debug) error("RTL8139: Card #%zu: Error while receiving packet!", i);
         if (status & (1 << 0))
         {
-            log("RTL8139: Card #%zu: Packet received!", i);
+            if (device->debug) log("RTL8139: Card #%zu: Packet received!", i);
             device->receive();
         }
         device->irq_reset();
@@ -59,7 +59,7 @@ void RTL8139::read_mac()
     this->MAC[4] = mac2;
     this->MAC[5] = mac2 >> 8;
 
-    log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
+    if (this->debug) log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
 }
 
 void RTL8139::send(uint8_t *data, uint64_t length)
