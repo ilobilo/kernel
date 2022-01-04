@@ -2,8 +2,9 @@
 
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
-#include <kernel/main.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
+#include <lib/math.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
 #include <lib/log.hpp>
@@ -16,17 +17,16 @@ DEFINE_LOCK(vmm_lock)
 
 PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 {
-    PTable *ret;
+    PTable *ret = nullptr;
     if (curr_lvl->entries[entry].getflag(Present))
     {
         ret = reinterpret_cast<PTable*>(static_cast<uint64_t>(curr_lvl->entries[entry].getAddr()) << 12);
     }
     else
     {
-        ret = (PTable*)pmm::alloc();
-        memset(ret, 0, 4096);
+        ret = reinterpret_cast<PTable*>(pmm::alloc());
         curr_lvl->entries[entry].setAddr(reinterpret_cast<uint64_t>(ret) >> 12);
-        curr_lvl->entries[entry].setflags(Present | ReadWrite, true);
+        curr_lvl->entries[entry].setflags(Present | ReadWrite | UserSuper, true);
     }
     return ret;
 }
@@ -189,7 +189,7 @@ Pagemap *newPagemap()
 Pagemap *clonePagemap(Pagemap *old)
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->PML4 = (PTable*)pmm::alloc();
+    pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
 
     PTable *pml4 = pagemap->PML4;
     PTable *old_pml4 = old->PML4;
@@ -200,7 +200,7 @@ Pagemap *clonePagemap(Pagemap *old)
 
 void switchPagemap(Pagemap *pmap)
 {
-    write_cr(3, reinterpret_cast<uint64_t>(pmap->PML4));
+    asm volatile ("mov %0, %%cr3" :: "r" (pmap->PML4) : "memory");
 }
 
 PTable *getPagemap()
@@ -218,7 +218,42 @@ void init()
         return;
     }
 
-    kernel_pagemap = newPagemap();
+    kernel_pagemap = new Pagemap;
+    kernel_pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
+
+    for (uint64_t i = 256; i < 512; i++)
+    {
+        get_next_lvl(kernel_pagemap->PML4, i);
+    }
+
+    for (uint64_t i = 0x1000; i < 0x100000000; i += 0x1000)
+    {
+        kernel_pagemap->mapMem(i, i);
+        kernel_pagemap->mapMem(i + hhdm_tag->addr, i);
+    }
+
+    for (uint64_t i = 0; i < pmrs_tag->entries; i++)
+    {
+        uint64_t vaddr = pmrs_tag->pmrs[i].base;
+        uint64_t paddr = kbaddr_tag->physical_base_address + (vaddr - kbaddr_tag->virtual_base_address);
+        uint64_t flags = ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_EXECUTABLE) ? 0 : NX) | ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_WRITABLE) ? ReadWrite : 0) | Present;
+        for (uint64_t t = 0; t < pmrs_tag->pmrs[i].length; i += 0x1000)
+        {
+            kernel_pagemap->mapMem(vaddr + t, paddr + t, flags);
+        }
+    }
+    for (uint64_t i = 0; i < mmap_tag->entries; i++)
+    {
+        uint64_t base = ALIGN_DOWN(mmap_tag->memmap[i].base, 0x1000);
+        uint64_t top = ALIGN_UP(mmap_tag->memmap[i].base + mmap_tag->memmap[i].length, 0x1000);
+        if (top <= 0x100000000) continue;
+        for (uint64_t t = base; t < top; t += 0x1000)
+        {
+            if (t < 0x100000000) continue;
+            kernel_pagemap->mapMem(t, t);
+            kernel_pagemap->mapMem(t + hhdm_tag->addr, t);
+        }
+    }
     switchPagemap(kernel_pagemap);
 
     serial::newline();

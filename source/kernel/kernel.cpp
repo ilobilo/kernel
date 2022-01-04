@@ -22,6 +22,9 @@ struct stivale2_struct_tag_modules *mod_tag;
 struct stivale2_struct_tag_cmdline *cmd_tag;
 struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
 struct stivale2_struct_tag_epoch *epoch_tag;
+struct stivale2_struct_tag_pmrs *pmrs_tag;
+struct stivale2_struct_tag_kernel_base_address *kbaddr_tag;
+struct stivale2_struct_tag_hhdm *hhdm_tag;
 
 char *cmdline;
 
@@ -96,6 +99,9 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
     cmd_tag = static_cast<stivale2_struct_tag_cmdline*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID));
     kfilev2_tag = static_cast<stivale2_struct_tag_kernel_file_v2*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID));
     epoch_tag = static_cast<stivale2_struct_tag_epoch*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_EPOCH_ID));
+    pmrs_tag = static_cast<stivale2_struct_tag_pmrs*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_PMRS_ID));
+    kbaddr_tag = static_cast<stivale2_struct_tag_kernel_base_address*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_BASE_ADDRESS_ID));
+    hhdm_tag = static_cast<stivale2_struct_tag_hhdm*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_HHDM_ID));
 
     cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
 
