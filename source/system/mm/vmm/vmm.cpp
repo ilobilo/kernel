@@ -97,7 +97,7 @@ void PDEntry::setflag(PT_Flag flag, bool enabled)
 {
     uint64_t bitSel = static_cast<uint64_t>(flag);
     this->value &= ~bitSel;
-    if (enabled)this-> value |= bitSel;
+    if (enabled) this->value |= bitSel;
 }
 
 void PDEntry::setflags(uint64_t flags, bool enabled)
@@ -181,43 +181,8 @@ void init()
         return;
     }
 
-    kernel_pagemap = new Pagemap;
-    kernel_pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
-
-    for (uint64_t i = 256; i < 512; i++)
-    {
-        get_next_lvl(kernel_pagemap->PML4, i);
-    }
-
-    for (uint64_t i = 0x1000; i < 0x100000000; i += 0x1000)
-    {
-        kernel_pagemap->mapMem(i, i);
-        kernel_pagemap->mapMem(i + hhdm_tag->addr, i);
-    }
-
-    for (uint64_t i = 0; i < pmrs_tag->entries; i++)
-    {
-        uint64_t vaddr = pmrs_tag->pmrs[i].base;
-        uint64_t paddr = kbaddr_tag->physical_base_address + (vaddr - kbaddr_tag->virtual_base_address);
-        uint64_t flags = ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_EXECUTABLE) ? 0 : NX) | ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_WRITABLE) ? ReadWrite : 0) | Present;
-        for (uint64_t t = 0; t < pmrs_tag->pmrs[i].length; i += 0x1000)
-        {
-            kernel_pagemap->mapMem(vaddr + t, paddr + t, flags);
-        }
-    }
-    for (uint64_t i = 0; i < mmap_tag->entries; i++)
-    {
-        uint64_t base = ALIGN_DOWN(mmap_tag->memmap[i].base, 0x1000);
-        uint64_t top = ALIGN_UP(mmap_tag->memmap[i].base + mmap_tag->memmap[i].length, 0x1000);
-        if (top <= 0x100000000) continue;
-        for (uint64_t t = base; t < top; t += 0x1000)
-        {
-            if (t < 0x100000000) continue;
-            kernel_pagemap->mapMem(t, t);
-            kernel_pagemap->mapMem(t + hhdm_tag->addr, t);
-        }
-    }
-    asm volatile ("mov %0, %%cr3" :: "r" (kernel_pagemap->PML4) : "memory");
+    kernel_pagemap = newPagemap();
+    switchPagemap(kernel_pagemap);
 
     serial::newline();
     initialised = true;

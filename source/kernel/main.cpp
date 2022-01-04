@@ -190,12 +190,6 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    vmm::kernel_pagemap->mapMem(0x60000000000, 0x80000);
-    int *test = (int*)0x60000000000;
-    int *test1 = (int*)0x80000;
-    *test = 26;
-    printf("%d %d\n", *test, *test1);
-
     scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(time), nullptr));
     scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(apps::kshell::run), nullptr));
 }
