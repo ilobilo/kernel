@@ -27,8 +27,8 @@ void addCard(NIC *card, type_t type)
     // NIC 0 IPv4 = 10.2.2.4
     // ...
 
-    static uint8_t i = 0x02;
-    uint8_t ip[4] = { 0x10, 0x02, 0x02, i };
+    static uint8_t i = 2;
+    uint8_t ip[4] = { 10, 2, 2, i };
     memcpy(card->IPv4, ip, 4);
     i++;
 }
