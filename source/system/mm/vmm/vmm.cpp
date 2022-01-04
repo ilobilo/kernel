@@ -5,7 +5,6 @@
 #include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
-#include <lib/lock.hpp>
 #include <lib/cpu.hpp>
 #include <lib/log.hpp>
 
@@ -13,7 +12,6 @@ namespace kernel::system::mm::vmm {
 
 bool initialised = false;
 Pagemap *kernel_pagemap = nullptr;
-DEFINE_LOCK(vmm_lock)
 
 PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 {
@@ -31,9 +29,8 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
     return ret;
 }
 
-void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
+PDEntry &Pagemap::virt2pte(uint64_t vaddr)
 {
-    acquire_lock(vmm_lock);
     size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
     size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
     size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
@@ -44,127 +41,94 @@ void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
     pml1 = get_next_lvl(pml2, pml2_entry);
+    return pml1->entries[pml1_entry];
+}
 
-    pml1->entries[pml1_entry].setAddr(paddr >> 12);
-    pml1->entries[pml1_entry].setflags(flags, true);
-    release_lock(vmm_lock);
+void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
+{
+    acquire_lock(this->lock);
+    PDEntry &pml1_entry = this->virt2pte(vaddr);
+
+    pml1_entry.value = 0;
+    pml1_entry.setAddr(paddr >> 12);
+    pml1_entry.setflags(flags, true);
+    release_lock(this->lock);
 }
 
 void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
-    acquire_lock(vmm_lock);
-    uint64_t paddr = 0;
+    acquire_lock(this->lock);
+    PDEntry &pml1_entry = this->virt2pte(vaddr_old);
 
-    size_t pml4_entry = (vaddr_old & ((uint64_t)0x1FF << 39)) >> 39;
-    size_t pml3_entry = (vaddr_old & ((uint64_t)0x1FF << 30)) >> 30;
-    size_t pml2_entry = (vaddr_old & ((uint64_t)0x1FF << 21)) >> 21;
-    size_t pml1_entry = (vaddr_old & ((uint64_t)0x1FF << 12)) >> 12;
-
-    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
-
-    pml3 = get_next_lvl(pml4, pml4_entry);
-    pml2 = get_next_lvl(pml3, pml3_entry);
-    pml1 = get_next_lvl(pml2, pml2_entry);
-
-    paddr = pml1->entries[pml1_entry].getAddr() << 12;
-    pml1->entries[pml1_entry].value = 0;
+    uint64_t paddr = pml1_entry.getAddr() << 12;
+    pml1_entry.value = 0;
     asm volatile ("invlpg (%0)" :: "r"(vaddr_old));
-
-    release_lock(vmm_lock);
+    release_lock(this->lock);
     this->mapMem(vaddr_new, paddr, flags);
 }
 
 void Pagemap::mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
-    mapMem(vaddr, paddr, flags | UserSuper);
+    this->mapMem(vaddr, paddr, flags | UserSuper);
 }
 
 void Pagemap::unmapMem(uint64_t vaddr)
 {
-    acquire_lock(vmm_lock);
-    size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
-    size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
-    size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
-    size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
-
-    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
-
-    pml3 = get_next_lvl(pml4, pml4_entry);
-    pml2 = get_next_lvl(pml3, pml3_entry);
-    pml1 = get_next_lvl(pml2, pml2_entry);
-
-    pml1->entries[pml1_entry].value = 0;
+    acquire_lock(this->lock);
+    this->virt2pte(vaddr).value = 0;
     asm volatile ("invlpg (%0)" :: "r"(vaddr));
-    release_lock(vmm_lock);
+    release_lock(this->lock);
 }
 
 void Pagemap::setFlags(uint64_t vaddr, uint64_t flags)
 {
-    size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
-    size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
-    size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
-    size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
-
-    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
-
-    pml3 = get_next_lvl(pml4, pml4_entry);
-    pml2 = get_next_lvl(pml3, pml3_entry);
-    pml1 = get_next_lvl(pml2, pml2_entry);
-
-    pml1->entries[pml1_entry].setflags(flags, true);
+    acquire_lock(this->lock);
+    this->virt2pte(vaddr).setflags(flags, true);
+    release_lock(this->lock);
 }
 
 void Pagemap::remFlags(uint64_t vaddr, uint64_t flags)
 {
-    size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
-    size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
-    size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
-    size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
-
-    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
-
-    pml3 = get_next_lvl(pml4, pml4_entry);
-    pml2 = get_next_lvl(pml3, pml3_entry);
-    pml1 = get_next_lvl(pml2, pml2_entry);
-
-    pml1->entries[pml1_entry].setflags(flags, false);
+    acquire_lock(this->lock);
+    this->virt2pte(vaddr).setflags(flags, false);
+    release_lock(this->lock);
 }
 
 void PDEntry::setflag(PT_Flag flag, bool enabled)
 {
     uint64_t bitSel = static_cast<uint64_t>(flag);
-    value &= ~bitSel;
-    if (enabled) value |= bitSel;
+    this->value &= ~bitSel;
+    if (enabled)this-> value |= bitSel;
 }
 
 void PDEntry::setflags(uint64_t flags, bool enabled)
 {
     uint64_t bitSel = flags;
-    value &= ~bitSel;
-    if (enabled) value |= bitSel;
+    this->value &= ~bitSel;
+    if (enabled) this->value |= bitSel;
 }
 
 bool PDEntry::getflag(PT_Flag flag)
 {
     uint64_t bitSel = static_cast<uint64_t>(flag);
-    return (value & (bitSel > 0)) ? true : false;
+    return (this->value & (bitSel > 0)) ? true : false;
 }
 
 bool PDEntry::getflags(uint64_t flags)
 {
-    return (value & (flags > 0)) ? true : false;
+    return (this->value & (flags > 0)) ? true : false;
 }
 
 uint64_t PDEntry::getAddr()
 {
-    return (value & 0x000FFFFFFFFFF000) >> 12;
+    return (this->value & 0x000FFFFFFFFFF000) >> 12;
 }
 
 void PDEntry::setAddr(uint64_t address)
 {
     address &= 0x000000FFFFFFFFFF;
-    value &= 0xFFF0000000000FFF;
-    value |= (address << 12);
+    this->value &= 0xFFF0000000000FFF;
+    this->value |= (address << 12);
 }
 
 Pagemap *newPagemap()
@@ -200,7 +164,7 @@ Pagemap *clonePagemap(Pagemap *old)
 
 void switchPagemap(Pagemap *pmap)
 {
-    asm volatile ("mov %0, %%cr3" :: "r" (pmap->PML4) : "memory");
+    write_cr(3, reinterpret_cast<uint64_t>(pmap->PML4));
 }
 
 PTable *getPagemap()
@@ -218,42 +182,7 @@ void init()
         return;
     }
 
-    kernel_pagemap = new Pagemap;
-    kernel_pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
-
-    for (uint64_t i = 256; i < 512; i++)
-    {
-        get_next_lvl(kernel_pagemap->PML4, i);
-    }
-
-    for (uint64_t i = 0x1000; i < 0x100000000; i += 0x1000)
-    {
-        kernel_pagemap->mapMem(i, i);
-        kernel_pagemap->mapMem(i + hhdm_tag->addr, i);
-    }
-
-    for (uint64_t i = 0; i < pmrs_tag->entries; i++)
-    {
-        uint64_t vaddr = pmrs_tag->pmrs[i].base;
-        uint64_t paddr = kbaddr_tag->physical_base_address + (vaddr - kbaddr_tag->virtual_base_address);
-        uint64_t flags = ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_EXECUTABLE) ? 0 : NX) | ((pmrs_tag->pmrs[i].permissions & STIVALE2_PMR_WRITABLE) ? ReadWrite : 0) | Present;
-        for (uint64_t t = 0; t < pmrs_tag->pmrs[i].length; i += 0x1000)
-        {
-            kernel_pagemap->mapMem(vaddr + t, paddr + t, flags);
-        }
-    }
-    for (uint64_t i = 0; i < mmap_tag->entries; i++)
-    {
-        uint64_t base = ALIGN_DOWN(mmap_tag->memmap[i].base, 0x1000);
-        uint64_t top = ALIGN_UP(mmap_tag->memmap[i].base + mmap_tag->memmap[i].length, 0x1000);
-        if (top <= 0x100000000) continue;
-        for (uint64_t t = base; t < top; t += 0x1000)
-        {
-            if (t < 0x100000000) continue;
-            kernel_pagemap->mapMem(t, t);
-            kernel_pagemap->mapMem(t + hhdm_tag->addr, t);
-        }
-    }
+    kernel_pagemap = newPagemap();
     switchPagemap(kernel_pagemap);
 
     serial::newline();

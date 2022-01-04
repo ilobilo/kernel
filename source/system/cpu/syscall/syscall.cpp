@@ -35,24 +35,16 @@ static void syscall_write(registers_t *regs)
     {
         case 0:
         {
-            char *str = static_cast<char*>(malloc(RDX_ARG2 * sizeof(char)));
-            memcpy(str, reinterpret_cast<void*>(RSI_ARG1), RDX_ARG2);
-            str[RDX_ARG2] = 0;
-            printf("%s", str);
-            RAX = allocsize(str);
-            free(str);
+            printf("%.*s", static_cast<int>(RDX_ARG2), reinterpret_cast<char*>(RSI_ARG1));
+            RAX = RDX_ARG2 * sizeof(char);
             break;
         }
         case 1:
             break;
         case 2:
         {
-            char *str = static_cast<char*>(malloc(RDX_ARG2 * sizeof(char)));
-            memcpy(str, reinterpret_cast<void*>(RSI_ARG1), RDX_ARG2);
-            str[RDX_ARG2] = 0;
-            error("%s", str);
-            RAX = allocsize(str);
-            free(str);
+            error("%.*s", static_cast<int>(RDX_ARG2), reinterpret_cast<char*>(RSI_ARG1));
+            RAX = RDX_ARG2 * sizeof(char);
             break;
         }
         default:
