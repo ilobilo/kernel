@@ -1,8 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
+#include <system/sched/timer/timer.hpp>
 #include <system/sched/hpet/hpet.hpp>
-#include <system/sched/pit/pit.hpp>
-#include <system/sched/rtc/rtc.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
@@ -20,24 +19,18 @@ uint64_t counter()
 
 void usleep(uint64_t us)
 {
-    if (!initialised)
-    {
-        if (pit::initialised) pit::msleep(us / 10000);
-        else rtc::sleep(us / 1000000);
-        return;
-    }
     uint64_t target = counter() + (us * 1000000000) / clk;
     while (counter() < target);
 }
 
 void msleep(uint64_t msec)
 {
-    usleep(HPETMSECS(msec));
+    usleep(MSECS2HPET(msec));
 }
 
 void sleep(uint64_t sec)
 {
-    usleep(HPETSECS(sec));
+    usleep(SECS2HPET(sec));
 }
 
 void init()
@@ -59,8 +52,8 @@ void init()
     clk = hpet->general_capabilities >> 32;
 
     mmoutq(&hpet->general_configuration, 0);
-    mmoutq(&hpet->main_counter_value, 0);
-    mmoutq(&hpet->general_configuration, 1);
+	mmoutq(&hpet->main_counter_value, 0);
+	mmoutq(&hpet->general_configuration, 1);
 
     serial::newline();
     initialised = true;
