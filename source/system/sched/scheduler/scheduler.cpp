@@ -51,7 +51,7 @@ void schedule(registers_t *regs)
     if (!current_thread || !initialised || current_thread->thread->killed) return;
 
     current_thread->thread->stack = reinterpret_cast<uint8_t*>(gdt::get_stack());
-    current_thread->thread->pagemap->PML = vmm::getPagemap();
+    current_thread->thread->pagemap->TOPLVL = vmm::getPagemap();
     current_thread->thread->regs = *regs;
 
     while (current_thread->next->thread->killed)

@@ -41,13 +41,13 @@ PDEntry &Pagemap::virt2pte(uint64_t vaddr)
 
     if (lvl5)
     {
-        pml5 = this->PML;
+        pml5 = this->TOPLVL;
         pml4 = get_next_lvl(pml5, pml5_entry);
     }
     else
     {
         pml5 = nullptr;
-        pml4 = this->PML;
+        pml4 = this->TOPLVL;
     }
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
@@ -147,14 +147,14 @@ Pagemap *newPagemap()
 
     if (kernel_pagemap == nullptr)
     {
-        pagemap->PML = reinterpret_cast<PTable*>(read_cr(3));
+        pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
         return pagemap;
     }
 
-    pagemap->PML = static_cast<PTable*>(pmm::alloc());
+    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
 
-    PTable *pml4 = pagemap->PML;
-    PTable *kernel_pml4 = kernel_pagemap->PML;
+    PTable *pml4 = pagemap->TOPLVL;
+    PTable *kernel_pml4 = kernel_pagemap->TOPLVL;
     for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
 
     return pagemap;
@@ -163,10 +163,10 @@ Pagemap *newPagemap()
 Pagemap *clonePagemap(Pagemap *old)
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->PML = static_cast<PTable*>(pmm::alloc());
+    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
 
-    PTable *pml4 = pagemap->PML;
-    PTable *old_pml4 = old->PML;
+    PTable *pml4 = pagemap->TOPLVL;
+    PTable *old_pml4 = old->TOPLVL;
     for (size_t i = 0; i < 512; i++) pml4->entries[i] = old_pml4->entries[i];
 
     return pagemap;
@@ -174,7 +174,7 @@ Pagemap *clonePagemap(Pagemap *old)
 
 void switchPagemap(Pagemap *pmap)
 {
-    write_cr(3, reinterpret_cast<uint64_t>(pmap->PML));
+    write_cr(3, reinterpret_cast<uint64_t>(pmap->TOPLVL));
 }
 
 PTable *getPagemap()
