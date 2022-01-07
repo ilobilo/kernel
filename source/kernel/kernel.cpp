@@ -55,12 +55,23 @@ static struct stivale2_header_tag_framebuffer framebuffer_hdr_tag = {
     .unused = 0
 };
 
+#if (LVL5_PAGING != 0)
+static struct stivale2_tag lvl5_hdr_tag = {
+    .identifier = STIVALE2_HEADER_TAG_5LV_PAGING_ID,
+    .next = reinterpret_cast<uint64_t>(&framebuffer_hdr_tag)
+};
+#endif
+
 [[gnu::section(".stivale2hdr"), gnu::used]]
 static struct stivale2_header stivale_hdr = {
     .entry_point = 0,
     .stack = reinterpret_cast<uintptr_t>(stack) + sizeof(stack),
     .flags = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
+#if (LVL5_PAGING != 0)
+    .tags = reinterpret_cast<uintptr_t>(&lvl5_hdr_tag)
+#else
     .tags = reinterpret_cast<uintptr_t>(&framebuffer_hdr_tag)
+#endif
 };
 
 void *stivale2_get_tag(stivale2_struct *stivale, uint64_t id)

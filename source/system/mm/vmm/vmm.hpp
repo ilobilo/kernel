@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <lib/lock.hpp>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -43,7 +44,10 @@ struct [[gnu::aligned(0x1000)]] PTable
 
 struct Pagemap
 {
-    PTable *PML4;
+    volatile lock_t lock;
+    PTable *TOPLVL;
+
+    PDEntry &virt2pte(uint64_t vaddr);
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags = (Present | ReadWrite));
@@ -55,6 +59,7 @@ struct Pagemap
 };
 
 extern bool initialised;
+extern bool lvl5;
 extern Pagemap *kernel_pagemap;
 
 Pagemap *newPagemap();
