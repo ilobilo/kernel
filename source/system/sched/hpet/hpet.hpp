@@ -6,14 +6,6 @@
 
 namespace kernel::system::sched::hpet {
 
-#define HPETSECS(num) ((num) * 1000000)
-#define HPETMSECS(num) ((num) * 10000)
-#define HPETMICSECS(num) ((num) * 10)
-
-#define HPET2SECS(num) ((num) / 1000000)
-#define HPET2MSECS(num) ((num) / 10000)
-#define HPET2MICSECS(num) ((num) / 10)
-
 struct HPET
 {
     uint64_t general_capabilities;

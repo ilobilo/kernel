@@ -3,6 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/ps2/keyboard/keyboard.hpp>
+#include <system/sched/timer/timer.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
@@ -225,7 +226,7 @@ void parse(char *cmd, char *arg)
             while (true)
             {
                 printf("\r\033[2K%s", rtc::getTime());
-                pit::sleep(1);
+                timer::sleep(1);
             }
             break;
         case hash("fps"):

@@ -19,26 +19,12 @@ uint64_t freqbck = 100;
 
 void sleep(uint64_t sec)
 {
-    if (hpet::initialised)
-    {
-        hpet::sleep(sec);
-        return;
-    }
-    if (!initialised) rtc::sleep(sec);
-
     uint64_t start = tick;
     while (tick < start + sec * frequency);
 }
 
 void msleep(uint64_t msec)
 {
-    if (hpet::initialised)
-    {
-        hpet::msleep(msec);
-        return;
-    }
-    if (!initialised) rtc::sleep(msec / 100);
-
     uint64_t start = tick;
     while (tick < start + msec * (frequency / 100));
 }
