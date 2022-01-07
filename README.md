@@ -16,7 +16,7 @@ Contributors are welcome
 - [x] IDT
 - [x] TSS
 - [x] PCI
-- [ ] PCIe
+- [x] PCIe
 
 ### Memory
 - [x] PMM

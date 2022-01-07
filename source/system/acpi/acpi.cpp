@@ -151,7 +151,7 @@ void reboot()
             outb(fadthdr->ResetReg.Address, fadthdr->ResetValue);
             break;
         case ACPI_GAS_PCI:
-            pci::writeb(0, (fadthdr->ResetReg.Address >> 32) & 0xFFFF, (fadthdr->ResetReg.Address >> 16) & 0xFFFF, fadthdr->ResetReg.Address & 0xFFFF, fadthdr->ResetValue);
+            pci::writeb(0, 0, (fadthdr->ResetReg.Address >> 32) & 0xFFFF, (fadthdr->ResetReg.Address >> 16) & 0xFFFF, fadthdr->ResetReg.Address & 0xFFFF, fadthdr->ResetValue);
             break;
     }
 }
