@@ -41,10 +41,20 @@ struct [[gnu::packed]] SDTHeader
     uint32_t creatrevision;
 };
 
+struct [[gnu::packed]] MCFGEntry
+{
+    uint64_t baseaddr;
+    uint16_t segment;
+    uint8_t startbus;
+    uint8_t endbus;
+    uint32_t reserved;
+};
+
 struct [[gnu::packed]] MCFGHeader
 {
     SDTHeader header;
     uint64_t reserved;
+    MCFGEntry entries[];
 };
 
 struct [[gnu::packed]] MADTHeader
@@ -173,15 +183,6 @@ struct [[gnu::packed]] FADTHeader
     GenericAddressStructure X_PMTimerBlock;
     GenericAddressStructure X_GPE0Block;
     GenericAddressStructure X_GPE1Block;
-};
-
-struct [[gnu::packed]] deviceconfig
-{
-    uint64_t baseaddr;
-    uint16_t pciseggroup;
-    uint8_t startbus;
-    uint8_t endbus;
-    uint32_t reserved;
 };
 
 extern bool initialised;

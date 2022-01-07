@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include <system/acpi/acpi.hpp>
 #include <lib/vector.hpp>
+#include <lib/mmio.hpp>
 #include <lib/io.hpp>
 #include <stdint.h>
 
@@ -25,7 +27,7 @@ enum offsets
     PCI_CACHE_LINE_SIZE = 0x0C,
     PCI_LATENCY_TIMER = 0x0D,
     PCI_HEADER_TYPE = 0x0E,
-    PCI_BIST = 0x0f,
+    PCI_BIST = 0x0F,
     PCI_BAR0 = 0x10,
     PCI_BAR1 = 0x14,
     PCI_BAR2 = 0x18,
@@ -66,42 +68,85 @@ struct pciheader_t
     uint8_t bist;
 };
 
-static inline void get_addr(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+extern bool legacy;
+static inline void *get_addr(uint16_t seg, uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
 {
-    uint32_t address = (bus << 16) | (dev << 11) | (func << 8) | (offset & ~(3)) | 0x80000000;
-    outl(0xcf8, address);
+    if (legacy)
+    {
+        uint32_t address = (bus << 16) | (dev << 11) | (func << 8) | (offset & ~(3)) | 0x80000000;
+        outl(0xcf8, address);
+    }
+    else
+    {
+        for (size_t i = 0; i < ((acpi::mcfghdr->header.length) - sizeof(acpi::MCFGHeader)) / sizeof(acpi::MCFGEntry); i++)
+        {
+            acpi::MCFGEntry &entry = acpi::mcfghdr->entries[i];
+            if (entry.segment == seg)
+            {
+                if ((bus >= entry.startbus) && (bus <= entry.endbus))
+                {
+                    return reinterpret_cast<void*>((entry.baseaddr + (((bus - entry.startbus) << 20) | (dev << 15) | (func << 12))) + offset);
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
-static inline uint8_t readb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+static inline uint8_t readb(uint16_t seg, uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
 {
-    get_addr(bus, dev, func, offset);
-    return inb(0xCFC + (offset & 3));
+    if (legacy)
+    {
+        get_addr(seg, bus, dev, func, offset);
+        return inb(0xCFC + (offset & 3));
+    }
+    return mminb(get_addr(seg, bus, dev, func, offset));
 }
-static inline uint16_t readw(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+static inline uint16_t readw(uint16_t seg, int8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
 {
-    get_addr(bus, dev, func, offset);
-    return inw(0xCFC + (offset & 3));
+    if (legacy)
+    {
+        get_addr(seg, bus, dev, func, offset);
+        return inw(0xCFC + (offset & 3));
+    }
+    return mminw(get_addr(seg, bus, dev, func, offset));
 }
-static inline uint32_t readl(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
+static inline uint32_t readl(uint16_t seg, uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset)
 {
-    get_addr(bus, dev, func, offset);
-    return inl(0xCFC + (offset & 3));
+    if (legacy)
+    {
+        get_addr(seg, bus, dev, func, offset);
+        return inl(0xCFC + (offset & 3));
+    }
+    return mminl(get_addr(seg, bus, dev, func, offset));
 }
 
-static inline void writeb(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value)
+static inline void writeb(uint16_t seg, uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint8_t value)
 {
-    get_addr(bus, dev, func, offset);
-    outb(0xCFC + (offset & 3), value);
+    if (legacy)
+    {
+        get_addr(seg, bus, dev, func, offset);
+        outb(0xCFC + (offset & 3), value);
+    }
+    else mmoutb(get_addr(seg, bus, dev, func, offset), value);
 }
-static inline void writew(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value)
+static inline void writew(uint16_t seg, uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint16_t value)
 {
-    get_addr(bus, dev, func, offset);
-    outw(0xCFC + (offset & 3), value);
+    if (legacy)
+    {
+        get_addr(seg, bus, dev, func, offset);
+        outw(0xCFC + (offset & 3), value);
+    }
+    else mmoutw(get_addr(seg, bus, dev, func, offset), value);
 }
-static inline void writel(uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value)
+static inline void writel(uint16_t seg, uint8_t bus, uint8_t dev, uint8_t func, uint32_t offset, uint32_t value)
 {
-    get_addr(bus, dev, func, offset);
-    outl(0xCFC + (offset & 3), value);
+    if (legacy)
+    {
+        get_addr(seg, bus, dev, func, offset);
+        outl(0xCFC + (offset & 3), value);
+    }
+    else mmoutl(get_addr(seg, bus, dev, func, offset), value);
 }
 
 extern bool legacy;
@@ -113,48 +158,57 @@ struct pcidevice_t
     const char *progifstr;
     const char *subclassStr;
     const char *ClassStr;
+    uint16_t seg;
     uint8_t bus;
     uint8_t dev;
     uint8_t func;
 
-    void get_addr(uint32_t offset)
+    void *get_addr(uint32_t offset)
     {
-        kernel::system::pci::get_addr(this->bus, this->dev, this->func, offset);
+        return kernel::system::pci::get_addr(this->seg, this->bus, this->dev, this->func, offset);
     }
 
     uint8_t readb(uint32_t offset)
     {
-        return kernel::system::pci::readb(this->bus, this->dev, this->func, offset);
+        return kernel::system::pci::readb(this->seg, this->bus, this->dev, this->func, offset);
     }
     uint16_t readw(uint32_t offset)
     {
-        return kernel::system::pci::readw(this->bus, this->dev, this->func, offset);
+        return kernel::system::pci::readw(this->seg, this->bus, this->dev, this->func, offset);
     }
     uint32_t readl(uint32_t offset)
     {
-        return kernel::system::pci::readl(this->bus, this->dev, this->func, offset);
+        return kernel::system::pci::readl(this->seg, this->bus, this->dev, this->func, offset);
     }
 
     void writeb(uint32_t offset, uint8_t value)
     {
-        kernel::system::pci::writeb(this->bus, this->dev, this->func, offset, value);
+        kernel::system::pci::writeb(this->seg, this->bus, this->dev, this->func, offset, value);
     }
     void writew(uint32_t offset, uint16_t value)
     {
-        kernel::system::pci::writew(this->bus, this->dev, this->func, offset, value);
+        kernel::system::pci::writew(this->seg, this->bus, this->dev, this->func, offset, value);
     }
     void writel(uint32_t offset, uint32_t value)
     {
-        kernel::system::pci::writel(this->bus, this->dev, this->func, offset, value);
+        kernel::system::pci::writel(this->seg, this->bus, this->dev, this->func, offset, value);
     }
 
     void command(uint64_t cmd, bool enable)
     {
-        uint32_t command = this->device->command;
-        if (enable) command |= cmd;
-        else command &= ~cmd;
-        this->writew(PCI_COMMAND, command);
-        if (legacy) this->device->command = this->readw(PCI_COMMAND);
+        if (legacy)
+        {
+            uint32_t command = this->device->command;
+            if (enable) command |= cmd;
+            else command &= ~cmd;
+            this->writew(PCI_COMMAND, command);
+            this->device->command = this->readw(PCI_COMMAND);
+        }
+        else
+        {
+            if (enable) this->device->command |= cmd;
+            else this->device->command &= ~cmd;
+        }
     }
 
     uint32_t get_bar(uint8_t type);
@@ -163,12 +217,7 @@ struct pcidevice_t
 struct pciheader0
 {
     pciheader_t device;
-    uint32_t BAR0;
-    uint32_t BAR1;
-    uint32_t BAR2;
-    uint32_t BAR3;
-    uint32_t BAR4;
-    uint32_t BAR5;
+    uint32_t BAR[6];
     uint32_t cardbusCisPtr;
     uint16_t subsysVendorID;
     uint16_t subsysID;
@@ -187,8 +236,7 @@ struct pciheader0
 struct pciheader1
 {
     pciheader_t device;
-    uint32_t BAR0;
-    uint32_t BAR1;
+    uint32_t BAR[2];
     uint8_t primBus;
     uint8_t secBus;
     uint8_t subBus;
@@ -242,9 +290,8 @@ struct pciheader2
 };
 
 extern bool initialised;
-extern bool legacy;
 
-extern vector<pcidevice_t*> pcidevices;
+extern vector<pcidevice_t*> devices;
 
 pcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip);
 pcidevice_t *search(uint16_t vendor, uint16_t device, int skip);

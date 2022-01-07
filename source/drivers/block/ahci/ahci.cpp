@@ -221,7 +221,7 @@ AHCIDriver::AHCIDriver(pci::pcidevice_t *pcidevice)
     log("Registering AHCI driver #%zu", devices.size());
 
     if (pci::legacy) ABAR = reinterpret_cast<HBAMemory*>(pcidevice->readl(pci::PCI_BAR5));
-    else ABAR = reinterpret_cast<HBAMemory*>(reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR5);
+    else ABAR = reinterpret_cast<HBAMemory*>(reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR[5]);
 
     probePorts();
 

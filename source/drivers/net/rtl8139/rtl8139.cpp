@@ -117,7 +117,7 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
 
     uint32_t BAR0 = 0;
     if (pci::legacy) BAR0 = pcidevice->readl(pci::PCI_BAR0);
-    else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR0;
+    else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR[0];
 
     this->BARType = BAR0 & 0x01;
     this->IOBase = pcidevice->get_bar(PCI_BAR_IO) & ~1;

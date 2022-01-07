@@ -246,13 +246,13 @@ void parse(char *cmd, char *arg)
             }
         }
         case hash("pci"):
-            for (size_t i = 0; i < pci::pcidevices.size(); i++)
+            for (size_t i = 0; i < pci::devices.size(); i++)
             {
                 printf("%.4X:%.4X %s %s\n",
-                    pci::pcidevices[i]->device->vendorid,
-                    pci::pcidevices[i]->device->deviceid,
-                    pci::pcidevices[i]->vendorstr,
-                    pci::pcidevices[i]->devicestr);
+                    pci::devices[i]->device->vendorid,
+                    pci::devices[i]->device->deviceid,
+                    pci::devices[i]->vendorstr,
+                    pci::devices[i]->devicestr);
             }
             break;
         case hash("crash"):
