@@ -45,7 +45,7 @@ struct [[gnu::aligned(0x1000)]] PTable
 struct Pagemap
 {
     volatile lock_t lock;
-    PTable *PML4;
+    PTable *PML;
 
     PDEntry &virt2pte(uint64_t vaddr);
 
@@ -59,6 +59,7 @@ struct Pagemap
 };
 
 extern bool initialised;
+extern bool lvl5;
 extern Pagemap *kernel_pagemap;
 
 Pagemap *newPagemap();

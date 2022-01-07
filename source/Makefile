@@ -6,7 +6,10 @@ INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
 DISK = $(SOURCEDIR)/../disk.img
+
 VERSION = 0
+NET_DEBUG = 1
+LVL5_PAGING = 0
 
 CC = clang
 CPP = clang++
@@ -36,7 +39,7 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 
 CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
-	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=1 -g
+	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=$(NET_DEBUG) -DLVL5_PAGING=$(LVL5_PAGING) -g
 
 CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter
 

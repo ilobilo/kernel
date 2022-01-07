@@ -2,7 +2,6 @@
 
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
-#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/cpu.hpp>
@@ -11,6 +10,7 @@
 namespace kernel::system::mm::vmm {
 
 bool initialised = false;
+bool lvl5 = LVL5_PAGING;
 Pagemap *kernel_pagemap = nullptr;
 
 PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
@@ -31,13 +31,24 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 
 PDEntry &Pagemap::virt2pte(uint64_t vaddr)
 {
+    size_t pml5_entry = (vaddr & ((uint64_t)0x1FF << 48)) >> 48;
     size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
     size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
     size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
     size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
 
-    PTable *pml4 = this->PML4, *pml3, *pml2, *pml1;
+    PTable *pml5, *pml4, *pml3, *pml2, *pml1;
 
+    if (lvl5)
+    {
+        pml5 = this->PML;
+        pml4 = get_next_lvl(pml5, pml5_entry);
+    }
+    else
+    {
+        pml5 = nullptr;
+        pml4 = this->PML;
+    }
     pml3 = get_next_lvl(pml4, pml4_entry);
     pml2 = get_next_lvl(pml3, pml3_entry);
     pml1 = get_next_lvl(pml2, pml2_entry);
@@ -136,14 +147,14 @@ Pagemap *newPagemap()
 
     if (kernel_pagemap == nullptr)
     {
-        pagemap->PML4 = reinterpret_cast<PTable*>(read_cr(3));
+        pagemap->PML = reinterpret_cast<PTable*>(read_cr(3));
         return pagemap;
     }
 
-    pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
+    pagemap->PML = static_cast<PTable*>(pmm::alloc());
 
-    PTable *pml4 = pagemap->PML4;
-    PTable *kernel_pml4 = kernel_pagemap->PML4;
+    PTable *pml4 = pagemap->PML;
+    PTable *kernel_pml4 = kernel_pagemap->PML;
     for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
 
     return pagemap;
@@ -152,10 +163,10 @@ Pagemap *newPagemap()
 Pagemap *clonePagemap(Pagemap *old)
 {
     Pagemap *pagemap = new Pagemap;
-    pagemap->PML4 = static_cast<PTable*>(pmm::alloc());
+    pagemap->PML = static_cast<PTable*>(pmm::alloc());
 
-    PTable *pml4 = pagemap->PML4;
-    PTable *old_pml4 = old->PML4;
+    PTable *pml4 = pagemap->PML;
+    PTable *old_pml4 = old->PML;
     for (size_t i = 0; i < 512; i++) pml4->entries[i] = old_pml4->entries[i];
 
     return pagemap;
@@ -163,7 +174,7 @@ Pagemap *clonePagemap(Pagemap *old)
 
 void switchPagemap(Pagemap *pmap)
 {
-    write_cr(3, reinterpret_cast<uint64_t>(pmap->PML4));
+    write_cr(3, reinterpret_cast<uint64_t>(pmap->PML));
 }
 
 PTable *getPagemap()
