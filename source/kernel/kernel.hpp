@@ -4,6 +4,8 @@
 
 #include <stivale2.h>
 
+#define STACK_SIZE 0x2000
+
 extern struct stivale2_struct_tag_smp *smp_tag;
 extern struct stivale2_struct_tag_memmap *mmap_tag;
 extern struct stivale2_struct_tag_rsdp *rsdp_tag;

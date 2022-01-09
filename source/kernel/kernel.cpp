@@ -4,6 +4,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/display/serial/serial.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
+#include <kernel/kernel.hpp>
 #include <kernel/main.hpp>
 #include <lib/string.hpp>
 #include <lib/panic.hpp>
@@ -25,7 +26,7 @@ struct stivale2_struct_tag_epoch *epoch_tag;
 
 char *cmdline;
 
-static uint8_t stack[8192];
+static uint8_t stack[STACK_SIZE] = { [0 ... STACK_SIZE - 1] = 'A' };
 
 static struct stivale2_header_tag_terminal terminal_hdr_tag = {
     .tag = {
@@ -120,6 +121,14 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
     terminal::init();
 
     kernel::main();
+
+    size_t size = 0;
+    for (size_t i = 0; i < STACK_SIZE; i++)
+    {
+        if (stack[i] != 'A') break;
+        size++;
+    }
+    log("Maximum stack usage: %zu Bytes", STACK_SIZE - size);
 
     while (true) asm volatile ("hlt");
 }

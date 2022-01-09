@@ -2,6 +2,7 @@
 
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/sched/hpet/hpet.hpp>
+#include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -14,8 +15,7 @@ namespace kernel::system::sched::pit {
 
 bool initialised = false;
 volatile uint64_t tick = 0;
-uint64_t frequency = 100;
-uint64_t freqbck = 100;
+uint64_t frequency = PIT_DEF_FREQ;
 
 void sleep(uint64_t sec)
 {
@@ -56,7 +56,7 @@ void setfreq(uint64_t freq)
 
 void resetfreq()
 {
-    setfreq(freqbck);
+    setfreq(PIT_DEF_FREQ);
 }
 
 void init(uint64_t freq)
@@ -69,9 +69,7 @@ void init(uint64_t freq)
         return;
     }
 
-    freqbck = freq;
     setfreq(freq);
-
     idt::register_interrupt_handler(idt::IRQ0, PIT_Handler);
 
     serial::newline();

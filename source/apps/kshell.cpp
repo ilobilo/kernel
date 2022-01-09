@@ -210,9 +210,9 @@ void parse(char *cmd, char *arg)
         }
         case hash("free"):
         {
-            uint64_t all = getmemsize() / 1024;
             uint64_t free = pmm::freemem() / 1024;
             uint64_t used = pmm::usedmem() / 1024;
+            uint64_t all = free + used;
             printf("Usable memory: %ld KB\nFree memory: %ld KB\nUsed memory: %ld KB\n", all, free, used);
             break;
         }

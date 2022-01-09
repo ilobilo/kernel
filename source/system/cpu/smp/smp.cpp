@@ -102,17 +102,14 @@ void init()
     {
         smp_tag->smp_info[i].extra_argument = (uint64_t)&cpus[i];
 
-        uint64_t stack = reinterpret_cast<uint64_t>(pmm::alloc());
-        uint64_t sched_stack = reinterpret_cast<uint64_t>(pmm::alloc());
-
-        gdt::tss[i].RSP[0] = stack;
-        gdt::tss[i].IST[1] = sched_stack;
-
-        cpus[i].id = i;
-
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
-            smp_tag->smp_info[i].target_stack = stack;
+            uint64_t stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
+            gdt::set_stack(i, stack);
+
+            cpus[i].id = i;
+
+            smp_tag->smp_info[i].target_stack = stack + STACK_SIZE;
             smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);
         }
         else cpu_init(&smp_tag->smp_info[i]);

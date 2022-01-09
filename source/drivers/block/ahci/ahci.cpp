@@ -65,12 +65,10 @@ void AHCIPort::configure()
     void *newbase = pmm::alloc();
     hbaport->CommandListBase = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase));
     hbaport->CommandListBaseUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase) >> 32);
-    memset(reinterpret_cast<void*>(hbaport->CommandListBase), 0, 1024);
 
     void *fisBase = pmm::alloc();
     hbaport->FISBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase));
     hbaport->FISBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
-    memset(fisBase, 0, 256);
 
     HBACommandHeader *commandHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase + (static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32));
     for (int i = 0; i < 32; i++)
@@ -80,7 +78,6 @@ void AHCIPort::configure()
         uint64_t address = reinterpret_cast<uint64_t>(cmdTableAddr) + (i << 8);
         commandHdr[i].CommandTableBaseAddress = static_cast<uint32_t>(address);
         commandHdr[i].CommandTableBaseAddressUpper = static_cast<uint32_t>(static_cast<uint64_t>(address) >> 32);
-        memset(cmdTableAddr, 0, 256);
     }
 
     startCMD();

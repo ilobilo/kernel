@@ -3,6 +3,7 @@
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <system/cpu/smp/smp.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
@@ -22,7 +23,7 @@ thread_t *alloc(uint64_t addr, void *args)
     acquire_lock(thread_lock);
     thread->pid = next_pid++;
     thread->state = READY;
-    thread->stack = static_cast<uint8_t*>(malloc(TSTACK_SIZE));
+    thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
     thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     thread->current_dir = vfs::fs_root->ptr;
 
@@ -32,7 +33,7 @@ thread_t *alloc(uint64_t addr, void *args)
 
     thread->regs.rip = addr;
     thread->regs.rdi = reinterpret_cast<uint64_t>(args);
-    thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack + TSTACK_SIZE);
+    thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack + STACK_SIZE);
     release_lock(thread_lock);
 
     return thread;
@@ -134,7 +135,7 @@ void init()
     current_thread->thread = new thread_t;
     current_thread->next = current_thread;
     current_thread->thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
-    current_thread->thread->stack = static_cast<uint8_t*>(malloc(TSTACK_SIZE));
+    current_thread->thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
     current_thread->thread->state = READY;
 
     serial::newline();

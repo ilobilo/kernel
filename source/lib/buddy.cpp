@@ -158,7 +158,7 @@ void BuddyAlloc::setsize(size_t pagecount)
 void *BuddyAlloc::malloc(size_t size)
 {
     if (size == 0) return nullptr;
-    if (this->data == nullptr) this->expand(16);
+    if (this->data == nullptr) this->expand();
 
     acquire_lock(this->lock);
 
@@ -247,7 +247,7 @@ void BuddyAlloc::free(void *ptr)
 
 size_t BuddyAlloc::allocsize(void *ptr)
 {
-    if (this->data == nullptr) this->expand(16);
+    if (this->data == nullptr) return 0;
     if (!ptr) return 0;
     return (reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock)))->size - sizeof(BuddyBlock);
 }

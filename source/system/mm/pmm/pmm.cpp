@@ -114,6 +114,7 @@ void init()
         if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
 
         uintptr_t top = mmap_tag->memmap[i].base + mmap_tag->memmap[i].length;
+        freeRam += mmap_tag->memmap[i].length;
 
         if (top > highest_page) highest_page = top;
     }
@@ -131,6 +132,7 @@ void init()
 
             mmap_tag->memmap[i].length -= bitmapSize;
             mmap_tag->memmap[i].base += bitmapSize;
+            freeRam -= bitmapSize;
             break;
         }
     }
@@ -144,8 +146,6 @@ void init()
             bitmap.Set((mmap_tag->memmap[i].base + t) / 0x1000, false);
         }
     }
-
-    freeRam = getmemsize();
 
     serial::newline();
     initialised = true;
