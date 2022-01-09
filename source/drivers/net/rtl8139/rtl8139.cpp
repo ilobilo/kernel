@@ -12,7 +12,6 @@ using namespace kernel::system::cpu;
 namespace kernel::drivers::net::rtl8139 {
 
 bool initialised = false;
-static bool first = true;
 vector<RTL8139*> devices;
 
 static void RTL8139_Handler(registers_t *regs)
@@ -126,15 +125,7 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
 
     this->start();
 
-    uint8_t IRQ = 0;
-    if (pci::legacy) IRQ = pcidevice->readl(pci::PCI_INTERRUPT_LINE);
-    else IRQ = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->intLine;
-
-    if (first)
-    {
-        first = false;
-        idt::register_interrupt_handler(IRQ + 32, RTL8139_Handler);
-    }
+    pcidevice->irq_set(RTL8139_Handler);
 
     this->read_mac();
 }

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/vector.hpp>
 #include <lib/mmio.hpp>
@@ -34,6 +35,7 @@ enum offsets
     PCI_BAR3 = 0x1C,
     PCI_BAR4 = 0x20,
     PCI_BAR5 = 0x24,
+    PCI_CAPABPTR = 0x34,
     PCI_INTERRUPT_LINE = 0x3C,
     PCI_INTERRUPT_PIN = 0x3D
 };
@@ -163,6 +165,11 @@ struct pcidevice_t
     uint8_t dev;
     uint8_t func;
 
+    bool int_on;
+
+    bool msi_support;
+    uint16_t msi_offset;
+
     void *get_addr(uint32_t offset)
     {
         return kernel::system::pci::get_addr(this->seg, this->bus, this->dev, this->func, offset);
@@ -212,6 +219,8 @@ struct pcidevice_t
     }
 
     uint32_t get_bar(uint8_t type);
+    void msi_set(uint8_t vector);
+    void irq_set(cpu::idt::int_handler_t handler);
 };
 
 struct pciheader0

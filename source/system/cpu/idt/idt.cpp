@@ -69,10 +69,10 @@ void init()
     release_lock(idt_lock);
 }
 
-void register_interrupt_handler(uint8_t vector, int_handler_t handler)
+void register_interrupt_handler(uint8_t vector, int_handler_t handler, bool ioapic)
 {
     interrupt_handlers[vector] = handler;
-    if (apic::initialised && vector > 31 && vector < 48) apic::ioapic_redirect_irq(vector - 32, vector);
+    if (ioapic && apic::initialised && vector > 31 && vector < 48) apic::ioapic_redirect_irq(vector - 32, vector);
 }
 
 static const char *exception_messages[32] = {

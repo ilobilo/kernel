@@ -13,7 +13,6 @@ using namespace kernel::system::cpu;
 namespace kernel::drivers::net::e1000 {
 
 bool initialised = false;
-static bool first = true;
 vector<E1000*> devices;
 
 static void E1000_Handler(registers_t *regs)
@@ -252,15 +251,7 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
 
     this->start();
 
-    uint8_t IRQ = 0;
-    if (pci::legacy) IRQ = pcidevice->readl(pci::PCI_INTERRUPT_LINE);
-    else IRQ = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->intLine;
-
-    if (first)
-    {
-        first = false;
-        idt::register_interrupt_handler(IRQ + 32, E1000_Handler);
-    }
+    pcidevice->irq_set(E1000_Handler);
 }
 
 bool search(uint16_t vendorid, uint16_t deviceid)
@@ -285,13 +276,11 @@ void init()
         return;
     }
 
-    bool found[5] = { false, false, false, false, false };
+    bool found[3] = { false, false, false };
     found[0] = search(0x8086, 0x100E);
-    found[1] = search(0x8086, 0x1004);
-    found[2] = search(0x8086, 0x100F);
-    found[3] = search(0x8086, 0x10EA);
-    found[4] = search(0x8086, 0x10D3);
-    for (size_t i = 0; i < 5; i++)
+    found[1] = search(0x8086, 0x153A);
+    found[2] = search(0x8086, 0x10EA);
+    for (size_t i = 0; i < 3; i++)
     {
         if (found[i] == true)
         {
