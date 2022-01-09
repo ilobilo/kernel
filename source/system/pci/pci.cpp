@@ -2,12 +2,15 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
+#include <system/cpu/idt/idt.hpp>
 #include <system/pci/pcidesc.hpp>
 #include <system/pci/pci.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs;
+using namespace kernel::system::cpu;
 
 namespace kernel::system::pci {
 
@@ -42,6 +45,26 @@ uint32_t pcidevice_t::get_bar(uint8_t type)
         }
     }
     return 0xFFFFFFFF;
+}
+
+void pcidevice_t::msi_set(uint8_t vector)
+{
+    if (!this->msi_support) return;
+    uint16_t msg_ctrl = this->readw(this->msi_offset + 2);
+    this->writel(this->msi_offset + 0x04, (0x0FEE << 20) | (smp_tag->bsp_lapic_id << 12));
+    this->writel(this->msi_offset + (((msg_ctrl << 7) & 1) == 1 ? 0x0C : 0x08), vector);
+    this->writew(this->msi_offset + 2, (msg_ctrl | 1) & ~(0b111 << 4));
+}
+
+void pcidevice_t::irq_set(idt::int_handler_t handler)
+{
+    if (this->int_on) return;
+    uint8_t irq = 0;
+    if (legacy) irq = this->readl(PCI_INTERRUPT_LINE);
+    else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
+    idt::register_interrupt_handler(irq + 32, handler, (this->msi_support ? false : true));
+    if (this->msi_support) this->msi_set(irq);
+    this->int_on = true;
 }
 
 pcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)
@@ -136,6 +159,28 @@ size_t count(uint8_t Class, uint8_t subclass, uint8_t progif)
     return num;
 }
 
+static void msi_check(pcidevice_t *device)
+{
+    if (device->device->status & (1 << 4))
+    {
+        uint8_t offset = 0;
+        if (legacy) offset = device->readb(PCI_CAPABPTR);
+        else offset = reinterpret_cast<pciheader0*>(device->device)->capabPtr;
+        while (offset > 0)
+        {
+            uint8_t id = device->readb(offset);
+            switch (id)
+            {
+                case 0x05:
+                    device->msi_support = true;
+                    device->msi_offset = offset;
+                    break;
+            }
+            offset = device->readb(offset + 1);
+        }
+    }
+}
+
 static void enumfunc(uint64_t devaddr, uint8_t func, uint8_t dev, uint8_t bus, uint16_t seg)
 {
     uint64_t offset = func << 12;
@@ -165,6 +210,8 @@ static void enumfunc(uint64_t devaddr, uint8_t func, uint8_t dev, uint8_t bus, u
         devices.back()->device->deviceid,
         devices.back()->vendorstr,
         devices.back()->devicestr);
+    
+    msi_check(devices.back());
 }
 
 static void enumdevice(uint64_t busaddr, uint8_t dev, uint8_t bus, uint16_t seg)
@@ -247,6 +294,7 @@ static void enumbus(uint8_t bus)
             {
                 enumbus(reinterpret_cast<pciheader1*>(tpcidevice->device)->secBus);
             }
+            else msi_check(devices.back());
         }
     }
 }
