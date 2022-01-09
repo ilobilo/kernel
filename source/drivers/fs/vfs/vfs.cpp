@@ -104,9 +104,9 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     size_t items;
     size_t cleared = 0;
 
-    if (!parent) parent_node = fs_root->ptr;
+    if (parent == nullptr) parent_node = fs_root->ptr;
     else parent_node = parent;
-    if (!parent_node)
+    if (parent_node == nullptr)
     {
         if (debug)
         {

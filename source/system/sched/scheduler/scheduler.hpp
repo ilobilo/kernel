@@ -13,8 +13,6 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
-#define TSTACK_SIZE 0x8000
-
 enum state_t
 {
     READY,

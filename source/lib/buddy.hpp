@@ -32,7 +32,7 @@ class BuddyAlloc
     bool debug = false;
     size_t pages = 0;
 
-    void expand(size_t pagecount = 1);
+    void expand(size_t pagecount = 16);
     void setsize(size_t pagecount);
 
     void *malloc(size_t size);
