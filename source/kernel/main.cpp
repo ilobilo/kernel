@@ -7,6 +7,7 @@
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
+#include <drivers/net/rtl8169/rtl8169.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <drivers/net/nicmgr/nicmgr.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
@@ -138,6 +139,10 @@ void main()
     terminal::check("Initialising RTL8139...");
     rtl8139::init();
     terminal::okerr(rtl8139::initialised);
+
+    terminal::check("Initialising RTL8169...");
+    rtl8169::init();
+    terminal::okerr(rtl8169::initialised);
 
     terminal::check("Initialising E1000...");
     e1000::init();

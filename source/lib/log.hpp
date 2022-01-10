@@ -3,6 +3,7 @@
 #pragma once
 
 #include <drivers/display/serial/serial.hpp>
+
 using namespace kernel::drivers::display;
 
 void log(const char *fmt, ...);

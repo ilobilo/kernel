@@ -48,8 +48,8 @@ void RTL8139::irq_reset()
 
 void RTL8139::read_mac()
 {
-    uint32_t mac1 = inl(IOBase + 0x00);
-    uint16_t mac2 = inw(IOBase + 0x04);
+    uint32_t mac1 = inl(this->IOBase + 0x00);
+    uint16_t mac2 = inw(this->IOBase + 0x04);
 
     this->MAC[0] = mac1;
     this->MAC[1] = mac1 >> 8;
@@ -66,9 +66,9 @@ void RTL8139::send(uint8_t *data, uint64_t length)
     acquire_lock(this->lock);
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
-    outl(this->IOBase + this->TSAD[this->curr_tx], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
-    outl(this->IOBase + this->TSD[this->curr_tx++], length);
-    if (this->curr_tx > 3) this->curr_tx = 0;
+    outl(this->IOBase + this->TSAD[this->txcurr], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
+    outl(this->IOBase + this->TSD[this->txcurr++], length);
+    if (this->txcurr > 3) this->txcurr = 0;
     free(tdata);
     release_lock(this->lock);
 }
@@ -107,6 +107,8 @@ void RTL8139::start()
     outw(IOBase + 0x3C, 0x05);
     outl(IOBase + 0x44, 0x0F | (1 << 7));
     outb(IOBase + 0x37, 0x0C);
+
+    this->read_mac();
 }
 
 RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
@@ -126,8 +128,6 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
     this->start();
 
     pcidevice->irq_set(RTL8139_Handler);
-
-    this->read_mac();
 }
 
 void init()

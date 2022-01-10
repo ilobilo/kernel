@@ -170,7 +170,7 @@ void E1000::rxinit()
     for (size_t i = 0; i < E1000_NUM_RX_DESC; i++)
     {
         this->rxdescs[i] = reinterpret_cast<RXDesc*>(reinterpret_cast<uint8_t*>(descs) + i * 16);
-        this->rxdescs[i]->addr = reinterpret_cast<uint64_t>(static_cast<uint8_t*>(malloc(8192 + 16)));
+        this->rxdescs[i]->addr = reinterpret_cast<uint64_t>(static_cast<uint8_t*>(malloc(E1000_RX_BUFF_SIZE + 16)));
         this->rxdescs[i]->status = 0;
     }
     this->outcmd(REG_TXDESCLO, static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr) >> 32));
@@ -246,13 +246,19 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
     this->IOBase = pcidevice->get_bar(PCI_BAR_IO) & ~1;
     this->MEMBase = pcidevice->get_bar(PCI_BAR_MEM) & ~3;
 
-    pcidevice->command(pci::CMD_BUS_MAST, true);
+    pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE, true);
     this->eeprom = false;
 
     this->start();
 
     pcidevice->irq_set(E1000_Handler);
 }
+
+uint16_t ids[3][2] = {
+    { 0x8086, 0x100E },
+    { 0x8086, 0x153A },
+    { 0x8086, 0x10EA }
+};
 
 bool search(uint16_t vendorid, uint16_t deviceid)
 {
@@ -277,9 +283,10 @@ void init()
     }
 
     bool found[3] = { false, false, false };
-    found[0] = search(0x8086, 0x100E);
-    found[1] = search(0x8086, 0x153A);
-    found[2] = search(0x8086, 0x10EA);
+    for (size_t i = 0; i < 3; i++)
+    {
+        found[i] = search(ids[i][0], ids[i][1]);
+    }
     for (size_t i = 0; i < 3; i++)
     {
         if (found[i] == true)

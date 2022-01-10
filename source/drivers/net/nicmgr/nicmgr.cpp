@@ -2,6 +2,7 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
+#include <drivers/net/rtl8169/rtl8169.hpp>
 #include <drivers/net/nicmgr/nicmgr.hpp>
 #include <drivers/net/e1000/e1000.hpp>
 #include <lib/memory.hpp>
@@ -43,6 +44,17 @@ void addRTL8139()
     }
 }
 
+void addRTL8169()
+{
+    if (!rtl8139::initialised) return;
+    for (size_t i = 0; i < rtl8169::devices.size(); i++)
+    {
+        addCard(rtl8169::devices[i], RTL8169);
+        sprintf(nics.front()->name, "RTL8169 #%zu", i);
+        nics.front()->send(new uint8_t[128], 128);
+    }
+}
+
 void addE1000()
 {
     if (!e1000::initialised) return;
@@ -64,6 +76,7 @@ void init()
     }
 
     addRTL8139();
+    addRTL8169();
     addE1000();
 
     serial::newline();

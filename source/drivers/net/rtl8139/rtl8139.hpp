@@ -24,7 +24,7 @@ class RTL8139 : public nicmgr::NIC
 
     uint8_t TSAD[4] = { 0x20, 0x24, 0x28, 0x2C };
     uint8_t TSD[4] = { 0x10, 0x14, 0x18, 0x1C };
-    size_t curr_tx = 0;
+    size_t txcurr = 0;
 
     public:
     void send(uint8_t *data, uint64_t length);

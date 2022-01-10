@@ -98,6 +98,9 @@ enum cmd
 
 #define E1000_NUM_RX_DESC 32
 #define E1000_NUM_TX_DESC 8
+
+#define E1000_RX_BUFF_SIZE 8192
+
 struct [[gnu::packed]] RXDesc
 {
     uint64_t addr;

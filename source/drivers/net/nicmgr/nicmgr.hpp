@@ -11,6 +11,7 @@ namespace kernel::drivers::net::nicmgr {
 enum type_t
 {
     RTL8139,
+    RTL8169,
     E1000
 };
 
