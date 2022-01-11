@@ -98,6 +98,9 @@ enum cmd
 
 #define E1000_NUM_RX_DESC 32
 #define E1000_NUM_TX_DESC 8
+
+#define E1000_RX_BUFF_SIZE 8192
+
 struct [[gnu::packed]] RXDesc
 {
     uint64_t addr;
@@ -140,7 +143,7 @@ class E1000 : public nicmgr::NIC
     bool eeprom = false;
     bool detecteeprom();
     uint32_t readeeprom(uint8_t addr);
-    bool read_mac();
+    void read_mac();
 
     void outcmd(uint16_t addr, uint32_t val);
     uint32_t incmd(uint16_t addr);
@@ -148,14 +151,14 @@ class E1000 : public nicmgr::NIC
     void intenable();
 
     public:
-    void send(uint8_t *data, uint64_t length);
+    void send(void *data, uint64_t length);
     void receive();
 
     uint32_t status();
     void irq_reset();
 
     void startlink();
-    bool start();
+    void start();
 
     E1000(pci::pcidevice_t *pcidevice);
 };

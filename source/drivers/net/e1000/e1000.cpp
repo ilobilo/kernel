@@ -74,8 +74,11 @@ bool E1000::detecteeprom()
     this->outcmd(REG_EEPROM, 0x01);
     for (size_t i = 0; i < 1000 && !this->eeprom; i++)
     {
-        uint32_t val = this->incmd(REG_EEPROM);
-        if (val & 0x10) this->eeprom = true;
+        if (this->incmd(REG_EEPROM) & 0x10)
+        {
+            this->eeprom = true;
+            break;
+        }
         else this->eeprom = false;
     }
     return this->eeprom;
@@ -97,7 +100,7 @@ uint32_t E1000::readeeprom(uint8_t addr)
     return static_cast<uint16_t>((tmp >> 16) & 0xFFFF);
 }
 
-bool E1000::read_mac()
+void E1000::read_mac()
 {
     if (this->eeprom)
     {
@@ -113,19 +116,17 @@ bool E1000::read_mac()
     }
     else
     {
-        uint8_t *memMac8 = reinterpret_cast<uint8_t*>(this->MEMBase + 0x5400);
-        uint32_t *memMac32 = reinterpret_cast<uint32_t*>(this->MEMBase + 0x5400);
-        if (memMac32[0] != 0)
-        {
-            for (size_t i = 0; i < 6; i++) this->MAC[i] = memMac8[i];
-        }
-        else return false;
+        this->MAC[0] = this->incmd(this->MEMBase + 0x5400);
+        this->MAC[1] = this->incmd(this->MEMBase + 0x5401);
+        this->MAC[2] = this->incmd(this->MEMBase + 0x5402);
+        this->MAC[3] = this->incmd(this->MEMBase + 0x5403);
+        this->MAC[4] = this->incmd(this->MEMBase + 0x5404);
+        this->MAC[5] = this->incmd(this->MEMBase + 0x5405);
     }
     if (this->debug) log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
-    return true;
 }
 
-void E1000::send(uint8_t *data, uint64_t length)
+void E1000::send(void *data, uint64_t length)
 {
     acquire_lock(this->lock);
     void *tdata = malloc(length);
@@ -137,7 +138,16 @@ void E1000::send(uint8_t *data, uint64_t length)
     uint8_t old_cur = this->txcurr;
     this->txcurr = (this->txcurr + 1) % E1000_NUM_TX_DESC;
     this->outcmd(REG_TXDESCTAIL, this->txcurr);
-    while (!(this->txdescs[old_cur]->status & 0xFF));
+    size_t timeout = 5000;
+    while (!(this->txdescs[old_cur]->status & 0xFF))
+    {
+        timeout--;
+        if (timeout <= 0)
+        {
+            if (this->debug) error("E1000: Could not send the packet!");
+            break;
+        }
+    }
     free(tdata);
     release_lock(this->lock);
 }
@@ -170,13 +180,11 @@ void E1000::rxinit()
     for (size_t i = 0; i < E1000_NUM_RX_DESC; i++)
     {
         this->rxdescs[i] = reinterpret_cast<RXDesc*>(reinterpret_cast<uint8_t*>(descs) + i * 16);
-        this->rxdescs[i]->addr = reinterpret_cast<uint64_t>(static_cast<uint8_t*>(malloc(8192 + 16)));
+        this->rxdescs[i]->addr = reinterpret_cast<uint64_t>(static_cast<uint8_t*>(malloc(E1000_RX_BUFF_SIZE + 16)));
         this->rxdescs[i]->status = 0;
     }
-    this->outcmd(REG_TXDESCLO, static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr) >> 32));
-    this->outcmd(REG_TXDESCHI, static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr) & 0xFFFFFFFF));
     this->outcmd(REG_RXDESCLO, reinterpret_cast<uint64_t>(ptr));
-    this->outcmd(REG_RXDESCHI, 0);
+    this->outcmd(REG_RXDESCHI, reinterpret_cast<uint64_t>(ptr) >> 32);
     this->outcmd(REG_RXDESCLEN, E1000_NUM_RX_DESC * 16);
     this->outcmd(REG_RXDESCHEAD, 0);
     this->outcmd(REG_RXDESCTAIL, E1000_NUM_RX_DESC);
@@ -195,8 +203,8 @@ void E1000::txinit()
         this->txdescs[i]->cmd = 0;
         this->txdescs[i]->status = TSTA_DD;
     }
+    this->outcmd(REG_TXDESCLO, static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr)));
     this->outcmd(REG_TXDESCHI, static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr) >> 32));
-    this->outcmd(REG_TXDESCLO, static_cast<uint32_t>(reinterpret_cast<uint64_t>(ptr) & 0xFFFFFFFF));
     this->outcmd(REG_TXDESCLEN, E1000_NUM_TX_DESC * 16);
     this->outcmd(REG_TXDESCHEAD, 0);
     this->outcmd(REG_TXDESCTAIL, 0);
@@ -218,11 +226,11 @@ void E1000::startlink()
     this->outcmd(REG_CTRL, this->incmd(REG_CTRL) | ECTRL_SLU);
 }
 
-bool E1000::start()
+void E1000::start()
 {
     acquire_lock(this->lock);
     this->detecteeprom();
-    if (!this->read_mac()) return false;
+    this->read_mac();
     this->startlink();
     for (size_t i = 0; i < 0x80; i++) this->outcmd(0x5200 + i * 4, 0);
 
@@ -230,7 +238,6 @@ bool E1000::start()
     this->rxinit();
     this->txinit();
     release_lock(this->lock);
-    return true;
 }
 
 E1000::E1000(pci::pcidevice_t *pcidevice)
@@ -246,13 +253,18 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
     this->IOBase = pcidevice->get_bar(PCI_BAR_IO) & ~1;
     this->MEMBase = pcidevice->get_bar(PCI_BAR_MEM) & ~3;
 
-    pcidevice->command(pci::CMD_BUS_MAST, true);
-    this->eeprom = false;
+    pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE, true);
 
     this->start();
 
     pcidevice->irq_set(E1000_Handler);
 }
+
+uint16_t ids[3][2] = {
+    { 0x8086, 0x100E },
+    { 0x8086, 0x153A },
+    { 0x8086, 0x10EA }
+};
 
 bool search(uint16_t vendorid, uint16_t deviceid)
 {
@@ -276,10 +288,11 @@ void init()
         return;
     }
 
-    bool found[3] = { false, false, false };
-    found[0] = search(0x8086, 0x100E);
-    found[1] = search(0x8086, 0x153A);
-    found[2] = search(0x8086, 0x10EA);
+    bool found[3] = { [0 ... 2] = false };
+    for (size_t i = 0; i < 3; i++)
+    {
+        found[i] = search(ids[i][0], ids[i][1]);
+    }
     for (size_t i = 0; i < 3; i++)
     {
         if (found[i] == true)

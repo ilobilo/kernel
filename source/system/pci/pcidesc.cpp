@@ -65,23 +65,23 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
         case 0x8086:
             switch (deviceid)
             {
-                case 0x9b63:
+                case 0x9B63:
                     return "Host Bridge";
-                case 0xa3af:
+                case 0xA3Af:
                     return "USB 3 Controller";
-                case 0xa3b1:
+                case 0xA3B1:
                     return "Signal Processing Controller";
-                case 0xa3ba:
+                case 0xA3BA:
                     return "Communication Controller";
-                case 0xa382:
+                case 0xA382:
                     return "SATA Controller";
-                case 0xa3da:
+                case 0xA3DA:
                     return "ISA Bridge";
-                case 0xa3a1:
+                case 0xA3A1:
                     return "Memory Controller";
                 case 0xa3f0:
                     return "Audio Device";
-                case 0xa3a3:
+                case 0xA3A3:
                     return "System Management Bus";
                 case 0x1911:
                     return "Xeon E3-1200 v5/v6 / E3-1500 v5 / 6th/7th Gen Core Processor Gaussian Mixture Model";
@@ -89,12 +89,16 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16)";
                 case 0x0D55:
                     return "Ethernet Connection (12) I219-V";
-                case 0x29c0:
+                case 0x29C0:
                     return "82G33/G31/P35/P31 Express DRAM Controller";
-                case 0x10d3:
+                case 0x10D3:
                     return "82574L Gigabit Network Connection";
-                case 0x100e:
+                case 0x1004:
+                    return "82543GC Gigabit Ethernet Controller (Copper)";
+                case 0x100E:
                     return "82540EM Gigabit Ethernet Controller";
+                case 0x100F:
+                    return "82545EM Gigabit Ethernet Controller (Copper)";
                 case 0x2934:
                     return "82801I (ICH9 Family) USB UHCI Controller";
                 case 0x2935:
