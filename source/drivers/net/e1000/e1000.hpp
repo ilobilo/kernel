@@ -143,7 +143,7 @@ class E1000 : public nicmgr::NIC
     bool eeprom = false;
     bool detecteeprom();
     uint32_t readeeprom(uint8_t addr);
-    bool read_mac();
+    void read_mac();
 
     void outcmd(uint16_t addr, uint32_t val);
     uint32_t incmd(uint16_t addr);
@@ -158,7 +158,7 @@ class E1000 : public nicmgr::NIC
     void irq_reset();
 
     void startlink();
-    bool start();
+    void start();
 
     E1000(pci::pcidevice_t *pcidevice);
 };
