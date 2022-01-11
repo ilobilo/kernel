@@ -25,7 +25,7 @@ class NIC
     uint64_t uniqueid;
     bool debug = NET_DEBUG;
 
-    virtual void send(uint8_t *data, uint64_t length)
+    virtual void send(void *data, uint64_t length)
     {
         error("Send function for this device is not available!");
     }

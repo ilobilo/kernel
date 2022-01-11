@@ -61,7 +61,7 @@ void RTL8139::read_mac()
     if (this->debug) log("MAC Address: %X:%X:%X:%X:%X:%X", this->MAC[0], this->MAC[1], this->MAC[2], this->MAC[3], this->MAC[4], this->MAC[5]);
 }
 
-void RTL8139::send(uint8_t *data, uint64_t length)
+void RTL8139::send(void *data, uint64_t length)
 {
     acquire_lock(this->lock);
     void *tdata = malloc(length);

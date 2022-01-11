@@ -47,7 +47,7 @@
 //     void txinit();
 
 //     public:
-//     void send(uint8_t *data, uint64_t length);
+//     void send(void *data, uint64_t length);
 //     void receive();
 
 //     void reset();
