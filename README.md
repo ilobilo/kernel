@@ -57,6 +57,7 @@ Contributors are welcome
 
 #### Network
 - [x] RTL8139
+- [x] RTL8169 (Broken)
 - [x] E1000
 - [ ] Virtio network
 

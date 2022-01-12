@@ -5,7 +5,8 @@ SFNFONT := $(SOURCEDIR)/misc/font.sfn
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 ISO := $(SOURCEDIR)/../image.iso
-DISK = $(SOURCEDIR)/../disk.img
+DISK0 = $(SOURCEDIR)/../disk0.img
+DISK1 = $(SOURCEDIR)/../disk1.img
 
 VERSION = 0
 NET_DEBUG = 1
@@ -25,7 +26,7 @@ QEMU = qemu-system-x86_64
 QEMUFLAGS = -M q35 -serial stdio \
 	-cpu max -smp 12 -m 512M \
 	-boot d -rtc base=localtime \
-	-drive format=raw,file=$(DISK) \
+	-drive format=raw,file=$(DISK0) \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
 	-net nic,model=e1000 -net user \

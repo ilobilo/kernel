@@ -44,15 +44,15 @@ void addRTL8139()
     }
 }
 
-// void addRTL8169()
-// {
-//     if (!rtl8139::initialised) return;
-//     for (size_t i = 0; i < rtl8169::devices.size(); i++)
-//     {
-//         addCard(rtl8169::devices[i], RTL8169);
-//         sprintf(nics.front()->name, "RTL8169 #%zu", i);
-//     }
-// }
+void addRTL8169()
+{
+    if (!rtl8169::initialised) return;
+    for (size_t i = 0; i < rtl8169::devices.size(); i++)
+    {
+        addCard(rtl8169::devices[i], RTL8169);
+        sprintf(nics.front()->name, "RTL8169 #%zu", i);
+    }
+}
 
 void addE1000()
 {
@@ -75,7 +75,7 @@ void init()
     }
 
     addRTL8139();
-    // addRTL8169();
+    addRTL8169();
     addE1000();
 
     serial::newline();

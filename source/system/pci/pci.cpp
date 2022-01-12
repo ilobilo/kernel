@@ -19,32 +19,28 @@ bool legacy = false;
 
 vector<pcidevice_t*> devices;
 
-uint32_t pcidevice_t::get_bar(uint8_t type)
+pcibar pcidevice_t::get_bar(size_t bar)
 {
-    if (legacy)
+    if (bar > 5) return { 0, 0, 0 };
+    uint64_t barl = 0;
+    uint64_t barh = 0;
+
+    if (legacy) barl = this->readl(0x10 + bar * 4);
+    else barl = reinterpret_cast<pciheader0*>(this->device)->BAR[bar];
+    if (barl == 0) return { 0, 0, 0 };
+
+    bool mmio = !(barl & 0x01);
+    bool prefetchable = mmio && (barl & (1 << 3));
+    bool bit64 = mmio && ((barl >> 1) & 0b11) == 0b10;
+
+    if (bit64)
     {
-        uint32_t bar = this->readl(PCI_BAR0);
-        if ((bar & 0x01) == type) return bar;
-        bar = this->readl(PCI_BAR1);
-        if ((bar & 0x01) == type) return bar;
-        bar = this->readl(PCI_BAR2);
-        if ((bar & 0x01) == type) return bar;
-        bar = this->readl(PCI_BAR3);
-        if ((bar & 0x01) == type) return bar;
-        bar = this->readl(PCI_BAR4);
-        if ((bar & 0x01) == type) return bar;
-        bar = this->readl(PCI_BAR5);
-        if ((bar & 0x01) == type) return bar;
+        if (legacy) barh = this->readl(0x10 + bar * 4 + 4);
+        else barh = reinterpret_cast<pciheader0*>(this->device)->BAR[bar + 1];
     }
-    else
-    {
-        pciheader0 *hdr = reinterpret_cast<pciheader0*>(this->device);
-        for (const uint32_t bar : hdr->BAR)
-        {
-            if ((bar & 0x01) == type) return bar;
-        }
-    }
-    return 0xFFFFFFFF;
+    uint64_t address = ((barh << 32) | barl) & ~(mmio ? 0b1111 : 0b11);
+
+    return { address, mmio, prefetchable };
 }
 
 void pcidevice_t::msi_set(uint8_t vector)
@@ -59,11 +55,19 @@ void pcidevice_t::msi_set(uint8_t vector)
 void pcidevice_t::irq_set(idt::int_handler_t handler)
 {
     if (this->int_on) return;
-    uint8_t irq = 0;
-    if (legacy) irq = this->readl(PCI_INTERRUPT_LINE);
-    else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
-    idt::register_interrupt_handler(irq + 32, handler, (this->msi_support ? false : true));
-    if (this->msi_support) this->msi_set(irq);
+    if (this->msi_support)
+    {
+        uint8_t irq = idt::alloc_vector();
+        this->msi_set(irq);
+        idt::register_interrupt_handler(irq, handler, false);
+    }
+    else
+    {
+        uint8_t irq = 0;
+        if (legacy) irq = this->readl(PCI_INTERRUPT_LINE);
+        else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
+        idt::register_interrupt_handler(irq + 32, handler);
+    }
     this->int_on = true;
 }
 

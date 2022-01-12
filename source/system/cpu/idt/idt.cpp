@@ -69,6 +69,12 @@ void init()
     release_lock(idt_lock);
 }
 
+static uint8_t next_free = 48;
+uint8_t alloc_vector()
+{
+    return next_free++;
+}
+
 void register_interrupt_handler(uint8_t vector, int_handler_t handler, bool ioapic)
 {
     interrupt_handlers[vector] = handler;

@@ -231,7 +231,7 @@ struct FIS_DMA_SETUP
     uint32_t Reserved3;
 };
 
-class AHCIPort : public drivemgr::Drive
+class AHCIDevice : public drivemgr::Drive
 {
     private:
     volatile lock_t lock;
@@ -253,22 +253,22 @@ class AHCIPort : public drivemgr::Drive
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 };
 
-class AHCIDriver
+class AHCIController
 {
     private:
     pci::pcidevice_t *pcidevice;
     HBAMemory *ABAR;
 
     public:
-    AHCIPort *ports[32];
+    AHCIDevice *ports[32];
     uint8_t portCount;
 
     void probePorts();
-    AHCIDriver(pci::pcidevice_t *pcidevice);
+    AHCIController(pci::pcidevice_t *pcidevice);
 };
 
 extern bool initialised;
-extern vector<AHCIDriver*> devices;
+extern vector<AHCIController*> devices;
 
 void init();
 }
