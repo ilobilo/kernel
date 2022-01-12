@@ -140,9 +140,9 @@ void main()
     rtl8139::init();
     terminal::okerr(rtl8139::initialised);
 
-    // terminal::check("Initialising RTL8169...");
-    // rtl8169::init();
-    // terminal::okerr(rtl8169::initialised);
+    terminal::check("Initialising RTL8169...");
+    rtl8169::init();
+    terminal::okerr(rtl8169::initialised);
 
     terminal::check("Initialising E1000...");
     e1000::init();

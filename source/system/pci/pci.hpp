@@ -54,6 +54,13 @@ enum cmds
     CMD_INT_DIS = (1 << 10),
 };
 
+struct pcibar
+{
+    uint64_t address;
+    bool mmio;
+    bool prefetchable;
+};
+
 struct pciheader_t
 {
     uint16_t vendorid;
@@ -218,7 +225,7 @@ struct pcidevice_t
         }
     }
 
-    uint32_t get_bar(uint8_t type);
+    pcibar get_bar(size_t bar);
     void msi_set(uint8_t vector);
     void irq_set(cpu::idt::int_handler_t handler);
 };

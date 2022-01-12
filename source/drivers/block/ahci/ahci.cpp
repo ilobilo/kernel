@@ -10,7 +10,7 @@ using namespace kernel::system::mm;
 namespace kernel::drivers::block::ahci {
 
 bool initialised = false;
-vector<AHCIDriver*> devices;
+vector<AHCIController*> devices;
 
 AHCIPortType checkPortType(HBAPort *port)
 {
@@ -36,7 +36,7 @@ AHCIPortType checkPortType(HBAPort *port)
     }
 }
 
-void AHCIDriver::probePorts()
+void AHCIController::probePorts()
 {
     int portsImpl = ABAR->PortsImplemented;
     for (uint64_t i = 0; i < 32; i++)
@@ -46,7 +46,7 @@ void AHCIDriver::probePorts()
             AHCIPortType portType = checkPortType(&ABAR->Ports[i]);
             if (portType == AHCIPortType::SATA || portType == AHCIPortType::SATAPI)
             {
-                ports[portCount] = new AHCIPort;
+                ports[portCount] = new AHCIDevice;
                 ports[portCount]->portType = portType;
                 ports[portCount]->hbaport = &ABAR->Ports[i];
                 ports[portCount]->portNum = portCount;
@@ -58,7 +58,7 @@ void AHCIDriver::probePorts()
     }
 }
 
-void AHCIPort::configure()
+void AHCIDevice::configure()
 {
     stopCMD();
 
@@ -83,7 +83,7 @@ void AHCIPort::configure()
     startCMD();
 }
 
-void AHCIPort::stopCMD()
+void AHCIDevice::stopCMD()
 {
     hbaport->CommandStatus &= ~HBA_PxCMD_ST;
     hbaport->CommandStatus &= ~HBA_PxCMD_FRE;
@@ -96,14 +96,14 @@ void AHCIPort::stopCMD()
     }
 }
 
-void AHCIPort::startCMD()
+void AHCIDevice::startCMD()
 {
     while (hbaport->CommandStatus & HBA_PxCMD_CR);
     hbaport->CommandStatus |= HBA_PxCMD_FRE;
     hbaport->CommandStatus |= HBA_PxCMD_ST;
 }
 
-size_t AHCIPort::findSlot()
+size_t AHCIDevice::findSlot()
 {
     uint32_t slots = hbaport->SataActive | hbaport->CommandIssue;
     for (uint8_t i = 0; i < 32; i++)
@@ -113,7 +113,7 @@ size_t AHCIPort::findSlot()
     return -1;
 }
 
-bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
+bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {
@@ -203,29 +203,33 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
     return true;
 }
 
-bool AHCIPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
+bool AHCIDevice::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
     return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), false);
 }
-bool AHCIPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
+bool AHCIDevice::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
     return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), true);
 }
 
-AHCIDriver::AHCIDriver(pci::pcidevice_t *pcidevice)
+AHCIController::AHCIController(pci::pcidevice_t *pcidevice)
 {
     this->pcidevice = pcidevice;
     log("Registering AHCI driver #%zu", devices.size());
 
-    if (pci::legacy) ABAR = reinterpret_cast<HBAMemory*>(pcidevice->readl(pci::PCI_BAR5));
-    else ABAR = reinterpret_cast<HBAMemory*>(reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR[5]);
+    ABAR = reinterpret_cast<HBAMemory*>(pcidevice->get_bar(5).address);
 
     probePorts();
 
     for (size_t i = 0; i < portCount; i++)
     {
-        AHCIPort *port = ports[i];
+        AHCIDevice *port = ports[i];
         port->configure();
+
+        // MBR bootsector
+        // uint8_t mbr[] = { [0 ... 509] = 0, 0x55, 0xAA };
+        // memcpy(ports[i]->buffer, mbr, 512);
+        // ports[i]->write(0, 1, ports[i]->buffer);
     }
 }
 
@@ -249,7 +253,7 @@ void init()
     devices.init(count);
     for (size_t i = 0; i < count; i++)
     {
-        devices.push_back(new AHCIDriver(pci::search(0x01, 0x06, 0x01, i)));
+        devices.push_back(new AHCIController(pci::search(0x01, 0x06, 0x01, i)));
     }
 
     serial::newline();

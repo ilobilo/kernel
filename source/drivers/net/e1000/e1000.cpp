@@ -245,13 +245,11 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
     this->pcidevice = pcidevice;
     log("Registering card #%zu", devices.size());
 
-    uint32_t BAR0 = 0;
-    if (pci::legacy) BAR0 = pcidevice->readl(pci::PCI_BAR0);
-    else BAR0 = reinterpret_cast<pci::pciheader0*>(pcidevice->device)->BAR[0];
-
-    this->BARType = BAR0 & 0x01;
-    this->IOBase = pcidevice->get_bar(PCI_BAR_IO) & ~1;
-    this->MEMBase = pcidevice->get_bar(PCI_BAR_MEM) & ~3;
+    pci::pcibar bar0 = pcidevice->get_bar(0);
+    pci::pcibar bar2 = pcidevice->get_bar(2);
+    this->BARType = bar0.mmio ? 0x00 : 0x01;
+    this->MEMBase = bar0.address;
+    this->IOBase = bar2.address;
 
     pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE, true);
 

@@ -58,6 +58,8 @@ extern bool initialised;
 void reload();
 
 void init();
+
+uint8_t alloc_vector();
 void register_interrupt_handler(uint8_t vector, int_handler_t handler, bool ioapic = true);
 
 extern "C" void int_handler(registers_t *regs);
