@@ -52,23 +52,25 @@ void pcidevice_t::msi_set(uint8_t vector)
     this->writew(this->msi_offset + 2, (msg_ctrl | 1) & ~(0b111 << 4));
 }
 
-void pcidevice_t::irq_set(idt::int_handler_t handler)
+uint8_t pcidevice_t::irq_set(idt::int_handler_t handler)
 {
-    if (this->int_on) return;
+    if (this->int_on) return 0;
+    uint8_t irq = 0;
     if (this->msi_support)
     {
-        uint8_t irq = idt::alloc_vector();
+        irq = idt::alloc_vector();
         this->msi_set(irq);
         idt::register_interrupt_handler(irq, handler, false);
     }
     else
     {
-        uint8_t irq = 0;
         if (legacy) irq = this->readl(PCI_INTERRUPT_LINE);
         else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
-        idt::register_interrupt_handler(irq + 32, handler);
+        irq += 32;
+        idt::register_interrupt_handler(irq, handler);
     }
     this->int_on = true;
+    return irq;
 }
 
 pcidevice_t *search(uint8_t Class, uint8_t subclass, uint8_t progif, int skip)

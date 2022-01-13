@@ -256,6 +256,8 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
     this->start();
 
     pcidevice->irq_set(E1000_Handler);
+
+    this->initialised = true;
 }
 
 uint16_t ids[3][2] = {
@@ -272,6 +274,11 @@ bool search(uint16_t vendorid, uint16_t deviceid)
     for (size_t i = 0; i < count; i++)
     {
         devices.push_back(new E1000(pci::search(vendorid, deviceid, i)));
+        if (devices.front()->initialised == false)
+        {
+            free(devices.front());
+            devices.pop_back();
+        }
     }
     return true;
 }
@@ -296,7 +303,7 @@ void init()
         if (found[i] == true)
         {
             serial::newline();
-            initialised = true;
+            if (devices.size() != 0) initialised = true;
             return;
         }
     }

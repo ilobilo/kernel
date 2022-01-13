@@ -10,17 +10,17 @@ namespace kernel::system::mm::vmm {
 
 enum PT_Flag
 {
-    Present = ((uint64_t)1 << 0),
-    ReadWrite = ((uint64_t)1 << 1),
-    UserSuper = ((uint64_t)1 << 2),
-    WriteThrough = ((uint64_t)1 << 3),
-    CacheDisable = ((uint64_t)1 << 4),
-    Accessed = ((uint64_t)1 << 5),
-    LargerPages = ((uint64_t)1 << 7),
-    Custom0 = ((uint64_t)1 << 9),
-    Custom1 = ((uint64_t)1 << 10),
-    Custom2 = ((uint64_t)1 << 11),
-    NX = ((uint64_t)1 << 63)
+    Present = (1 << 0),
+    ReadWrite = (1 << 1),
+    UserSuper = (1 << 2),
+    WriteThrough = (1 << 3),
+    CacheDisable = (1 << 4),
+    Accessed = (1 << 5),
+    LargerPages = (1 << 7),
+    Custom0 = (1 << 9),
+    Custom1 = (1 << 10),
+    Custom2 = (1 << 11),
+    NX = (1UL << 63)
 };
 
 struct PDEntry

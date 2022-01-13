@@ -221,6 +221,12 @@ AHCIController::AHCIController(pci::pcidevice_t *pcidevice)
 
     probePorts();
 
+    if (portCount == 0)
+    {
+        error("AHCI: No ports found!");
+        return;
+    }
+
     for (size_t i = 0; i < portCount; i++)
     {
         AHCIDevice *port = ports[i];
@@ -231,6 +237,7 @@ AHCIController::AHCIController(pci::pcidevice_t *pcidevice)
         // memcpy(ports[i]->buffer, mbr, 512);
         // ports[i]->write(0, 1, ports[i]->buffer);
     }
+    this->initialised = true;
 }
 
 void init()
@@ -254,9 +261,14 @@ void init()
     for (size_t i = 0; i < count; i++)
     {
         devices.push_back(new AHCIController(pci::search(0x01, 0x06, 0x01, i)));
+        if (devices.front()->initialised == false)
+        {
+            free(devices.front());
+            devices.pop_back();
+        }
     }
 
     serial::newline();
-    initialised = true;
+    if (devices.size() != 0) initialised = true;
 }
 }

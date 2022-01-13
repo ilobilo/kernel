@@ -127,6 +127,8 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
     this->start();
 
     pcidevice->irq_set(RTL8139_Handler);
+
+    this->initialised = true;
 }
 
 void init()
@@ -150,9 +152,14 @@ void init()
     for (size_t i = 0; i < count; i++)
     {
         devices.push_back(new RTL8139(pci::search(0x10EC, 0x8139, i)));
+        if (devices.front()->initialised == false)
+        {
+            free(devices.front());
+            devices.pop_back();
+        }
     }
 
     serial::newline();
-    initialised = true;
+    if (devices.size() != 0) initialised = true;
 }
 }
