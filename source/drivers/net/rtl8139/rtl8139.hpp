@@ -29,6 +29,8 @@ class RTL8139 : public nicmgr::NIC
     size_t txcurr = 0;
 
     public:
+    bool initialised = false;
+
     void send(void *data, uint64_t length);
     void receive();
 

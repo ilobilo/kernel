@@ -151,6 +151,8 @@ class E1000 : public nicmgr::NIC
     void intenable();
 
     public:
+    bool initialised = false;
+
     void send(void *data, uint64_t length);
     void receive();
 

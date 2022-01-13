@@ -190,6 +190,11 @@ bool search(uint16_t vendorid, uint16_t deviceid)
     for (size_t i = 0; i < count; i++)
     {
         devices.push_back(new RTL8169(pci::search(vendorid, deviceid, i)));
+        if (devices.front()->initialised == false)
+        {
+            free(devices.front());
+            devices.pop_back();
+        }
     }
     return true;
 }
@@ -214,7 +219,7 @@ void init()
         if (found[i] == true)
         {
             serial::newline();
-            initialised = true;
+            if (devices.size() != 0) initialised = true;
             return;
         }
     }

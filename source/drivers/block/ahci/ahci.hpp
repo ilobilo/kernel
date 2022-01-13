@@ -260,6 +260,7 @@ class AHCIController
     HBAMemory *ABAR;
 
     public:
+    bool initialised = false;
     AHCIDevice *ports[32];
     uint8_t portCount;
 
