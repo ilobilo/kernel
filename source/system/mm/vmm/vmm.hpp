@@ -25,7 +25,7 @@ enum PT_Flag
 
 struct PDEntry
 {
-    uint64_t value;
+    uint64_t value = 0;
 
     void setflag(PT_Flag flag, bool enabled);
     void setflags(uint64_t flags, bool enabled);
@@ -44,14 +44,15 @@ struct [[gnu::aligned(0x1000)]] PTable
 
 struct Pagemap
 {
-    volatile lock_t lock;
-    PTable *TOPLVL;
+    volatile lock_t lock = false;
+    PTable *TOPLVL = nullptr;
 
     PDEntry &virt2pte(uint64_t vaddr);
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags = (Present | ReadWrite));
     void mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
+    void mapHHMem(uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void unmapMem(uint64_t vaddr);
 
     void setFlags(uint64_t vaddr, uint64_t flags);

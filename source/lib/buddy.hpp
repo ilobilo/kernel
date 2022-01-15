@@ -19,7 +19,7 @@ class BuddyAlloc
     BuddyBlock *tail = nullptr;
     void *data = nullptr;
     bool expanded = false;
-    volatile lock_t lock;
+    volatile lock_t lock = false;
 
     BuddyBlock *next(BuddyBlock *block);
     BuddyBlock *split(BuddyBlock *block, size_t size);
@@ -45,8 +45,9 @@ class BuddyAlloc
 
 extern BuddyAlloc kheap;
 
-static inline void *malloc(size_t size)
+static inline void *malloc(size_t size, bool calloc = true)
 {
+    if (calloc) return kheap.calloc(1, size);
     return kheap.malloc(size);
 }
 static inline void *calloc(size_t num, size_t size)

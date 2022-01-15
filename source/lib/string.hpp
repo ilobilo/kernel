@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define ZERO (1 - 1)
-
 unsigned constexpr hash(char const *input)
 {
     return *input ? static_cast<unsigned int>(*input) + 33 * hash(input + 1) : 5381;

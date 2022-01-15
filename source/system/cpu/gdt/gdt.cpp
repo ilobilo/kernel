@@ -78,6 +78,7 @@ void init()
     gdtDescriptor.Offset = reinterpret_cast<uint64_t>(&DefaultGDT);
 
     reloadall(smp_tag->bsp_lapic_id);
+    tss[0].RSP[0] = reinterpret_cast<uint64_t>(stack);
 
     serial::newline();
     initialised = true;

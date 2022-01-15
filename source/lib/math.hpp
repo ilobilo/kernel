@@ -50,8 +50,8 @@
 
 struct point
 {
-    size_t X;
-    size_t Y;
+    size_t X = 0;
+    size_t Y = 0;
 };
 
 int pow(int base, int exponent);

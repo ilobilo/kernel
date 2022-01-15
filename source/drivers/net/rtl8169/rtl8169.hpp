@@ -32,7 +32,7 @@ class RTL8169 : public nicmgr::NIC
 {
     private:
     pci::pcidevice_t *pcidevice;
-    volatile lock_t lock;
+    volatile lock_t lock = false;
 
     uint8_t BARType = 0;
     uint16_t IOBase = 0;

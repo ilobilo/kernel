@@ -34,7 +34,6 @@ bool backtrace(uint64_t addr, size_t i)
 
     if (!strcmp(symtable.name, "<unknown>") || symtable.addr == 0) return false;
     error("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
-    if (!strcmp(symtable.name, "_start")) return false;
 
     return true;
 }
@@ -43,7 +42,6 @@ void trace()
 {
     static stackframe_t *sf = nullptr;
     sf = reinterpret_cast<stackframe_t*>(__builtin_frame_address(0));
-    sf = sf->frame->frame->frame;
 
     error("Stack trace:");
 
