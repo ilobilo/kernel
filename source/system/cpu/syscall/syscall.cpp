@@ -256,7 +256,7 @@ syscall_t syscalls[] = {
 
 static void handler(registers_t *regs)
 {
-    if (RAX >= ZERO && syscalls[RAX]) syscalls[RAX](regs);
+    if (RAX >= 0 && syscalls[RAX]) syscalls[RAX](regs);
 }
 
 const char *read(const char *string, int length)

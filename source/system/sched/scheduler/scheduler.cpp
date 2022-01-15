@@ -23,9 +23,10 @@ thread_t *alloc(uint64_t addr, void *args)
     acquire_lock(thread_lock);
     thread->pid = next_pid++;
     thread->state = READY;
-    thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
-    thread->pagemap = vmm::clonePagemap(vmm::kernel_pagemap);
     thread->current_dir = vfs::fs_root->ptr;
+
+    thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
+    thread->pagemap = vmm::newPagemap();
 
     thread->regs.rflags = 0x202;
     thread->regs.cs = 0x28;
@@ -33,7 +34,7 @@ thread_t *alloc(uint64_t addr, void *args)
 
     thread->regs.rip = addr;
     thread->regs.rdi = reinterpret_cast<uint64_t>(args);
-    thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack + STACK_SIZE);
+    thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack) + STACK_SIZE;
     release_lock(thread_lock);
 
     return thread;
@@ -51,7 +52,6 @@ void schedule(registers_t *regs)
 {
     if (!current_thread || !initialised || current_thread->thread->killed) return;
 
-    current_thread->thread->stack = reinterpret_cast<uint8_t*>(gdt::get_stack());
     current_thread->thread->pagemap->TOPLVL = vmm::getPagemap();
     current_thread->thread->regs = *regs;
 
@@ -69,7 +69,6 @@ void schedule(registers_t *regs)
 
     *regs = current_thread->thread->regs;
     vmm::switchPagemap(current_thread->thread->pagemap);
-    gdt::set_stack(reinterpret_cast<uintptr_t>(current_thread->thread->stack));
 
     current_thread->thread->state = RUNNING;
 }
@@ -123,7 +122,7 @@ thread_t *running_thread()
 
 void init()
 {
-    log("Initialising scheduler");
+    log("Initialising Scheduler");
 
     if (initialised)
     {

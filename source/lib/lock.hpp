@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 using lock_t = volatile bool;
-#define DEFINE_LOCK(name) static lock_t name;
+#define DEFINE_LOCK(name) static lock_t name = false;
 
 void acquire_lock(lock_t &lock);
 void release_lock(lock_t &lock);

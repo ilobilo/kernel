@@ -23,10 +23,11 @@ struct stivale2_struct_tag_modules *mod_tag;
 struct stivale2_struct_tag_cmdline *cmd_tag;
 struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
 struct stivale2_struct_tag_epoch *epoch_tag;
+struct stivale2_struct_tag_hhdm *hhdm_tag;
 
 char *cmdline;
 
-static uint8_t stack[STACK_SIZE] = { [0 ... STACK_SIZE - 1] = 'A' };
+uint8_t stack[STACK_SIZE] = { [0 ... STACK_SIZE - 1] = 'A' };
 
 static struct stivale2_header_tag_terminal terminal_hdr_tag = {
     .tag = {
@@ -108,6 +109,7 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
     cmd_tag = static_cast<stivale2_struct_tag_cmdline*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID));
     kfilev2_tag = static_cast<stivale2_struct_tag_kernel_file_v2*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID));
     epoch_tag = static_cast<stivale2_struct_tag_epoch*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_EPOCH_ID));
+    hhdm_tag = static_cast<stivale2_struct_tag_hhdm*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_HHDM_ID));
 
     cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
 
