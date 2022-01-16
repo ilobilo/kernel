@@ -57,8 +57,19 @@ void time()
 {
     while (true)
     {
+        size_t size = 0;
+        for (size_t i = 0; i < STACK_SIZE; i++)
+        {
+            if (kernel_stack[i] != 'A') break;
+            size++;
+        }
+
+        uint64_t free = pmm::freemem() / 1024;
+
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
-        ssfn::printfat(0, 0, "\r%s", rtc::getTime());
+        ssfn::printfat(0, 0, "\rCurrent RTC time: %s", rtc::getTime());
+        ssfn::printfat(0, 1, "\rMaximum stack usage: %zu Bytes", STACK_SIZE - size);
+        ssfn::printfat(0, 2, "\rFree RAM: %ld KB", free);
     }
 }
 

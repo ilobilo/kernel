@@ -15,7 +15,7 @@ using namespace kernel::system::cpu;
 namespace kernel::system::sched::scheduler {
 
 bool initialised = false;
-bool debug = true;
+bool debug = false;
 static uint64_t next_pid = 1;
 static uint8_t sched_vector = 0;
 
@@ -111,11 +111,6 @@ process_t *this_proc()
     process_t *proc = this_cpu->current_proc;
     asm volatile ("sti");
     return proc;
-}
-
-void yield()
-{
-    apic::lapic_periodic(sched_vector, 1);
 }
 
 void switchTask(registers_t *regs)

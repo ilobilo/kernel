@@ -72,8 +72,6 @@ static inline int gettid()
     return this_thread()->tid;
 }
 
-void yield();
-
 void switchTask(registers_t *regs);
 
 void init();
