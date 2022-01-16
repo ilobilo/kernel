@@ -15,7 +15,7 @@ class RTL8139 : public nicmgr::NIC
 {
     private:
     pci::pcidevice_t *pcidevice;
-    volatile lock_t lock = false;
+    lock_t lock;
 
     uint8_t BARType = 0;
     uint16_t IOBase = 0;

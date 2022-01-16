@@ -2,8 +2,11 @@
 
 #pragma once
 
+#include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <stddef.h>
+
+using namespace kernel::system::sched;
 
 namespace kernel::system::cpu::smp {
 
@@ -12,10 +15,15 @@ struct cpu_t
     uint64_t id;
     uint32_t lapic_id;
     gdt::TSS *tss;
+
     size_t fpu_storage_size;
     void (*fpu_save)(void*);
     void (*fpu_restore)(void*);
-    volatile bool up;
+
+    scheduler::thread_t *current_thread;
+    scheduler::process_t *current_proc;
+
+    bool is_up;
 };
 
 extern cpu_t *cpus;

@@ -43,11 +43,7 @@ fs_node_t *getchild(fs_node_t *parent, const char *path)
     if (!parent) parent_node = fs_root;
     else parent_node = parent;
 
-    if (*path == '\0')
-    {
-        release_lock(vfs_lock);
-        return nullptr;
-    }
+    if (*path == '\0') return nullptr;
     for (size_t i = 0; i < parent_node->children.size(); i++)
     {
         child_node = parent_node->children[i];
@@ -85,17 +81,18 @@ void remove_child(fs_node_t *parent, const char *name)
 
 fs_node_t *open(fs_node_t *parent, const char *path)
 {
-    acquire_lock(vfs_lock);
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
+    vfs_lock.lock();
     if (!path)
     {
         if (debug) error("VFS: Invalid path!");
-        release_lock(vfs_lock);
+        vfs_lock.unlock();
         return nullptr;
     }
     if (strchr(path, ' '))
     {
         if (debug) error("VFS: Paths must not contain spaces!");
-        release_lock(vfs_lock);
+        vfs_lock.unlock();
         return nullptr;
     }
 
@@ -113,7 +110,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
             error("VFS: Couldn't find directory /");
             error("VFS: Is root mounted?");
         }
-        release_lock(vfs_lock);
+        vfs_lock.unlock();
         return nullptr;
     }
     if (!strcmp(path, "/")) return parent;
@@ -167,28 +164,29 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         goto notfound;
     }
 
-    release_lock(vfs_lock);
+    vfs_lock.unlock();
     return child_node;
 
     notfound:
     if (debug) error("VFS: File not found!");
-    release_lock(vfs_lock);
+    vfs_lock.unlock();
     return nullptr;
 }
 
 fs_node_t *create(fs_node_t *parent, const char *path)
 {
-    acquire_lock(vfs_lock);
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
+    vfs_lock.lock();
     if (!path)
     {
         if (debug) error("VFS: Invalid path!");
-        release_lock(vfs_lock);
+        vfs_lock.unlock();
         return nullptr;
     }
     if (strchr(path, ' '))
     {
         if (debug) error("VFS: Paths must not contain spaces!");
-        release_lock(vfs_lock);
+        vfs_lock.unlock();
         return nullptr;
     }
 
@@ -206,7 +204,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
             error("VFS: Couldn't find directory /");
             error("VFS: Is root mounted?");
         }
-        release_lock(vfs_lock);
+        vfs_lock.unlock();
         return nullptr;
     }
 
@@ -253,12 +251,13 @@ fs_node_t *create(fs_node_t *parent, const char *path)
         goto next;
     }
 
-    release_lock(vfs_lock);
+    vfs_lock.unlock();
     return child_node;
 }
 
 fs_node_t *open_r(fs_node_t *parent, const char *path)
 {
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
     fs_node_t *node = open(parent, path);
     if (!node) node = create(parent, path);
     return node;

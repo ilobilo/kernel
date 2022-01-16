@@ -9,10 +9,15 @@ namespace kernel::drivers::audio::pcspk {
 
 void play(uint64_t freq)
 {
-    uint64_t div = 1193180 / freq;
+    uint64_t divisor = 1193180 / freq;
+
     outb(0x43, 0xB6);
-    outb(0x42, static_cast<uint8_t>(div));
-    outb(0x42, static_cast<uint8_t>(div >> 8));
+
+    uint8_t l = static_cast<uint8_t>(divisor);
+    uint8_t h = static_cast<uint8_t>(divisor >> 8);
+
+    outb(0x42, l);
+    outb(0x42, h);
 
     outb(0x61, inb(0x61) | 0x3);
 }

@@ -4,8 +4,13 @@
 
 #include <stddef.h>
 
-using lock_t = volatile bool;
-#define DEFINE_LOCK(name) static lock_t name = false;
+struct lock_t
+{
+    volatile bool locked = false;
 
-void acquire_lock(lock_t &lock);
-void release_lock(lock_t &lock);
+    void lock();
+    void unlock();
+    bool test();
+};
+
+#define DEFINE_LOCK(name) static lock_t name;

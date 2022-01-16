@@ -121,7 +121,7 @@ bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, boo
         return false;
     }
 
-    acquire_lock(this->lock);
+    this->lock.lock();
     hbaport->InterruptStatus = static_cast<uint32_t>(-1);
     size_t spin = 0;
     int slot = findSlot();
@@ -174,7 +174,7 @@ bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, boo
     if (spin == 1000000)
     {
         error("AHCI: Port is hung!");
-        release_lock(this->lock);
+        this->lock.unlock();
         return false;
     }
 
@@ -186,7 +186,7 @@ bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, boo
         if (hbaport->InterruptStatus & HBA_PxIS_TFES)
         {
             error("AHCI: %s error!", (write) ? "write" : "read");
-            release_lock(this->lock);
+            this->lock.unlock();
             return false;
         }
     }
@@ -194,12 +194,12 @@ bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, boo
     if (hbaport->InterruptStatus & HBA_PxIS_TFES)
     {
         error("AHCI: %s error!", (write) ? "write" : "read");
-        release_lock(this->lock);
+        this->lock.unlock();
         return false;
     }
     while (hbaport->CommandIssue);
 
-    release_lock(this->lock);
+    this->lock.unlock();
     return true;
 }
 

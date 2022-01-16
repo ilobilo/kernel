@@ -229,22 +229,6 @@ void parse(char *cmd, char *arg)
                 timer::sleep(1);
             }
             break;
-        case hash("fps"):
-        {
-            int time = 0, last_time = 0, fps = 0, frames = 0;
-            while (true)
-            {
-                frames++;
-                time = rtc::second();
-                if (time != last_time)
-                {
-                    fps = frames;
-                    frames = 0;
-                    last_time = time;
-                    printf("\r\033[2KFPS: %d", fps);
-                }
-            }
-        }
         case hash("pci"):
             for (size_t i = 0; i < pci::devices.size(); i++)
             {
@@ -286,7 +270,7 @@ void run()
     {
         if (!current_path)
         {
-            current_path = scheduler::running_thread()->current_dir;
+            current_path = scheduler::this_proc()->current_dir;
             current_path->flags = vfs::FS_DIRECTORY;
         }
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);

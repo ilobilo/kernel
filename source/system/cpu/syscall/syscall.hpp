@@ -17,39 +17,39 @@ namespace kernel::system::cpu::syscall {
 
 #define SYSCALL0(NUM) \
 ({ \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL1(NUM, ARG0) \
 ({ \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL2(NUM, ARG0, ARG1) \
 ({ \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL3(NUM, ARG0, ARG1, ARG2) \
 ({ \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL4(NUM, ARG0, ARG1, ARG2, ARG3) ({ \
     register typeof(ARG3) arg3 asm("r10") = ARG3; \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL5(NUM, ARG0, ARG1, ARG2, ARG3, ARG4) ({ \
     register typeof(ARG3) arg3 asm("r10") = ARG3; \
     register typeof(ARG4) arg4 asm("r8")  = ARG4; \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3), "r"(arg4), "r"(arg5) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3), "r"(arg4), "r"(arg5) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL6(NUM, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5) ({ \
     register typeof(ARG3) arg3 asm("r10") = ARG3; \                                                                                                    +    register typeof(ARG4) arg4 asm("r8")  = ARG4; \
     register typeof(ARG5) arg5 asm("r9")  = ARG5; \
-    asm volatile ("int $0x80" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3), "r"(arg4), "r"(arg5) : "rcx", "r11", "memory"); \
+    asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3), "r"(arg4), "r"(arg5) : "rcx", "r11", "memory"); \
 })
 
 #define SYSCALL_READ 0

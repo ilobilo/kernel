@@ -125,7 +125,7 @@ void BuddyAlloc::coalescence()
 
 void BuddyAlloc::expand(size_t pagecount)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     ASSERT(pagecount != 0, "Page count can not be zero!");
 
     size_t size = ALIGN_UP_2(0x1000, (pagecount + this->pages) * 0x1000);
@@ -144,7 +144,7 @@ void BuddyAlloc::expand(size_t pagecount)
     this->pages = pagecount;
 
     if (this->debug) log("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void BuddyAlloc::setsize(size_t pagecount)
@@ -160,7 +160,7 @@ void *BuddyAlloc::malloc(size_t size)
     if (size == 0) return nullptr;
     if (this->data == nullptr) this->expand();
 
-    acquire_lock(this->lock);
+    this->lock.lock();
 
     size_t actual_size = this->required_size(size);
 
@@ -176,7 +176,7 @@ void *BuddyAlloc::malloc(size_t size)
         if (this->debug) log("Allocated %zu bytes", size);
         found->free = false;
         this->expanded = false;
-        release_lock(this->lock);
+        this->lock.unlock();
         return reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(found) + sizeof(BuddyBlock));
     }
 
@@ -184,10 +184,10 @@ void *BuddyAlloc::malloc(size_t size)
     {
         if (this->debug) error("Could not expand the heap!");
         this->expanded = false;
-        release_lock(this->lock);
+        this->lock.unlock();
         return nullptr;
     }
-    release_lock(this->lock);
+    this->lock.unlock();
 
     this->expand(size / 0x1000 + 1);
     this->expanded = true;
@@ -233,7 +233,7 @@ void BuddyAlloc::free(void *ptr)
     ASSERT(this->head <= ptr, "Head is not smaller than pointer!");
     ASSERT(ptr < this->tail, "Pointer is not smaller than tail!");
 
-    acquire_lock(this->lock);
+    this->lock.lock();
 
     BuddyBlock *block = reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock));
     block->free = true;
@@ -242,7 +242,7 @@ void BuddyAlloc::free(void *ptr)
 
     this->coalescence();
 
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 size_t BuddyAlloc::allocsize(void *ptr)

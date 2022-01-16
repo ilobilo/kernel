@@ -63,14 +63,14 @@ void RTL8139::read_mac()
 
 void RTL8139::send(void *data, uint64_t length)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
     outl(this->IOBase + this->TSAD[this->txcurr], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
     outl(this->IOBase + this->TSD[this->txcurr++], length);
     if (this->txcurr > 3) this->txcurr = 0;
     free(tdata);
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void RTL8139::receive()

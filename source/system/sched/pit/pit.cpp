@@ -1,9 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
-#include <system/sched/hpet/hpet.hpp>
 #include <system/sched/pit/pit.hpp>
-#include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <lib/log.hpp>
@@ -14,8 +12,10 @@ using namespace kernel::system::cpu;
 namespace kernel::system::sched::pit {
 
 bool initialised = false;
+bool schedule = false;
 volatile uint64_t tick = 0;
 uint64_t frequency = PIT_DEF_FREQ;
+DEFINE_LOCK(pit_lock)
 
 void sleep(uint64_t sec)
 {
@@ -36,12 +36,14 @@ uint64_t get_tick()
 
 static void PIT_Handler(registers_t *regs)
 {
-    scheduler::schedule(regs);
     tick++;
+    if (schedule) scheduler::switchTask(regs);
 }
 
 void setfreq(uint64_t freq)
 {
+    pit_lock.lock();
+    if (freq < 19) freq = 19;
     frequency = freq;
     uint64_t divisor = 1193180 / frequency;
 
@@ -52,6 +54,19 @@ void setfreq(uint64_t freq)
 
     outb(0x40, l);
     outb(0x40, h);
+    pit_lock.unlock();
+}
+
+uint64_t getfreq()
+{
+    pit_lock.lock();
+    uint64_t freq = 0;
+    outb(0x43, 0b0000000);
+    freq = inb(0x40);
+    freq |= inb(0x40) << 8;
+    freq = 1193180 / freq;
+    pit_lock.unlock();
+    return freq;
 }
 
 void resetfreq()

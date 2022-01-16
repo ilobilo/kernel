@@ -13,8 +13,12 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
+#define PROC_NAME_LENGTH 128
+#define DEFAULT_TIMESLICE 10
+
 enum state_t
 {
+    INITIAL,
     READY,
     RUNNING,
     BLOCKED,
@@ -22,40 +26,53 @@ enum state_t
     KILLED
 };
 
+struct process_t;
 struct thread_t
 {
-    int pid;
+    int tid = 1;
     state_t state;
     uint8_t *stack;
     registers_t regs;
+    process_t *parent;
+    size_t timeslice = DEFAULT_TIMESLICE;
+};
+
+struct process_t
+{
+    char name[PROC_NAME_LENGTH];
+    int pid = 0;
+    int next_tid = 1;
+    state_t state;
     vmm::Pagemap *pagemap;
     vfs::fs_node_t *current_dir;
-    volatile bool killed = false;
+    vector<thread_t*> threads;
+    vector<process_t*> children;
+    process_t *parent;
 };
 
-struct threadentry_t
+extern bool debug;
+extern process_t *initproc;
+
+thread_t *thread_alloc(uint64_t addr, uint64_t args);
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr);
+
+process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args);
+process_t *proc_create(const char *name, uint64_t addr, uint64_t args);
+
+thread_t *this_thread();
+process_t *this_proc();
+
+static inline int getpid()
 {
-    thread_t *thread;
-    threadentry_t *next;
-};
+    return this_proc()->pid;
+}
 
-extern bool initialised;
+static inline int gettid()
+{
+    return this_thread()->tid;
+}
 
-thread_t *alloc(uint64_t addr, void *args);
-void add(thread_t *thread);
-
-void schedule(registers_t *regs);
-
-void block();
-void block(thread_t *thread);
-void unblock(thread_t *thread);
-
-void exit();
-void exit(thread_t *thread);
-
-int getpid();
-
-thread_t *running_thread();
+void switchTask(registers_t *regs);
 
 void init();
 }
