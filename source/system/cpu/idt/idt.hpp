@@ -7,7 +7,7 @@
 
 namespace kernel::system::cpu::idt {
 
-#define SYSCALL 0x80
+#define SYSCALL 0x69
 
 enum IRQS
 {

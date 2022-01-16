@@ -6,7 +6,7 @@
 
 #define STACK_SIZE 0x2000
 
-extern uint8_t stack[];
+extern uint8_t kernel_stack[];
 
 extern struct stivale2_struct_tag_smp *smp_tag;
 extern struct stivale2_struct_tag_memmap *mmap_tag;

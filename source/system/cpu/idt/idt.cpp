@@ -3,9 +3,11 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/cpu/apic/apic.hpp>
-#include <system/trace/trace.hpp>
+#include <system/cpu/smp/smp.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/pic/pic.hpp>
+#include <system/trace/trace.hpp>
+#include <lib/panic.hpp>
 #include <lib/lock.hpp>
 #include <lib/log.hpp>
 #include <lib/io.hpp>
@@ -22,12 +24,12 @@ IDTPtr idtr;
 
 int_handler_t interrupt_handlers[256];
 
-static void idt_set_descriptor(uint8_t vector, void *isr, uint8_t ist = 0)
+static void idt_set_descriptor(uint8_t vector, void *isr, uint8_t typeattr = 0x8E, uint8_t ist = 0)
 {
     idt[vector].Offset1 = reinterpret_cast<uint64_t>(isr);
     idt[vector].Selector = 0x28;
     idt[vector].IST = ist;
-    idt[vector].TypeAttr = 0x8E;
+    idt[vector].TypeAttr = typeattr;
     idt[vector].Offset2 = reinterpret_cast<uint64_t>(isr) >> 16;
     idt[vector].Offset3 = reinterpret_cast<uint64_t>(isr) >> 32;
     idt[vector].Zero = 0;
@@ -51,7 +53,7 @@ void init()
         return;
     }
 
-    acquire_lock(idt_lock);
+    idt_lock.lock();
 
     trace::init();
 
@@ -59,6 +61,7 @@ void init()
     idtr.Base = reinterpret_cast<uintptr_t>(&idt[0]);
 
     for (size_t i = 0; i < 256; i++) idt_set_descriptor(i, int_table[i]);
+    idt_set_descriptor(SYSCALL, int_table[SYSCALL], 0xEE);
 
     pic::init();
 
@@ -66,7 +69,7 @@ void init()
 
     serial::newline();
     initialised = true;
-    release_lock(idt_lock);
+    idt_lock.unlock();
 }
 
 static uint8_t next_free = 48;
@@ -119,7 +122,8 @@ static const char *exception_messages[32] = {
 static volatile bool halt = true;
 static void exception_handler(registers_t *regs)
 {
-    error("System exception! %s", (char*)exception_messages[regs->int_no & 0xff]);
+    error("System exception!");
+    error("Exception: %s on CPU %d", (char*)exception_messages[regs->int_no], this_cpu->lapic_id);
     error("Error code: 0x%lX", regs->error_code);
 
     switch (regs->int_no)
@@ -134,7 +138,7 @@ static void exception_handler(registers_t *regs)
     }
 
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
-    printf("[\033[31mPANIC\033[0m] Exception: %s\n", (char*)exception_messages[regs->int_no & 0xff]);
+    printf("[\033[31mPANIC\033[0m] Exception: %s on CPU %d\n", (char*)exception_messages[regs->int_no], this_cpu->lapic_id);
 
     switch (regs->int_no)
     {
@@ -164,6 +168,7 @@ static void irq_handler(registers_t *regs)
 extern "C" void int_handler(registers_t *regs)
 {
     if (regs->int_no < 32) exception_handler(regs);
-    else irq_handler(regs);
+    else if (regs->int_no >= 32 && regs->int_no < 256) irq_handler(regs);
+    else PANIC("Unknown interrupt!");
 }
 }

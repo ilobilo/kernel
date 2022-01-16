@@ -108,10 +108,6 @@ void main()
     idt::init();
     terminal::okerr(idt::initialised);
 
-    terminal::check("Initialising Scheduler...");
-    scheduler::init();
-    terminal::okerr(scheduler::initialised);
-
     terminal::check("Initialising ACPI...");
     acpi::init();
     terminal::okerr(acpi::initialised);
@@ -195,7 +191,9 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(time), nullptr));
-    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(apps::kshell::run), nullptr));
+    scheduler::proc_create("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0);
+    scheduler::thread_create(reinterpret_cast<uint64_t>(time), 0, scheduler::initproc);
+
+    scheduler::init();
 }
 }

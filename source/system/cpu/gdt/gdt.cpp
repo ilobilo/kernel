@@ -41,7 +41,7 @@ void reloadtss()
 
 void reloadall(int cpu)
 {
-    acquire_lock(gdt_lock);
+    gdt_lock.lock();
 
     uintptr_t base = reinterpret_cast<uintptr_t>(&tss[cpu]);
     uintptr_t limit = base + sizeof(tss[cpu]);
@@ -59,7 +59,7 @@ void reloadall(int cpu)
     reloadgdt();
     reloadtss();
 
-    release_lock(gdt_lock);
+    gdt_lock.unlock();
 }
 
 void init()
@@ -78,7 +78,7 @@ void init()
     gdtDescriptor.Offset = reinterpret_cast<uint64_t>(&DefaultGDT);
 
     reloadall(smp_tag->bsp_lapic_id);
-    tss[0].RSP[0] = reinterpret_cast<uint64_t>(stack);
+    tss[0].RSP[0] = reinterpret_cast<uint64_t>(kernel_stack);
 
     serial::newline();
     initialised = true;

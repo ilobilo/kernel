@@ -58,23 +58,23 @@ PDEntry &Pagemap::virt2pte(uint64_t vaddr)
 
 void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     PDEntry &pml1_entry = this->virt2pte(vaddr);
 
     pml1_entry.setAddr(paddr >> 12);
     pml1_entry.setflags(flags, true);
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     PDEntry &pml1_entry = this->virt2pte(vaddr_old);
 
     uint64_t paddr = pml1_entry.getAddr() << 12;
     pml1_entry.value = 0;
     asm volatile ("invlpg (%0)" :: "r"(vaddr_old));
-    release_lock(this->lock);
+    this->lock.unlock();
     this->mapMem(vaddr_new, paddr, flags);
 }
 
@@ -90,24 +90,24 @@ void Pagemap::mapHHMem(uint64_t paddr, uint64_t flags)
 
 void Pagemap::unmapMem(uint64_t vaddr)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     this->virt2pte(vaddr).value = 0;
     asm volatile ("invlpg (%0)" :: "r"(vaddr));
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void Pagemap::setFlags(uint64_t vaddr, uint64_t flags)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     this->virt2pte(vaddr).setflags(flags, true);
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void Pagemap::remFlags(uint64_t vaddr, uint64_t flags)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     this->virt2pte(vaddr).setflags(flags, false);
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void PDEntry::setflag(PT_Flag flag, bool enabled)

@@ -234,7 +234,7 @@ struct FIS_DMA_SETUP
 class AHCIDevice : public drivemgr::Drive
 {
     private:
-    volatile lock_t lock = false;
+    lock_t lock;
 
     void stopCMD();
     void startCMD();

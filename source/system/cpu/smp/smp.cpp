@@ -1,5 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
+#include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -25,7 +26,7 @@ cpu_t *cpus = nullptr;
 extern "C" void InitSSE();
 static void cpu_init(stivale2_smp_info *cpu)
 {
-    acquire_lock(cpu_lock);
+    cpu_lock.lock();
     gdt::reloadall(cpu->lapic_id);
     idt::reload();
 
@@ -75,14 +76,14 @@ static void cpu_init(stivale2_smp_info *cpu)
 	}
 
     log("CPU %ld is up", this_cpu->lapic_id);
-    this_cpu->up = true;
+    this_cpu->is_up = true;
     cpus_up++;
 
-    release_lock(cpu_lock);
+    cpu_lock.unlock();
     if (cpu->lapic_id != smp_tag->bsp_lapic_id)
     {
         if (apic::initialised) apic::lapic_init(this_cpu->lapic_id);
-        while (true) asm volatile ("hlt");
+        scheduler::init();
     }
 }
 

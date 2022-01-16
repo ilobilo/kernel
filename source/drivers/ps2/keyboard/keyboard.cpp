@@ -233,7 +233,7 @@ char getchar()
 DEFINE_LOCK(getline_lock)
 char *getline()
 {
-    acquire_lock(getline_lock);
+    getline_lock.lock();
     reading = true;
     memset(retstr, '\0', 1024);
     while (!enter)
@@ -246,7 +246,7 @@ char *getline()
                 enter = false;
                 reading = false;
                 gi = 0;
-                release_lock(getline_lock);
+                getline_lock.unlock();
                 return nullptr;
             }
             retstr[gi] = getchar();
@@ -256,7 +256,7 @@ char *getline()
     enter = false;
     reading = false;
     gi = 0;
-    release_lock(getline_lock);
+    getline_lock.unlock();
     return retstr;
 }
 
