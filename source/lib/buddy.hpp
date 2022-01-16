@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define INIT_PAGES 256
+
 struct BuddyBlock
 {
     size_t size;

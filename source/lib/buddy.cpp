@@ -126,15 +126,15 @@ void BuddyAlloc::coalescence()
 void BuddyAlloc::expand(size_t pagecount)
 {
     this->lock.lock();
-    ASSERT(pagecount != 0, "Page count can not be zero!");
+    ASSERT(pagecount != 0, "Buddy: Page count can not be zero!");
 
     size_t size = ALIGN_UP_2(0x1000, (pagecount + this->pages) * 0x1000);
-    ASSERT(POWER_OF_2(size), "Size is not power of two!");
+    ASSERT(POWER_OF_2(size), "Buddy: Size is not power of two!");
 
     pagecount = size / 0x1000;
 
     this->data = pmm::realloc(data, this->pages, pagecount);
-    ASSERT(this->data != nullptr, "Could not allocate memory!");
+    ASSERT(this->data != nullptr, "Buddy: Could not allocate memory!");
 
     this->head = static_cast<BuddyBlock*>(this->data);
     this->head->size = size;
@@ -143,14 +143,14 @@ void BuddyAlloc::expand(size_t pagecount)
     this->tail = this->next(this->head);
     this->pages = pagecount;
 
-    if (this->debug) log("Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
+    if (this->debug) log("Buddy: Expanded the heap. Current size: %zu bytes, %zu pages", size, pagecount);
     this->lock.unlock();
 }
 
 void BuddyAlloc::setsize(size_t pagecount)
 {
-    ASSERT(pagecount != 0, "Page count can not be zero!");
-    ASSERT(pagecount > this->pages, "Page count needs to be higher than current size!");
+    ASSERT(pagecount != 0, "Buddy: Page count can not be zero!");
+    ASSERT(pagecount > this->pages, "Buddy: Page count needs to be higher than current size!");
     pagecount = pagecount - this->pages;
     this->expand(pagecount);
 }
@@ -158,7 +158,7 @@ void BuddyAlloc::setsize(size_t pagecount)
 void *BuddyAlloc::malloc(size_t size)
 {
     if (size == 0) return nullptr;
-    if (this->data == nullptr) this->expand();
+    if (this->data == nullptr) this->expand(INIT_PAGES);
 
     this->lock.lock();
 
@@ -173,7 +173,7 @@ void *BuddyAlloc::malloc(size_t size)
 
     if (found != nullptr)
     {
-        if (this->debug) log("Allocated %zu bytes", size);
+        if (this->debug) log("Buddy: Allocated %zu bytes", size);
         found->free = false;
         this->expanded = false;
         this->lock.unlock();
@@ -182,7 +182,7 @@ void *BuddyAlloc::malloc(size_t size)
 
     if (this->expanded)
     {
-        if (this->debug) error("Could not expand the heap!");
+        if (this->debug) error("Buddy: Could not expand the heap!");
         this->expanded = false;
         this->lock.unlock();
         return nullptr;
@@ -230,15 +230,15 @@ void BuddyAlloc::free(void *ptr)
     if (this->data == nullptr) return;
     if (ptr == nullptr) return;
 
-    ASSERT(this->head <= ptr, "Head is not smaller than pointer!");
-    ASSERT(ptr < this->tail, "Pointer is not smaller than tail!");
+    ASSERT(this->head <= ptr, "Buddy: Head is not smaller than pointer!");
+    ASSERT(ptr < this->tail, "Buddy: Pointer is not smaller than tail!");
 
     this->lock.lock();
 
     BuddyBlock *block = reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock));
     block->free = true;
 
-    if (this->debug) log("Freed %zu bytes", block->size - sizeof(BuddyBlock));
+    if (this->debug) log("Buddy: Freed %zu bytes", block->size - sizeof(BuddyBlock));
 
     this->coalescence();
 
