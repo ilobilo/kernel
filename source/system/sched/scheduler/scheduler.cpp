@@ -15,7 +15,7 @@ using namespace kernel::system::cpu;
 namespace kernel::system::sched::scheduler {
 
 bool initialised = false;
-bool debug = false;
+bool debug = true;
 static uint64_t next_pid = 1;
 static uint8_t sched_vector = 0;
 
@@ -26,14 +26,14 @@ DEFINE_LOCK(thread_lock)
 DEFINE_LOCK(sched_lock)
 DEFINE_LOCK(proc_lock)
 
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent)
+thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent)
 {
     thread_lock.lock();
     thread_t *thread = new thread_t;
     if (parent == nullptr) parent = this_proc();
 
     thread->tid = parent->next_tid++;;
-    thread->state = READY;
+    thread->state = INITIAL;
     thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
 
     thread->regs.rflags = 0x202;
@@ -51,16 +51,26 @@ thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent)
     return thread;
 }
 
-process_t *proc_create(const char *name, uint64_t addr, uint64_t args)
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent)
+{
+    thread_t *thread = thread_alloc(addr, args, parent);
+    thread_lock.lock();
+    thread->state = READY;
+    thread_lock.unlock();
+
+    return thread;
+}
+
+process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
 {
     process_t *proc = new process_t;
     
     proc_lock.lock();
     strncpy(proc->name, name, (strlen(name) < PROC_NAME_LENGTH) ? strlen(name) : PROC_NAME_LENGTH);
     proc->pid = next_pid++;
-    proc->state = READY;
+    proc->state = INITIAL;
     proc->pagemap = vmm::newPagemap();
-    proc->current_dir = vfs::fs_root->ptr;
+    proc->current_dir = vfs::open(NULL, "/");
     proc->parent = nullptr;
 
     if (addr) thread_create(addr, args, proc);
@@ -72,6 +82,16 @@ process_t *proc_create(const char *name, uint64_t addr, uint64_t args)
     }
 
     proc_table.push_back(proc);
+    proc_lock.unlock();
+
+    return proc;
+}
+
+process_t *proc_create(const char *name, uint64_t addr, uint64_t args)
+{
+    process_t *proc = proc_alloc(name, addr, args);
+    proc_lock.lock();
+    proc->state = READY;
     proc_lock.unlock();
 
     return proc;
@@ -93,7 +113,10 @@ process_t *this_proc()
     return proc;
 }
 
-uint64_t counter = 0;
+void yield()
+{
+    apic::lapic_periodic(sched_vector, 1);
+}
 
 void switchTask(registers_t *regs)
 {
@@ -107,6 +130,8 @@ void switchTask(registers_t *regs)
         for (size_t i = 0; i < proc_table.size(); i++)
         {
             process_t *proc = proc_table[i];
+            if (proc->state != READY) continue;
+
             for (size_t t = 0; t < proc->threads.size(); t++)
             {
                 thread_t *thread = proc->threads[t];
@@ -123,11 +148,10 @@ void switchTask(registers_t *regs)
     }
     else
     {
-        this_cpu->current_proc->pagemap->TOPLVL = vmm::getPagemap();
-        this_cpu->current_thread->regs = *regs;
+        this_proc()->pagemap->TOPLVL = vmm::getPagemap();
+        this_thread()->regs = *regs;
 
-        this_cpu->current_proc->state = READY;
-        this_cpu->current_thread->state = READY;
+        if (this_thread()->state == RUNNING) this_thread()->state = READY;
 
         for (size_t t = this_thread()->tid; t < this_proc()->threads.size(); t++)
         {
@@ -148,6 +172,7 @@ void switchTask(registers_t *regs)
                 first = false;
             }
             process_t *proc = proc_table[p];
+            if (proc->state != READY) continue;
 
             for (size_t t = 0; t < proc->threads.size(); t++)
             {
@@ -166,11 +191,9 @@ void switchTask(registers_t *regs)
 
     success:;
 
-    this_cpu->current_proc->state = RUNNING;
-    this_cpu->current_thread->state = RUNNING;
-
-    *regs = this_cpu->current_thread->regs;
-    vmm::switchPagemap(this_cpu->current_proc->pagemap);
+    this_thread()->state = RUNNING;
+    *regs = this_thread()->regs;
+    vmm::switchPagemap(this_proc()->pagemap);
 
     if (debug) log("Running: process[%d]->thread[%d]: CPU core %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id);
 

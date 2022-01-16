@@ -18,6 +18,7 @@ namespace kernel::system::sched::scheduler {
 
 enum state_t
 {
+    INITIAL,
     READY,
     RUNNING,
     BLOCKED,
@@ -52,7 +53,10 @@ struct process_t
 extern bool debug;
 extern process_t *initproc;
 
+thread_t *thread_alloc(uint64_t addr, uint64_t args);
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr);
+
+process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args);
 process_t *proc_create(const char *name, uint64_t addr, uint64_t args);
 
 thread_t *this_thread();
@@ -67,6 +71,8 @@ static inline int gettid()
 {
     return this_thread()->tid;
 }
+
+void yield();
 
 void switchTask(registers_t *regs);
 

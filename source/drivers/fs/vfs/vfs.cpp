@@ -81,6 +81,7 @@ void remove_child(fs_node_t *parent, const char *name)
 
 fs_node_t *open(fs_node_t *parent, const char *path)
 {
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
     vfs_lock.lock();
     if (!path)
     {
@@ -174,6 +175,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 
 fs_node_t *create(fs_node_t *parent, const char *path)
 {
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
     vfs_lock.lock();
     if (!path)
     {
@@ -255,6 +257,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
 
 fs_node_t *open_r(fs_node_t *parent, const char *path)
 {
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
     fs_node_t *node = open(parent, path);
     if (!node) node = create(parent, path);
     return node;
