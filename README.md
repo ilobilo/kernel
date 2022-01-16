@@ -6,7 +6,7 @@ Contributors are welcome
 
 ## Need to fix/update
 - [ ] VFS
-- [ ] Scheduler
+- [x] Scheduler
 - [ ] Some of the syscalls
 
 ## TODO
@@ -71,7 +71,7 @@ Contributors are welcome
 - [x] HPET
 - [x] PIT
 - [x] RTC
-- [ ] LAPIC Timer
+- [x] LAPIC Timer
 
 ### Tasking
 - [x] SMP
