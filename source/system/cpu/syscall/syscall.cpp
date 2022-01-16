@@ -59,7 +59,7 @@ static void syscall_getpid(registers_t *regs)
 
 static void syscall_exit(registers_t *regs)
 {
-    scheduler::exit();
+    // scheduler::proc_exit();
     RAX = 0;
 }
 
@@ -102,7 +102,7 @@ static void syscall_chdir(registers_t *regs)
         RAX = -1;
         return;
     }
-    scheduler::running_thread()->current_dir = node;
+    scheduler::this_proc()->current_dir = node;
     RAX = 0;
 }
 

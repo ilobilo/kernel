@@ -1,6 +1,6 @@
 // Copyright (C) 2021  ilobilo
 
-#include <system/sched/hpet/hpet.hpp>
+#include <system/sched/timer/timer.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -18,6 +18,7 @@ namespace kernel::system::cpu::apic {
 
 bool initialised = false;
 static bool x2apic = false;
+static uint64_t ticks_in_1ms = 0;
 
 static inline uint32_t reg2x2apic(uint32_t reg)
 {
@@ -53,8 +54,7 @@ static void lapic_set_nmi(uint8_t vec, uint8_t current_processor_id, uint8_t pro
 
 void lapic_init(uint8_t processor_id)
 {
-    uint64_t apic_msr = rdmsr(0x1B);
-    apic_msr |= 1 << 11;
+    uint64_t apic_msr = rdmsr(0x1B) | (1 << 11);
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(1, &a, &b, &c, &d))
     {
@@ -163,6 +163,50 @@ void eoi()
     lapic_write(0xB0, 0);
 }
 
+void lapic_timer_mask(bool masked)
+{
+    if (masked) lapic_write(0x320, lapic_read(0x320) | (1 << 0x10));
+    else lapic_write(0x320, lapic_read(0x320) & ~(1 << 0x10));
+}
+
+void lapic_timer_init()
+{
+    if (ticks_in_1ms == 0)
+    {
+        lapic_write(0x3E0, 0x03);
+        lapic_write(0x380, 0xFFFFFFFF);
+        lapic_timer_mask(false);
+        timer::msleep(1);
+        lapic_timer_mask(true);
+        ticks_in_1ms = 0xFFFFFFFF - lapic_read(0x390);
+    }
+}
+
+DEFINE_LOCK(lapic_timer_lock);
+void lapic_oneshot(uint8_t vector, uint64_t ms)
+{
+    lapic_timer_lock.lock();
+    lapic_timer_init();
+    lapic_timer_mask(true);
+    lapic_write(0x3E0, 0x03);
+    lapic_write(0x320, (((lapic_read(0x320) & ~(0x03 << 17)) | (0x00 << 17)) & 0xFFFFFF00) | vector);
+    lapic_write(0x380, ticks_in_1ms * ms);
+    lapic_timer_mask(false);
+    lapic_timer_lock.unlock();
+}
+
+void lapic_periodic(uint8_t vector, uint64_t ms)
+{
+    lapic_timer_lock.lock();
+    lapic_timer_init();
+    lapic_timer_mask(true);
+    lapic_write(0x3E0, 0x03);
+    lapic_write(0x320, (((lapic_read(0x320) & ~(0x03 << 17)) | (0x01 << 17)) & 0xFFFFFF00) | vector);
+    lapic_write(0x380, ticks_in_1ms * ms);
+    lapic_timer_mask(false);
+    lapic_timer_lock.unlock();
+}
+
 uint16_t getSCIevent()
 {
     uint16_t a = 0, b = 0;
@@ -194,7 +238,7 @@ static void SCI_Handler(registers_t *)
     if (event & ACPI_POWER_BUTTON)
     {
         acpi::shutdown();
-        hpet::msleep(50);
+        timer::msleep(50);
         outw(0xB004, 0x2000);
         outw(0x604, 0x2000);
         outw(0x4004, 0x3400);
@@ -213,7 +257,7 @@ void init()
 
     if (!acpi::madt || !acpi::madthdr)
     {
-        error("MADT table could not be found!\n");
+        error("Could not find MADT table!\n");
         return;
     }
 

@@ -68,6 +68,15 @@ class vector
         *(data + num) = nullptr;
     }
 
+    size_t find(T item)
+    {
+        for (size_t i = 0; i < num; i++)
+        {
+            if (item == *(data + i)) return i;
+        }
+        return -1;
+    }
+
     void remove(size_t pos)
     {
         if (!on) return;

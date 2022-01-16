@@ -44,12 +44,12 @@ void printc(char c, void *arg)
 
 void print(const char *fmt, ...)
 {
-    acquire_lock(serial_lock);
+    serial_lock.lock();
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, fmt, args);
     va_end(args);
-    release_lock(serial_lock);
+    serial_lock.unlock();
 }
 
 void newline()

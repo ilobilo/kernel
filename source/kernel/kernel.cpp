@@ -27,7 +27,7 @@ struct stivale2_struct_tag_hhdm *hhdm_tag;
 
 char *cmdline;
 
-uint8_t stack[STACK_SIZE] = { [0 ... STACK_SIZE - 1] = 'A' };
+uint8_t kernel_stack[STACK_SIZE] = { [0 ... STACK_SIZE - 1] = 'A' };
 
 static struct stivale2_header_tag_terminal terminal_hdr_tag = {
     .tag = {
@@ -67,7 +67,7 @@ static struct stivale2_tag lvl5_hdr_tag = {
 [[gnu::section(".stivale2hdr"), gnu::used]]
 static struct stivale2_header stivale_hdr = {
     .entry_point = 0,
-    .stack = reinterpret_cast<uintptr_t>(stack) + sizeof(stack),
+    .stack = reinterpret_cast<uintptr_t>(kernel_stack) + STACK_SIZE,
     .flags = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
 #if (LVL5_PAGING != 0)
     .tags = reinterpret_cast<uintptr_t>(&lvl5_hdr_tag)
@@ -123,14 +123,6 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
     terminal::init();
 
     kernel::main();
-
-    size_t size = 0;
-    for (size_t i = 0; i < STACK_SIZE; i++)
-    {
-        if (stack[i] != 'A') break;
-        size++;
-    }
-    log("Maximum stack usage: %zu Bytes", STACK_SIZE - size);
 
     while (true) asm volatile ("hlt");
 }

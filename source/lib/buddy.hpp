@@ -19,7 +19,7 @@ class BuddyAlloc
     BuddyBlock *tail = nullptr;
     void *data = nullptr;
     bool expanded = false;
-    volatile lock_t lock = false;
+    lock_t lock;
 
     BuddyBlock *next(BuddyBlock *block);
     BuddyBlock *split(BuddyBlock *block, size_t size);

@@ -41,7 +41,7 @@ static void *inner_alloc(size_t count, size_t limit)
 
 void *alloc(size_t count)
 {
-    acquire_lock(pmm_lock);
+    pmm_lock.lock();
     size_t i = lastI;
     void *ret = inner_alloc(count, highest_page / 0x1000);
     if (!ret)
@@ -52,20 +52,20 @@ void *alloc(size_t count)
     memset(ret, 0, count * 0x1000);
     usedRam += count * 0x1000;
     freeRam -= count * 0x1000;
-    release_lock(pmm_lock);
+    pmm_lock.unlock();
     return ret;
 }
 
 void free(void *ptr, size_t count)
 {
     if (!ptr) return;
-    acquire_lock(pmm_lock);
+    pmm_lock.lock();
     size_t page = reinterpret_cast<size_t>(ptr) / 0x1000;
     for (size_t i = page; i < page + count; i++) bitmap.Set(i, false);
     if (lastI > page) lastI = page;
     usedRam -= count * 0x1000;
     freeRam += count * 0x1000;
-    release_lock(pmm_lock);
+    pmm_lock.unlock();
 }
 
 void *realloc(void *ptr, size_t oldcount, size_t newcount)

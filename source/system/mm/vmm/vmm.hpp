@@ -44,7 +44,7 @@ struct [[gnu::aligned(0x1000)]] PTable
 
 struct Pagemap
 {
-    volatile lock_t lock = false;
+    lock_t lock;
     PTable *TOPLVL = nullptr;
 
     PDEntry &virt2pte(uint64_t vaddr);

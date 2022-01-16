@@ -128,7 +128,7 @@ void E1000::read_mac()
 
 void E1000::send(void *data, uint64_t length)
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
     this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(tdata);
@@ -149,7 +149,7 @@ void E1000::send(void *data, uint64_t length)
         }
     }
     free(tdata);
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 void E1000::receive()
@@ -228,7 +228,7 @@ void E1000::startlink()
 
 void E1000::start()
 {
-    acquire_lock(this->lock);
+    this->lock.lock();
     this->detecteeprom();
     this->read_mac();
     this->startlink();
@@ -237,7 +237,7 @@ void E1000::start()
     this->intenable();
     this->rxinit();
     this->txinit();
-    release_lock(this->lock);
+    this->lock.unlock();
 }
 
 E1000::E1000(pci::pcidevice_t *pcidevice)

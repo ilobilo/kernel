@@ -57,8 +57,19 @@ void time()
 {
     while (true)
     {
+        size_t size = 0;
+        for (size_t i = 0; i < STACK_SIZE; i++)
+        {
+            if (kernel_stack[i] != 'A') break;
+            size++;
+        }
+
+        uint64_t free = pmm::freemem() / 1024;
+
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
-        ssfn::printfat(0, 0, "\r%s", rtc::getTime());
+        ssfn::printfat(0, 0, "\rCurrent RTC time: %s", rtc::getTime());
+        ssfn::printfat(0, 1, "\rMaximum stack usage: %zu Bytes", STACK_SIZE - size);
+        ssfn::printfat(0, 2, "\rFree RAM: %ld KB", free);
     }
 }
 
@@ -107,10 +118,6 @@ void main()
     terminal::check("Initialising IDT...");
     idt::init();
     terminal::okerr(idt::initialised);
-
-    terminal::check("Initialising Scheduler...");
-    scheduler::init();
-    terminal::okerr(scheduler::initialised);
 
     terminal::check("Initialising ACPI...");
     acpi::init();
@@ -195,7 +202,9 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(time), nullptr));
-    scheduler::add(scheduler::alloc(reinterpret_cast<uint64_t>(apps::kshell::run), nullptr));
+    scheduler::proc_create("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0);
+    scheduler::thread_create(reinterpret_cast<uint64_t>(time), 0, scheduler::initproc);
+
+    scheduler::init();
 }
 }
