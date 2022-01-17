@@ -14,7 +14,7 @@ using namespace kernel::system::mm;
 namespace kernel::system::sched::scheduler {
 
 #define PROC_NAME_LENGTH 128
-#define DEFAULT_TIMESLICE 10
+#define DEFAULT_TIMESLICE 5
 
 enum state_t
 {
@@ -53,6 +53,9 @@ struct process_t
 extern bool debug;
 extern process_t *initproc;
 
+extern size_t proc_count;
+extern size_t thread_count;
+
 thread_t *thread_alloc(uint64_t addr, uint64_t args);
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr);
 
@@ -61,6 +64,15 @@ process_t *proc_create(const char *name, uint64_t addr, uint64_t args);
 
 thread_t *this_thread();
 process_t *this_proc();
+
+void thread_block();
+void thread_block(thread_t *thread);
+
+void proc_block();
+void proc_block(process_t *proc);
+
+void thread_unblock();
+void proc_unblock();
 
 static inline int getpid()
 {
@@ -72,6 +84,7 @@ static inline int gettid()
     return this_thread()->tid;
 }
 
+void yield(uint64_t ms = 1);
 void switchTask(registers_t *regs);
 
 void init();

@@ -179,7 +179,7 @@ struct sysinfo
     unsigned long totalhigh;
     unsigned long freehigh;
     unsigned int mem_unit;
-    char _f[20-2*sizeof(long)-sizeof(int)];
+    char _f[20 - 2 * sizeof(long) - sizeof(int)];
 };
 static void syscall_sysinfo(registers_t *regs)
 {
@@ -276,6 +276,11 @@ const char *err(const char *string, int length)
     uint64_t ret;
     SYSCALL3(SYSCALL_WRITE, 2, string, length);
     return reinterpret_cast<const char*>(ret);
+}
+void reboot(const char *message)
+{
+    uint64_t ret = 0;
+    SYSCALL4(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message);
 }
 
 void init()

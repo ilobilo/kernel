@@ -22,6 +22,7 @@ struct cpu_t
 
     scheduler::thread_t *current_thread;
     scheduler::process_t *current_proc;
+    scheduler::thread_t *idle_thread;
 
     bool is_up;
 };

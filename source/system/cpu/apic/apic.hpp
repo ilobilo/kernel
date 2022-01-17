@@ -32,7 +32,7 @@ void ioapic_redirect_irq(uint32_t irq, uint8_t vect);
 void apic_send_ipi(uint32_t lapic_id, uint32_t flags);
 void eoi();
 
-void lapic_oneshot(uint8_t vector, uint64_t ms);
+void lapic_oneshot(uint8_t vector, uint64_t ms = 1);
 void lapic_periodic(uint8_t vector, uint64_t ms = 1);
 
 void lapic_init(uint8_t processor_id);

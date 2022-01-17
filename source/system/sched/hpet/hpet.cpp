@@ -25,12 +25,12 @@ void usleep(uint64_t us)
 
 void msleep(uint64_t msec)
 {
-    usleep(MSECS2HPET(msec));
+    usleep(MS2US(msec));
 }
 
 void sleep(uint64_t sec)
 {
-    usleep(SECS2HPET(sec));
+    usleep(SEC2US(sec));
 }
 
 void init()

@@ -34,13 +34,13 @@ void usleep(uint64_t us)
     {
         warn("HPET has not been initialised!");
         warn("Using PIT!");
-        pit::msleep(HPET2MSECS(us));
+        pit::msleep(US2MS(us));
     }
     else
     {
         warn("HPET or PIT has not been initialised!");
         warn("Using RTC!");
-        rtc::sleep(HPET2SECS(us));
+        rtc::sleep(US2SEC(us));
     }
 }
 }
