@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define INIT_PAGES 256
+#define INIT_PAGES 512
 
 struct BuddyBlock
 {

@@ -74,6 +74,7 @@ extern bool initialised;
 const char *read(const char *string, int length);
 const char *write(const char *string, int length);
 const char *err(const char *string, int length);
+void reboot(const char *message);
 
 void init();
 }

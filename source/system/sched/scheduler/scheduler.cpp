@@ -22,17 +22,18 @@ static uint8_t sched_vector = 0;
 static vector<process_t*> proc_table;
 process_t *initproc = nullptr;
 
+size_t proc_count = 0;
+size_t thread_count = 0;
+
 DEFINE_LOCK(thread_lock)
 DEFINE_LOCK(sched_lock)
 DEFINE_LOCK(proc_lock)
 
-thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent)
+thread_t *thread_alloc(uint64_t addr, uint64_t args)
 {
     thread_lock.lock();
     thread_t *thread = new thread_t;
-    if (parent == nullptr) parent = this_proc();
 
-    thread->tid = parent->next_tid++;;
     thread->state = INITIAL;
     thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
 
@@ -44,8 +45,7 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent)
     thread->regs.rdi = reinterpret_cast<uint64_t>(args);
     thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack) + STACK_SIZE;
 
-    thread->parent = parent;
-    if (parent) parent->threads.push_back(thread);
+    thread->parent = nullptr;
     thread_lock.unlock();
 
     return thread;
@@ -53,12 +53,24 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent)
 
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent)
 {
-    thread_t *thread = thread_alloc(addr, args, parent);
+    thread_t *thread = thread_alloc(addr, args);
+    if (parent)
+    {
+        thread->tid = parent->next_tid++;
+        thread->parent = parent;
+        parent->threads.push_back(thread);
+    }
+    thread_count++;
     thread_lock.lock();
     thread->state = READY;
     thread_lock.unlock();
 
     return thread;
+}
+
+void idle()
+{
+    while (true) asm volatile ("hlt");
 }
 
 process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
@@ -80,8 +92,6 @@ process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
         initproc = proc;
         initialised = true;
     }
-
-    proc_table.push_back(proc);
     proc_lock.unlock();
 
     return proc;
@@ -90,6 +100,8 @@ process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
 process_t *proc_create(const char *name, uint64_t addr, uint64_t args)
 {
     process_t *proc = proc_alloc(name, addr, args);
+    proc_table.push_back(proc);
+    proc_count++;
     proc_lock.lock();
     proc->state = READY;
     proc_lock.unlock();
@@ -111,6 +123,60 @@ process_t *this_proc()
     process_t *proc = this_cpu->current_proc;
     asm volatile ("sti");
     return proc;
+}
+
+void yield(uint64_t ms)
+{
+    if (apic::initialised) apic::lapic_oneshot(sched_vector, ms);
+    else pit::setfreq(MS2PIT(ms));
+}
+
+void thread_block()
+{
+    asm volatile ("cli");
+    if (this_thread()->state == READY || this_thread()->state == RUNNING) this_thread()->state = BLOCKED;
+    asm volatile ("sti");
+}
+
+void thread_block(thread_t *thread)
+{
+    asm volatile ("cli");
+    if (this_thread()->state == READY || this_thread()->state == RUNNING) thread->state = BLOCKED;
+    asm volatile ("sti");
+}
+
+void proc_block()
+{
+    asm volatile ("cli");
+    if (this_proc() == initproc)
+    {
+        error("Can not block init process!");
+        asm volatile ("sti");
+        return;
+    }
+    if (this_proc()->state == READY || this_proc()->state == RUNNING) this_proc()->state = BLOCKED;
+    asm volatile ("sti");
+}
+
+void proc_block(process_t *proc)
+{
+    asm volatile ("cli");
+    if (this_proc()->state == READY || this_proc()->state == RUNNING) proc->state = BLOCKED;
+    asm volatile ("sti");
+}
+
+void thread_unblock()
+{
+    asm volatile ("cli");
+    if (this_thread()->state == BLOCKED) this_thread()->state = READY;
+    asm volatile ("sti");
+}
+
+void proc_unblock()
+{
+    asm volatile ("cli");
+    if (this_proc()->state == BLOCKED) this_proc()->state = READY;
+    asm volatile ("sti");
 }
 
 void switchTask(registers_t *regs)
@@ -166,6 +232,7 @@ void switchTask(registers_t *regs)
                 p = 0;
                 first = false;
             }
+            else break;
             process_t *proc = proc_table[p];
             if (proc->state != READY) continue;
 
@@ -192,11 +259,15 @@ void switchTask(registers_t *regs)
 
     if (debug) log("Running: process[%d]->thread[%d]: CPU core %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id);
 
-    nofree:;
     sched_lock.unlock();
+    yield(timeslice);
+    return;
 
-    if (apic::initialised) apic::lapic_periodic(sched_vector, timeslice);
-    else pit::setfreq(MS2PIT(timeslice));
+    nofree:
+    if (this_cpu->idle_thread == nullptr) this_cpu->idle_thread = thread_alloc(reinterpret_cast<uint64_t>(idle), 0);
+    *regs = this_cpu->idle_thread->regs;
+    sched_lock.unlock();
+    yield();
 }
 
 void init()

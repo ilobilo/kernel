@@ -41,13 +41,13 @@ void parse(char *cmd, char *arg)
             printf("- free -- Get memory info\n");
             printf("- time -- Get current RTC time\n");
             printf("- timef -- Get current RTC time (Forever loop)\n");
-            printf("- fps -- Show FPS (Forever loop)\n");
             printf("- tick -- Get current PIT tick\n");
             printf("- pci -- List PCI devices\n");
             printf("- crash -- Crash whole system\n");
             printf("- reboot -- Reboot the system\n");
             printf("- poweroff -- Shutdown the system\n");
             printf("- shutdown -- Shutdown the system\n");
+            printf("You can execute any file in /bin with just typing it's name or with \"exec <filename>\"\n");
             break;
         case hash("clear"):
             terminal::clear();
@@ -258,8 +258,20 @@ void parse(char *cmd, char *arg)
         case hash(""):
             break;
         default:
-            printf("\033[31mCommand not found!\033[0m\n");
+        {
+            vfs::fs_node_t *node = vfs::open(vfs::open(nullptr, "/bin"), cmd);
+            if (node != nullptr)
+            {
+                if ((node->flags & 0x07) != vfs::FS_FILE)
+                {
+                    printf("\033[31m%s is not an executable file!%s\n", cmd, terminal::colour);
+                    return;
+                }
+                reinterpret_cast<int (*)()>(node->address)();
+            }
+            else printf("\033[31mCommand not found!\033[0m\n");
             break;
+        }
     }
 }
 

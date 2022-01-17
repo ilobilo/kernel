@@ -68,8 +68,8 @@ void time()
 
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
         ssfn::printfat(0, 0, "\rCurrent RTC time: %s", rtc::getTime());
-        ssfn::printfat(0, 1, "\rMaximum stack usage: %zu Bytes", STACK_SIZE - size);
-        ssfn::printfat(0, 2, "\rFree RAM: %ld KB", free);
+        ssfn::printfat(0, 1, "\rMaximum stack usage: %zu Bytes, Free RAM: %ld KB", STACK_SIZE - size, free);
+        ssfn::printfat(0, 2, "\rProcess count: %zu, Thread count: %zu", scheduler::proc_count, scheduler::thread_count);
     }
 }
 
