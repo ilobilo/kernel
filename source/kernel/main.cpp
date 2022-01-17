@@ -89,7 +89,7 @@ void main()
     if (!strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
-    log("CPU cores available: %d", smp_tag->cpu_count);
+    log("CPU cores available: %ld", smp_tag->cpu_count);
     log("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
     printf("CPU cores available: %ld\n", smp_tag->cpu_count);
     printf("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
@@ -102,102 +102,39 @@ void main()
     }
     serial::newline();
 
-    terminal::check("Initialising PMM...");
-    pmm::init();
-    terminal::okerr(pmm::initialised);
+    terminal::check("Initialising PMM...", reinterpret_cast<uint64_t>(pmm::init), -1, pmm::initialised);
+    terminal::check("Initialising VMM...", reinterpret_cast<uint64_t>(vmm::init), -1, vmm::initialised);
     constructors_init();
+    terminal::check("Initialising GDT...", reinterpret_cast<uint64_t>(gdt::init), -1, gdt::initialised);
+    terminal::check("Initialising IDT...", reinterpret_cast<uint64_t>(idt::init), -1, idt::initialised);
 
-    terminal::check("Initialising VMM...");
-    vmm::init();
-    terminal::okerr(vmm::initialised);
+    terminal::check("Initialising ACPI...", reinterpret_cast<uint64_t>(acpi::init), -1, acpi::initialised);
+    terminal::check("Initialising HPET...", reinterpret_cast<uint64_t>(hpet::init), -1, hpet::initialised);
+    terminal::check("Initialising PIT...", reinterpret_cast<uint64_t>(pit::init), -1, pit::initialised);
+    terminal::check("Initialising PCI...", reinterpret_cast<uint64_t>(pci::init), -1, pci::initialised);
+    terminal::check("Initialising APIC...", reinterpret_cast<uint64_t>(apic::init), -1, apic::initialised);
+    terminal::check("Initialising SMP...", reinterpret_cast<uint64_t>(smp::init), -1, smp::initialised);
 
-    terminal::check("Initialising GDT...");
-    gdt::init();
-    terminal::okerr(gdt::initialised);
+    terminal::check("Initialising AHCI...", reinterpret_cast<uint64_t>(ahci::init), -1, ahci::initialised);
 
-    terminal::check("Initialising IDT...");
-    idt::init();
-    terminal::okerr(idt::initialised);
+    terminal::check("Initialising RTL8139...", reinterpret_cast<uint64_t>(rtl8139::init), -1, rtl8139::initialised);
+    terminal::check("Initialising RTL8169...", reinterpret_cast<uint64_t>(rtl8169::init), -1, rtl8169::initialised);
+    terminal::check("Initialising E1000...", reinterpret_cast<uint64_t>(e1000::init), -1, e1000::initialised);
 
-    terminal::check("Initialising ACPI...");
-    acpi::init();
-    terminal::okerr(acpi::initialised);
+    terminal::check("Initialising Drive Manager...", reinterpret_cast<uint64_t>(drivemgr::init), -1, drivemgr::initialised);
+    terminal::check("Initialising NIC Manager...", reinterpret_cast<uint64_t>(nicmgr::init), -1, nicmgr::initialised);
 
-    terminal::check("Initialising HPET...");
-    hpet::init();
-    terminal::okerr(hpet::initialised);
-
-    terminal::check("Initialising PCI...");
-    pci::init();
-    terminal::okerr(pci::initialised);
-
-    terminal::check("Initialising APIC...");
-    apic::init();
-    terminal::okerr(apic::initialised);
-
-    terminal::check("Initialising SMP...");
-    smp::init();
-    terminal::okerr(smp::initialised);
-
-    terminal::check("Initialising AHCI...");
-    ahci::init();
-    terminal::okerr(ahci::initialised);
-
-    terminal::check("Initialising RTL8139...");
-    rtl8139::init();
-    terminal::okerr(rtl8139::initialised);
-
-    terminal::check("Initialising RTL8169...");
-    rtl8169::init();
-    terminal::okerr(rtl8169::initialised);
-
-    terminal::check("Initialising E1000...");
-    e1000::init();
-    terminal::okerr(e1000::initialised);
-
-    terminal::check("Initialising Drive Manager...");
-    drivemgr::init();
-    terminal::okerr(drivemgr::initialised);
-
-    terminal::check("Initialising NIC Manager...");
-    nicmgr::init();
-    terminal::okerr(nicmgr::initialised);
-
-    terminal::check("Initialising VFS...");
-    vfs::init();
-    terminal::okerr(vfs::initialised);
-
-    terminal::check("Initialising Initrd...");
+    terminal::check("Initialising VFS...", reinterpret_cast<uint64_t>(vfs::init), -1, vfs::initialised);
     int m = find_module("initrd");
-    if (m != -1 && strstr(cmdline, "initrd"))
-    {
-        ustar::init(mod_tag->modules[m].begin);
-    }
-    terminal::okerr(ustar::initialised);
+    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), mod_tag->modules[m].begin, ustar::initialised, (m != -1 && strstr(cmdline, "initrd")));
+    terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
 
-    terminal::check("Initialising DEVFS...");
-    devfs::init();
-    terminal::okerr(devfs::initialised);
+    terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
 
-    terminal::check("Initialising System calls...");
-    syscall::init();
-    terminal::okerr(syscall::initialised);
+    terminal::check("Initialising PS/2 Keyboard...", reinterpret_cast<uint64_t>(ps2::kbd::init), -1, ps2::kbd::initialised);
+    terminal::check("Initialising PS/2 Mouse...", reinterpret_cast<uint64_t>(ps2::mouse::init), -1, ps2::mouse::initialised, (!strstr(cmdline, "nomouse")));
 
-    terminal::check("Initialising PIT...");
-    pit::init();
-    terminal::okerr(pit::initialised);
-
-    terminal::check("Initialising PS/2 Keyboard...");
-    ps2::kbd::init();
-    terminal::okerr(ps2::kbd::initialised);
-
-    terminal::check("Initialising PS/2 Mouse...");
-    if (!strstr(cmdline, "nomouse")) ps2::mouse::init();
-    terminal::okerr(ps2::mouse::initialised);
-
-    terminal::check("Initialising VMWare tools...");
-    vmware::init();
-    terminal::okerr(vmware::initialised);
+    terminal::check("Initialising VMWare Tools...", reinterpret_cast<uint64_t>(vmware::init), -1, vmware::initialised);
 
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
