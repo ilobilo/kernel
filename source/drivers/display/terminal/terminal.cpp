@@ -125,17 +125,15 @@ void center(const char *text)
     print(text);
     for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
 }
-
-void check(const char *message)
+void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit)
 {
     printf("\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
-    for (uint16_t i = 0; i < columns - strlen(message) - 10; i++) printc(' ');
-}
-
-void okerr(bool ok)
-{
-    if (ok) printf("\033[1m[\033[21m \033[32mOK\033[0m \033[1m]\033[21m");
-    else printf("\033[1m[\033[21m \033[31m!!\033[0m \033[1m]\033[21m");
+    if (shouldinit)
+    {
+        if (args == -1) reinterpret_cast<void (*)()>(init)();
+        else reinterpret_cast<void (*)(uint64_t)>(init)(args);
+    }
+    printf("\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), columns - 5, (ok ? "32mOK" : "31m!!"));
 }
 #pragma endregion Misc
 }

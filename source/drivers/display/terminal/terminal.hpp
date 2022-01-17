@@ -30,8 +30,7 @@ void clear(const char *ansii_colour = colour);
 void setcolour(const char *ascii_colour), resetcolour();
 void center(const char *text);
 
-void check(const char *mesaage);
-void okerr(bool ok);
+void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit = true);
 
 //void printf(char *c, ...);
 }
