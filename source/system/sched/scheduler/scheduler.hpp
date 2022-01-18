@@ -53,6 +53,8 @@ struct process_t
 extern bool debug;
 extern process_t *initproc;
 
+extern vector<process_t*> proc_table;
+
 extern size_t proc_count;
 extern size_t thread_count;
 
@@ -71,8 +73,8 @@ void thread_block(thread_t *thread);
 void proc_block();
 void proc_block(process_t *proc);
 
-void thread_unblock();
-void proc_unblock();
+void thread_unblock(thread_t *thread);
+void proc_unblock(process_t *proc);
 
 void thread_exit();
 void proc_exit();

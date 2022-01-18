@@ -19,7 +19,7 @@ bool debug = false;
 static uint64_t next_pid = 1;
 static uint8_t sched_vector = 0;
 
-static vector<process_t*> proc_table;
+vector<process_t*> proc_table;
 process_t *initproc = nullptr;
 
 size_t proc_count = 0;
@@ -134,14 +134,23 @@ void yield(uint64_t ms)
 void thread_block()
 {
     asm volatile ("cli");
-    if (this_thread()->state == READY || this_thread()->state == RUNNING) this_thread()->state = BLOCKED;
+    if (this_thread()->state == READY || this_thread()->state == RUNNING)
+    {
+        this_thread()->state = BLOCKED;
+        if (debug) log("Blocking thread with TID: %d and PID: %d", this_thread()->tid, this_proc()->pid);
+    }
     asm volatile ("sti");
+    yield();
 }
 
 void thread_block(thread_t *thread)
 {
     asm volatile ("cli");
-    if (this_thread()->state == READY || this_thread()->state == RUNNING) thread->state = BLOCKED;
+    if (this_thread()->state == READY || this_thread()->state == RUNNING)
+    {
+        thread->state = BLOCKED;
+        if (debug) log("Blocking thread with TID: %d and PID: %d", thread->tid, thread->parent->pid);
+    }
     asm volatile ("sti");
 }
 
@@ -154,28 +163,45 @@ void proc_block()
         asm volatile ("sti");
         return;
     }
-    if (this_proc()->state == READY || this_proc()->state == RUNNING) this_proc()->state = BLOCKED;
+    if (this_proc()->state == READY || this_proc()->state == RUNNING)
+    {
+        this_proc()->state = BLOCKED;
+        if (debug) log("Blocking process with PID: %d", this_proc()->pid);
+    }
     asm volatile ("sti");
+    yield();
 }
 
 void proc_block(process_t *proc)
 {
     asm volatile ("cli");
-    if (this_proc()->state == READY || this_proc()->state == RUNNING) proc->state = BLOCKED;
+    if (this_proc()->state == READY || this_proc()->state == RUNNING)
+    {
+        proc->state = BLOCKED;
+        if (debug) log("Blocking process with PID: %d", proc->pid);
+    }
     asm volatile ("sti");
 }
 
-void thread_unblock()
+void thread_unblock(thread_t *thread)
 {
     asm volatile ("cli");
-    if (this_thread()->state == BLOCKED) this_thread()->state = READY;
+    if (thread->state == BLOCKED)
+    {
+        thread->state = READY;
+        if (debug) log("Unblocking thread with TID: %d and PID: %d", thread->tid, thread->parent->pid);
+    }
     asm volatile ("sti");
 }
 
-void proc_unblock()
+void proc_unblock(process_t *proc)
 {
     asm volatile ("cli");
-    if (this_proc()->state == BLOCKED) this_proc()->state = READY;
+    if (proc->state == BLOCKED)
+    {
+        proc->state = READY;
+        if (debug) log("Unblocking process with PID: %d", proc->pid);
+    }
     asm volatile ("sti");
 }
 
@@ -187,6 +213,7 @@ void thread_exit()
         error("Can not kill init process!");
     }
     this_thread()->state = KILLED;
+    if (debug) log("Exiting thread with TID: %d and PID: %d", this_thread()->tid, this_proc()->pid);
     asm volatile ("sti");
     yield();
     while (true) asm volatile ("hlt");
@@ -200,6 +227,7 @@ void proc_exit()
         error("Can not kill init process!");
     }
     this_proc()->state = KILLED;
+    if (debug) log("Exiting process with PID: %d", this_proc()->pid);
     asm volatile ("sti");
     yield();
     while (true) asm volatile ("hlt");
