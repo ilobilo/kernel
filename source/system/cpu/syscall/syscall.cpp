@@ -59,7 +59,7 @@ static void syscall_getpid(registers_t *regs)
 
 static void syscall_exit(registers_t *regs)
 {
-    // scheduler::proc_exit();
+    scheduler::proc_exit();
     RAX = 0;
 }
 

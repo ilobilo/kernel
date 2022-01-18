@@ -74,6 +74,9 @@ void proc_block(process_t *proc);
 void thread_unblock();
 void proc_unblock();
 
+void thread_exit();
+void proc_exit();
+
 static inline int getpid()
 {
     return this_proc()->pid;

@@ -24,7 +24,7 @@ IDTPtr idtr;
 
 int_handler_t interrupt_handlers[256];
 
-static void idt_set_descriptor(uint8_t vector, void *isr, uint8_t typeattr = 0x8E, uint8_t ist = 0)
+void idt_set_descriptor(uint8_t vector, void *isr, uint8_t typeattr, uint8_t ist)
 {
     idt[vector].Offset1 = reinterpret_cast<uint64_t>(isr);
     idt[vector].Selector = 0x28;
@@ -42,7 +42,6 @@ void reload()
     asm volatile ("sti");
 }
 
-extern "C" void *int_table[];
 void init()
 {
     log("Initialising IDT");
