@@ -30,14 +30,15 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
 	-net nic,model=e1000 -net user \
-	-net nic,model=rtl8139 -net user
+	-net nic,model=rtl8139 -net user \
+	-monitor telnet:127.0.0.1:12345,server,nowait
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
+CFLAGS = -O2 -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=$(NET_DEBUG) -DLVL5_PAGING=$(LVL5_PAGING) -g
 
@@ -57,11 +58,11 @@ override INTERNALCFLAGS :=     \
 	-I$(SOURCEDIR)/            \
 	-std=gnu17                 \
 	-ffreestanding             \
+	-fsanitize=undefined       \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fno-use-cxa-atexit        \
 	-fno-omit-frame-pointer    \
-	-fsanitize=undefined       \
 	-fno-rtti                  \
 	-fno-pic                   \
 	-mabi=sysv                 \
@@ -78,10 +79,10 @@ override INTERNALCPPFLAGS :=   \
 	-I$(SOURCEDIR)/            \
 	-std=gnu++17               \
 	-ffreestanding             \
+	-fsanitize=undefined       \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fno-use-cxa-atexit        \
-	-fsanitize=undefined       \
 	-fno-omit-frame-pointer    \
 	-fno-rtti                  \
 	-fno-pic                   \

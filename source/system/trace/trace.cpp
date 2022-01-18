@@ -4,7 +4,7 @@
 #include <system/trace/trace.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <lib/log.hpp>
 #include <elf.h>
 

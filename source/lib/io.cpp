@@ -5,7 +5,7 @@
 
 void outb(uint16_t port, uint8_t val)
 {
-    asm volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
+    asm volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
 }
 
 void outw(uint16_t port, uint16_t val)

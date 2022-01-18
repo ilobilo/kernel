@@ -12,7 +12,7 @@
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <lib/log.hpp>
 #include <lib/io.hpp>
 
