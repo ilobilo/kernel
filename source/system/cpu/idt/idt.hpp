@@ -55,8 +55,10 @@ extern int_handler_t interrupt_handlers[];
 
 extern bool initialised;
 
+void idt_set_descriptor(uint8_t vector, void *isr, uint8_t typeattr = 0x8E, uint8_t ist = 0);
 void reload();
 
+extern "C" void *int_table[];
 void init();
 
 uint8_t alloc_vector();

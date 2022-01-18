@@ -9,7 +9,7 @@ template<typename T>
 class vector
 {
     private:
-    T *data = nullptr;
+    T *storage = nullptr;
     size_t cap = 0;
     size_t num = 0;
 
@@ -19,8 +19,8 @@ class vector
     void init()
     {
         if (on) return;
-        data = new T;
-        cap = allocsize(data) / sizeof(T);
+        storage = new T;
+        cap = allocsize(storage) / sizeof(T);
         num = 0;
         on = true;
     }
@@ -28,8 +28,8 @@ class vector
     void init(size_t size)
     {
         if (on) return;
-        data = new T[size];
-        cap = allocsize(data) / sizeof(T);
+        storage = new T[size];
+        cap = allocsize(storage) / sizeof(T);
         num = 0;
         on = true;
     }
@@ -37,7 +37,7 @@ class vector
     void destroy()
     {
         if (!on) return;
-        delete data;
+        delete storage;
         on = false;
     }
 
@@ -46,16 +46,16 @@ class vector
         if (!on) this->init();
         if (num < cap)
         {
-            *(data + num) = item;
+            *(storage + num) = item;
             num++;
         }
         else
         {
-            data = static_cast<T*>(realloc(data, (cap + 2) * sizeof(T)));
-            cap = allocsize(data) / sizeof(T);
-            if (data)
+            storage = static_cast<T*>(realloc(storage, (cap + 2) * sizeof(T)));
+            cap = allocsize(storage) / sizeof(T);
+            if (storage)
             {
-                *(data + num) = item;
+                *(storage + num) = item;
                 num++;
             }
         }
@@ -65,14 +65,14 @@ class vector
     {
         if (!on) return;
         num--;
-        *(data + num) = nullptr;
+        *(storage + num) = nullptr;
     }
 
     size_t find(T item)
     {
         for (size_t i = 0; i < num; i++)
         {
-            if (item == *(data + i)) return i;
+            if (item == *(storage + i)) return i;
         }
         return -1;
     }
@@ -82,29 +82,54 @@ class vector
         if (!on) return;
         for (size_t i = 1; i < (num - 1); i++)
         {
-            *(data + pos + i - 1) = *(data + pos + i);
+            *(storage + pos + i - 1) = *(storage + pos + i);
         }
         num--;
     }
 
     T &operator[](size_t pos)
     {
-        return *(this->data + pos);
+        return *(this->storage + pos);
     }
 
     T &at(size_t pos)
     {
-        return *(this->data + pos);
+        return *(this->storage + pos);
     }
 
     T &front()
     {
-        return *this->data;
+        return *this->storage;
     }
 
     T &back()
     {
-        return *(this->data + num - 1);
+        return *(this->storage + num - 1);
+    }
+
+    T *begin()
+    {
+        return &*(this->storage);
+    }
+
+    T *end()
+    {
+        return &*(this->storage + num);
+    }
+    
+    T *data()
+    {
+        return this->data;
+    }
+
+    const T *cbegin()
+    {
+        return this->storage;
+    }
+
+    const T *cend()
+    {
+        return this->storage + num;
     }
 
     size_t size()
@@ -120,16 +145,16 @@ class vector
     void resize(size_t size)
     {
         if (!on) this->init();
-        data = static_cast<T*>(realloc(data, size * sizeof(T)));
-        cap = allocsize(data) / sizeof(T);
+        storage = static_cast<T*>(realloc(storage, size * sizeof(T)));
+        cap = allocsize(storage) / sizeof(T);
         if (num > size) num = size + 1;
     }
 
     void expand(size_t size)
     {
         if (!on) this->init();
-        data = static_cast<T*>(realloc(data, size * sizeof(T)));
-        cap = allocsize(data) / sizeof(T);
+        storage = static_cast<T*>(realloc(storage, size * sizeof(T)));
+        cap = allocsize(storage) / sizeof(T);
     }
 
     void insert(size_t pos, const T &item)
@@ -139,22 +164,22 @@ class vector
         {
             for (size_t i = num - pos; i > 0; i--)
             {
-                *(data + pos + i) = *(data + pos + i - 1);
+                *(storage + pos + i) = *(storage + pos + i - 1);
             }
-            *(data + pos) = item;
+            *(storage + pos) = item;
             num++;
         }
         else
         {
-            data = static_cast<T*>(realloc(data, (cap + 1) * sizeof(T)));
-            cap = allocsize(data) / sizeof(T);
-            if (data)
+            storage = static_cast<T*>(realloc(storage, (cap + 1) * sizeof(T)));
+            cap = allocsize(storage) / sizeof(T);
+            if (storage)
             {
                 for (size_t i = num - pos; i > 0; i--)
                 {
-                    *(data + pos + i) = *(data + pos + i - 1);
+                    *(storage + pos + i) = *(storage + pos + i - 1);
                 }
-                *(data + pos) = item;
+                *(storage + pos) = item;
                 num++;
             }
         }

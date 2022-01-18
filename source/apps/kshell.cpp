@@ -136,12 +136,13 @@ void parse(char *cmd, char *arg)
             switch (node->flags & 0x07)
             {
                 case vfs::FS_FILE:
+                    printf("%.*s%c", static_cast<int>(node->length), reinterpret_cast<char*>(node->address), (reinterpret_cast<char*>(node->address)[node->length - 1] != '\n') ? '\n' : 0);
+                    break;
                 case vfs::FS_CHARDEVICE:
                 {
                     size_t size = 50;
                     if (node->length) size = node->length;
-                    char *txt;
-                    txt = static_cast<char*>(calloc(size, sizeof(char)));
+                    char *txt = static_cast<char*>(calloc(size, sizeof(char)));
                     vfs::read_fs(node, 0, size, txt);
                     printf("%.*s\n", static_cast<int>(size), txt);
                     free(txt);
