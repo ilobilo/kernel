@@ -58,7 +58,6 @@ override INTERNALCFLAGS :=     \
 	-I$(SOURCEDIR)/            \
 	-std=gnu17                 \
 	-ffreestanding             \
-	-fsanitize=undefined       \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fno-use-cxa-atexit        \
@@ -79,7 +78,6 @@ override INTERNALCPPFLAGS :=   \
 	-I$(SOURCEDIR)/            \
 	-std=gnu++17               \
 	-ffreestanding             \
-	-fsanitize=undefined       \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fno-use-cxa-atexit        \
@@ -125,11 +123,19 @@ $(KERNEL):
 
 %.o: %.c
 	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
+ifndef NOUBSAN
+	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -fsanitize=undefined -c $< -o $@
+else
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
+endif
 
 %.o: %.cpp
 	@printf "CPP\t%s\n" $(lastword $(subst /, ,$<))
+ifndef NOUBSAN
+	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -fsanitize=undefined -c $< -o $@
+else
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -c $< -o $@
+endif
 
 %_asm.o: %.asm
 	@printf "ASM\t%s\n" $(lastword $(subst /, ,$<))
@@ -156,7 +162,7 @@ ifndef NOCLEAN
 endif
 
 run:
-	echo "\nBooting iso in uefi mode...\n"
+	@echo "\nBooting iso in uefi mode...\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 else
@@ -164,7 +170,7 @@ else
 endif
 
 run-bios:
-	echo "\nBooting iso in bios mode...\n"
+	@echo "\nBooting iso in bios mode...\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) | $(CXXFILT)
 else
@@ -172,7 +178,7 @@ else
 endif
 
 run-test:
-	echo "\nBooting iso in bios mode... (testing)\n"
+	@echo "\nBooting iso in bios mode... (testing)\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else
