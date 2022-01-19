@@ -78,9 +78,6 @@ void *realloc(void *ptr, size_t oldcount, size_t newcount)
         return nullptr;
     }
 
-    usedRam = usedRam - oldcount * 0x1000 + newcount * 0x1000;
-    freeRam = freeRam + oldcount * 0x1000 - newcount * 0x1000;
-
     if (newcount < oldcount) oldcount = newcount;
 
     void *newptr = alloc(newcount);

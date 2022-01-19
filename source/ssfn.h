@@ -742,9 +742,9 @@ static void _ssfn__init_zdefaults(void)
 {
    int i;
    for (i=0; i <= 143; ++i)     _ssfn__zdefault_length[i]   = 8;
-   for (   ; i <= 255; ++i)     _ssfn__zdefault_length[i]   = 9;
-   for (   ; i <= 279; ++i)     _ssfn__zdefault_length[i]   = 7;
-   for (   ; i <= 287; ++i)     _ssfn__zdefault_length[i]   = 8;
+   for (; i <= 255; ++i)     _ssfn__zdefault_length[i]   = 9;
+   for (; i <= 279; ++i)     _ssfn__zdefault_length[i]   = 7;
+   for (; i <= 287; ++i)     _ssfn__zdefault_length[i]   = 8;
 
    for (i=0; i <=  31; ++i)     _ssfn__zdefault_distance[i] = 5;
 }
@@ -1138,7 +1138,7 @@ again:  if(p >= SSFN_FAMILY_BYNAME) { n = 0; m = 4; } else n = m = p;
                     for(b = A = B = o = 0; b < h; b++, B += p) {
                         a = b << SSFN_PREC;
                         for(nr = 0, i = 0; i < ctx->np - 3; i += 2) {
-                            if( (ctx->p[i+1] < a && ctx->p[i+3] >= a) ||
+                            if((ctx->p[i+1] < a && ctx->p[i+3] >= a) ||
                                 (ctx->p[i+3] < a && ctx->p[i+1] >= a)) {
                                     if((ctx->p[i+1] >> SSFN_PREC) == (ctx->p[i+3] >> SSFN_PREC))
                                         x = (((int)ctx->p[i]+(int)ctx->p[i+2])>>1);

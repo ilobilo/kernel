@@ -200,16 +200,16 @@ static inline int get_exp2(double_with_bit_access x)
   // sequence of bits (e.g. 52..62 for 64-bit doubles), but with a non-trivial representation: An
   // unsigned offset from some negative value (with the extremal offset values reserved for
   // special use).
-  return (int)((x.U >> DOUBLE_STORED_MANTISSA_BITS ) & DOUBLE_EXPONENT_MASK) - DOUBLE_BASE_EXPONENT;
+  return (int)((x.U >> DOUBLE_STORED_MANTISSA_BITS) & DOUBLE_EXPONENT_MASK) - DOUBLE_BASE_EXPONENT;
 }
-#define PRINTF_ABS(_x) ( (_x) > 0 ? (_x) : -(_x) )
+#define PRINTF_ABS(_x) ((_x) > 0 ? (_x) : -(_x))
 
 #endif // (PRINTF_SUPPORT_DECIMAL_SPECIFIERS || PRINTF_SUPPORT_EXPONENTIAL_SPECIFIERS)
 
 // Note in particular the behavior here on LONG_MIN or LLONG_MIN; it is valid
 // and well-defined, but if you're not careful you can easily trigger undefined
 // behavior with -LONG_MIN or -LLONG_MIN
-#define ABS_FOR_PRINTING(_x) ((printf_unsigned_value_t) ( (_x) > 0 ? (_x) : -((printf_signed_value_t)_x) ))
+#define ABS_FOR_PRINTING(_x) ((printf_unsigned_value_t) ((_x) > 0 ? (_x) : -((printf_signed_value_t)_x)))
 
 // output function type
 typedef void (*out_fct_type)(char character, void* buffer, size_t idx, size_t maxlen);
@@ -393,7 +393,7 @@ static size_t print_integer(out_fct_type out, char* buffer, size_t idx, size_t m
   size_t len = 0U;
 
   if (!value) {
-    if ( !(flags & FLAGS_PRECISION) ) {
+    if (!(flags & FLAGS_PRECISION)) {
       buf[len++] = '0';
       flags &= ~FLAGS_HASH;
       // We drop this flag this since either the alternative and regular modes of the specifier
@@ -580,7 +580,7 @@ static size_t print_broken_up_decimal(
       // non-zero fractional part digits (see below)
     }
 
-    if (number_.fractional > 0 || !(flags & FLAGS_ADAPT_EXP) || (flags & FLAGS_HASH) ) {
+    if (number_.fractional > 0 || !(flags & FLAGS_ADAPT_EXP) || (flags & FLAGS_HASH)) {
       while (len < PRINTF_FTOA_BUFFER_SIZE) {
         --count;
         buf[len++] = (char)('0' + number_.fractional % 10U);
@@ -670,7 +670,7 @@ static size_t print_exponential_number(out_fct_type out, char* buffer, size_t id
       // based on the algorithm by David Gay (https://www.ampl.com/netlib/fp/dtoa.c)
       int exp2 = get_exp2(conv);
 	  // drop the exponent, so conv.F comes into the range [1,2)
-      conv.U = (conv.U & (( (double_uint_t)(1) << DOUBLE_STORED_MANTISSA_BITS) - 1U)) | ((double_uint_t) DOUBLE_BASE_EXPONENT << DOUBLE_STORED_MANTISSA_BITS);
+      conv.U = (conv.U & (((double_uint_t)(1) << DOUBLE_STORED_MANTISSA_BITS) - 1U)) | ((double_uint_t) DOUBLE_BASE_EXPONENT << DOUBLE_STORED_MANTISSA_BITS);
       // now approximate log10 from the log2 integer part and an expansion of ln around 1.5
       exp10 = (int)(0.1760912590558 + exp2 * 0.301029995663981 + (conv.F - 1.5) * 0.289529654602168);
       // now we want to compute 10^exp10 but we want to be sure it won't overflow
@@ -722,7 +722,7 @@ static size_t print_exponential_number(out_fct_type out, char* buffer, size_t id
   // Account for roll-over, e.g. rounding from 9.99 to 100.0 - which effects
   // the exponent and may require additional tweaking of the parts
   if (fall_back_to_decimal_only_mode) {
-    if ( (flags & FLAGS_ADAPT_EXP) && exp10 >= -1 && decimal_part_components.integral == powers_of_10[exp10 + 1]) {
+    if ((flags & FLAGS_ADAPT_EXP) && exp10 >= -1 && decimal_part_components.integral == powers_of_10[exp10 + 1]) {
       exp10++; // Not strictly necessary, since exp10 is no longer really used
       precision--;
       // ... and it should already be the case that decimal_part_components.fractional == 0

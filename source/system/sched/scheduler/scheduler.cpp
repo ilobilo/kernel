@@ -256,7 +256,7 @@ void clean_proc(process_t *proc)
         if (parentproc != nullptr)
         {
             parentproc->children.remove(parentproc->children.find(proc));
-            if (parentproc->children.size() == 0 && proc->threads.size() == 0 )
+            if (parentproc->children.size() == 0 && proc->threads.size() == 0)
             {
                 parentproc->state = KILLED;
                 clean_proc(parentproc);
@@ -375,7 +375,7 @@ void switchTask(registers_t *regs)
     }
     goto nofree;
 
-    success:;
+    success:
     this_thread()->state = RUNNING;
     *regs = this_thread()->regs;
     vmm::switchPagemap(this_proc()->pagemap);
@@ -409,21 +409,31 @@ void switchTask(registers_t *regs)
     yield();
 }
 
+bool idt_init = false;
 void init()
 {
+    while (!initialised) asm volatile ("hlt");
     if (apic::initialised)
     {
         if (sched_vector == 0)
         {
             sched_vector = idt::alloc_vector();
-            idt::register_interrupt_handler(sched_vector, switchTask);
-            idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
+            if (!idt_init)
+            {
+                idt::register_interrupt_handler(sched_vector, switchTask);
+                idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
+                idt_init = true;
+            }
         }
         apic::lapic_periodic(sched_vector);
     }
     else
     {
-        idt::idt_set_descriptor(sched_vector, idt::int_table[idt::IRQ0], 0x8E, 1);
+        if (!idt_init)
+        {
+            idt::idt_set_descriptor(sched_vector, idt::int_table[idt::IRQ0], 0x8E, 1);
+            idt_init = true;
+        }
         pit::schedule = true;
     }
     while (true) asm volatile ("hlt");

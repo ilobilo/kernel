@@ -2,6 +2,7 @@
 
 #pragma once
 
+//#include <lib/liballoc.hpp>
 #include <lib/lock.hpp>
 #include <stdint.h>
 #include <stddef.h>
@@ -20,7 +21,6 @@ class BuddyAlloc
     BuddyBlock *head = nullptr;
     BuddyBlock *tail = nullptr;
     void *data = nullptr;
-    bool expanded = false;
     lock_t lock;
 
     BuddyBlock *next(BuddyBlock *block);
@@ -32,10 +32,8 @@ class BuddyAlloc
 
     public:
     bool debug = false;
-    size_t pages = 0;
 
-    void expand(size_t pagecount = 16);
-    void setsize(size_t pagecount);
+    void init();
 
     void *malloc(size_t size);
     void *calloc(size_t num, size_t size);
@@ -46,32 +44,3 @@ class BuddyAlloc
 };
 
 extern BuddyAlloc kheap;
-
-static inline void *malloc(size_t size, bool calloc = true)
-{
-    if (calloc) return kheap.calloc(1, size);
-    return kheap.malloc(size);
-}
-static inline void *calloc(size_t num, size_t size)
-{
-    return kheap.calloc(num, size);
-}
-static inline void *realloc(void *ptr, size_t size)
-{
-    return kheap.realloc(ptr, size);
-}
-static inline void free(void *ptr)
-{
-    kheap.free(ptr);
-}
-
-static inline size_t allocsize(void *ptr)
-{
-    return kheap.allocsize(ptr);
-}
-
-void *operator new(size_t size);
-void *operator new[](size_t size);
-
-void operator delete(void *ptr);
-void operator delete[](void *ptr);

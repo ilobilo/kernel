@@ -10,7 +10,7 @@
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <linux/reboot.h>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::display;

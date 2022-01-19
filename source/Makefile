@@ -30,14 +30,15 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
 	-net nic,model=e1000 -net user \
-	-net nic,model=rtl8139 -net user
+	-net nic,model=rtl8139 -net user \
+	-monitor telnet:127.0.0.1:12345,server,nowait
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
+CFLAGS = -O2 -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=$(NET_DEBUG) -DLVL5_PAGING=$(LVL5_PAGING) -g
 
@@ -61,7 +62,6 @@ override INTERNALCFLAGS :=     \
 	-fno-stack-protector       \
 	-fno-use-cxa-atexit        \
 	-fno-omit-frame-pointer    \
-	-fsanitize=undefined       \
 	-fno-rtti                  \
 	-fno-pic                   \
 	-mabi=sysv                 \
@@ -81,7 +81,6 @@ override INTERNALCPPFLAGS :=   \
 	-fno-exceptions            \
 	-fno-stack-protector       \
 	-fno-use-cxa-atexit        \
-	-fsanitize=undefined       \
 	-fno-omit-frame-pointer    \
 	-fno-rtti                  \
 	-fno-pic                   \
@@ -124,11 +123,19 @@ $(KERNEL):
 
 %.o: %.c
 	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
+ifndef NOUBSAN
+	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -fsanitize=undefined -c $< -o $@
+else
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
+endif
 
 %.o: %.cpp
 	@printf "CPP\t%s\n" $(lastword $(subst /, ,$<))
+ifndef NOUBSAN
+	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -fsanitize=undefined -c $< -o $@
+else
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -c $< -o $@
+endif
 
 %_asm.o: %.asm
 	@printf "ASM\t%s\n" $(lastword $(subst /, ,$<))
@@ -155,7 +162,7 @@ ifndef NOCLEAN
 endif
 
 run:
-	echo "\nBooting iso in uefi mode...\n"
+	@echo "\nBooting iso in uefi mode...\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 else
@@ -163,7 +170,7 @@ else
 endif
 
 run-bios:
-	echo "\nBooting iso in bios mode...\n"
+	@echo "\nBooting iso in bios mode...\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) | $(CXXFILT)
 else
@@ -171,7 +178,7 @@ else
 endif
 
 run-test:
-	echo "\nBooting iso in bios mode... (testing)\n"
+	@echo "\nBooting iso in bios mode... (testing)\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else

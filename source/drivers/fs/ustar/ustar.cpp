@@ -4,7 +4,7 @@
 #include <drivers/fs/ustar/ustar.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::display;

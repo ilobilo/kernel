@@ -77,6 +77,7 @@ Contributors are welcome
 - [x] SMP
 - [x] Threading
 - [x] Scheduling
+- [ ] IPC
 
 ### Partition tables
 - [x] MBR
@@ -97,7 +98,6 @@ Contributors are welcome
 - [x] System calls
 - [ ] ELF
 - [ ] Userspace
-- [ ] Signals
 - [ ] Libc
 - [ ] Bash
 - [ ] Coreutils
@@ -150,3 +150,4 @@ https://discord.gg/fM5GK3RpS7
 * PolarisOS: https://github.com/NSG650/Polaris
 * Printf: https://github.com/eyalroz/printf
 * Scalable Screen Font: https://gitlab.com/bztsrc/scalable-font2
+* Liballoc (I modified it): https://github.com/blanham/liballoc

@@ -7,7 +7,7 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/kernel.hpp>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
 #include <lib/log.hpp>
