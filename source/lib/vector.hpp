@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <stddef.h>
 
 template<typename T>

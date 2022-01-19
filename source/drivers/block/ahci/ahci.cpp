@@ -83,7 +83,7 @@ void AHCIDevice::configure()
     startCMD();
 }
 
-void AHCIDevice::stopCMD()
+[[clang::optnone]] void AHCIDevice::stopCMD()
 {
     hbaport->CommandStatus &= ~HBA_PxCMD_ST;
     hbaport->CommandStatus &= ~HBA_PxCMD_FRE;
@@ -113,7 +113,7 @@ size_t AHCIDevice::findSlot()
     return -1;
 }
 
-bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
+[[clang::optnone]] bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {

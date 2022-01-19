@@ -3,7 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 #include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
@@ -55,7 +55,7 @@ char *strcat(char *destination, const char *source)
 char *strchr(const char *str, char ch)
 {
     if (str == nullptr || ch == 0) return nullptr;
-    while (*str && *str != ch ) ++str;
+    while (*str && *str != ch) ++str;
     return const_cast<char*>(ch == *str ? str : nullptr);
 }
 
@@ -123,7 +123,7 @@ static char** _strsplit(const char* s, const char* delim, size_t* nb)
         *ptrs = _s = strcpy((static_cast<char*>(data)) + ptrsSize, s);
         if (nbWords > 1)
         {
-            while (( _s = strstr(_s, delim)))
+            while ((_s = strstr(_s, delim)))
             {
                 *_s = '\0';
                 _s += delimLen;

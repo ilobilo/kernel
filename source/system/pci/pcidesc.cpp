@@ -3,7 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
-#include <lib/buddy.hpp>
+#include <lib/alloc.hpp>
 
 namespace kernel::system::pci {
 
