@@ -22,7 +22,7 @@ extern char *buff;
 void clearbuff();
 
 char getchar();
-char *getline();
+[[clang::optnone]] char *getline();
 
 void init();
 }

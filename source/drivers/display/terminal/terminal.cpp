@@ -64,7 +64,7 @@ void printi(int num)
 
 void printc(char c)
 {
-    print(char2str(c));
+    print(tostr(c));
 }
 #pragma endregion Print
 

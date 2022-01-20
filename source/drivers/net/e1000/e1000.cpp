@@ -231,6 +231,7 @@ void E1000::start()
     this->lock.lock();
     this->detecteeprom();
     this->read_mac();
+
     this->startlink();
     for (size_t i = 0; i < 0x80; i++) this->outcmd(0x5200 + i * 4, 0);
 

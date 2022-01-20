@@ -1,5 +1,5 @@
 # Kernel project
-My first os built from scratch<br />
+My first os built from scratch\
 Contributors are welcome
 
 ## [LICENSE](LICENSE)
@@ -127,16 +127,16 @@ Make sure you have following programs installed:
 * Wget
 * Tar
 
-If you have Debian based system (Ubuntu, linux mint, Pop_os! etc) you can install them with this command:</br>
+If you have Debian based system (Ubuntu, linux mint, Pop_os! etc) you can install them with this command:\
 ```sudo apt install clang lld make nasm qemu-system-x86 xorriso wget tar```
 
 Follow this steps to build and run the os
-1. Clone this repo with:</br>
+1. Clone this repo with:\
 ``git clone --single-branch --branch master --depth 1 https://github.com/ilobilo/kernel``
 
-2. Go to the root directory of cloned repo and run:<br />
-``make -j$(nproc --all)`` For UEFI</br>
-``make bios -j$(nproc --all)`` For BIOS</br>
+2. Go to the root directory of cloned repo and run:\
+``make -j$(nproc --all)`` For UEFI\
+``make bios -j$(nproc --all)`` For BIOS\
 
 ## Discord server
 https://discord.gg/fM5GK3RpS7
@@ -146,8 +146,10 @@ https://discord.gg/fM5GK3RpS7
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
-* LyreOS: https://github.com/lyre-os/lyre
-* PolarisOS: https://github.com/NSG650/Polaris
+* Vinix: https://github.com/vlang/vinix
+* Lyre: https://github.com/lyre-os/lyre
+* Polaris: https://github.com/NSG650/Polaris
 * Printf: https://github.com/eyalroz/printf
 * Scalable Screen Font: https://gitlab.com/bztsrc/scalable-font2
-* Liballoc (I modified it): https://github.com/blanham/liballoc
+* Liballoc: https://github.com/blanham/liballoc
+* CWalk: https://github.com/likle/cwalk
