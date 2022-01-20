@@ -236,8 +236,8 @@ class AHCIDevice : public drivemgr::Drive
     private:
     lock_t lock;
 
-    void stopCMD();
-    void startCMD();
+    [[clang::optnone]] void stopCMD();
+    [[clang::optnone]] void startCMD();
 
     size_t findSlot();
     bool rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write);
@@ -248,7 +248,7 @@ class AHCIDevice : public drivemgr::Drive
     uint8_t portNum;
 
     void configure();
-    
+
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 };

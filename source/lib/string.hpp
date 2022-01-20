@@ -32,10 +32,10 @@ int lstrstr(const char *str, const char *substr, int skip = 0);
 
 char *getline(const char *str, const char *substr, char *buffer, int skip = 0);
 
-char char2low(char c);
-char char2up(char c);
-int char2num(char c);
-char *char2str(char c);
+char tolower(char c);
+char toupper(char c);
+int tonum(char c);
+char *tostr(char c);
 
 char *int2string(int num);
 int string2int(const char *str);

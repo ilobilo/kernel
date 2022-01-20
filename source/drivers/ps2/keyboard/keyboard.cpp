@@ -182,13 +182,13 @@ static void Keyboard_Handler(registers_t *)
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
-                    char ch = char2up(c[0]);
+                    char ch = toupper(c[0]);
 
                     if (kbd_mod.ctrl)
                     {
                         if ((ch >= 'A' && ch <= '_') || ch == '?' || ch == '0')
                         {
-                            printf("%c", escapes[char2num(ch)]);
+                            printf("%c", escapes[tonum(ch)]);
                         }
                     }
                     else if (kbd_mod.alt) printf("\x1b[%c", ch);

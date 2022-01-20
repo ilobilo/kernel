@@ -1,12 +1,18 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-BACKGROUND := $(SOURCEDIR)/misc/bg.bmp
-FONT := $(SOURCEDIR)/misc/font.bin
-SFNFONT := $(SOURCEDIR)/misc/font.sfn
+ROOTDIR := $(shell dirname $(SOURCEDIR))
+
+BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
+FONT = $(SOURCEDIR)/misc/font.bin
+SFNFONT = $(SOURCEDIR)/misc/font.sfn
+
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
-ISO := $(SOURCEDIR)/../image.iso
-DISK0 = $(SOURCEDIR)/../disk0.img
-DISK1 = $(SOURCEDIR)/../disk1.img
+
+ISO = $(ROOTDIR)/image.iso
+DISK0 = $(ROOTDIR)/disk0.img
+DISK1 = $(ROORDIR)/disk1.img
+
+LOGFILE = $(ROOTDIR)/log.txt
 
 VERSION = 0
 NET_DEBUG = 1
@@ -19,7 +25,7 @@ ASM = nasm
 
 CXXFILT = llvm-cxxfilt
 
-LIMINE = $(SOURCEDIR)/../limine/limine-install
+LIMINE = $(ROOTDIR)/limine/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
@@ -118,11 +124,11 @@ test: $(KERNEL) initrd
 
 $(KERNEL):
 	$(MAKE) $(OBJ)
-	@printf "LD\t%s\n" $(lastword $(subst /, ,$(KERNEL)))
+	@printf "LD\t%s\n" $(KERNEL:$(SOURCEDIR)/%=%)
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(SFNFONT) $(OBJ) -o $@
 
 %.o: %.c
-	@printf "CC\t%s\n" $(lastword $(subst /, ,$<))
+	@printf "CC\t%s\n" $(<:$(SOURCEDIR)/%=%)
 ifndef NOUBSAN
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -fsanitize=undefined -c $< -o $@
 else
@@ -130,7 +136,7 @@ else
 endif
 
 %.o: %.cpp
-	@printf "CPP\t%s\n" $(lastword $(subst /, ,$<))
+	@printf "CPP\t%s\n" $(<:$(SOURCEDIR)/%=%)
 ifndef NOUBSAN
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -fsanitize=undefined -c $< -o $@
 else
@@ -138,35 +144,35 @@ else
 endif
 
 %_asm.o: %.asm
-	@printf "ASM\t%s\n" $(lastword $(subst /, ,$<))
+	@printf "ASM\t%s\n" $(<:$(SOURCEDIR)/%=%)
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 .PHONY: initrd
 initrd:
-	@printf "TAR\t%s\n" $(lastword $(subst /, ,$(INITRD)))
+	@printf "TAR\t%s\n" $(INITRD:$(SOURCEDIR)/%=%)
 	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
 
 iso:
-	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(SOURCEDIR)/../limine.cfg $(SOURCEDIR)/../limine/limine.sys \
-		$(SOURCEDIR)/../limine/limine-cd.bin $(SOURCEDIR)/../limine/limine-eltorito-efi.bin $(SOURCEDIR)/../iso_root/
+	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(ROOTDIR)/limine.cfg $(ROOTDIR)/limine/limine.sys \
+		$(ROOTDIR)/limine/limine-cd.bin $(ROOTDIR)/limine/limine-eltorito-efi.bin $(ROOTDIR)/iso_root/
 
-	@printf "XORRISO\t%s\n" $(lastword $(subst /, ,$(ISO)))
-	$(XORRISO) $(XORRISOFLAGS) $(SOURCEDIR)/../iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"
+	@printf "XORRISO\t%s\n" $(ISO:$(ROOTDIR)/%=%)
+	$(XORRISO) $(XORRISOFLAGS) $(ROOTDIR)/iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"
 
-	@printf "LIMINE\t%s\n" $(lastword $(subst /, ,$(ISO)))
+	@printf "LIMINE\t%s\n" $(ISO:$(ROOTDIR)/%=%)
 	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install limine!\e[0m"
 
 clean:
 ifndef NOCLEAN
-	rm -rf $(KERNEL) $(OBJ) $(HDR_DEPS) $(INITRD) $(SOURCEDIR)/../iso_root/* $(SOURCEDIR)/../null.d
+	rm -rf $(KERNEL) $(OBJ) $(HDR_DEPS) $(INITRD) $(ROOTDIR)/iso_root/* $(ROOTDIR)/null.d
 endif
 
 run:
 	@echo "\nBooting iso in uefi mode...\n"
 ifndef DEBUG
-	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(SOURCEDIR)/../ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(SOURCEDIR)/../ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 endif
 
 run-bios:
@@ -174,7 +180,7 @@ run-bios:
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) | $(CXXFILT)
 endif
 
 run-test:
@@ -182,5 +188,5 @@ run-test:
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -vnc 0.0.0.0:1 -d int -D $(SOURCEDIR)/../log.txt -machine smm=off -cdrom $(ISO) | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -vnc 0.0.0.0:1 -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) | $(CXXFILT)
 endif

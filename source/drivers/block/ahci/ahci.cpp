@@ -83,7 +83,7 @@ void AHCIDevice::configure()
     startCMD();
 }
 
-[[clang::optnone]] void AHCIDevice::stopCMD()
+void AHCIDevice::stopCMD()
 {
     hbaport->CommandStatus &= ~HBA_PxCMD_ST;
     hbaport->CommandStatus &= ~HBA_PxCMD_FRE;

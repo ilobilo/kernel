@@ -227,24 +227,24 @@ char *reverse(char s[])
     return s;
 }
 
-char char2low(char c)
+char tolower(char c)
 {
     return (c >= 'A' && c <= 'Z') ? c + 32 : c;
 }
 
-char char2up(char c)
+char toupper(char c)
 {
     return (c >= 'a' && c <= 'z') ? c - 32 : c;
 }
 
-int char2num(char c)
+int tonum(char c)
 {
-    c = char2up(c);
+    c = toupper(c);
     return (c) ? c - 64 : -1;
 }
 
 char str[2];
-char *char2str(char c)
+char *tostr(char c)
 {
     str[0] = c;
     return str;
