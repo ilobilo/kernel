@@ -215,16 +215,32 @@ char *getline(const char *str, const char *substr, char *buffer, int skip)
     return 0;
 }
 
-char *reverse(char s[])
+char *reverse(char *str)
 {
-    size_t c, j, i;
-    for (i = 0, j = strlen(s) - 1; i < j; i++, j--)
+    for (size_t i = 0, j = strlen(str) - 1; i < j; i++, j--)
     {
-        c = s[i];
-        s[i] = s[j];
-        s[j] = c;
+        char c = str[i];
+        str[i] = str[j];
+        str[j] = c;
     }
-    return s;
+    return str;
+}
+
+bool isspace(char c)
+{
+    if (c == ' ') return true;
+    return false;
+}
+
+bool isempty(char *str)
+{
+    if (strlen(str) == 0) return true;
+    while (*str != '\0')
+    {
+        if (isspace(*str)) return true;
+        str++;
+    }
+    return false;
 }
 
 char tolower(char c)

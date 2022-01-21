@@ -7,7 +7,7 @@
 
 namespace kernel::drivers::fs::vfs {
 
-#define FILENAME_LENGTH 128
+#define FILENAME_LENGTH 256
 #define ROOTNAME "[ROOT]"
 
 enum filetypes
@@ -65,6 +65,8 @@ void close_fs(fs_node_t *node);
 fs_node_t *getchild(fs_node_t *parent, const char *path);
 fs_node_t *add_new_child(fs_node_t *parent, const char *name);
 void remove_child(fs_node_t *parent, const char *name);
+
+char* node2path(fs_node_t *node);
 
 fs_node_t *open(fs_node_t *parent, const char *path);
 fs_node_t *create(fs_node_t *parent, const char *path);

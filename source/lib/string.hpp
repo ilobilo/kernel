@@ -32,6 +32,11 @@ int lstrstr(const char *str, const char *substr, int skip = 0);
 
 char *getline(const char *str, const char *substr, char *buffer, int skip = 0);
 
+char *reverse(char *str);
+
+bool isspace(char c);
+bool isempty(char *str);
+
 char tolower(char c);
 char toupper(char c);
 int tonum(char c);

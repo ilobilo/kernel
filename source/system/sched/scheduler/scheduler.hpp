@@ -14,7 +14,7 @@ using namespace kernel::system::mm;
 namespace kernel::system::sched::scheduler {
 
 #define PROC_NAME_LENGTH 128
-#define DEFAULT_TIMESLICE 5
+#define DEFAULT_TIMESLICE 1
 
 enum state_t
 {
