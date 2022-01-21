@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <lib/memory.hpp>
 #include <lib/alloc.hpp>
 #include <stddef.h>
 
@@ -64,8 +65,7 @@ class vector
     void pop_back()
     {
         if (!on) return;
-        num--;
-        *(storage + num) = nullptr;
+        memset(&*(storage + --num), 0, sizeof(T));
     }
 
     size_t find(T item)
@@ -80,9 +80,11 @@ class vector
     void remove(size_t pos)
     {
         if (!on) return;
-        for (size_t i = 1; i < (num - 1); i++)
+        if (pos >= num) return;
+        memset(&*(storage + pos), 0, sizeof(T));
+        for (size_t i = 0; i < num - 1; i++)
         {
-            *(storage + pos + i - 1) = *(storage + pos + i);
+            *(storage + pos + i) = *(storage + pos + i + 1);
         }
         num--;
     }
@@ -116,7 +118,7 @@ class vector
     {
         return &*(this->storage + num);
     }
-    
+
     T *data()
     {
         return this->data;
