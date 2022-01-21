@@ -19,7 +19,10 @@ namespace kernel::drivers::ps2::kbd {
 
 bool initialised = false;
 
-char retstr[1024] = "\0";
+char *buff = nullptr;
+char c[10] = "\0";
+
+char *retstr = nullptr;
 bool reading = false;
 int gi = 0;
 
@@ -50,7 +53,6 @@ static uint8_t kbd_write(uint8_t write)
 	return inb(0x60);
 }
 
-// Scancode to ascii
 char get_ascii_char(uint8_t key_code)
 {
     if (!kbd_mod.shift && !kbd_mod.capslock)
@@ -72,7 +74,6 @@ char get_ascii_char(uint8_t key_code)
     return 0;
 }
 
-// Handle key combinations
 void handle_comb(uint8_t scancode)
 {
     char ch = get_ascii_char(scancode);
@@ -90,20 +91,11 @@ void handle_comb(uint8_t scancode)
     }
 }
 
-// Keyboard buffer
-char *buff;
-char c[10] = "\0";
-
-// Clear keyboard buffer
 void clearbuff()
 {
-    for (size_t i = 0; i < strlen(buff); i++)
-    {
-        buff[i] = '\0';
-    }
+    memset(buff, 0, KBD_BUFFSIZE);
 }
 
-// Update keyboard LEDs
 void update_leds()
 {
     uint8_t value = 0b000;
@@ -114,7 +106,6 @@ void update_leds()
     kbd_write(value);
 }
 
-// Main keyboard handler
 static void Keyboard_Handler(registers_t *)
 {
     uint8_t scancode = inb(0x60);
@@ -235,12 +226,12 @@ char *getline()
 {
     getline_lock.lock();
     reading = true;
-    memset(retstr, '\0', 1024);
+    memset(retstr, '\0', KBD_BUFFSIZE);
     while (!enter)
     {
         if (pressed)
         {
-            if (gi >= 1024 - 1)
+            if (gi >= KBD_BUFFSIZE - 1)
             {
                 printf("\nBuffer Overflow\n");
                 enter = false;
@@ -276,7 +267,8 @@ void init()
 
     update_leds();
 
-    buff = static_cast<char*>(calloc(1024, sizeof(char)));
+    buff = new char[KBD_BUFFSIZE];
+    retstr = new char[KBD_BUFFSIZE];
     idt::register_interrupt_handler(idt::IRQ1, Keyboard_Handler);
 
     serial::newline();

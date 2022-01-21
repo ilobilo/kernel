@@ -186,4 +186,15 @@ class vector
             }
         }
     }
+
+    void reverse()
+    {
+        if (this->num <= 1) return;
+        for (size_t i = 0, j = this->num - 1; i < j; i++, j--)
+        {
+            type c = *(this->storage + i);
+            *(this->storage + i) = *(this->storage + j);
+            *(this->storage + j) = c;
+        }
+    }
 };

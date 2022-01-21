@@ -6,6 +6,8 @@
 
 namespace kernel::drivers::ps2::kbd {
 
+#define KBD_BUFFSIZE 1024
+
 struct kbd_mod_t
 {
     bool shift : 1;

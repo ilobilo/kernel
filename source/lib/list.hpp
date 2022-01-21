@@ -13,7 +13,7 @@ class list
     private:
     vector<const char*> keys;
     vector<type> values;
-    type null;
+    type null = type();
 
     public:
     volatile bool on = false;
