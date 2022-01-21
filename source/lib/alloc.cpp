@@ -1,5 +1,7 @@
 #include <lib/alloc.hpp>
 
+BuddyAlloc buddyheap;
+
 void *operator new(size_t size)
 {
     return malloc(size);

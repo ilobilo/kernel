@@ -166,7 +166,7 @@ RTL8169::RTL8169(pci::pcidevice_t *pcidevice)
     this->MEMBase = bar1.address;
     this->IOBase = bar0.address;
 
-    pcidevice->command(pci::CMD_BUS_MAST, true);
+    pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE | pci::CMD_MEM_SPACE, true);
 
     this->start();
 

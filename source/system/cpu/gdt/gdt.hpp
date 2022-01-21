@@ -1,7 +1,9 @@
 // Copyright (C) 2021  ilobilo
 
 #pragma once
+
 #include <stdint.h>
+#include <stddef.h>
 
 namespace kernel::system::cpu::gdt {
 
@@ -65,7 +67,7 @@ extern TSS *tss;
 extern "C" void LoadGDT(GDTDescriptor *gdtDescriptor);
 extern "C" void LoadTSS();
 
-void reloadall(int cpu);
+void reloadall(size_t cpu);
 void reloadgdt();
 void reloadtss();
 void init();

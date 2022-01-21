@@ -252,7 +252,7 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
     this->MEMBase = bar0.address;
     this->IOBase = bar2.address;
 
-    pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE, true);
+    pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE | pci::CMD_MEM_SPACE, true);
 
     this->start();
 

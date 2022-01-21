@@ -39,7 +39,7 @@ void reloadtss()
     LoadTSS();
 }
 
-void reloadall(int cpu)
+void reloadall(size_t cpu)
 {
     gdt_lock.lock();
 
@@ -55,6 +55,8 @@ void reloadall(int cpu)
     DefaultGDT.Tss.Base2 = base >> 24;
     DefaultGDT.Tss.Base3 = base >> 32;
     DefaultGDT.Tss.Reserved = 0x00;
+
+    tss[cpu].IOPBOffset = sizeof(TSS);
 
     reloadgdt();
     reloadtss();

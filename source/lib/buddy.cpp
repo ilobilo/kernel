@@ -9,8 +9,6 @@
 
 using namespace kernel::system::mm;
 
-BuddyAlloc kheap;
-
 BuddyBlock *BuddyAlloc::next(BuddyBlock *block)
 {
     return reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(block) + block->size);
