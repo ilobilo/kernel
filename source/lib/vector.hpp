@@ -6,11 +6,11 @@
 #include <lib/alloc.hpp>
 #include <stddef.h>
 
-template<typename T>
+template<typename type>
 class vector
 {
     private:
-    T *storage = nullptr;
+    type *storage = nullptr;
     size_t cap = 0;
     size_t num = 0;
 
@@ -19,170 +19,170 @@ class vector
 
     void init()
     {
-        if (on) return;
-        storage = new T;
-        cap = allocsize(storage) / sizeof(T);
-        num = 0;
-        on = true;
+        if (this->on) return;
+        this->storage = new type;
+        this->cap = allocsize(this->storage) / sizeof(type);
+        this->num = 0;
+        this->on = true;
     }
 
     void init(size_t size)
     {
-        if (on) return;
-        storage = new T[size];
-        cap = allocsize(storage) / sizeof(T);
-        num = 0;
-        on = true;
+        if (this->on) return;
+        this->storage = new type[size];
+        this->cap = allocsize(this->storage) / sizeof(type);
+        this->num = 0;
+        this->on = true;
     }
 
     void destroy()
     {
-        if (!on) return;
-        delete storage;
-        on = false;
+        if (!this->on) return;
+        delete this->storage;
+        this->on = false;
     }
 
-    void push_back(const T &item)
+    void push_back(const type &item)
     {
-        if (!on) this->init();
-        if (num < cap)
+        if (!this->on) this->init();
+        if (this->num < this->cap)
         {
-            *(storage + num) = item;
-            num++;
+            *(this->storage + this->num) = item;
+            this->num++;
         }
         else
         {
-            storage = static_cast<T*>(realloc(storage, (cap + 2) * sizeof(T)));
-            cap = allocsize(storage) / sizeof(T);
-            if (storage)
+            this->storage = static_cast<type*>(realloc(this->storage, (this->cap + 2) * sizeof(type)));
+            this->cap = allocsize(this->storage) / sizeof(type);
+            if (this->storage)
             {
-                *(storage + num) = item;
-                num++;
+                *(this->storage + this->num) = item;
+                this->num++;
             }
         }
     }
 
     void pop_back()
     {
-        if (!on) return;
-        memset(&*(storage + --num), 0, sizeof(T));
+        if (!this->on) return;
+        memset(&*(this->storage + --this->num), 0, sizeof(type));
     }
 
-    size_t find(T item)
+    size_t find(type item)
     {
-        for (size_t i = 0; i < num; i++)
+        for (size_t i = 0; i < this->num; i++)
         {
-            if (item == *(storage + i)) return i;
+            if (item == *(this->storage + i)) return i;
         }
         return -1;
     }
 
     void remove(size_t pos)
     {
-        if (!on) return;
-        if (pos >= num) return;
-        memset(&*(storage + pos), 0, sizeof(T));
-        for (size_t i = 0; i < num - 1; i++)
+        if (!this->on) return;
+        if (pos >= this->num) return;
+        memset(&*(this->storage + pos), 0, sizeof(type));
+        for (size_t i = 0; i < this->num - 1; i++)
         {
-            *(storage + pos + i) = *(storage + pos + i + 1);
+            *(this->storage + pos + i) = *(this->storage + pos + i + 1);
         }
-        num--;
+        this->num--;
     }
 
-    T &operator[](size_t pos)
+    type &operator[](size_t pos)
     {
         return *(this->storage + pos);
     }
 
-    T &at(size_t pos)
+    type &at(size_t pos)
     {
         return *(this->storage + pos);
     }
 
-    T &front()
+    type &front()
     {
         return *this->storage;
     }
 
-    T &back()
+    type &back()
     {
-        return *(this->storage + num - 1);
+        return *(this->storage + this->num - 1);
     }
 
-    T *begin()
+    type *begin()
     {
         return &*(this->storage);
     }
 
-    T *end()
+    type *end()
     {
-        return &*(this->storage + num);
+        return &*(this->storage + this->num);
     }
 
-    T *data()
+    type *data()
     {
         return this->data;
     }
 
-    const T *cbegin()
+    const type *cbegin()
     {
         return this->storage;
     }
 
-    const T *cend()
+    const type *cend()
     {
-        return this->storage + num;
+        return this->storage + this->num;
     }
 
     size_t size()
     {
-        return num;
+        return this->num;
     }
 
     size_t max_size()
     {
-        return cap;
+        return this->cap;
     }
 
     void resize(size_t size)
     {
-        if (!on) this->init();
-        storage = static_cast<T*>(realloc(storage, size * sizeof(T)));
-        cap = allocsize(storage) / sizeof(T);
-        if (num > size) num = size + 1;
+        if (!this->on) this->init();
+        this->storage = static_cast<type*>(realloc(this->storage, size * sizeof(type)));
+        this->cap = allocsize(this->storage) / sizeof(type);
+        if (this->num > size) this->num = size + 1;
     }
 
     void expand(size_t size)
     {
-        if (!on) this->init();
-        storage = static_cast<T*>(realloc(storage, size * sizeof(T)));
-        cap = allocsize(storage) / sizeof(T);
+        if (!this->on) this->init();
+        this->storage = static_cast<type*>(realloc(this->storage, size * sizeof(type)));
+        this->cap = allocsize(this->storage) / sizeof(type);
     }
 
-    void insert(size_t pos, const T &item)
+    void insert(size_t pos, const type &item)
     {
-        if (!on) this->init();
-        if (num < cap)
+        if (!this->on) this->init();
+        if (this->num < this->cap)
         {
-            for (size_t i = num - pos; i > 0; i--)
+            for (size_t i = this->num - pos; i > 0; i--)
             {
-                *(storage + pos + i) = *(storage + pos + i - 1);
+                *(this->storage + pos + i) = *(this->storage + pos + i - 1);
             }
-            *(storage + pos) = item;
-            num++;
+            *(this->storage + pos) = item;
+            this->num++;
         }
         else
         {
-            storage = static_cast<T*>(realloc(storage, (cap + 1) * sizeof(T)));
-            cap = allocsize(storage) / sizeof(T);
-            if (storage)
+            this->storage = static_cast<type*>(realloc(this->storage, (this->cap + 1) * sizeof(type)));
+            this->cap = allocsize(this->storage) / sizeof(type);
+            if (this->storage)
             {
-                for (size_t i = num - pos; i > 0; i--)
+                for (size_t i = this->num - pos; i > 0; i--)
                 {
-                    *(storage + pos + i) = *(storage + pos + i - 1);
+                    *(this->storage + pos + i) = *(this->storage + pos + i - 1);
                 }
-                *(storage + pos) = item;
-                num++;
+                *(this->storage + pos) = item;
+                this->num++;
             }
         }
     }

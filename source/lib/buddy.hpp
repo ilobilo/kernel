@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define INIT_PAGES 512
+#define INIT_PAGES 1024
 
 struct BuddyBlock
 {
@@ -42,5 +42,3 @@ class BuddyAlloc
 
     size_t allocsize(void *ptr);
 };
-
-extern BuddyAlloc kheap;
