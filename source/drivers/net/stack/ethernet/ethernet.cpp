@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/net/stack/ethernet/ethernet.hpp>
+// #include <drivers/net/stack/ipv4/ipv4.hpp>
 #include <drivers/net/stack/arp/arp.hpp>
 #include <lib/memory.hpp>
 #include <lib/net.hpp>
@@ -37,7 +38,7 @@ void receive(nicmgr::NIC *nic, ethHdr *packet, [[gnu::unused]] size_t length)
             arp::receive(nic, reinterpret_cast<arp::arpHdr*>(data));
             break;
         case TYPE_IPv4:
-            if (debug) log("Ethernet: Received IP packet!");
+            if (debug) log("Ethernet: Received IPv4 packet!");
             // ipv4::receive(nic, reinterpret_cast<ipv4::ipv4Hdr*>(data));
             break;
     }
