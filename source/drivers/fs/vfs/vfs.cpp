@@ -155,7 +155,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 
     if (!strcmp(_path, "/"))
     {
-        delete[] path;
+        delete[] _path;
         vfs_lock.unlock();
         return fs_root->ptr;
     }
@@ -164,7 +164,8 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     cwk_segment segment;
     if(!cwk_path_get_first_segment(_path, &segment))
     {
-        error("VFS: Path doesn't have any segments!");
+        if (debug) error("VFS: Path doesn't have any segments!");
+        delete[] _path;
         vfs_lock.unlock();
         return nullptr;
     }
@@ -253,7 +254,7 @@ fs_node_t *create(fs_node_t *parent, const char *path)
 
     if (!cwk_path_get_first_segment(_path, &segment))
     {
-        error("VFS: Path doesn't have any segments!");
+        if (debug) error("VFS: Path doesn't have any segments!");
         vfs_lock.unlock();
         return nullptr;
     }
@@ -309,7 +310,7 @@ fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
     if (!fs_root->ptr) mount_root(0);
     if (!parent) parent = fs_root->ptr;
     if (!fs) fs = parent->fs;
-    parent->ptr = create(parent, path);
+    parent->ptr = open_r(parent, path);
     parent->flags = FS_MOUNTPOINT;
     parent->ptr->flags = FS_DIRECTORY;
     parent->ptr->fs = fs;

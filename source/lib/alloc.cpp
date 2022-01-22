@@ -1,6 +1,7 @@
 #include <lib/alloc.hpp>
 
 BuddyAlloc buddyheap;
+SlabAlloc slabheap;
 
 void *operator new(size_t size)
 {
