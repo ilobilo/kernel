@@ -51,9 +51,10 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args)
     return thread;
 }
 
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent)
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority)
 {
     thread_t *thread = thread_alloc(addr, args);
+    thread->priority = priority;
     if (parent)
     {
         thread->tid = parent->next_tid++;
@@ -73,7 +74,7 @@ void idle()
     while (true) asm volatile ("hlt");
 }
 
-process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
+process_t *proc_alloc(const char *name)
 {
     process_t *proc = new process_t;
 
@@ -85,8 +86,6 @@ process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
     proc->current_dir = vfs::open(NULL, "/");
     proc->parent = nullptr;
 
-    if (addr) thread_create(addr, args, proc);
-
     if (!initialised)
     {
         initproc = proc;
@@ -97,9 +96,10 @@ process_t *proc_alloc(const char *name, uint64_t addr, uint64_t args)
     return proc;
 }
 
-process_t *proc_create(const char *name, uint64_t addr, uint64_t args)
+process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority)
 {
-    process_t *proc = proc_alloc(name, addr, args);
+    process_t *proc = proc_alloc(name);
+    if (addr) thread_create(addr, args, proc, priority);
     proc_table.push_back(proc);
     proc_count++;
     proc_lock.lock();
@@ -292,7 +292,7 @@ void switchTask(registers_t *regs)
     if (!initialised) return;
 
     sched_lock.lock();
-    uint64_t timeslice = DEFAULT_TIMESLICE;
+    uint64_t timeslice = LOW;
 
     if (!this_proc() || !this_thread())
     {
@@ -312,7 +312,7 @@ void switchTask(registers_t *regs)
 
                 this_cpu->current_proc = proc;
                 this_cpu->current_thread = thread;
-                timeslice = this_thread()->timeslice;
+                timeslice = this_thread()->priority;
                 goto success;
             }
         }
@@ -333,7 +333,7 @@ void switchTask(registers_t *regs)
 
             this_cpu->current_proc = this_proc();
             this_cpu->current_thread = thread;
-            timeslice = this_thread()->timeslice;
+            timeslice = this_thread()->priority;
             goto success;
         }
         for (size_t p = proc_table.find(this_proc()) + 1; p < proc_table.size(); p++)
@@ -350,7 +350,7 @@ void switchTask(registers_t *regs)
 
                 this_cpu->current_proc = proc;
                 this_cpu->current_thread = thread;
-                timeslice = this_thread()->timeslice;
+                timeslice = this_thread()->priority;
                 goto success;
             }
         }
@@ -368,7 +368,7 @@ void switchTask(registers_t *regs)
 
                 this_cpu->current_proc = proc;
                 this_cpu->current_thread = thread;
-                timeslice = this_thread()->timeslice;
+                timeslice = this_thread()->priority;
                 goto success;
             }
         }
@@ -380,7 +380,7 @@ void switchTask(registers_t *regs)
     *regs = this_thread()->regs;
     vmm::switchPagemap(this_proc()->pagemap);
 
-    if (debug) log("Running process[%d]->thread[%d] on CPU core %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id);
+    if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %d", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id, timeslice);
 
     sched_lock.unlock();
     yield(timeslice);
@@ -391,13 +391,14 @@ void switchTask(registers_t *regs)
 
     if (this_cpu->idle_proc == nullptr)
     {
-        this_cpu->idle_proc = proc_alloc("Idle", reinterpret_cast<uint64_t>(idle), 0);
+        this_cpu->idle_proc = proc_alloc("Idle");
+        thread_create(reinterpret_cast<uint64_t>(idle), 0, this_cpu->idle_proc, LOW);
         thread_count--;
     }
 
     this_cpu->current_proc = this_cpu->idle_proc;
     this_cpu->current_thread = this_cpu->idle_proc->threads[0];
-    timeslice = this_thread()->timeslice;
+    timeslice = this_thread()->priority;
 
     this_thread()->state = RUNNING;
     *regs = this_thread()->regs;
@@ -412,7 +413,6 @@ void switchTask(registers_t *regs)
 bool idt_init = false;
 void init()
 {
-    while (!initialised) asm volatile ("hlt");
     if (apic::initialised)
     {
         if (sched_vector == 0)
