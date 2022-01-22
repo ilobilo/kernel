@@ -162,6 +162,8 @@ void parse(char *cmd, char *arg)
         }
         case hash("cd"):
         {
+            if (isempty(arg)) strcpy(arg, "/");
+
             char *path = new char[strlen(arg) + 1];
             cwk_path_normalize(arg, path, strlen(arg) + 1);
 

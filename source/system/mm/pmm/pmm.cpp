@@ -3,6 +3,7 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
+#include <lib/panic.hpp>
 #include <lib/math.hpp>
 #include <lib/lock.hpp>
 #include <lib/log.hpp>
@@ -12,7 +13,7 @@ namespace kernel::system::mm::pmm {
 
 Bitmap bitmap;
 bool initialised = false;
-static uintptr_t highest_page = 0;
+static uintptr_t highest_addr = 0;
 static size_t lastI = 0;
 static size_t usedRam = 0;
 static size_t freeRam = 0;
@@ -43,11 +44,12 @@ void *alloc(size_t count)
 {
     pmm_lock.lock();
     size_t i = lastI;
-    void *ret = inner_alloc(count, highest_page / 0x1000);
-    if (!ret)
+    void *ret = inner_alloc(count, highest_addr / 0x1000);
+    if (ret == nullptr)
     {
         lastI = 0;
         ret = inner_alloc(count, i);
+        if (ret == nullptr) PANIC("Out of memory!");
     }
     memset(ret, 0, count * 0x1000);
     usedRam += count * 0x1000;
@@ -113,10 +115,10 @@ void init()
         uintptr_t top = mmap_tag->memmap[i].base + mmap_tag->memmap[i].length;
         freeRam += mmap_tag->memmap[i].length;
 
-        if (top > highest_page) highest_page = top;
+        if (top > highest_addr) highest_addr = top;
     }
 
-    size_t bitmapSize = ALIGN_UP((highest_page / 0x1000) / 8, 0x1000);
+    size_t bitmapSize = ALIGN_UP((highest_addr / 0x1000) / 8, 0x1000);
 
     for (size_t i = 0; i < mmap_tag->entries; i++)
     {

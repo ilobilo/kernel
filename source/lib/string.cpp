@@ -237,10 +237,10 @@ bool isempty(char *str)
     if (strlen(str) == 0) return true;
     while (*str != '\0')
     {
-        if (isspace(*str)) return true;
+        if (!isspace(*str)) return false;
         str++;
     }
-    return false;
+    return true;
 }
 
 char tolower(char c)
