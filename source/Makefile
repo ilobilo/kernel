@@ -10,7 +10,7 @@ KERNEL := $(SOURCEDIR)/kernel.elf
 
 ISO = $(ROOTDIR)/image.iso
 DISK0 = $(ROOTDIR)/disk0.img
-DISK1 = $(ROORDIR)/disk1.img
+DISK1 = $(ROOTDIR)/disk1.img
 
 LOGFILE = $(ROOTDIR)/log.txt
 
