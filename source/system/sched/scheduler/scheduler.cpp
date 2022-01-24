@@ -293,7 +293,11 @@ void clean_proc(process_t *proc)
 
 void switchTask(registers_t *regs)
 {
-    if (!initialised) return;
+    if (!initialised)
+    {
+        yield();
+        return;
+    }
 
     sched_lock.lock();
     uint64_t timeslice = MID;
@@ -417,20 +421,16 @@ void switchTask(registers_t *regs)
 bool idt_init = false;
 void init()
 {
-    while (!initialised) asm volatile ("hlt");
     if (apic::initialised)
     {
-        if (sched_vector == 0)
+        if (sched_vector == 0) sched_vector = idt::alloc_vector();
+        if (!idt_init)
         {
-            sched_vector = idt::alloc_vector();
-            if (!idt_init)
-            {
-                idt::register_interrupt_handler(sched_vector, switchTask);
-                idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
-                idt_init = true;
-            }
+            idt::register_interrupt_handler(sched_vector, switchTask);
+            idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
+            idt_init = true;
         }
-        apic::lapic_periodic(sched_vector);
+        apic::lapic_oneshot(sched_vector);
     }
     else
     {
