@@ -14,6 +14,7 @@ vector<Drive*> drives;
 
 void addDrive(Drive *drive, type_t type)
 {
+    log("Registering drive #%zu", drives.size());
     drives.push_back(drive);
     drive->type = type;
     drive->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
@@ -24,7 +25,7 @@ void addDrive(Drive *drive, type_t type)
 
     if (drive->parttable.gpt.Signature == 0x5452415020494645)
     {
-        log("Found GPT on disk #%zu!", drives.size() - 1);
+        log("- Found GPT!");
         drive->partstyle = GPT;
 
         uint32_t entries_pr = 512 / drive->parttable.gpt.EntrySize;
@@ -38,7 +39,6 @@ void addDrive(Drive *drive, type_t type)
                 GPTPart gptpart = reinterpret_cast<GPTPart*>(drive->buffer)[part];
                 if (gptpart.TypeLow || gptpart.TypeHigh)
                 {
-                    log("- Found partition #%zu", drive->partitions.size());
                     Partition *partition = new Partition;
                     sprintf(partition->Label, "GPT Part #%zu", drive->partitions.size());
                     partition->StartLBA = gptpart.StartLBA;
@@ -53,17 +53,17 @@ void addDrive(Drive *drive, type_t type)
                 }
             }
         }
+        log("- Partition count: %zu", drive->partitions.size());
     }
     else if (drive->parttable.mbr.Signature[0] == 0x55 && drive->parttable.mbr.Signature[1] == 0xAA)
     {
-        log("Found MBR on disk #%zu!", drives.size() - 1);
+        log("- Found MBR!");
         drive->partstyle = MBR;
 
         for (size_t p = 0; p < 4; p++)
         {
             if (drive->parttable.mbr.Partitions[p].LBAFirst != 0)
             {
-                log("- Found partition #%zu", drive->partitions.size());
                 Partition *partition = new Partition;
                 sprintf(partition->Label, "MBR Part #%zu", drive->partitions.size());
                 partition->StartLBA = drive->parttable.mbr.Partitions[p].LBAFirst;
@@ -76,8 +76,9 @@ void addDrive(Drive *drive, type_t type)
                 drive->partitions.push_back(partition);
             }
         }
+        log("- Partition count: %zu", drive->partitions.size());
     }
-    else warn("No partition table present on drive #%zu", drives.size() - 1);
+    else warn("- No partition table found!", drives.size() - 1);
 }
 
 void addAHCI()

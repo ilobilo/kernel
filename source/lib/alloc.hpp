@@ -13,8 +13,11 @@
 
 #define ALLOC_IMPL SLAB
 
+#if (ALLOC_IMPL == BUDDY)
 extern BuddyAlloc buddyheap;
+#elif (ALLOC_IMPL == SLAB)
 extern SlabAlloc slabheap;
+#endif
 
 static inline void *malloc(size_t size, bool calloc = true)
 {
@@ -111,9 +114,3 @@ static inline size_t allocsize(void *ptr)
     return 0;
 #endif
 }
-
-void *operator new(size_t size);
-void *operator new[](size_t size);
-
-void operator delete(void *ptr);
-void operator delete[](void *ptr);

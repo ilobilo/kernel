@@ -89,6 +89,16 @@ void handle_comb(uint8_t scancode)
             enter = true;
         }
     }
+    else if (kbd_mod.ctrl && ((ch == 'r') || (ch == 'R')))
+    {
+        terminal::clear();
+        terminal::reset();
+        if (reading)
+        {
+            memset(retstr, '\0', 1024);
+            enter = true;
+        }
+    }
 }
 
 void clearbuff()
