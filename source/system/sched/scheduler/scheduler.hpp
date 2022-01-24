@@ -27,9 +27,9 @@ enum state_t
 
 enum priority_t
 {
-    LOW = 1,
-    MID = 3,
-    HIGH = 5,
+    LOW = 3,
+    MID = 5,
+    HIGH = 7,
 };
 
 struct process_t;
