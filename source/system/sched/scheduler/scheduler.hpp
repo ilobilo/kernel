@@ -37,10 +37,10 @@ struct thread_t
 {
     int tid = 1;
     state_t state;
-    priority_t priority;
     uint8_t *stack;
     registers_t regs;
     process_t *parent;
+    priority_t priority;
 };
 
 struct process_t

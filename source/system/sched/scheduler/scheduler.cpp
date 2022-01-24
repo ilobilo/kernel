@@ -54,14 +54,16 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args)
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority)
 {
     thread_t *thread = thread_alloc(addr, args);
-    thread->priority = priority;
+
     if (parent)
     {
         thread->tid = parent->next_tid++;
         thread->parent = parent;
         parent->threads.push_back(thread);
     }
+    thread->priority = priority;
     thread_count++;
+
     thread_lock.lock();
     thread->state = READY;
     thread_lock.unlock();
@@ -83,14 +85,8 @@ process_t *proc_alloc(const char *name)
     proc->pid = next_pid++;
     proc->state = INITIAL;
     proc->pagemap = vmm::newPagemap();
-    proc->current_dir = vfs::open(NULL, "/");
+    proc->current_dir = vfs::open(nullptr, "/");
     proc->parent = nullptr;
-
-    if (!initialised)
-    {
-        initproc = proc;
-        initialised = true;
-    }
     proc_lock.unlock();
 
     return proc;
@@ -99,9 +95,17 @@ process_t *proc_alloc(const char *name)
 process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority)
 {
     process_t *proc = proc_alloc(name);
+
+    if (!initialised)
+    {
+        initproc = proc;
+        initialised = true;
+    }
     if (addr) thread_create(addr, args, proc, priority);
+
     proc_table.push_back(proc);
     proc_count++;
+
     proc_lock.lock();
     proc->state = READY;
     proc_lock.unlock();
@@ -289,10 +293,14 @@ void clean_proc(process_t *proc)
 
 void switchTask(registers_t *regs)
 {
-    if (!initialised) return;
+    if (!initialised)
+    {
+        yield();
+        return;
+    }
 
     sched_lock.lock();
-    uint64_t timeslice = LOW;
+    uint64_t timeslice = MID;
 
     if (!this_proc() || !this_thread())
     {
@@ -380,7 +388,7 @@ void switchTask(registers_t *regs)
     *regs = this_thread()->regs;
     vmm::switchPagemap(this_proc()->pagemap);
 
-    if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %d", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id, timeslice);
+    if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id, timeslice);
 
     sched_lock.unlock();
     yield(timeslice);
@@ -415,17 +423,14 @@ void init()
 {
     if (apic::initialised)
     {
-        if (sched_vector == 0)
+        if (sched_vector == 0) sched_vector = idt::alloc_vector();
+        if (!idt_init)
         {
-            sched_vector = idt::alloc_vector();
-            if (!idt_init)
-            {
-                idt::register_interrupt_handler(sched_vector, switchTask);
-                idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
-                idt_init = true;
-            }
+            idt::register_interrupt_handler(sched_vector, switchTask);
+            idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
+            idt_init = true;
         }
-        apic::lapic_periodic(sched_vector);
+        apic::lapic_oneshot(sched_vector);
     }
     else
     {
