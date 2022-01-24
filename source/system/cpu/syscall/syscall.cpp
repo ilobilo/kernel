@@ -96,7 +96,7 @@ static void syscall_uname(registers_t *regs)
 
 static void syscall_chdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(NULL, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
     if (node == nullptr || (node->flags & 0x07) != vfs::FS_DIRECTORY)
     {
         RAX = -1;
@@ -108,7 +108,7 @@ static void syscall_chdir(registers_t *regs)
 
 static void syscall_rename(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(NULL, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
     if (node == nullptr)
     {
         RAX = -1;
@@ -122,7 +122,7 @@ static void syscall_rename(registers_t *regs)
 
 static void syscall_mkdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open_r(NULL, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open_r(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
     node->mode = RSI_ARG1;
     node->flags = vfs::FS_DIRECTORY;
     RAX = 0;
@@ -130,7 +130,7 @@ static void syscall_mkdir(registers_t *regs)
 
 static void syscall_rmdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(NULL, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
     if (node == nullptr)
     {
         RAX = -1;
@@ -142,7 +142,7 @@ static void syscall_rmdir(registers_t *regs)
 
 static void syscall_chmod(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(NULL, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
     if (node == nullptr)
     {
         RAX = -1;
@@ -154,7 +154,7 @@ static void syscall_chmod(registers_t *regs)
 
 static void syscall_chown(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(NULL, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
     if (node == nullptr)
     {
         RAX = -1;
