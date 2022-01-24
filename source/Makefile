@@ -160,11 +160,11 @@ iso:
 	$(XORRISO) $(XORRISOFLAGS) $(ROOTDIR)/iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"
 
 	@printf "LIMINE\t%s\n" $(ISO:$(ROOTDIR)/%=%)
-	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install limine!\e[0m"
+	$(LIMINE) $(ISO) 2> /dev/null || echo "\e[31mFailed to install Limine!\e[0m"
 
 clean:
 ifndef NOCLEAN
-	rm -rf $(KERNEL) $(OBJ) $(HDR_DEPS) $(INITRD) $(ROOTDIR)/iso_root/* $(ROOTDIR)/null.d
+	rm -rf $(KERNEL) $(OBJ) $(INITRD) $(ROOTDIR)/iso_root/*
 endif
 
 run:
@@ -188,5 +188,5 @@ run-test:
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -vnc 0.0.0.0:1 -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) | $(CXXFILT)
 endif

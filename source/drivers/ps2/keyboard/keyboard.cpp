@@ -24,7 +24,7 @@ char c[10] = "\0";
 
 char *retstr = nullptr;
 bool reading = false;
-int gi = 0;
+size_t gi = 0;
 
 volatile bool pressed = false;
 volatile bool enter = false;
