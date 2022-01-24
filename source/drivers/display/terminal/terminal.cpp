@@ -95,7 +95,6 @@ void clear(const char *ansii_colour)
     ps2::kbd::clearbuff();
     setcolour(ansii_colour);
     printf("\033[H\033[2J");
-    reset();
 }
 #pragma endregion Clear
 
