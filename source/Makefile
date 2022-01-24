@@ -30,7 +30,7 @@ XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
 QEMUFLAGS = -M q35 -serial stdio \
-	-cpu max -smp 12 -m 512M \
+	-cpu max -smp 4 -m 512M \
 	-boot d -rtc base=localtime \
 	-drive format=raw,file=$(DISK0) \
 	-audiodev id=audio,driver=alsa \
@@ -44,7 +44,7 @@ XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
-CFLAGS = -O2 -pipe -Werror -Wall -Wextra \
+CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=$(NET_DEBUG) -DLVL5_PAGING=$(LVL5_PAGING) -g
 
