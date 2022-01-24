@@ -139,8 +139,8 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    scheduler::proc_create("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0);
-    scheduler::thread_create(reinterpret_cast<uint64_t>(time), 0, scheduler::initproc);
+    scheduler::proc_create("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH);
+    scheduler::thread_create(reinterpret_cast<uint64_t>(time), 0, scheduler::initproc, scheduler::LOW);
 
     scheduler::init();
 }
