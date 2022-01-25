@@ -73,7 +73,7 @@ void lapic_init(uint8_t processor_id)
         lapic_write(0xE0, 0xF0000000);
         lapic_write(0xD0, lapic_read(0x20));
     }
-    
+
     for (size_t i = 0; i < acpi::nmis.size(); i++)
     {
         acpi::MADTNmi *nmi = acpi::nmis[i];

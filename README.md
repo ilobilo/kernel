@@ -105,7 +105,8 @@ Contributors are welcome
 ### Network stack
 - [x] Ethernet
 - [x] ARP
-- [ ] IPv4
+- [x] IPv4
+- [ ] IPv4 fragmentation support
 - [ ] ICMPv4
 - [ ] TCP
 - [ ] UDP

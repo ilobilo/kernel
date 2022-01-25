@@ -1,13 +1,11 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/net/stack/ethernet/ethernet.hpp>
+#include <system/net/ethernet/ethernet.hpp>
 #include <drivers/net/rtl8169/rtl8169.hpp>
-#include <system/cpu/idt/idt.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
-using namespace kernel::drivers::net::stack;
-using namespace kernel::system::cpu;
+using namespace kernel::system::net;
 
 namespace kernel::drivers::net::rtl8169 {
 

@@ -57,10 +57,15 @@ static struct stivale2_header_tag_framebuffer framebuffer_hdr_tag = {
     .unused = 0
 };
 
+static struct stivale2_tag unmap_null_tag = {
+    .identifier = STIVALE2_HEADER_TAG_UNMAP_NULL_ID,
+    .next = reinterpret_cast<uint64_t>(&framebuffer_hdr_tag)
+};
+
 #if (LVL5_PAGING != 0)
 static struct stivale2_tag lvl5_hdr_tag = {
     .identifier = STIVALE2_HEADER_TAG_5LV_PAGING_ID,
-    .next = reinterpret_cast<uint64_t>(&framebuffer_hdr_tag)
+    .next = reinterpret_cast<uint64_t>(&unmap_null_tag)
 };
 #endif
 
@@ -72,7 +77,7 @@ static struct stivale2_header stivale_hdr = {
 #if (LVL5_PAGING != 0)
     .tags = reinterpret_cast<uintptr_t>(&lvl5_hdr_tag)
 #else
-    .tags = reinterpret_cast<uintptr_t>(&framebuffer_hdr_tag)
+    .tags = reinterpret_cast<uintptr_t>(&unmap_null_tag)
 #endif
 };
 

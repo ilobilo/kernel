@@ -64,10 +64,17 @@ uint8_t pcidevice_t::irq_set(idt::int_handler_t handler)
     }
     else
     {
-        if (legacy) irq = this->readl(PCI_INTERRUPT_LINE);
+        if (legacy) irq = this->readb(PCI_INTERRUPT_LINE);
         else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
         irq += 32;
-        idt::register_interrupt_handler(irq, handler);
+        if (idt::interrupt_handlers[irq] == nullptr) idt::register_interrupt_handler(irq, handler);
+        else
+        {
+            irq = idt::alloc_vector();
+            if (legacy) this->writeb(PCI_INTERRUPT_LINE, irq - 32);
+            else reinterpret_cast<pciheader0*>(this->device)->intLine = irq - 32;
+            idt::register_interrupt_handler(irq, handler, false);
+        }
     }
     this->int_on = true;
     return irq;

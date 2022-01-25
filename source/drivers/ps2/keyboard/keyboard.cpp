@@ -83,6 +83,7 @@ void handle_comb(uint8_t scancode)
     else if (kbd_mod.ctrl && ((ch == 'l') || (ch == 'L')))
     {
         terminal::clear();
+        terminal::reset();
         if (reading)
         {
             memset(retstr, '\0', 1024);
@@ -91,13 +92,7 @@ void handle_comb(uint8_t scancode)
     }
     else if (kbd_mod.ctrl && ((ch == 'r') || (ch == 'R')))
     {
-        terminal::clear();
         terminal::reset();
-        if (reading)
-        {
-            memset(retstr, '\0', 1024);
-            enter = true;
-        }
     }
 }
 
@@ -183,16 +178,16 @@ static void Keyboard_Handler(registers_t *)
                 c[0] = get_ascii_char(scancode);
                 if (kbd_mod.alt || kbd_mod.ctrl)
                 {
-                    char ch = toupper(c[0]);
+                    // char ch = toupper(c[0]);
 
-                    if (kbd_mod.ctrl)
-                    {
-                        if ((ch >= 'A' && ch <= '_') || ch == '?' || ch == '0')
-                        {
-                            printf("%c", escapes[tonum(ch)]);
-                        }
-                    }
-                    else if (kbd_mod.alt) printf("\x1b[%c", ch);
+                    // if (kbd_mod.ctrl)
+                    // {
+                    //     if ((ch >= 'A' && ch <= '_') || ch == '?' || ch == '0')
+                    //     {
+                    //         printf("%c", escapes[tonum(ch)]);
+                    //     }
+                    // }
+                    // else if (kbd_mod.alt) printf("\x1b[%c", ch);
                     handle_comb(scancode);
                 }
                 else
