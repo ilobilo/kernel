@@ -1,14 +1,12 @@
 // Copyright (C) 2021  ilobilo
 
-#include <drivers/net/stack/ethernet/ethernet.hpp>
+#include <system/net/ethernet/ethernet.hpp>
 #include <drivers/net/e1000/e1000.hpp>
-#include <system/cpu/idt/idt.hpp>
 #include <lib/memory.hpp>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
 
-using namespace kernel::drivers::net::stack;
-using namespace kernel::system::cpu;
+using namespace kernel::system::net;
 
 namespace kernel::drivers::net::e1000 {
 
