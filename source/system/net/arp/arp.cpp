@@ -29,6 +29,14 @@ tableEntry *table_search(uint8_t *ip)
     return nullptr;
 }
 
+tableEntry *table_update(uint8_t *mac, uint8_t *ip)
+{
+    tableEntry *oldentry = table_search(ip);
+    if (oldentry == nullptr) return table_add(mac, ip);
+    memcpy(oldentry->mac, mac, 6);
+    return oldentry;
+}
+
 void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip)
 {
     arpHdr *packet = new arpHdr;

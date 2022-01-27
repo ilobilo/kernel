@@ -54,3 +54,26 @@ uint32_t ntohl(uint32_t num)
 {
     return flip32(num);
 }
+
+static uint32_t sum16bits(void *addr, size_t size)
+{
+    uint32_t sum = 0;
+    uint16_t *ptr = static_cast<uint16_t*>(addr);
+
+    while (size > 1)
+    {
+        sum += *ptr++;
+        size -= 2;
+    }
+    if (size > 0) sum += *reinterpret_cast<uint8_t*>(ptr);
+    return sum;
+}
+
+uint16_t checksum(void *addr, size_t size, size_t start)
+{
+    uint32_t sum = start;
+    sum += sum16bits(addr, size);
+
+    while (sum >> 16) sum = (sum & 0xFFFF) + (sum >> 16);
+    return ~sum;
+}

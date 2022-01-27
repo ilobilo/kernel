@@ -17,3 +17,5 @@ uint16_t ntohs(uint16_t num);
 
 uint32_t htonl(uint32_t num);
 uint32_t ntohl(uint32_t num);
+
+uint16_t checksum(void *addr, size_t size, size_t start = 0); 
