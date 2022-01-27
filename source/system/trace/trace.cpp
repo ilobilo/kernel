@@ -28,26 +28,28 @@ symtable_t lookup(uint64_t addr)
     return result;
 }
 
-bool backtrace(uint64_t addr, size_t i)
+bool backtrace(uint64_t addr, size_t i, bool terminal)
 {
     symtable_t symtable = lookup(addr);
 
     if (!strcmp(symtable.name, "<unknown>") || symtable.addr == 0) return false;
     error("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
+    if (terminal) printf("\n[\033[31mPANIC\033[0m] #%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
 
     return true;
 }
 
-void trace()
+void trace(bool terminal)
 {
     static stackframe_t *sf = nullptr;
     sf = reinterpret_cast<stackframe_t*>(__builtin_frame_address(0));
 
     error("Stack trace:");
+    if (terminal) printf("\n[\033[31mPANIC\033[0m] Stack trace:");
 
     for (size_t i = 0; i < 15 && sf; i++)
     {
-        if (!backtrace(sf->rip, i)) break;
+        if (!backtrace(sf->rip, i, terminal)) break;
         sf = sf->frame;
     }
 }

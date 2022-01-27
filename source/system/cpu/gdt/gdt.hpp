@@ -71,10 +71,4 @@ void reloadall(size_t cpu);
 void reloadgdt();
 void reloadtss();
 void init();
-
-void set_stack(uint64_t cpu, uintptr_t stack);
-uint64_t get_stack(uint64_t cpu);
-
-void set_stack(uintptr_t stack);
-uint64_t get_stack();
 }

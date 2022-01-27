@@ -164,9 +164,9 @@ void *findtable(const char *signature, size_t skip)
         if (use_xstd) newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(rsdt) + sizeof(SDTHeader) + (i * 8)));
         else newsdthdr = reinterpret_cast<SDTHeader*>(*reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(rsdt) + sizeof(SDTHeader) + (i * 4)));
 
-        if (!newsdthdr || !strcmp((const char*)newsdthdr->signature, "")) continue;
+        if (!newsdthdr || !strcmp(reinterpret_cast<const char*>(newsdthdr->signature), "")) continue;
 
-        if (!strncmp((const char*)newsdthdr->signature, signature, 4))
+        if (!strncmp(reinterpret_cast<const char*>(newsdthdr->signature), signature, 4))
         {
             if (!skip) return newsdthdr;
             else skip--;

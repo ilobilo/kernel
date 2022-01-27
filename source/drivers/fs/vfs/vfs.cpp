@@ -112,7 +112,7 @@ char* node2path(fs_node_t *node)
 
 fs_node_t *open(fs_node_t *parent, const char *path)
 {
-    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
+    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/") && fs_root) return fs_root->ptr;
     vfs_lock.lock();
     if (path == nullptr)
     {
@@ -124,7 +124,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     fs_node_t *parent_node;
     fs_node_t *child_node;
 
-    if (parent == nullptr) parent_node = fs_root->ptr;
+    if (parent == nullptr && fs_root) parent_node = fs_root->ptr;
     else parent_node = parent;
     if (parent_node == nullptr)
     {

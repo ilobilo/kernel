@@ -20,23 +20,22 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 
 DEFINE_LOCK(cpu_lock)
-volatile int cpus_up = 0;
 cpu_t *cpus = nullptr;
+static size_t i = 0;
 
 extern "C" void InitSSE();
 static void cpu_init(stivale2_smp_info *cpu)
 {
     cpu_lock.lock();
-    gdt::reloadall(cpu->lapic_id);
+    gdt::reloadall(i);
     idt::reload();
 
     vmm::switchPagemap(vmm::kernel_pagemap);
-
     set_kernel_gs(static_cast<uintptr_t>(cpu->extra_argument));
     set_user_gs(static_cast<uintptr_t>(cpu->extra_argument));
 
     this_cpu->lapic_id = cpu->lapic_id;
-    this_cpu->tss = &gdt::tss[this_cpu->lapic_id];
+    this_cpu->tss = &gdt::tss[this_cpu->id];
 
     enableSSE();
     enableSMEP();
@@ -48,10 +47,10 @@ static void cpu_init(stivale2_smp_info *cpu)
     if ((c & bit_XSAVE))
     {
         write_cr(4, read_cr(4) | (1 << 18));
-        
+
         uint64_t xcr0 = (0 | (1 << 0)) | (1 << 1);
         if ((c & bit_AVX)) xcr0 |= (1 << 2);
-        
+
         if (__get_cpuid(7, &a, &b, &c, &d))
         {
             if ((b & bit_AVX512F))
@@ -75,15 +74,15 @@ static void cpu_init(stivale2_smp_info *cpu)
         this_cpu->fpu_restore = fxrstor;
 	}
 
-    log("CPU %ld is up", this_cpu->lapic_id);
+    log("CPU %ld is up", this_cpu->id);
     this_cpu->is_up = true;
-    cpus_up++;
 
     cpu_lock.unlock();
     if (cpu->lapic_id != smp_tag->bsp_lapic_id)
     {
         if (apic::initialised) apic::lapic_init(this_cpu->lapic_id);
         scheduler::init();
+        while (true) asm volatile ("hlt");
     }
 }
 
@@ -99,9 +98,9 @@ void init()
 
     cpus = static_cast<cpu_t*>(calloc(smp_tag->cpu_count, sizeof(cpu_t)));
 
-    for (size_t i = 0; i < smp_tag->cpu_count; i++)
+    for (; i < smp_tag->cpu_count; i++)
     {
-        smp_tag->smp_info[i].extra_argument = (uint64_t)&cpus[i];
+        smp_tag->smp_info[i].extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);
         cpus[i].id = i;
 
         uint64_t sched_stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
@@ -110,15 +109,14 @@ void init()
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
             uint64_t stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
-            gdt::set_stack(i, stack + STACK_SIZE);
+            gdt::tss[i].RSP[0] = stack + STACK_SIZE;
 
             smp_tag->smp_info[i].target_stack = stack + STACK_SIZE;
             smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);
+            while (cpus[i].is_up == false);
         }
         else cpu_init(&smp_tag->smp_info[i]);
     }
-
-    while (static_cast<uint64_t>(cpus_up) < smp_tag->cpu_count);
 
     log("All CPUs are up\n");
     initialised = true;
