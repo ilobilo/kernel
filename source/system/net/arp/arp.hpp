@@ -49,6 +49,7 @@ extern bool debug;
 
 tableEntry *table_add(uint8_t *mac, uint8_t *ip);
 tableEntry *table_search(uint8_t *ip);
+tableEntry *table_update(uint8_t *mac, uint8_t *ip);
 
 void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip);
 void receive(nicmgr::NIC *nic, arpHdr *packet);
