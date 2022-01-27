@@ -1,6 +1,7 @@
 // Copyright (C) 2021  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
+#include <system/cpu/apic/apic.hpp>
 #include <drivers/fs/vfs/vfs.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/pci/pcidesc.hpp>
@@ -67,8 +68,9 @@ uint8_t pcidevice_t::irq_set(idt::int_handler_t handler)
         if (legacy) irq = this->readb(PCI_INTERRUPT_LINE);
         else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
         irq += 32;
+        idt::register_interrupt_handler(irq, handler);
         if (idt::interrupt_handlers[irq] == nullptr) idt::register_interrupt_handler(irq, handler);
-        else
+        else if (!apic::initialised)
         {
             irq = idt::alloc_vector();
             if (legacy) this->writeb(PCI_INTERRUPT_LINE, irq - 32);
@@ -223,7 +225,7 @@ static void enumfunc(uint64_t devaddr, uint8_t func, uint8_t dev, uint8_t bus, u
         devices.back()->device->deviceid,
         devices.back()->vendorstr,
         devices.back()->devicestr);
-    
+
     msi_check(devices.back());
 }
 

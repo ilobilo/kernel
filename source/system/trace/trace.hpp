@@ -18,6 +18,6 @@ struct symtable_t
     const char *name;
 };
 
-void trace();
+void trace(bool terminal);
 void init();
 }

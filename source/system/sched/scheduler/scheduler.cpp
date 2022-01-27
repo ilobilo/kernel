@@ -14,7 +14,7 @@ using namespace kernel::system::cpu;
 
 namespace kernel::system::sched::scheduler {
 
-bool initialised = false;
+volatile bool initialised = false;
 bool debug = false;
 static uint64_t next_pid = 1;
 static uint8_t sched_vector = 0;
@@ -82,7 +82,7 @@ process_t *proc_alloc(const char *name)
 
     proc_lock.lock();
     strncpy(proc->name, name, (strlen(name) < PROC_NAME_LENGTH) ? strlen(name) : PROC_NAME_LENGTH);
-    proc->pid = next_pid++;
+
     proc->state = INITIAL;
     proc->pagemap = vmm::newPagemap();
     proc->current_dir = vfs::open(nullptr, "/");
@@ -96,6 +96,7 @@ process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_
 {
     process_t *proc = proc_alloc(name);
 
+    proc->pid = next_pid++;
     if (!initialised)
     {
         initproc = proc;
@@ -324,7 +325,7 @@ void switchTask(registers_t *regs)
                 goto success;
             }
         }
-        goto nofree;
+        goto idle;
     }
     else
     {
@@ -381,21 +382,21 @@ void switchTask(registers_t *regs)
             }
         }
     }
-    goto nofree;
+    goto idle;
 
     success:
     this_thread()->state = RUNNING;
     *regs = this_thread()->regs;
     vmm::switchPagemap(this_proc()->pagemap);
 
-    if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->lapic_id, timeslice);
+    if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->id, timeslice);
 
     sched_lock.unlock();
     yield(timeslice);
     return;
 
-    nofree:
-    clean_proc(this_proc());
+    idle:
+    if (this_proc() != nullptr) clean_proc(this_proc());
 
     if (this_cpu->idle_proc == nullptr)
     {
@@ -412,7 +413,7 @@ void switchTask(registers_t *regs)
     *regs = this_thread()->regs;
     vmm::switchPagemap(this_proc()->pagemap);
 
-    if (debug) log("Running Idle process on CPU core %zu", this_cpu->lapic_id);
+    if (debug) log("Running Idle process on CPU core %zu", this_cpu->id);
 
     sched_lock.unlock();
     yield();

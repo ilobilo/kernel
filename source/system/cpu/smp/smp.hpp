@@ -12,7 +12,7 @@ namespace kernel::system::cpu::smp {
 
 struct cpu_t
 {
-    uint64_t id;
+    size_t id;
     uint32_t lapic_id;
     gdt::TSS *tss;
 
@@ -24,7 +24,7 @@ struct cpu_t
     scheduler::process_t *current_proc;
     scheduler::process_t *idle_proc;
 
-    bool is_up;
+    volatile bool is_up;
 };
 
 extern cpu_t *cpus;

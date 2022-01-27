@@ -122,22 +122,31 @@ static volatile bool halt = true;
 static void exception_handler(registers_t *regs)
 {
     error("System exception!");
-    error("Exception: %s on CPU %d", (char*)exception_messages[regs->int_no], this_cpu->lapic_id);
+    error("Exception: %s on CPU %zu", exception_messages[regs->int_no], (smp::initialised ? this_cpu->id : 0));
+    error("Address: 0x%lX", regs->rip);
     error("Error code: 0x%lX", regs->error_code);
 
     switch (regs->int_no)
     {
+        // case 14:
+        // {
+        //     uint64_t addr = 0;
+        //     asm volatile ("mov %%cr2, %0" : "=r"(addr));
+        //     error("CR2: 0x%lX", addr);
+        //     printf("[\033[31mPANIC\033[0m] CR2: 0x%lX\n", addr);
+        // }
     }
 
     if (!halt)
     {
-        trace::trace();
+        trace::trace(false);
         serial::newline();
         return;
     }
 
     printf("\n[\033[31mPANIC\033[0m] System Exception!\n");
-    printf("[\033[31mPANIC\033[0m] Exception: %s on CPU %d\n", (char*)exception_messages[regs->int_no], this_cpu->lapic_id);
+    printf("[\033[31mPANIC\033[0m] Exception: %s on CPU %zu\n", exception_messages[regs->int_no], (smp::initialised ? this_cpu->id : 0));
+    printf("[\033[31mPANIC\033[0m] Address: 0x%lX\n", regs->rip);
 
     switch (regs->int_no)
     {
@@ -153,8 +162,8 @@ static void exception_handler(registers_t *regs)
 
     printf("[\033[31mPANIC\033[0m] System halted!\n");
     error("System halted!\n");
-    trace::trace();
-    if (scheduler::this_thread()->state == scheduler::RUNNING)
+    trace::trace(true);
+    if (scheduler::this_proc() && scheduler::this_thread() && scheduler::this_thread()->state == scheduler::RUNNING)
     {
         asm volatile ("cli");
         this_cpu->current_thread->state = scheduler::READY;
@@ -165,9 +174,9 @@ static void exception_handler(registers_t *regs)
 
 static void irq_handler(registers_t *regs)
 {
-    if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
     if (apic::initialised) apic::eoi();
     else pic::eoi(regs->int_no);
+    if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
 }
 
 extern "C" void int_handler(registers_t *regs)

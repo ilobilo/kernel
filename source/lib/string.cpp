@@ -62,7 +62,11 @@ char *strchr(const char *str, char ch)
 int strcmp(const char *a, const char *b)
 {
     if (a == nullptr || b == nullptr) return 1;
-    while (*a && *a == *b) { ++a; ++b; }
+    while (*a && *b && *a == *b)
+    {
+        a++;
+        b++;
+    }
     return *a - *b;
 }
 

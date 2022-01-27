@@ -79,30 +79,10 @@ void init()
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = reinterpret_cast<uint64_t>(&DefaultGDT);
 
-    reloadall(smp_tag->bsp_lapic_id);
-    tss[0].RSP[0] = reinterpret_cast<uint64_t>(kernel_stack);
+    reloadall(0);
+    tss[0].RSP[0] = reinterpret_cast<uint64_t>(kernel_stack + STACK_SIZE);
 
     serial::newline();
     initialised = true;
-}
-
-void set_stack(uint64_t cpu, uintptr_t stack)
-{
-    tss[cpu].RSP[0] = stack;
-}
-
-uint64_t get_stack(uint64_t cpu)
-{
-    return tss[cpu].RSP[0];
-}
-
-void set_stack(uintptr_t stack)
-{
-    tss[this_cpu->lapic_id].RSP[0] = stack;
-}
-
-uint64_t get_stack()
-{
-    return tss[this_cpu->lapic_id].RSP[0];
 }
 }
