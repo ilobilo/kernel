@@ -107,7 +107,7 @@ Contributors are welcome
 - [x] ARP
 - [x] IPv4
 - [ ] IPv4 fragmentation support
-- [ ] ICMPv4
+- [x] ICMPv4
 - [ ] TCP
 - [ ] UDP
 - [ ] DHCP
