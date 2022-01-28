@@ -1,4 +1,4 @@
-// Copyright (C) 2021  ilobilo
+// Copyright (C) 2021-2022  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/apic/apic.hpp>

@@ -1,4 +1,4 @@
-; Copyright (C) 2021  ilobilo
+; Copyright (C) 2021-2022  ilobilo
 
 %macro pushall 0
     push rax
