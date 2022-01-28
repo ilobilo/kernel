@@ -1,4 +1,4 @@
-// Copyright (C) 2021  ilobilo
+// Copyright (C) 2021-2022  ilobilo
 
 #include <system/net/ethernet/ethernet.hpp>
 #include <drivers/net/e1000/e1000.hpp>

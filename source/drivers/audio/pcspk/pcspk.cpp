@@ -1,4 +1,4 @@
-// Copyright (C) 2021  ilobilo
+// Copyright (C) 2021-2022  ilobilo
 
 #include <system/sched/pit/pit.hpp>
 #include <lib/io.hpp>
