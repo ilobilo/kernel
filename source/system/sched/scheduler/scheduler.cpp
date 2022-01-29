@@ -29,6 +29,12 @@ DEFINE_LOCK(thread_lock)
 DEFINE_LOCK(sched_lock)
 DEFINE_LOCK(proc_lock)
 
+void func_wrapper(uint64_t addr, uint64_t args)
+{
+    reinterpret_cast<void (*)(uint64_t)>(addr)(args);
+    thread_exit();
+}
+
 thread_t *thread_alloc(uint64_t addr, uint64_t args)
 {
     thread_lock.lock();
@@ -41,8 +47,9 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args)
     thread->regs.cs = 0x28;
     thread->regs.ss = 0x30;
 
-    thread->regs.rip = addr;
-    thread->regs.rdi = reinterpret_cast<uint64_t>(args);
+    thread->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
+    thread->regs.rdi = reinterpret_cast<uint64_t>(addr);
+    thread->regs.rsi = reinterpret_cast<uint64_t>(args);
     thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack) + STACK_SIZE;
 
     thread->parent = nullptr;
