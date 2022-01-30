@@ -100,12 +100,15 @@ void dsdt_init()
         return;
     }
 
-    if ((*(S5Addr - 1) == 0x8 || (*(S5Addr - 2) == 0x8 && *(S5Addr - 1) == '\\')) && *(S5Addr + 4) == 0x12)
+    if ((*(S5Addr - 1) == 0x08 || (*(S5Addr - 2) == 0x08 && *(S5Addr - 1) == '\\')) && *(S5Addr + 4) == 0x12)
     {
         S5Addr += 5;
         S5Addr += ((*S5Addr & 0xC0) >> 6) + 2;
 
-        if (*S5Addr == 0xA) S5Addr++;
+        if (*S5Addr == 0x0A) S5Addr++;
+        SLP_TYPa = *(S5Addr) << 10;
+        S5Addr++;
+        if (*S5Addr == 0x0A) S5Addr++;
         SLP_TYPb = *(S5Addr) << 10;
         SMI_CMD = reinterpret_cast<uint32_t*>(fadthdr->SMI_CommandPort);
 
@@ -135,6 +138,7 @@ void shutdown()
 
         outw(PM1a_CNT, SLP_TYPa | SLP_EN);
         if (PM1b_CNT) outw(PM1b_CNT, SLP_TYPb | SLP_EN);
+        asm volatile ("hlt");
     }
 }
 
