@@ -5,7 +5,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <drivers/block/drivemgr/drivemgr.hpp>
-#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
 #include <drivers/net/rtl8169/rtl8169.hpp>
 #include <system/cpu/syscall/syscall.hpp>
@@ -15,7 +14,6 @@
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/net/e1000/e1000.hpp>
 #include <drivers/block/ahci/ahci.hpp>
-#include <drivers/ps2/mouse/mouse.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/hpet/hpet.hpp>
@@ -29,6 +27,7 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
+#include <drivers/ps2/ps2.hpp>
 #include <system/pci/pci.hpp>
 #include <kernel/kernel.hpp>
 #include <apps/kshell.hpp>
@@ -131,8 +130,7 @@ void main()
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
 
-    terminal::check("Initialising PS/2 Keyboard...", reinterpret_cast<uint64_t>(ps2::kbd::init), -1, ps2::kbd::initialised);
-    terminal::check("Initialising PS/2 Mouse...", reinterpret_cast<uint64_t>(ps2::mouse::init), -1, ps2::mouse::initialised, (!strstr(cmdline, "nomouse")));
+    terminal::check("Initialising PS/2 Controller...", reinterpret_cast<uint64_t>(ps2::init), -1, ps2::initialised);
 
     terminal::check("Initialising VMWare Tools...", reinterpret_cast<uint64_t>(vmware::init), -1, vmware::initialised);
 

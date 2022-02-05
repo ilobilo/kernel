@@ -2,13 +2,13 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
-#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <system/sched/timer/timer.hpp>
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
+#include <drivers/ps2/ps2.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
@@ -289,7 +289,7 @@ void run()
             current_path->flags = vfs::FS_DIRECTORY;
         }
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name[0] != '/') ? "/" : "", current_path->name, terminal::colour);
-        char *command = ps2::kbd::getline();
+        char *command = ps2::getline();
         char cmd[10] = "\0";
 
         for (size_t i = 0; i < strlen(command); i++)

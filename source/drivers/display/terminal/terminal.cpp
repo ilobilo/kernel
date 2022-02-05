@@ -1,7 +1,6 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <drivers/ps2/keyboard/keyboard.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/lock.hpp>
@@ -92,7 +91,6 @@ void reset()
 
 void clear(const char *ansii_colour)
 {
-    ps2::kbd::clearbuff();
     setcolour(ansii_colour);
     printf("\033[H\033[2J");
 }
