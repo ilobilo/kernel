@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <drivers/ps2/mouse/mouse.hpp>
+#include <drivers/ps2/ps2.hpp>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -52,7 +52,7 @@ bool is_vmware_backdoor();
 
 void handle_mouse();
 
-mouse::mousestate getmousestate();
+ps2::mousestate getmousestate();
 
 void mouse_absolute();
 void mouse_relative();

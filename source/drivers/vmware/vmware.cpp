@@ -29,12 +29,12 @@ bool is_vmware_backdoor()
 }
 
 int buttons;
-mouse::mousestate getmousestate()
+ps2::mousestate getmousestate()
 {
-    if (buttons & 0x20) return mouse::mousestate::ps2_left;
-    if (buttons & 0x10) return mouse::mousestate::ps2_right;
-    if (buttons & 0x08) return mouse::mousestate::ps2_middle;
-    return mouse::mousestate::ps2_none;
+    if (buttons & 0x20) return ps2::mousestate::PS2_LEFT;
+    if (buttons & 0x10) return ps2::mousestate::PS2_RIGHT;
+    if (buttons & 0x08) return ps2::mousestate::PS2_MIDDLE;
+    return ps2::mousestate::PS2_NONE;
 }
 
 void handle_mouse()
@@ -59,33 +59,32 @@ void handle_mouse()
     send(cmd);
 
     buttons = (cmd.ax & 0xFFFF);
-    mouse::pos.X = (cmd.bx * framebuffer::frm_width) / 0xFFFF;
-    mouse::pos.Y = (cmd.cx * framebuffer::frm_height) / 0xFFFF;
+    ps2::mousepos.X = (cmd.bx * framebuffer::frm_width) / 0xFFFF;
+    ps2::mousepos.Y = (cmd.cx * framebuffer::frm_height) / 0xFFFF;
 
-    mouse::clear();
+    ps2::mouseclear();
 
     static bool circle = false;
-    switch(mouse::getmousestate())
+    switch(ps2::getmousestate())
     {
-        case mouse::ps2_left:
-            if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xff0000);
-            else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xff0000);
+        case ps2::PS2_LEFT:
+            if (circle) framebuffer::drawfilledcircle(ps2::mousepos.X, ps2::mousepos.Y, 5, 0xff0000);
+            else framebuffer::drawfilledrectangle(ps2::mousepos.X, ps2::mousepos.Y, 10, 10, 0xff0000);
             break;
-        case mouse::ps2_middle:
+        case ps2::PS2_MIDDLE:
             if (circle) circle = false;
             else circle = true;
             break;
-        case mouse::ps2_right:
-            if (circle) framebuffer::drawfilledcircle(mouse::pos.X, mouse::pos.Y, 5, 0xdd56f5);
-            else framebuffer::drawfilledrectangle(mouse::pos.X, mouse::pos.Y, 10, 10, 0xdd56f5);
+        case ps2::PS2_RIGHT:
+            if (circle) framebuffer::drawfilledcircle(ps2::mousepos.X, ps2::mousepos.Y, 5, 0xdd56f5);
+            else framebuffer::drawfilledrectangle(ps2::mousepos.X, ps2::mousepos.Y, 10, 10, 0xdd56f5);
             break;
         default:
             break;
     }
 
-    mouse::draw();
-
-    mouse::posold = mouse::pos;
+    ps2::mousedraw();
+    ps2::mouseposold = ps2::mousepos;
 }
 
 void mouse_absolute()
@@ -108,7 +107,7 @@ void mouse_absolute()
     cmd.command = CMD_ABSPOINTER_COMMAND;
     send(cmd);
 
-    mouse::vmware = true;
+    ps2::mousevmware = true;
 }
 
 void mouse_relative()
@@ -119,7 +118,7 @@ void mouse_relative()
     cmd.command = CMD_ABSPOINTER_COMMAND;
     send(cmd);
 
-    mouse::vmware = false;
+    ps2::mousevmware = false;
 }
 
 void init()

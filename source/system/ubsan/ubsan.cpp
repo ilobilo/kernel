@@ -6,7 +6,7 @@
 
 static void print(const char *message, source_location loc)
 {
-    if (strstr(loc.file, "acpi.cpp") && ((loc.line == 165 && loc.column == 55) || (loc.line == 164 && loc.column == 64))) return;
+    if (strstr(loc.file, "acpi.cpp") && ((loc.line == 169 && loc.column == 55) || (loc.line == 168 && loc.column == 64))) return;
     warn("Ubsan: %s at file %s, line %d, column %d", message, loc.file, loc.line, loc.column);
 }
 

@@ -35,8 +35,7 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-drive format=raw,file=$(DISK0) \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
-	-net nic,model=e1000 -net user \
-	-monitor telnet:127.0.0.1:12345,server,nowait
+	-net nic,model=e1000 -net user
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -171,7 +170,7 @@ run:
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -monitor telnet:127.0.0.1:12345,server,nowait -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 endif
 
 run-bios:
@@ -179,7 +178,7 @@ run-bios:
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -monitor telnet:127.0.0.1:12345,server,nowait -cdrom $(ISO) | $(CXXFILT)
 endif
 
 run-test:
@@ -187,5 +186,5 @@ run-test:
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else
-	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -cdrom $(ISO) | $(CXXFILT)
+	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -monitor telnet:127.0.0.1:12345,server,nowait -cdrom $(ISO) | $(CXXFILT)
 endif
