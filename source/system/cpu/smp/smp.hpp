@@ -4,6 +4,7 @@
 
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/gdt/gdt.hpp>
+#include <lib/errno.hpp>
 #include <stddef.h>
 
 using namespace kernel::system::sched;
@@ -23,6 +24,8 @@ struct cpu_t
     scheduler::thread_t *current_thread;
     scheduler::process_t *current_proc;
     scheduler::process_t *idle_proc;
+
+    errno err;
 
     volatile bool is_up;
 };

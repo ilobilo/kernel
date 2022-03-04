@@ -238,7 +238,7 @@ bool isspace(char c)
 
 bool isempty(char *str)
 {
-    if (strlen(str) == 0) return true;
+    if (str == nullptr || strlen(str) == 0) return true;
     while (*str != '\0')
     {
         if (!isspace(*str)) return false;

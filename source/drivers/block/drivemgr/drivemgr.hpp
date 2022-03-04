@@ -85,9 +85,8 @@ struct partTable
 };
 
 struct Partition;
-class Drive
+struct Drive
 {
-    public:
     char name[32] = "New drive";
     uint8_t *buffer = nullptr;
     partTable parttable;

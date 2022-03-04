@@ -110,10 +110,11 @@ char* node2path(fs_node_t *node)
     cwk_path_set_style(CWK_STYLE_UNIX);
 }
 
-fs_node_t *open(fs_node_t *parent, const char *path)
+fs_node_t *open(fs_node_t *parent, const char *path, bool create)
 {
     if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/") && fs_root) return fs_root->ptr;
     vfs_lock.lock();
+
     if (path == nullptr)
     {
         if (debug) error("VFS: Invalid path!");
@@ -126,6 +127,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 
     if (parent == nullptr && fs_root) parent_node = fs_root->ptr;
     else parent_node = parent;
+
     if (parent_node == nullptr)
     {
         if (debug)
@@ -139,6 +141,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 
     size_t length = strlen(path) + 1;
     char *_path = nullptr;
+
     if (cwk_path_is_relative(path))
     {
         length = cwk_path_get_absolute(node2path(parent), path, nullptr, 0) + 1;
@@ -150,6 +153,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         _path = new char[length];
         strcpy(_path, path);
     }
+
     cwk_path_normalize(_path, const_cast<char*>(_path), length);
     parent_node = fs_root->ptr;
 
@@ -162,6 +166,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
 
     vector<const char*> segments;
     cwk_segment segment;
+
     if(!cwk_path_get_first_segment(_path, &segment))
     {
         if (debug) error("VFS: Path doesn't have any segments!");
@@ -169,6 +174,7 @@ fs_node_t *open(fs_node_t *parent, const char *path)
         vfs_lock.unlock();
         return nullptr;
     }
+
     do {
         char *seg = new char[segment.size];
         strncpy(seg, segment.begin, segment.size);
@@ -191,11 +197,14 @@ fs_node_t *open(fs_node_t *parent, const char *path)
                 goto next;
             }
         }
-        goto notfound;
+        if (create) add_new_child(parent_node, segments[i]);
+        else goto notfound;
+        goto next;
     }
 
     for (const char *&seg : segments) delete seg;
     segments.destroy();
+
     vfs_lock.unlock();
     return child_node;
 
@@ -203,97 +212,9 @@ fs_node_t *open(fs_node_t *parent, const char *path)
     if (debug) error("VFS: File not found!");
     for (const char *&seg : segments) delete seg;
     segments.destroy();
+
     vfs_lock.unlock();
     return nullptr;
-}
-
-fs_node_t *create(fs_node_t *parent, const char *path)
-{
-    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
-    if (!path)
-    {
-        if (debug) error("VFS: Invalid path!");
-        return nullptr;
-    }
-
-    vfs_lock.lock();
-
-    fs_node_t *parent_node;
-    fs_node_t *child_node;
-    vector<const char*> segments;
-    cwk_segment segment;
-
-    if (parent == nullptr) parent_node = fs_root->ptr;
-    else parent_node = parent;
-    if (parent_node == nullptr)
-    {
-        if (debug)
-        {
-            error("VFS: Couldn't find directory /");
-            error("VFS: Is root mounted?");
-        }
-        vfs_lock.unlock();
-        return nullptr;
-    }
-
-    size_t length = strlen(path) + 1;
-    char *_path = nullptr;
-    if (cwk_path_is_relative(path))
-    {
-        length = cwk_path_get_absolute(node2path(parent), path, nullptr, 0) + 1;
-        _path = new char[length];
-        cwk_path_get_absolute(node2path(parent), path, _path, length);
-    }
-    else
-    {
-        _path = new char[length];
-        strcpy(_path, path);
-    }
-    cwk_path_normalize(_path, const_cast<char*>(_path), length);
-    parent_node = fs_root->ptr;
-
-    if (!cwk_path_get_first_segment(_path, &segment))
-    {
-        if (debug) error("VFS: Path doesn't have any segments!");
-        vfs_lock.unlock();
-        return nullptr;
-    }
-    do {
-        char *seg = new char[segment.size];
-        strncpy(seg, segment.begin, segment.size);
-        segments.push_back(seg);
-    } while(cwk_path_get_next_segment(&segment));
-    delete[] _path;
-
-    size_t i = 0;
-    next:
-    if (i < segments.size())
-    {
-        if (fs_node_t *temp = getchild(parent_node, segments[i]))
-        {
-            if (i >= segments.size() - 1) child_node = temp;
-            else parent_node = temp;
-            i++;
-            goto next;
-        }
-        if (i >= segments.size() - 1) child_node = add_new_child(parent_node, segments[i]);
-        else parent_node = add_new_child(parent_node, segments[i]);
-        i++;
-        goto next;
-    }
-
-    for (const char *&seg : segments) delete seg;
-    segments.destroy();
-    vfs_lock.unlock();
-    return child_node;
-}
-
-fs_node_t *open_r(fs_node_t *parent, const char *path)
-{
-    if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/")) return fs_root->ptr;
-    fs_node_t *node = open(parent, path);
-    if (!node) node = create(parent, path);
-    return node;
 }
 
 fs_node_t *mount_root(fs_t *fs)
@@ -307,10 +228,10 @@ fs_node_t *mount_root(fs_t *fs)
 
 fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path)
 {
-    if (!fs_root->ptr) mount_root(0);
+    if (!fs_root->ptr) mount_root(nullptr);
     if (!parent) parent = fs_root->ptr;
     if (!fs) fs = parent->fs;
-    parent->ptr = open_r(parent, path);
+    parent->ptr = open(parent, path, true);
     parent->flags = FS_MOUNTPOINT;
     parent->ptr->flags = FS_DIRECTORY;
     parent->ptr->fs = fs;

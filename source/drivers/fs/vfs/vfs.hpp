@@ -68,9 +68,7 @@ void remove_child(fs_node_t *parent, const char *name);
 
 char* node2path(fs_node_t *node);
 
-fs_node_t *open(fs_node_t *parent, const char *path);
-fs_node_t *create(fs_node_t *parent, const char *path);
-fs_node_t *open_r(fs_node_t *parent, const char *path);
+fs_node_t *open(fs_node_t *parent, const char *path, bool create = false);
 
 fs_node_t *mount_root(fs_t *fs);
 fs_node_t *mount(fs_t *fs, fs_node_t *parent, const char *path);
