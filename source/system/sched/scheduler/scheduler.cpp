@@ -14,8 +14,8 @@ using namespace kernel::system::cpu;
 
 namespace kernel::system::sched::scheduler {
 
-volatile bool initialised = false;
 bool debug = false;
+
 static uint64_t next_pid = 1;
 static uint8_t sched_vector = 0;
 
@@ -41,7 +41,7 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args)
     thread_t *thread = new thread_t;
 
     thread->state = INITIAL;
-    thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE));
+    thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE)) + hhdm_tag->addr;
 
     thread->regs.rflags = 0x202;
     thread->regs.cs = 0x28;
@@ -104,11 +104,8 @@ process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_
     process_t *proc = proc_alloc(name);
 
     proc->pid = next_pid++;
-    if (!initialised)
-    {
-        initproc = proc;
-        initialised = true;
-    }
+
+    if (initproc == nullptr) initproc = proc;
     if (addr) thread_create(addr, args, proc, priority);
 
     proc_table.push_back(proc);
@@ -301,7 +298,7 @@ void clean_proc(process_t *proc)
 
 void switchTask(registers_t *regs)
 {
-    if (!initialised)
+    if (initproc == nullptr)
     {
         yield();
         return;
