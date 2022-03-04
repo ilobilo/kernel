@@ -195,13 +195,13 @@ void init()
     if (rsdp->revision >= 2 && rsdp->xsdtaddr)
     {
         use_xstd = true;
-        rsdt = reinterpret_cast<SDTHeader*>(rsdp->xsdtaddr);
+        rsdt = reinterpret_cast<SDTHeader*>(rsdp->xsdtaddr + hhdm_tag->addr);
         log("Found XSDT at: 0x%X", rsdp->xsdtaddr);
     }
     else
     {
         use_xstd = false;
-        rsdt = reinterpret_cast<SDTHeader*>(rsdp->rsdtaddr);
+        rsdt = reinterpret_cast<SDTHeader*>(rsdp->rsdtaddr + hhdm_tag->addr);
         log("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 

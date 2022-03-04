@@ -111,7 +111,7 @@ void init()
             uint64_t stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
             gdt::tss[i].RSP[0] = stack + STACK_SIZE;
 
-            smp_tag->smp_info[i].target_stack = stack + STACK_SIZE;
+            smp_tag->smp_info[i].target_stack = stack + STACK_SIZE + hhdm_tag->addr;
             smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);
             while (cpus[i].is_up == false);
         }

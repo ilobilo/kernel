@@ -32,11 +32,11 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
 
 PDEntry &Pagemap::virt2pte(uint64_t vaddr)
 {
-    size_t pml5_entry = (vaddr & ((uint64_t)0x1FF << 48)) >> 48;
-    size_t pml4_entry = (vaddr & ((uint64_t)0x1FF << 39)) >> 39;
-    size_t pml3_entry = (vaddr & ((uint64_t)0x1FF << 30)) >> 30;
-    size_t pml2_entry = (vaddr & ((uint64_t)0x1FF << 21)) >> 21;
-    size_t pml1_entry = (vaddr & ((uint64_t)0x1FF << 12)) >> 12;
+    size_t pml5_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 48)) >> 48;
+    size_t pml4_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 39)) >> 39;
+    size_t pml3_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 30)) >> 30;
+    size_t pml2_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 21)) >> 21;
+    size_t pml1_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 12)) >> 12;
 
     PTable *pml5, *pml4, *pml3, *pml2, *pml1;
 
@@ -127,12 +127,12 @@ void PDEntry::setflags(uint64_t flags, bool enabled)
 bool PDEntry::getflag(PT_Flag flag)
 {
     uint64_t bitSel = static_cast<uint64_t>(flag);
-    return (this->value & (bitSel > 0)) ? true : false;
+    return (this->value & bitSel) ? true : false;
 }
 
 bool PDEntry::getflags(uint64_t flags)
 {
-    return (this->value & (flags > 0)) ? true : false;
+    return (this->value & flags) ? true : false;
 }
 
 uint64_t PDEntry::getAddr()
@@ -153,7 +153,47 @@ Pagemap *newPagemap()
 
     if (kernel_pagemap == nullptr)
     {
-        pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
+        // pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
+
+        pagemap->TOPLVL = reinterpret_cast<PTable*>(pmm::alloc());
+
+        for (size_t i = 0; i < pmrs_tag->entries; i++)
+        {
+            stivale2_pmr &pmr = pmrs_tag->pmrs[i];
+
+            uint64_t vaddr = pmr.base;
+            uint64_t paddr = kbad_tag->physical_base_address + (vaddr - kbad_tag->virtual_base_address);
+            uint64_t length = pmr.length;
+
+            for (uint64_t t = 0; t < length; t += 0x1000)
+            {
+                pagemap->mapMem(vaddr + t, paddr + t);
+            }
+        }
+
+        for (uint64_t i = 0x1000; i < 0x100000000; i += 0x1000)
+        {
+            pagemap->mapMem(i, i);
+            pagemap->mapMem(i + hhdm_tag->addr, i);
+        }
+
+        for (size_t i = 0; i < mmap_tag->entries; i++)
+        {
+            stivale2_mmap_entry &mmap = mmap_tag->memmap[i];
+
+            uint64_t base = ALIGN_DOWN(mmap.base, 0x1000);
+            uint64_t top = ALIGN_UP(mmap.base + mmap.length, 0x1000);
+            if (top < 0x100000000) continue;
+
+            for (uint64_t t = base; t < top; t += 0x1000)
+            {
+                if (t < 0x100000000) continue;
+
+                pagemap->mapMem(t, t);
+                pagemap->mapMem(t + hhdm_tag->addr, t);
+            }
+        }
+
         return pagemap;
     }
 
