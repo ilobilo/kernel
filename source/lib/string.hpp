@@ -36,6 +36,10 @@ char *reverse(char *str);
 
 bool isspace(char c);
 bool isempty(char *str);
+static inline bool isempty(const char *str)
+{
+    return isempty(const_cast<char*>(str));
+}
 
 char tolower(char c);
 char toupper(char c);

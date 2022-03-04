@@ -18,7 +18,7 @@ uint64_t count = 0;
 
 vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mode, const char *name)
 {
-    vfs::fs_node_t *node = vfs::open_r(devfs_root, name);
+    vfs::fs_node_t *node = vfs::open(devfs_root, name, true);
     node->fs = fs;
     if (mode) node->mode = mode;
     node->inode = count;

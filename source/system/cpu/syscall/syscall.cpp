@@ -122,7 +122,7 @@ static void syscall_rename(registers_t *regs)
 
 static void syscall_mkdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open_r(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
+    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0), true);
     node->mode = RSI_ARG1;
     node->flags = vfs::FS_DIRECTORY;
     RAX = 0;

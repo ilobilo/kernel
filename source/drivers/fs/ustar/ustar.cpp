@@ -46,7 +46,7 @@ int parse(unsigned int address)
         headers.back()->size = size;
         headers.back()->address = address + 512;
 
-        vfs::fs_node_t *node = vfs::open_r(nullptr, headers.back()->header->name);
+        vfs::fs_node_t *node = vfs::open(nullptr, headers.back()->header->name, true);
 
         node->mode = string2int(headers.back()->header->mode);
         node->address = headers.back()->address;
