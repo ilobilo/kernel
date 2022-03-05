@@ -80,7 +80,7 @@ override INTERNALCFLAGS :=     \
 override INTERNALCPPFLAGS :=   \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/            \
-	-std=gnu++17               \
+	-std=gnu++20               \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \

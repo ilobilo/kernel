@@ -14,11 +14,11 @@
 
 using namespace kernel::drivers::display;
 
+struct stivale2_struct_tag_framebuffer *frm_tag;
+struct stivale2_struct_tag_terminal *term_tag;
 struct stivale2_struct_tag_smp *smp_tag;
 struct stivale2_struct_tag_memmap *mmap_tag;
 struct stivale2_struct_tag_rsdp *rsdp_tag;
-struct stivale2_struct_tag_framebuffer *frm_tag;
-struct stivale2_struct_tag_terminal *term_tag;
 struct stivale2_struct_tag_modules *mod_tag;
 struct stivale2_struct_tag_cmdline *cmd_tag;
 struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
@@ -83,53 +83,64 @@ static struct stivale2_header stivale_hdr = {
 #endif
 };
 
-void *stivale2_get_tag(stivale2_struct *stivale, uint64_t id)
+template<typename type>
+type *get_tag(stivale2_struct *stivale, uint64_t id)
 {
-    stivale2_tag *current_tag = reinterpret_cast<stivale2_tag*>(stivale->tags);
-    while (true)
+    auto *current_tag = reinterpret_cast<stivale2_tag*>(stivale->tags);
+    while (current_tag)
     {
-        if (current_tag == nullptr) return nullptr;
-
-        if (current_tag->identifier == id) return current_tag;
+        if (current_tag->identifier == id) return reinterpret_cast<type*>(current_tag);
 
         current_tag = reinterpret_cast<stivale2_tag*>(current_tag->next);
     }
+    return nullptr;
 }
 
-int find_module(const char *name)
+stivale2_module *find_module(const char *name)
 {
-    for (uint64_t i = 0; i < mod_tag->module_count; i++)
+    for (size_t i = 0; i < mod_tag->module_count; i++)
     {
-        if (!strcmp(mod_tag->modules[i].string, name)) return i;
+        if (!strcmp(mod_tag->modules[i].string, name)) return &mod_tag->modules[i];
     }
-    return -1;
+    return nullptr;
 }
 
 extern "C" void _start(stivale2_struct *stivale2_struct)
 {
-    smp_tag = static_cast<stivale2_struct_tag_smp*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID));
-    mmap_tag = static_cast<stivale2_struct_tag_memmap*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID));
-    rsdp_tag = static_cast<stivale2_struct_tag_rsdp*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID));
-    frm_tag = static_cast<stivale2_struct_tag_framebuffer*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID));
-    term_tag = static_cast<stivale2_struct_tag_terminal*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID));
-    mod_tag = static_cast<stivale2_struct_tag_modules*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID));
-    cmd_tag = static_cast<stivale2_struct_tag_cmdline*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID));
-    kfilev2_tag = static_cast<stivale2_struct_tag_kernel_file_v2*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID));
-    epoch_tag = static_cast<stivale2_struct_tag_epoch*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_EPOCH_ID));
-    hhdm_tag = static_cast<stivale2_struct_tag_hhdm*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_HHDM_ID));
-    pmrs_tag = static_cast<stivale2_struct_tag_pmrs*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_PMRS_ID));
-    kbad_tag = static_cast<stivale2_struct_tag_kernel_base_address*>(stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_BASE_ADDRESS_ID));
+    serial::init();
 
-    cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
+    term_tag = get_tag<stivale2_struct_tag_terminal>(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID);
+    frm_tag = get_tag<stivale2_struct_tag_framebuffer>(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
+    smp_tag = get_tag<stivale2_struct_tag_smp>(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
+    mmap_tag = get_tag<stivale2_struct_tag_memmap>(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
+    rsdp_tag = get_tag<stivale2_struct_tag_rsdp>(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
+    mod_tag = get_tag<stivale2_struct_tag_modules>(stivale2_struct, STIVALE2_STRUCT_TAG_MODULES_ID);
+    cmd_tag = get_tag<stivale2_struct_tag_cmdline>(stivale2_struct, STIVALE2_STRUCT_TAG_CMDLINE_ID);
+    kfilev2_tag = get_tag<stivale2_struct_tag_kernel_file_v2>(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_FILE_V2_ID);
+    epoch_tag = get_tag<stivale2_struct_tag_epoch>(stivale2_struct, STIVALE2_STRUCT_TAG_EPOCH_ID);
+    hhdm_tag = get_tag<stivale2_struct_tag_hhdm>(stivale2_struct, STIVALE2_STRUCT_TAG_HHDM_ID);
+    pmrs_tag = get_tag<stivale2_struct_tag_pmrs>(stivale2_struct, STIVALE2_STRUCT_TAG_PMRS_ID);
+    kbad_tag = get_tag<stivale2_struct_tag_kernel_base_address>(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_BASE_ADDRESS_ID);
 
-    if (!strstr(cmdline, "nocom")) serial::init();
+    ASSERT(term_tag, "Could not get terminal structure tag!");
+    terminal::init();
 
-    if (frm_tag == nullptr) PANIC("Could not find framebuffer tag!");
+    ASSERT(frm_tag, "Could not get framebuffer structure tag!");
     framebuffer::init();
     ssfn::init();
 
-    if (term_tag == nullptr) PANIC("Could not find terminal tag!");
-    terminal::init();
+    ASSERT(smp_tag, "Could not get smp structure tag!");
+    ASSERT(mmap_tag, "Could not get memmap structure tag!");
+    ASSERT(rsdp_tag, "Could not get rsdp structure tag!");
+    ASSERT(mod_tag, "Could not get modules structure tag!");
+    ASSERT(cmd_tag, "Could not get cmdline structure tag!");
+    cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
+
+    ASSERT(kfilev2_tag, "Could not get kernel file v2 structure tag!");
+    ASSERT(epoch_tag, "Could not get epoch structure tag!");
+    ASSERT(hhdm_tag, "Could not get hhdm structure tag!");
+    ASSERT(pmrs_tag, "Could not get pmrs structure tag!");
+    ASSERT(kbad_tag, "Could not get kernel base address structure tag!");
 
     kernel::main();
 

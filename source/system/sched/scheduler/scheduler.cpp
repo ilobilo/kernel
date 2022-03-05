@@ -35,7 +35,7 @@ void func_wrapper(uint64_t addr, uint64_t args)
     thread_exit();
 }
 
-thread_t *thread_alloc(uint64_t addr, uint64_t args)
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority)
 {
     thread_lock.lock();
     thread_t *thread = new thread_t;
@@ -44,34 +44,25 @@ thread_t *thread_alloc(uint64_t addr, uint64_t args)
     thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE)) + hhdm_tag->addr;
 
     thread->regs.rflags = 0x202;
-    thread->regs.cs = 0x28;
-    thread->regs.ss = 0x30;
+    thread->regs.cs = GDT_CODE_64;
+    thread->regs.ss = GDT_DATA_64;
 
     thread->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
     thread->regs.rdi = reinterpret_cast<uint64_t>(addr);
     thread->regs.rsi = reinterpret_cast<uint64_t>(args);
     thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack) + STACK_SIZE;
 
-    thread->parent = nullptr;
-    thread_lock.unlock();
-
-    return thread;
-}
-
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority)
-{
-    thread_t *thread = thread_alloc(addr, args);
-
     if (parent)
     {
         thread->tid = parent->next_tid++;
         thread->parent = parent;
+
         parent->threads.push_back(thread);
     }
+
     thread->priority = priority;
     thread_count++;
 
-    thread_lock.lock();
     thread->state = READY;
     thread_lock.unlock();
 

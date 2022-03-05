@@ -72,10 +72,13 @@ void time()
     }
 }
 
-extern "C" void (*__init_array_start)(), (*__init_array_end)();
+using constructor_t = void (*)();
+
+extern "C" constructor_t __init_array_start[];
+extern "C" constructor_t __init_array_end[];
 void constructors_init()
 {
-    for (void (**ctor)() = &__init_array_start; ctor < &__init_array_end; ctor++) (*ctor)();
+    for (constructor_t *ctor = __init_array_start; ctor < __init_array_end; ctor++) (*ctor)();
 }
 
 void main()
@@ -104,6 +107,7 @@ void main()
     terminal::check("Initialising PMM...", reinterpret_cast<uint64_t>(pmm::init), -1, pmm::initialised);
     terminal::check("Initialising VMM...", reinterpret_cast<uint64_t>(vmm::init), -1, vmm::initialised);
     constructors_init();
+
     terminal::check("Initialising GDT...", reinterpret_cast<uint64_t>(gdt::init), -1, gdt::initialised);
     terminal::check("Initialising IDT...", reinterpret_cast<uint64_t>(idt::init), -1, idt::initialised);
 
@@ -124,8 +128,8 @@ void main()
     terminal::check("Initialising NIC Manager...", reinterpret_cast<uint64_t>(nicmgr::init), -1, nicmgr::initialised);
 
     terminal::check("Initialising VFS...", reinterpret_cast<uint64_t>(vfs::init), -1, vfs::initialised);
-    int m = find_module("initrd");
-    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), mod_tag->modules[m].begin, ustar::initialised, (m != -1 && strstr(cmdline, "initrd")));
+    stivale2_module *initrd_mod = find_module("initrd");
+    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), initrd_mod->begin, ustar::initialised, (initrd_mod != nullptr && strstr(cmdline, "initrd")));
     terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);

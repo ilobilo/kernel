@@ -19,8 +19,8 @@ namespace kernel::system::cpu::gdt {
     {0xFFFF, 0, 0, 0x92, 0xCF, 0}, // 32 Bit data
     {0x0000, 0, 0, 0x9A, 0x20, 0}, // 64 Bit code
     {0x0000, 0, 0, 0x92, 0x00, 0}, // 64 Bit data
-    {0x0000, 0, 0, 0xF2, 0x00, 0}, // User data
     {0x0000, 0, 0, 0xFA, 0x20, 0}, // User code
+    {0x0000, 0, 0, 0xF2, 0x00, 0}, // User data
     {0x0000, 0, 0, 0x89, 0x00, 0, 0, 0} // TSS
 };
 
@@ -31,12 +31,12 @@ TSS *tss;
 
 void reloadgdt()
 {
-    LoadGDT(&gdtDescriptor);
+    asm volatile ("lgdt %0" : : "m"(gdtDescriptor) : "memory");
 }
 
 void reloadtss()
 {
-    LoadTSS();
+    asm volatile ("ltr %0" : : "r"(static_cast<uint16_t>(GDT_TSS)));
 }
 
 void reloadall(size_t cpu)
@@ -55,8 +55,6 @@ void reloadall(size_t cpu)
     DefaultGDT.Tss.Base2 = base >> 24;
     DefaultGDT.Tss.Base3 = base >> 32;
     DefaultGDT.Tss.Reserved = 0x00;
-
-    tss[cpu].IOPBOffset = sizeof(TSS);
 
     reloadgdt();
     reloadtss();
