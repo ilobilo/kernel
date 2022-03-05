@@ -8,11 +8,11 @@
 
 extern uint8_t kernel_stack[];
 
+extern struct stivale2_struct_tag_terminal *term_tag;
+extern struct stivale2_struct_tag_framebuffer *frm_tag;
 extern struct stivale2_struct_tag_smp *smp_tag;
 extern struct stivale2_struct_tag_memmap *mmap_tag;
 extern struct stivale2_struct_tag_rsdp *rsdp_tag;
-extern struct stivale2_struct_tag_framebuffer *frm_tag;
-extern struct stivale2_struct_tag_terminal *term_tag;
 extern struct stivale2_struct_tag_modules *mod_tag;
 extern struct stivale2_struct_tag_cmdline *cmd_tag;
 extern struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
@@ -23,6 +23,6 @@ extern struct stivale2_struct_tag_kernel_base_address *kbad_tag;
 
 extern char *cmdline;
 
-void *stivale2_get_tag(stivale2_struct *stivale, uint64_t id);
+void *get_tag(stivale2_struct *stivale, uint64_t id);
 
-int find_module(const char *name);
+stivale2_module *find_module(const char *name);

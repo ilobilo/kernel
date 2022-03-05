@@ -13,7 +13,7 @@ namespace kernel::system::sched::pit {
 
 bool initialised = false;
 bool schedule = false;
-volatile uint64_t tick = 0;
+uint64_t tick = 0;
 uint64_t frequency = PIT_DEF_FREQ;
 DEFINE_LOCK(pit_lock)
 

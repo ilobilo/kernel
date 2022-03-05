@@ -11,12 +11,13 @@ namespace kernel::drivers::display::terminal {
 
 DEFINE_LOCK(term_lock)
 
+bool initialised = false;
 uint16_t columns;
 uint16_t rows;
 
-char *colour = (char*)"\033[0m";
+char *colour = const_cast<char*>("\033[0m");
 
-void (*write)(const char *, uint64_t);
+void (*write)(const char*, uint64_t);
 
 void init()
 {
@@ -25,11 +26,14 @@ void init()
     write = reinterpret_cast<void (*)(const char *, uint64_t)>(term_tag->term_write);
     columns = term_tag->cols;
     rows = term_tag->rows;
+
+    initialised = true;
 }
 
 #pragma region Print
 void print(const char *string)
 {
+    if (!initialised) return;
     term_lock.lock();
     write(string, strlen(string));
     term_lock.unlock();
@@ -125,11 +129,9 @@ void center(const char *text)
 void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit)
 {
     printf("\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
-    if (shouldinit)
-    {
-        if (args == -1) reinterpret_cast<void (*)()>(init)();
-        else reinterpret_cast<void (*)(uint64_t)>(init)(args);
-    }
+
+    if (shouldinit) reinterpret_cast<void (*)(uint64_t)>(init)(args);
+
     printf("\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), columns - 5, (ok ? "32mOK" : "31m!!"));
 }
 #pragma endregion Misc

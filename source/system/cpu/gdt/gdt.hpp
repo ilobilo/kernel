@@ -7,6 +7,17 @@
 
 namespace kernel::system::cpu::gdt {
 
+#define GDT_NULL 0x00
+#define GDT_CODE_16 0x08
+#define GDT_DATA_16 0x10
+#define GDT_CODE_32 0x18
+#define GDT_DATA_32 0x20
+#define GDT_CODE_64 0x28
+#define GDT_DATA_64 0x30
+#define GDT_USER_CODE_64 0x38
+#define GDT_USER_DATA_64 0x40
+#define GDT_TSS 0x48
+
 struct [[gnu::packed]] GDTDescriptor
 {
     uint16_t Size;
@@ -44,8 +55,8 @@ struct [[gnu::packed, gnu::aligned(0x1000)]] GDT
     GDTEntry _32BitData;
     GDTEntry _64BitCode;
     GDTEntry _64BitData;
-    GDTEntry UserData;
     GDTEntry UserCode;
+    GDTEntry UserData;
     TSSEntry Tss;
 };
 

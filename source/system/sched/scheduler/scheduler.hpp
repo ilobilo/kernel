@@ -64,7 +64,6 @@ extern vector<process_t*> proc_table;
 extern size_t proc_count;
 extern size_t thread_count;
 
-thread_t *thread_alloc(uint64_t addr, uint64_t args);
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr, priority_t priority = MID);
 
 process_t *proc_alloc(const char *name);
