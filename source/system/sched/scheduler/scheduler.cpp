@@ -15,6 +15,7 @@ using namespace kernel::system::cpu;
 namespace kernel::system::sched::scheduler {
 
 bool debug = false;
+static bool die = false;
 
 static uint64_t next_pid = 1;
 static uint8_t sched_vector = 0;
@@ -35,22 +36,38 @@ void func_wrapper(uint64_t addr, uint64_t args)
     thread_exit();
 }
 
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority)
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user)
 {
     thread_lock.lock();
     thread_t *thread = new thread_t;
 
     thread->state = INITIAL;
-    thread->stack = static_cast<uint8_t*>(malloc(STACK_SIZE)) + hhdm_tag->addr;
+    thread->stack_phys = static_cast<uint8_t*>(malloc(STACK_SIZE));
+
+    if (user && parent)
+    {
+        // TODO: Fix this if broken
+        parent->thread_stack_top -= STACK_SIZE;
+        uint64_t stack_bottom_vma = parent->thread_stack_top;
+        parent->thread_stack_top -= 0x1000;
+
+        parent->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(thread->stack_phys), STACK_SIZE / 0x1000, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
+
+        thread->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
+    }
+    else thread->stack = thread->stack_phys + hhdm_tag->addr;
 
     thread->regs.rflags = 0x202;
-    thread->regs.cs = GDT_CODE_64;
-    thread->regs.ss = GDT_DATA_64;
+    thread->regs.cs = (user ? (GDT_USER_CODE_64 | 0x03) : GDT_CODE_64);
+    thread->regs.ss = (user ? (GDT_USER_DATA_64 | 0x03) : GDT_DATA_64);
 
     thread->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
     thread->regs.rdi = reinterpret_cast<uint64_t>(addr);
     thread->regs.rsi = reinterpret_cast<uint64_t>(args);
     thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack) + STACK_SIZE;
+
+    thread->priority = priority;
+    thread_count++;
 
     if (parent)
     {
@@ -59,9 +76,6 @@ thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priorit
 
         parent->threads.push_back(thread);
     }
-
-    thread->priority = priority;
-    thread_count++;
 
     thread->state = READY;
     thread_lock.unlock();
@@ -90,14 +104,14 @@ process_t *proc_alloc(const char *name)
     return proc;
 }
 
-process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority)
+process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority, bool user)
 {
     process_t *proc = proc_alloc(name);
 
     proc->pid = next_pid++;
 
     if (initproc == nullptr) initproc = proc;
-    if (addr) thread_create(addr, args, proc, priority);
+    if (addr) thread_create(addr, args, proc, priority, user);
 
     proc_table.push_back(proc);
     proc_count++;
@@ -289,6 +303,7 @@ void clean_proc(process_t *proc)
 
 void switchTask(registers_t *regs)
 {
+    if (die) while (true) asm volatile ("cli; hlt");
     if (initproc == nullptr)
     {
         yield();
@@ -412,6 +427,13 @@ void switchTask(registers_t *regs)
 
     sched_lock.unlock();
     yield();
+}
+
+void kill()
+{
+    asm volatile ("cli");
+    die = true;
+    asm volatile ("sti");
 }
 
 bool idt_init = false;

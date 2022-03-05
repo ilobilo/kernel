@@ -38,6 +38,7 @@ struct thread_t
     int tid = 1;
     state_t state;
     uint8_t *stack;
+    uint8_t *stack_phys;
     registers_t regs;
     process_t *parent;
     priority_t priority;
@@ -54,6 +55,7 @@ struct process_t
     vector<thread_t*> threads;
     vector<process_t*> children;
     process_t *parent;
+    uint64_t thread_stack_top = 0x70000000000;
 };
 
 extern bool debug;
@@ -64,10 +66,10 @@ extern vector<process_t*> proc_table;
 extern size_t proc_count;
 extern size_t thread_count;
 
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr, priority_t priority = MID);
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr, priority_t priority = MID, bool user = false);
 
 process_t *proc_alloc(const char *name);
-process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority = MID);
+process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
 
 thread_t *this_thread();
 process_t *this_proc();
@@ -97,5 +99,6 @@ static inline int gettid()
 void yield(uint64_t ms = 1);
 void switchTask(registers_t *regs);
 
+void kill();
 void init();
 }
