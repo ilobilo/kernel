@@ -66,6 +66,14 @@ void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
     this->lock.unlock();
 }
 
+void Pagemap::mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, uint64_t flags)
+{
+    for (size_t i = 0; i < pagecount; i += 0x1000)
+    {
+        this->mapMem(vaddr + i, paddr + i, flags);
+    }
+}
+
 void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
     this->lock.lock();
@@ -76,16 +84,6 @@ void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
     asm volatile ("invlpg (%0)" :: "r"(vaddr_old));
     this->lock.unlock();
     this->mapMem(vaddr_new, paddr, flags);
-}
-
-void Pagemap::mapUserMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
-{
-    this->mapMem(vaddr, paddr, flags | UserSuper);
-}
-
-void Pagemap::mapHHMem(uint64_t paddr, uint64_t flags)
-{
-    this->mapMem(paddr + hhdm_tag->addr, paddr, flags);
 }
 
 void Pagemap::unmapMem(uint64_t vaddr)

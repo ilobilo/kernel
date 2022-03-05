@@ -163,12 +163,13 @@ static void exception_handler(registers_t *regs)
     printf("[\033[31mPANIC\033[0m] System halted!\n");
     error("System halted!\n");
     trace::trace(true);
-    if (scheduler::this_proc() && scheduler::this_thread() && scheduler::this_thread()->state == scheduler::RUNNING)
-    {
-        asm volatile ("cli");
-        this_cpu->current_thread->state = scheduler::READY;
-        asm volatile ("sti");
-    }
+    // if (scheduler::this_proc() && scheduler::this_thread() && scheduler::this_thread()->state == scheduler::RUNNING)
+    // {
+    //     asm volatile ("cli");
+    //     this_cpu->current_thread->state = scheduler::READY;
+    //     asm volatile ("sti");
+    // }
+    scheduler::kill();
     asm volatile ("cli; hlt");
 }
 
