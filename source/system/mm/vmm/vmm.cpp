@@ -14,14 +14,14 @@ bool initialised = false;
 bool lvl5 = LVL5_PAGING;
 Pagemap *kernel_pagemap = nullptr;
 
-PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
+static PTable *get_next_lvl(PTable *curr_lvl, size_t entry, bool allocate = true)
 {
     PTable *ret = nullptr;
     if (curr_lvl->entries[entry].getflag(Present))
     {
         ret = reinterpret_cast<PTable*>(static_cast<uint64_t>(curr_lvl->entries[entry].getAddr()) << 12);
     }
-    else
+    else if (allocate == true)
     {
         ret = reinterpret_cast<PTable*>(pmm::alloc());
         curr_lvl->entries[entry].setAddr(reinterpret_cast<uint64_t>(ret) >> 12);
@@ -30,7 +30,7 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry)
     return ret;
 }
 
-PDEntry &Pagemap::virt2pte(uint64_t vaddr)
+PDEntry *Pagemap::virt2pte(uint64_t vaddr, bool allocate)
 {
     size_t pml5_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 48)) >> 48;
     size_t pml4_entry = (vaddr & (static_cast<uint64_t>(0x1FF) << 39)) >> 39;
@@ -43,26 +43,32 @@ PDEntry &Pagemap::virt2pte(uint64_t vaddr)
     if (lvl5)
     {
         pml5 = this->TOPLVL;
-        pml4 = get_next_lvl(pml5, pml5_entry);
+        pml4 = get_next_lvl(pml5, pml5_entry, allocate);
     }
     else
     {
         pml5 = nullptr;
         pml4 = this->TOPLVL;
     }
-    pml3 = get_next_lvl(pml4, pml4_entry);
-    pml2 = get_next_lvl(pml3, pml3_entry);
-    pml1 = get_next_lvl(pml2, pml2_entry);
-    return pml1->entries[pml1_entry];
+    pml3 = get_next_lvl(pml4, pml4_entry, allocate);
+    pml2 = get_next_lvl(pml3, pml3_entry, allocate);
+    pml1 = get_next_lvl(pml2, pml2_entry, allocate);
+    return &pml1->entries[pml1_entry];
 }
 
 void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
     this->lock.lock();
-    PDEntry &pml1_entry = this->virt2pte(vaddr);
+    PDEntry *pml1_entry = this->virt2pte(vaddr);
+    if (pml1_entry == nullptr)
+    {
+        error("VMM: Could not get page map entry!");
+        this->lock.unlock();
+        return;
+    }
 
-    pml1_entry.setAddr(paddr >> 12);
-    pml1_entry.setflags(flags, true);
+    pml1_entry->setAddr(paddr >> 12);
+    pml1_entry->setflags(flags, true);
     this->lock.unlock();
 }
 
@@ -77,34 +83,49 @@ void Pagemap::mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, ui
 void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
     this->lock.lock();
-    PDEntry &pml1_entry = this->virt2pte(vaddr_old);
+    PDEntry *pml1_entry = this->virt2pte(vaddr_old, false);
+    if (pml1_entry == nullptr)
+    {
+        error("VMM: Could not get page map entry!");
+        this->lock.unlock();
+        return;
+    }
 
-    uint64_t paddr = pml1_entry.getAddr() << 12;
-    pml1_entry.value = 0;
-    asm volatile ("invlpg (%0)" :: "r"(vaddr_old));
+    uint64_t paddr = pml1_entry->getAddr() << 12;
+    pml1_entry->value = 0;
+    invlpg(vaddr_old);
     this->lock.unlock();
+
     this->mapMem(vaddr_new, paddr, flags);
 }
 
 void Pagemap::unmapMem(uint64_t vaddr)
 {
     this->lock.lock();
-    this->virt2pte(vaddr).value = 0;
-    asm volatile ("invlpg (%0)" :: "r"(vaddr));
+    PDEntry *pml1_entry = this->virt2pte(vaddr, false);
+    if (pml1_entry == nullptr)
+    {
+        error("VMM: Could not get page map entry!");
+        this->lock.unlock();
+        return;
+    }
+
+    pml1_entry->value = 0;
+    invlpg(vaddr);
     this->lock.unlock();
 }
 
-void Pagemap::setFlags(uint64_t vaddr, uint64_t flags)
+void Pagemap::setflags(uint64_t vaddr, uint64_t flags, bool enabled)
 {
     this->lock.lock();
-    this->virt2pte(vaddr).setflags(flags, true);
-    this->lock.unlock();
-}
-
-void Pagemap::remFlags(uint64_t vaddr, uint64_t flags)
-{
-    this->lock.lock();
-    this->virt2pte(vaddr).setflags(flags, false);
+    PDEntry *pml1_entry = this->virt2pte(vaddr, false);
+    if (pml1_entry == nullptr)
+    {
+        error("VMM: Could not get page map entry!");
+        this->lock.unlock();
+        return;
+    }
+    pml1_entry->setflags(flags, enabled);
     this->lock.unlock();
 }
 
@@ -149,11 +170,11 @@ Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
 
+    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
+
     if (kernel_pagemap == nullptr)
     {
-        // pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
-
-        pagemap->TOPLVL = reinterpret_cast<PTable*>(pmm::alloc());
+        for (size_t i = 256; i < 512; i++) get_next_lvl(pagemap->TOPLVL, i);
 
         for (size_t i = 0; i < pmrs_tag->entries; i++)
         {
@@ -195,11 +216,9 @@ Pagemap *newPagemap()
         return pagemap;
     }
 
-    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
-
-    PTable *pml4 = pagemap->TOPLVL;
-    PTable *kernel_pml4 = kernel_pagemap->TOPLVL;
-    for (size_t i = 0; i < 512; i++) pml4->entries[i] = kernel_pml4->entries[i];
+    PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_tag->addr);
+    PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_tag->addr);
+    for (size_t i = 0; i < 512; i++) toplvl[i] = kerenltoplvl[i];
 
     return pagemap;
 }

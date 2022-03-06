@@ -112,6 +112,11 @@ void fxrstor(void *region)
     asm volatile("fxrstor %0" : : "m"(FLAT_PTR(region)) : "memory");
 }
 
+void invlpg(uint64_t addr)
+{
+    asm volatile ("invlpg (%0)" :: "r"(addr));
+}
+
 void enableSSE()
 {
     write_cr(0, (read_cr(0) & ~(1 << 2)) | (1 << 1));

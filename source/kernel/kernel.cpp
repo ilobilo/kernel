@@ -86,7 +86,7 @@ static struct stivale2_header stivale_hdr = {
 template<typename type>
 type *get_tag(stivale2_struct *stivale, uint64_t id)
 {
-    auto *current_tag = reinterpret_cast<stivale2_tag*>(stivale->tags);
+    stivale2_tag *current_tag = reinterpret_cast<stivale2_tag*>(stivale->tags);
     while (current_tag)
     {
         if (current_tag->identifier == id) return reinterpret_cast<type*>(current_tag);

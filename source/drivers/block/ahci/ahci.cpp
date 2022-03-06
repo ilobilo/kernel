@@ -50,7 +50,7 @@ void AHCIController::probePorts()
                 ports[portCount]->portType = portType;
                 ports[portCount]->hbaport = &ABAR->Ports[i];
                 ports[portCount]->portNum = portCount;
-                ports[portCount]->buffer = static_cast<uint8_t*>(malloc(0x1000));
+                ports[portCount]->buffer = static_cast<uint8_t*>(pmm::alloc());
 
                 portCount++;
             }

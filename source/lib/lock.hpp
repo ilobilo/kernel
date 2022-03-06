@@ -4,10 +4,12 @@
 
 #include <stddef.h>
 
-struct lock_t
+class lock_t
 {
+    private:
     volatile bool locked = false;
 
+    public:
     void lock();
     void unlock();
     bool test();

@@ -47,15 +47,14 @@ struct Pagemap
     lock_t lock;
     PTable *TOPLVL = nullptr;
 
-    PDEntry &virt2pte(uint64_t vaddr);
+    PDEntry *virt2pte(uint64_t vaddr, bool allocate = true);
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, uint64_t flags = (Present | ReadWrite));
     void remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags = (Present | ReadWrite));
     void unmapMem(uint64_t vaddr);
 
-    void setFlags(uint64_t vaddr, uint64_t flags);
-    void remFlags(uint64_t vaddr, uint64_t flags);
+    void setflags(uint64_t vaddr, uint64_t flags, bool enabled = true);
 };
 
 extern bool initialised;
