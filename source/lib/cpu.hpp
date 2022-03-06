@@ -39,6 +39,8 @@ void xrstor(void *region);
 void fxsave(void *region);
 void fxrstor(void *region);
 
+void invlpg(uint64_t addr);
+
 void enableSSE();
 void enableSMEP();
 void enableSMAP();

@@ -124,7 +124,7 @@ static void exception_handler(registers_t *regs)
     error("System exception!");
     error("Exception: %s on CPU %zu", exception_messages[regs->int_no], (smp::initialised ? this_cpu->id : 0));
     error("Address: 0x%lX", regs->rip);
-    error("Error code: 0x%lX", regs->error_code);
+    error("Error code: 0x%lX, 0b%b", regs->error_code, regs->error_code);
 
     switch (regs->int_no)
     {

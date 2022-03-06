@@ -36,7 +36,7 @@ void func_wrapper(uint64_t addr, uint64_t args)
     thread_exit();
 }
 
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user)
+static thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user)
 {
     thread_lock.lock();
     thread_t *thread = new thread_t;
@@ -67,17 +67,28 @@ thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priorit
     thread->regs.rsp = reinterpret_cast<uint64_t>(thread->stack) + STACK_SIZE;
 
     thread->priority = priority;
-    thread_count++;
+    thread->parent = parent;
+
+    thread_lock.unlock();
+
+    return thread;
+}
+
+thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user)
+{
+    thread_t *thread = thread_alloc(addr, args, parent, priority, user);
+
+    thread_lock.lock();
 
     if (parent)
     {
         thread->tid = parent->next_tid++;
-        thread->parent = parent;
+        thread_count++;
 
         parent->threads.push_back(thread);
+        thread->state = READY;
     }
 
-    thread->state = READY;
     thread_lock.unlock();
 
     return thread;
@@ -88,7 +99,7 @@ void idle()
     while (true) asm volatile ("hlt");
 }
 
-process_t *proc_alloc(const char *name)
+static process_t *proc_alloc(const char *name)
 {
     process_t *proc = new process_t;
 
@@ -420,6 +431,7 @@ void switchTask(registers_t *regs)
     timeslice = this_thread()->priority;
 
     this_thread()->state = RUNNING;
+    this_proc()->state = RUNNING;
     *regs = this_thread()->regs;
     vmm::switchPagemap(this_proc()->pagemap);
 

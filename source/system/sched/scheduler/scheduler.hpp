@@ -67,8 +67,6 @@ extern size_t proc_count;
 extern size_t thread_count;
 
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr, priority_t priority = MID, bool user = false);
-
-process_t *proc_alloc(const char *name);
 process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
 
 thread_t *this_thread();
