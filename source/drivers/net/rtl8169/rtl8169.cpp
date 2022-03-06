@@ -190,9 +190,9 @@ RTL8169::RTL8169(pci::pcidevice_t *pcidevice)
     log("Registering card #%zu", devices.size());
 
     pci::pcibar bar0 = pcidevice->get_bar(0);
-    pci::pcibar bar1 = pcidevice->get_bar(1);
-    this->BARType = bar1.mmio ? 0x00 : 0x01;
-    this->MEMBase = bar1.address;
+    pci::pcibar bar2 = pcidevice->get_bar(2);
+    this->BARType = bar2.mmio ? 0x00 : 0x01;
+    this->MEMBase = bar2.address;
     this->IOBase = bar0.address;
 
     pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_IO_SPACE | pci::CMD_MEM_SPACE, true);
