@@ -44,6 +44,14 @@ class RTL8169 : public nicmgr::NIC
     uint16_t rxcurr = 0;
     uint16_t txcurr = 0;
 
+    void outb(uint16_t addr, uint8_t val);
+    void outw(uint16_t addr, uint16_t val);
+    void outl(uint16_t addr, uint32_t val);
+
+    uint8_t inb(uint16_t addr);
+    uint16_t inw(uint16_t addr);
+    uint32_t inl(uint16_t addr);
+
     void rxinit();
     void txinit();
 

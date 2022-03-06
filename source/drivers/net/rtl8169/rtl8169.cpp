@@ -37,20 +37,51 @@ static void RTL8169_Handler(registers_t *regs)
     }
 }
 
+void RTL8169::outb(uint16_t addr, uint8_t val)
+{
+    if (this->BARType == 0) mmoutb(reinterpret_cast<void*>(this->MEMBase + addr), val);
+    else outb(this->IOBase + addr, val);
+}
+void RTL8169::outw(uint16_t addr, uint16_t val)
+{
+    if (this->BARType == 0) mmoutw(reinterpret_cast<void*>(this->MEMBase + addr), val);
+    else outw(this->IOBase + addr, val);
+}
+void RTL8169::outl(uint16_t addr, uint32_t val)
+{
+    if (this->BARType == 0) mmoutl(reinterpret_cast<void*>(this->MEMBase + addr), val);
+    else outl(this->IOBase + addr, val);
+}
+uint8_t RTL8169::inb(uint16_t addr)
+{
+    if (this->BARType == 0) return mminb(reinterpret_cast<void*>(this->MEMBase + addr));
+    else return inb(this->IOBase + addr);
+}
+uint16_t RTL8169::inw(uint16_t addr)
+{
+    if (this->BARType == 0) return mminw(reinterpret_cast<void*>(this->MEMBase + addr));
+    else return inw(this->IOBase + addr);
+}
+uint32_t RTL8169::inl(uint16_t addr)
+{
+    if (this->BARType == 0) return mminl(reinterpret_cast<void*>(this->MEMBase + addr));
+    else return inl(this->IOBase + addr);
+}
+
 uint16_t RTL8169::status()
 {
-    return inw(this->IOBase + 0x3E);
+    return this->inw(0x3E);
 }
 
 void RTL8169::irq_reset(uint16_t status)
 {
-    outw(this->IOBase + 0x3E, status);
+    this->outw(0x3E, status);
 }
 
 void RTL8169::read_mac()
 {
-    uint32_t mac1 = inl(this->IOBase + 0x00);
-    uint16_t mac2 = inw(this->IOBase + 0x04);
+    uint32_t mac1 = this->inl(0x00);
+    uint16_t mac2 = this->inw(0x04);
 
     this->MAC[0] = mac1;
     this->MAC[1] = mac1 >> 8;
@@ -75,14 +106,14 @@ void RTL8169::send(void *data, uint64_t length)
         this->txcurr = 0;
         this->txdescs[old_cur]->command |= RTL8169_EOR;
     }
-    outb(this->IOBase + 0x38, 0x40);
+    this->outb(0x38, 0x40);
     free(tdata);
     this->lock.unlock();
 }
 
 void RTL8169::receive()
 {
-    for (size_t i = 0; (inb(this->IOBase + 0x37) & 0x01) == 0; i++)
+    for (size_t i = 0; (this->inb(0x37) & 0x01) == 0; i++)
     {
         if (this->debug) log("RTL8169: Handling packet #%zu!", i);
 
@@ -124,31 +155,31 @@ void RTL8169::txinit()
 
 void RTL8169::reset()
 {
-    outb(IOBase + 0x37, 0x10);
-    while ((inb(IOBase + 0x37) & 0x10));
+    this->outb(0x37, 0x10);
+    while ((this->inb(0x37) & 0x10));
 }
 
 void RTL8169::start()
 {
-    outb(this->IOBase + 0x52, 0x01);
+    this->outb(0x52, 0x01);
     this->reset();
 
     this->rxinit();
     this->txinit();
 
-    outb(this->IOBase + 0x50, 0xC0);
-    outl(this->IOBase + 0x44, 0x0000E70F);
-    outb(this->IOBase + 0x37, 0x04);
-    outl(this->IOBase + 0x40, 0x03000700);
-    outw(this->IOBase + 0xDA, 0x1FFF);
-    outb(this->IOBase + 0xEC, 0x3B);
-    outl(this->IOBase + 0x20, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0])));
-    outl(this->IOBase + 0x24, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0]) >> 32));
-    outl(this->IOBase + 0xE4, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0])));
-    outl(this->IOBase + 0xE8, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0]) >> 32));
-    outw(this->IOBase + 0x3C, 0xC1FF);
-    outb(this->IOBase + 0x37, 0x0C);
-    outb(this->IOBase + 0x50, 0x00);
+    this->outb(0x50, 0xC0);
+    this->outl(0x44, 0x0000E70F);
+    this->outb(0x37, 0x04);
+    this->outl(0x40, 0x03000700);
+    this->outw(0xDA, 0x1FFF);
+    this->outb(0xEC, 0x3B);
+    this->outl(0x20, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0])));
+    this->outl(0x24, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0]) >> 32));
+    this->outl(0xE4, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0])));
+    this->outl(0xE8, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0]) >> 32));
+    this->outw(0x3C, 0xC1FF);
+    this->outb(0x37, 0x0C);
+    this->outb(0x50, 0x00);
 
     this->read_mac();
 }
