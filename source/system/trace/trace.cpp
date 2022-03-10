@@ -28,9 +28,14 @@ symtable_t lookup(uint64_t addr)
     return result;
 }
 
-bool backtrace(uint64_t addr, size_t i, bool terminal)
+bool backtrace(uint64_t addr, size_t &i, bool terminal)
 {
     symtable_t symtable = lookup(addr);
+    while (!strcmp(symtable.name, "int_handler") || !strcmp(symtable.name, "int_common_stub"))
+    {
+        i--;
+        return true;
+    }
 
     if (!strcmp(symtable.name, "<unknown>") || symtable.addr == 0) return false;
     error("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);

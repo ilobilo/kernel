@@ -94,27 +94,27 @@ void wrxcr(uint32_t i, uint64_t value)
 
 void xsave(void *region)
 {
-    asm volatile("xsave %0" : "+m"(FLAT_PTR(region)) : "a"(0xFFFFFFFF), "d"(0xFFFFFFFF) : "memory");
+    asm volatile("xsave (%0)" : : "r"(region), "a"(0xFFFFFFFF), "d"(0xFFFFFFFF) : "memory");
 }
 
 void xrstor(void *region)
 {
-    asm volatile("xrstor %0" :: "m"(FLAT_PTR(region)), "a"(0xFFFFFFFF), "d"(0xFFFFFFFF) : "memory");
+    asm volatile("xrstor (%0)" : : "r"(region), "a"(0xFFFFFFFF), "d"(0xFFFFFFFF) : "memory");
 }
 
 void fxsave(void *region)
 {
-    asm volatile("fxsave %0" : "+m"(FLAT_PTR(region)) : : "memory");
+    asm volatile("fxsave (%0)" : : "r"(region) : "memory");
 }
 
 void fxrstor(void *region)
 {
-    asm volatile("fxrstor %0" : : "m"(FLAT_PTR(region)) : "memory");
+    asm volatile("fxrstor (%0)" : : "r"(region) : "memory");
 }
 
 void invlpg(uint64_t addr)
 {
-    asm volatile ("invlpg (%0)" :: "r"(addr));
+    asm volatile ("invlpg (%0)" : : "r"(addr));
 }
 
 void enableSSE()
@@ -128,7 +128,7 @@ void enableSMEP()
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(7, &a, &b, &c, &d))
     {
-        if ((b & CPUID_SMEP))
+        if (b & CPUID_SMEP)
         {
             write_cr(4, read_cr(4) | (1 << 20));
         }
@@ -140,7 +140,7 @@ void enableSMAP()
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(7, &a, &b, &c, &d))
     {
-        if ((b & CPUID_SMAP))
+        if (b & CPUID_SMAP)
         {
             write_cr(4, read_cr(4) | (1 << 21));
             asm volatile ("clac");
@@ -153,7 +153,7 @@ void enableUMIP()
     uint32_t a = 0, b = 0, c = 0, d = 0;
     if (__get_cpuid(7, &a, &b, &c, &d))
     {
-        if ((c & CPUID_UMIP))
+        if (c & CPUID_UMIP)
         {
             write_cr(4, read_cr(4) | (1 << 11));
         }
