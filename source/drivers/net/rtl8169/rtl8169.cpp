@@ -18,17 +18,17 @@ static void RTL8169_Handler(registers_t *regs)
     {
         RTL8169 *device = devices[i];
         uint16_t status = device->status();
-        if (status & (1 << 15)) error("RTL8169: Card #%zu: Error!", i);
-        if (status & (1 << 14)) if (device->debug) warn("RTL8169: Card #%zu: Time out!", i);
-        if (status & (1 << 8)) if (device->debug) warn("RTL8169: Card #%zu: Software interrupts!", i);
-        if (status & (1 << 7)) if (device->debug) error("RTL8169: Card #%zu: TX buffer overflow!", i);
-        if (status & (1 << 6)) if (device->debug) error("RTL8169: Card #%zu: RX FIFO overflow!", i);
-        if (status & (1 << 5)) if (device->debug) log("RTL8169: Card #%zu: Link status change!", i);
-        if (status & (1 << 4)) if (device->debug) error("RTL8169: Card #%zu: RX buffer overflow!", i);
-        if (status & (1 << 3)) if (device->debug) error("RTL8169: Card #%zu: Error while sending packet!", i);
-        if (status & (1 << 2)) if (device->debug) log("RTL8169: Card #%zu: Packet sent!", i);
-        if (status & (1 << 1)) if (device->debug) error("RTL8169: Card #%zu: Error while receiving packet!", i);
-        if (status & (1 << 0))
+        if (status & IST_SYSTEM_ERROR) error("RTL8169: Card #%zu: Error!", i);
+        if (status & IST_TIME_OUT) if (device->debug) warn("RTL8169: Card #%zu: Time out!", i);
+        if (status & IST_SOFT_INT) if (device->debug) warn("RTL8169: Card #%zu: Software interrupt!", i);
+        if (status & IST_TX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: TX descriptor unavailable!", i);
+        if (status & IST_RX_FIFO_OVER) if (device->debug) error("RTL8169: Card #%zu: RX FIFO overflow!", i);
+        if (status & IST_LINK_CHANGE) if (device->debug) log("RTL8169: Card #%zu: Link status change!", i);
+        if (status & IST_RX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: RX descriptor unavailable!", i);
+        if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while sending packet!", i);
+        if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8169: Card #%zu: Packet sent!", i);
+        if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while receiving packet!", i);
+        if (status & IST_RECEIVE_OK)
         {
             if (device->debug) log("RTL8169: Card #%zu: Packet received!", i);
             device->receive();
@@ -70,18 +70,18 @@ uint32_t RTL8169::inl(uint16_t addr)
 
 uint16_t RTL8169::status()
 {
-    return this->inw(0x3E);
+    return this->inw(REG_ISR);
 }
 
 void RTL8169::irq_reset(uint16_t status)
 {
-    this->outw(0x3E, status);
+    this->outw(REG_ISR, status);
 }
 
 void RTL8169::read_mac()
 {
-    uint32_t mac1 = this->inl(0x00);
-    uint16_t mac2 = this->inw(0x04);
+    uint32_t mac1 = this->inl(REG_ID_0);
+    uint16_t mac2 = this->inw(REG_ID_4);
 
     this->MAC[0] = mac1;
     this->MAC[1] = mac1 >> 8;
@@ -106,14 +106,14 @@ void RTL8169::send(void *data, uint64_t length)
         this->txcurr = 0;
         this->txdescs[old_cur]->command |= RTL8169_EOR;
     }
-    this->outb(0x38, 0x40);
+    this->outb(REG_TPPOLL, 0x40);
     free(tdata);
     this->lock.unlock();
 }
 
 void RTL8169::receive()
 {
-    for (size_t i = 0; (this->inb(0x37) & 0x01) == 0; i++)
+    for (size_t i = 0; (this->inb(REG_CR) & 0x01) == 0; i++)
     {
         if (this->debug) log("RTL8169: Handling packet #%zu!", i);
 
@@ -155,31 +155,31 @@ void RTL8169::txinit()
 
 void RTL8169::reset()
 {
-    this->outb(0x37, 0x10);
-    while ((this->inb(0x37) & 0x10));
+    this->outb(REG_CR, 0x10);
+    while ((this->inb(REG_CR) & 0x10));
 }
 
 void RTL8169::start()
 {
-    this->outb(0x52, 0x01);
+    this->outb(REG_CONFIG1, 0x01);
     this->reset();
 
     this->rxinit();
     this->txinit();
 
-    this->outb(0x50, 0xC0);
-    this->outl(0x44, 0x0000E70F);
-    this->outb(0x37, 0x04);
-    this->outl(0x40, 0x03000700);
-    this->outw(0xDA, 0x1FFF);
-    this->outb(0xEC, 0x3B);
-    this->outl(0x20, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0])));
-    this->outl(0x24, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0]) >> 32));
-    this->outl(0xE4, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0])));
-    this->outl(0xE8, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0]) >> 32));
-    this->outw(0x3C, 0xC1FF);
-    this->outb(0x37, 0x0C);
-    this->outb(0x50, 0x00);
+    this->outb(REG_9346CR, 0xC0);
+    this->outl(REG_RCR, 0x0000E70F);
+    this->outb(REG_CR, 0x04);
+    this->outl(REG_TCR, 0x03000700);
+    this->outw(REG_RMS, 0x1FFF);
+    this->outb(REG_ETTHR, 0x3B);
+    this->outl(REG_TNPDS_1, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0])));
+    this->outl(REG_TNPDS_2, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->txdescs[0]) >> 32));
+    this->outl(REG_RDSAR_1, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0])));
+    this->outl(REG_RDSAR_2, static_cast<uint32_t>(reinterpret_cast<uint64_t>(&this->rxdescs[0]) >> 32));
+    this->outw(REG_IMR, 0xC1FF);
+    this->outb(REG_CR, 0x0C);
+    this->outb(REG_9346CR, 0x00);
 
     this->read_mac();
 }
