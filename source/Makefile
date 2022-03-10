@@ -166,25 +166,31 @@ ifndef NOCLEAN
 endif
 
 run:
+ifndef NORUN
 	@echo "\nBooting iso in uefi mode...\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 else
 	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -monitor telnet:127.0.0.1:12345,server,nowait -cdrom $(ISO) -drive if=pflash,format=raw,unit=0,file=$(ROOTDIR)/ovmf/OVMF_CODE-pure-efi.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=$(ROOTDIR)/ovmf/OVMF_VARS-pure-efi.fd | $(CXXFILT)
 endif
+endif
 
 run-bios:
+ifndef NORUN
 	@echo "\nBooting iso in bios mode...\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -enable-kvm -cdrom $(ISO) | $(CXXFILT)
 else
 	$(QEMU) $(QEMUFLAGS) -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -monitor telnet:127.0.0.1:12345,server,nowait -cdrom $(ISO) | $(CXXFILT)
 endif
+endif
 
 run-test:
+ifndef NORUN
 	@echo "\nBooting iso in bios mode... (testing)\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -no-reboot -no-shutdown -d int -D $(LOGFILE) -machine smm=off -monitor telnet:127.0.0.1:12345,server,nowait -cdrom $(ISO) | $(CXXFILT)
+endif
 endif

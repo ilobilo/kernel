@@ -95,3 +95,8 @@ extern "C" void __ubsan_handle_invalid_builtin(invalid_builtin_data *data)
 {
     print("invalid builtin", data->location);
 }
+
+extern "C" void __ubsan_handle_float_cast_overflow(source_location *data)
+{
+    print("float cast overflow", *data);
+}

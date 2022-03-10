@@ -44,16 +44,16 @@ static void cpu_init(stivale2_smp_info *cpu)
 
     uint32_t a = 0, b = 0, c = 0, d = 0;
     __get_cpuid(1, &a, &b, &c, &d);
-    if ((c & bit_XSAVE))
+    if (c & bit_XSAVE)
     {
         write_cr(4, read_cr(4) | (1 << 18));
 
         uint64_t xcr0 = (0 | (1 << 0)) | (1 << 1);
-        if ((c & bit_AVX)) xcr0 |= (1 << 2);
+        if (c & bit_AVX) xcr0 |= (1 << 2);
 
         if (__get_cpuid(7, &a, &b, &c, &d))
         {
-            if ((b & bit_AVX512F))
+            if (b & bit_AVX512F)
             {
                 xcr0 |= (1 << 5);
                 xcr0 |= (1 << 6);
