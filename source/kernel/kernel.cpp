@@ -107,6 +107,8 @@ stivale2_module *find_module(const char *name)
 
 extern "C" void _start(stivale2_struct *stivale2_struct)
 {
+    enableSSE();
+
     serial::init();
 
     term_tag = get_tag<stivale2_struct_tag_terminal>(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID);
