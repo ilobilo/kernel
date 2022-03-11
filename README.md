@@ -50,7 +50,7 @@ Contributors are welcome
 
 #### Storage
 - [ ] FDC
-- [ ] IDE
+- [x] IDE
 - [x] SATA
 - [ ] NVMe
 - [ ] Virtio block
@@ -154,3 +154,4 @@ https://discord.gg/fM5GK3RpS7
 * Scalable Screen Font: https://gitlab.com/bztsrc/scalable-font2
 * Liballoc: https://github.com/blanham/liballoc
 * CWalk: https://github.com/likle/cwalk
+* String: https://github.com/cocoz1/cpp-string
