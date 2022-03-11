@@ -6,6 +6,6 @@
 
 using namespace kernel::drivers::display;
 
-void log(const char *fmt, ...);
-void warn(const char *fmt, ...);
-void error(const char *fmt, ...);
+int log(const char *fmt, ...);
+int warn(const char *fmt, ...);
+int error(const char *fmt, ...);

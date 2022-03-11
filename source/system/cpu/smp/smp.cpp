@@ -111,12 +111,12 @@ void init()
         cpus[i].id = i;
 
         uint64_t sched_stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
-        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE;
+        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + hhdm_tag->addr;
 
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
             uint64_t stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
-            gdt::tss[i].RSP[0] = stack + STACK_SIZE;
+            gdt::tss[i].RSP[0] = stack + STACK_SIZE + hhdm_tag->addr;
 
             smp_tag->smp_info[i].target_stack = stack + STACK_SIZE + hhdm_tag->addr;
             smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);

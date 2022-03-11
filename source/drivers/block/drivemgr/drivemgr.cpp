@@ -3,6 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/block/ahci/ahci.hpp>
+#include <drivers/block/ata/ata.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/log.hpp>
@@ -14,6 +15,7 @@ vector<Drive*> drives;
 
 void addDrive(Drive *drive, type_t type)
 {
+    serial::newline();
     log("Registering drive #%zu", drives.size());
     drives.push_back(drive);
     drive->type = type;
@@ -92,6 +94,17 @@ void addAHCI()
     }
 }
 
+void addATA()
+{
+    for (size_t i = 0; i < ata::devices.size(); i++)
+    {
+        for (size_t t = 0; t < ata::devices[i]->drives.size(); t++)
+        {
+            addDrive(ata::devices[i]->drives[t], IDE);
+        }
+    }
+}
+
 void init()
 {
     log("Initialising drive manager");
@@ -103,6 +116,7 @@ void init()
     }
 
     addAHCI();
+    addATA();
 
     serial::newline();
     initialised = true;

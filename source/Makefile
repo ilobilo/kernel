@@ -33,6 +33,9 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-cpu max -smp 4 -m 512M \
 	-boot d -rtc base=localtime \
 	-drive format=raw,file=$(DISK0) \
+	-device piix3-ide,id=ide \
+	-drive id=disk,file=$(DISK1),format=raw,if=none \
+	-device ide-hd,drive=disk,bus=ide.0 \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
 	-net nic,model=rtl8139 -net user
@@ -64,7 +67,6 @@ override INTERNALCFLAGS :=     \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
-	-fno-use-cxa-atexit        \
 	-fno-omit-frame-pointer    \
 	-fno-rtti                  \
 	-fno-pic                   \
@@ -84,7 +86,6 @@ override INTERNALCPPFLAGS :=   \
 	-ffreestanding             \
 	-fno-exceptions            \
 	-fno-stack-protector       \
-	-fno-use-cxa-atexit        \
 	-fno-omit-frame-pointer    \
 	-fno-rtti                  \
 	-fno-pic                   \

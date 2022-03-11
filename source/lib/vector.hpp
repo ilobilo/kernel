@@ -17,6 +17,11 @@ class vector
     public:
     volatile bool on = false;
 
+    ~vector()
+    {
+        this->destroy();
+    }
+
     void init()
     {
         if (this->on) return;
