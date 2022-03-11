@@ -89,27 +89,36 @@ void wrxcr(uint32_t i, uint64_t value)
 {
     uint32_t edx = value >> 32;
     uint32_t eax = static_cast<uint64_t>(value);
-    asm volatile("xsetbv" : : "a"(eax), "d"(edx), "c"(i) : "memory");
+    asm volatile ("xsetbv" : : "a"(eax), "d"(edx), "c"(i) : "memory");
 }
 
-void xsave(void *region)
+static uint64_t rfbm = ~0ull;
+static uint32_t rfbm_low = rfbm & 0xFFFF'FFFF;
+static uint32_t rfbm_high = (rfbm >> 32) & 0xFFFF'FFFF;
+
+void xsaveopt(uint8_t *region)
 {
-    asm volatile("xsave (%0)" : : "r"(region), "a"(0xFFFFFFFF), "d"(0xFFFFFFFF) : "memory");
+    asm volatile ("xsaveopt64 (%0)" : : "r"(region), "a"(rfbm_low), "d"(rfbm_high) : "memory");
 }
 
-void xrstor(void *region)
+void xsave(uint8_t *region)
 {
-    asm volatile("xrstor (%0)" : : "r"(region), "a"(0xFFFFFFFF), "d"(0xFFFFFFFF) : "memory");
+    asm volatile ("xsaveq (%0)" : : "r"(region), "a"(rfbm_low), "d"(rfbm_high) : "memory");
 }
 
-void fxsave(void *region)
+void xrstor(uint8_t *region)
 {
-    asm volatile("fxsave (%0)" : : "r"(region) : "memory");
+    asm volatile ("xrstorq (%0)" : : "r"(region), "a"(rfbm_low), "d"(rfbm_high) : "memory");
 }
 
-void fxrstor(void *region)
+void fxsave(uint8_t *region)
 {
-    asm volatile("fxrstor (%0)" : : "r"(region) : "memory");
+    asm volatile ("fxsaveq (%0)" : : "r"(region) : "memory");
+}
+
+void fxrstor(uint8_t *region)
+{
+    asm volatile ("fxrstorq (%0)" : : "r"(region) : "memory");
 }
 
 void invlpg(uint64_t addr)

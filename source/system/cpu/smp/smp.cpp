@@ -8,6 +8,7 @@
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/alloc.hpp>
+#include <lib/panic.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
 #include <lib/log.hpp>
@@ -48,31 +49,37 @@ static void cpu_init(stivale2_smp_info *cpu)
     {
         write_cr(4, read_cr(4) | (1 << 18));
 
-        uint64_t xcr0 = (0 | (1 << 0)) | (1 << 1);
-        if (c & bit_AVX) xcr0 |= (1 << 2);
+        // uint64_t xcr0 = (0 | (1 << 0)) | (1 << 1);
+        // if (c & bit_AVX) xcr0 |= (1 << 2);
 
-        if (__get_cpuid(7, &a, &b, &c, &d))
-        {
-            if (b & bit_AVX512F)
-            {
-                xcr0 |= (1 << 5);
-                xcr0 |= (1 << 6);
-                xcr0 |= (1 << 7);
-            }
-        }
-        wrxcr(0, xcr0);
+        // if (__get_cpuid(7, &a, &b, &c, &d))
+        // {
+        //     if (b & bit_AVX512F)
+        //     {
+        //         xcr0 |= (1 << 5);
+        //         xcr0 |= (1 << 6);
+        //         xcr0 |= (1 << 7);
+        //     }
+        // }
+        // wrxcr(0, xcr0);
 
+        ASSERT(__get_cpuid_count(0x0D, 0, &a, &b, &c, &d), "CPUID failure");
         this_cpu->fpu_storage_size = c;
-
-        this_cpu->fpu_save = xsave;
         this_cpu->fpu_restore = xrstor;
+
+        ASSERT(__get_cpuid_count(0x0D, 1, &a, &b, &c, &d), "CPUID failure");
+        if (a & bit_XSAVEOPT) this_cpu->fpu_save = xsaveopt;
+        else this_cpu->fpu_save = xsave;
 	}
-    else
+    else if (d & bit_FXSAVE)
     {
+        write_cr(4, read_cr(4) | (1 << 9));
+
         this_cpu->fpu_storage_size = 512;
         this_cpu->fpu_save = fxsave;
         this_cpu->fpu_restore = fxrstor;
 	}
+    else PANIC("No known SIMD save mechanism");
 
     log("CPU %ld is up", this_cpu->id);
     this_cpu->is_up = true;

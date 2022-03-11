@@ -39,6 +39,7 @@ struct thread_t
     state_t state;
     uint8_t *stack;
     uint8_t *stack_phys;
+    uint8_t *fpu_storage;
     registers_t regs;
     process_t *parent;
     priority_t priority;

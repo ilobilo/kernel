@@ -34,10 +34,11 @@ uint64_t read_cr(uint64_t reg);
 
 void wrxcr(uint32_t i, uint64_t value);
 
-void xsave(void *region);
-void xrstor(void *region);
-void fxsave(void *region);
-void fxrstor(void *region);
+void xsaveopt(uint8_t *region);
+void xsave(uint8_t *region);
+void xrstor(uint8_t *region);
+void fxsave(uint8_t *region);
+void fxrstor(uint8_t *region);
 
 void invlpg(uint64_t addr);
 

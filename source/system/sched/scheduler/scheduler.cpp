@@ -57,6 +57,8 @@ static thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent, p
     }
     else thread->stack = thread->stack_phys + hhdm_tag->addr;
 
+    thread->fpu_storage = static_cast<uint8_t*>(malloc(this_cpu->fpu_storage_size)) + hhdm_tag->addr;
+
     thread->regs.rflags = 0x202;
     thread->regs.cs = (user ? (GDT_USER_CODE_64 | 0x03) : GDT_CODE_64);
     thread->regs.ss = (user ? (GDT_USER_DATA_64 | 0x03) : GDT_DATA_64);
@@ -351,6 +353,7 @@ void switchTask(registers_t *regs)
     else
     {
         this_thread()->regs = *regs;
+        this_cpu->fpu_save(this_thread()->fpu_storage);
 
         if (this_thread()->state == RUNNING) this_thread()->state = READY;
 
@@ -408,6 +411,7 @@ void switchTask(registers_t *regs)
     success:
     this_thread()->state = RUNNING;
     *regs = this_thread()->regs;
+    this_cpu->fpu_restore(this_thread()->fpu_storage);
     vmm::switchPagemap(this_proc()->pagemap);
 
     if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->id, timeslice);
@@ -433,6 +437,7 @@ void switchTask(registers_t *regs)
     this_thread()->state = RUNNING;
     this_proc()->state = RUNNING;
     *regs = this_thread()->regs;
+    this_cpu->fpu_restore(this_thread()->fpu_storage);
     vmm::switchPagemap(this_proc()->pagemap);
 
     if (debug) log("Running Idle process on CPU core %zu", this_cpu->id);
