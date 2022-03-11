@@ -262,7 +262,7 @@ void proc_exit()
 
 void clean_proc(process_t *proc)
 {
-    if (proc == nullptr) return;
+    if (proc == nullptr || proc == this_cpu->idle_proc) return;
     if (proc->state == KILLED)
     {
         for (size_t i = 0; i < proc->children.size(); i++)
@@ -275,7 +275,8 @@ void clean_proc(process_t *proc)
         {
             thread_t *thread = proc->threads[i];
             proc->threads.remove(proc->threads.find(thread));
-            free(thread->stack);
+            free(thread->fpu_storage - hhdm_tag->addr);
+            free(thread->stack_phys);
             free(thread);
             thread_count--;
         }
@@ -301,7 +302,9 @@ void clean_proc(process_t *proc)
             if (thread->state == KILLED)
             {
                 proc->threads.remove(proc->threads.find(thread));
-                free(thread->stack);
+                free(thread->fpu_storage - hhdm_tag->addr);
+                // TODO: Fix this
+                // free(thread->stack_phys); // Trple fault
                 free(thread);
                 thread_count--;
             }
@@ -421,7 +424,7 @@ void switchTask(registers_t *regs)
     return;
 
     idle:
-    if (this_proc() != nullptr) clean_proc(this_proc());
+    clean_proc(this_proc());
 
     if (this_cpu->idle_proc == nullptr)
     {

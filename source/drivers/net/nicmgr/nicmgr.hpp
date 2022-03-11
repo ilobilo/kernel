@@ -15,9 +15,8 @@ enum type_t
     E1000
 };
 
-class NIC
+struct NIC
 {
-    public:
     char name[32] = "New NIC";
     uint8_t MAC[6];
     uint8_t IPv4[4];

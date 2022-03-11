@@ -18,6 +18,7 @@
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <drivers/vmware/vmware.hpp>
+#include <drivers/block/ata/ata.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/cpu/apic/apic.hpp>
@@ -119,6 +120,7 @@ void main()
     terminal::check("Initialising SMP...", reinterpret_cast<uint64_t>(smp::init), -1, smp::initialised);
 
     terminal::check("Initialising AHCI...", reinterpret_cast<uint64_t>(ahci::init), -1, ahci::initialised);
+    terminal::check("Initialising ATA...", reinterpret_cast<uint64_t>(ata::init), -1, ata::initialised);
 
     terminal::check("Initialising RTL8139...", reinterpret_cast<uint64_t>(rtl8139::init), -1, rtl8139::initialised);
     terminal::check("Initialising RTL8169...", reinterpret_cast<uint64_t>(rtl8169::init), -1, rtl8169::initialised);

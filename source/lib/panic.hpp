@@ -14,3 +14,4 @@
 
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define ASSERT(...) GET_MACRO(__VA_ARGS__, ASSERT_NOMSG, ASSERT_MSG)(__VA_ARGS__)
+#define assert(...) GET_MACRO(__VA_ARGS__, ASSERT_NOMSG, ASSERT_MSG)(__VA_ARGS__)

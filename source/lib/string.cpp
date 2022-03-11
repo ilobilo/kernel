@@ -7,6 +7,37 @@
 #include <lib/math.hpp>
 #include <stdint.h>
 #include <stddef.h>
+#include <limits.h>
+
+printer cout(printf);
+printer coutl(log);
+printer coutw(warn);
+printer coute(error);
+
+printer::printer(int (*func)(const char *, ...))
+{
+    this->func = func;
+}
+printer &printer::operator<<(string str)
+{
+    if (this->func) this->func("%s", str.c_str());
+	return *this;
+}
+printer &printer::operator<<(size_t i)
+{
+    if (this->func) this->func("%zu", i);
+	return *this;
+}
+printer &printer::operator<<(int i)
+{
+    if (this->func) this->func("%zu", i);
+	return *this;
+}
+printer &printer::operator<<(unsigned int i)
+{
+    if (this->func) this->func("%zu", i);
+	return *this;
+}
 
 size_t strlen(const char *str)
 {
@@ -102,6 +133,162 @@ char *strdup(const char *src)
     char *s = static_cast<char*>(malloc(len));
     if (s == nullptr) return nullptr;
     return static_cast<char*>(memcpy(s, const_cast<void*>(reinterpret_cast<const void*>(src)), len));
+}
+
+long strtol(const char *nPtr, char **endPtr, int base)
+{
+    if((base < 2 || base > 36) && base != 0) return 0;
+
+    long number = 0;
+    const char * divider;
+    int currentdigit, sign, cutlim;
+    enum sign
+    {
+        NEGATIVE,
+        POSITIVE
+    };
+    unsigned long cutoff;
+    bool correctconversion = true;
+
+    divider = nPtr;
+
+    while (isspace(* divider)) divider++;
+
+    if (* divider == '+')
+    {
+        sign = POSITIVE;
+        divider++;
+    }
+    else if (* divider == '-')
+    {
+        sign = NEGATIVE;
+        divider++;
+    }
+    else sign = POSITIVE;
+
+    if (*divider == 0)
+    {
+        *endPtr = const_cast<char*>(divider);
+        return 0;
+    }
+
+    if (*divider < '0' || (*divider > '9' && *divider < 'A') || (*divider > 'z')) return 0;
+
+    if ((base == 8) && (*divider == '0'))
+    {
+        divider++;
+        if (*divider == 'o' || *divider == 'O') divider++;
+    }
+    else if (base == 16)
+    {
+        if (*divider == '0')
+        {
+            divider++;
+            if (*divider == 'x' || *divider == 'X')
+            {
+                divider++;
+                if (*divider > 'f' || *divider > 'F')
+                {
+                    divider--;
+                    *endPtr = const_cast<char*>(divider);
+                    return 0;
+                }
+            }
+            else divider--;
+        }
+    }
+    else if (base == 0)
+    {
+        if (*divider == '0')
+        {
+            divider++;
+            if (*divider == 'o' || *divider == 'O')
+            {
+                base = 8;
+                divider++;
+                if (*divider > '7')
+                {
+                    divider--;
+                    *endPtr = const_cast<char*>(divider);
+                    return 0;
+                }
+            }
+            else if (* divider == 'x' || * divider == 'X')
+            {
+                base = 16;
+                divider++;
+                if (*divider > 'f' || * divider > 'F')
+                {
+                    divider--;
+                    *endPtr = const_cast<char*>(divider);
+                    return 0;
+                }
+            }
+            else if (*divider <= '7') base = 8;
+            else
+            {
+                *endPtr = const_cast<char*>(divider);
+                return 0;
+            }
+        }
+        else if (*divider >= '1' && *divider <= '9') base = 10;
+    }
+
+    if (sign) cutoff = LONG_MAX / static_cast<unsigned long>(base);
+    else cutoff = static_cast<unsigned long>(LONG_MIN) / static_cast<unsigned long>(base);
+
+    cutlim = cutoff % static_cast<unsigned long>(base);
+
+    while (*divider != 0)
+    {
+    	if (isdigit(*divider)) currentdigit = * divider - '0';
+    	else
+        {
+    		if (isalpha(*divider))
+            {
+    			if (islower(*divider) && (*divider - 'a') + 10 < base) currentdigit = (*divider - 'a') + 10;
+    			else if (!islower(*divider) && (*divider - 'A') + 10 < base) currentdigit = (*divider - 'A') + 10;
+                else break;
+    		}
+            else break;
+    	}
+    	if (!correctconversion || number > static_cast<long>(cutoff) || (number == static_cast<long>(cutoff) && static_cast<int>(currentdigit) > cutlim))
+        {
+    		correctconversion = false;
+    		divider++;
+    	}
+        else
+        {
+    		correctconversion = true;
+    		number = (number * base) + currentdigit;
+    		divider++;
+    	}
+    }
+    if (!correctconversion)
+    {
+    	if (sign) number = LONG_MAX;
+    	else number = LONG_MIN;
+    }
+    if (sign == NEGATIVE) number *= -1;
+    if (endPtr != nullptr)
+    {
+        if (isspace(*divider)) divider++;
+    	*endPtr = const_cast<char*>(divider);
+    }
+    return number;
+}
+
+long long int strtoll(const char *nPtr, char **endPtr, int base)
+{
+    return strtol(nPtr, endPtr, base);
+}
+unsigned long strtoul(const char *nPtr, char **endPtr, int base)
+{
+    return strtol(nPtr, endPtr, base);
+}
+unsigned long long int strtoull(const char *nPtr, char **endPtr, int base)
+{
+    return strtol(nPtr, endPtr, base);
 }
 
 static char** _strsplit(const char* s, const char* delim, size_t* nb)
@@ -245,6 +432,21 @@ bool isempty(char *str)
         str++;
     }
     return true;
+}
+
+int isdigit(int c)
+{
+    return c >= '0' && c <= '9';
+}
+
+int isalpha(int c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+int islower(int c)
+{
+    return c >= 'a' && c <= 'z';
 }
 
 char tolower(char c)
