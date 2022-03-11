@@ -18,8 +18,8 @@ struct cpu_t
     gdt::TSS *tss;
 
     size_t fpu_storage_size;
-    void (*fpu_save)(void*);
-    void (*fpu_restore)(void*);
+    void (*fpu_save)(uint8_t*);
+    void (*fpu_restore)(uint8_t*);
 
     scheduler::thread_t *current_thread;
     scheduler::process_t *current_proc;
