@@ -24,8 +24,10 @@ $(ROOTDIR)/limine:
 
 clean:
 	@$(MAKE) -sC $(SOURCEDIR) clean
+	@rm -f $(ROOTDIR)/log.txt
 
 distclean:
 	@$(MAKE) -sC $(SOURCEDIR) clean
 	@rm -rf $(ROOTDIR)/limine
 	@rm -f $(SOURCEDIR)/stivale2.h
+	@rm -f $(ROOTDIR)/log.txt
