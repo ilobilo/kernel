@@ -168,3 +168,8 @@ void enableUMIP()
         }
     }
 }
+
+void enablePAT()
+{
+    wrmsr(0x277, WriteBack | (Uncachable << 8) | (WriteCombining << 16));
+}

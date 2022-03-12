@@ -116,11 +116,13 @@ class vector
 
     type *begin()
     {
+        if (this->storage == nullptr) return nullptr;
         return &*(this->storage);
     }
 
     type *end()
     {
+        if (this->storage == nullptr) return nullptr;
         return &*(this->storage + this->num);
     }
 

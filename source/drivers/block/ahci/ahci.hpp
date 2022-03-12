@@ -16,6 +16,10 @@ namespace kernel::drivers::block::ahci {
 
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
+#define ATA_CMD_IDENTIFY 0xEC
+
+#define ATAPI_PACKET 0xA0
+#define ATAPI_IDENTIFY 0xA1
 
 #define HBA_PxIS_TFES (1 << 30)
 
@@ -237,10 +241,10 @@ class AHCIDevice : public drivemgr::Drive
     lock_t lock;
 
     [[clang::optnone]] void stopCMD();
-    [[clang::optnone]] void startCMD();
+    void startCMD();
 
     size_t findSlot();
-    bool rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write);
+    [[clang::optnone]] bool rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write);
 
     public:
     HBAPort *hbaport;

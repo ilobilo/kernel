@@ -22,6 +22,18 @@ namespace kernel::drivers::block::ata {
 #define ATA_REGISTER_STATUS 7
 #define ATA_REGISTER_COMMAND 7
 
+#define ATA_IDENT_DEVICETYPE 0
+#define ATA_IDENT_CYLINDERS 2
+#define ATA_IDENT_HEADS 6
+#define ATA_IDENT_SECTORS 12
+#define ATA_IDENT_SERIAL 20
+#define ATA_IDENT_MODEL 54
+#define ATA_IDENT_CAPABILITIES 98
+#define ATA_IDENT_FIELDVALID 106
+#define ATA_IDENT_MAX_LBA 120
+#define ATA_IDENT_COMMANDSETS 164
+#define ATA_IDENT_MAX_LBA_EXT 200
+
 #define ATA_BMR_CMD 0
 #define ATA_BMR_DEV_SPECIFIC_1 1
 #define ATA_BMR_STATUS 2
@@ -44,7 +56,7 @@ namespace kernel::drivers::block::ata {
 
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
-#define ATA_CMD_IDENTIFY 0xec
+#define ATA_CMD_IDENTIFY 0xEC
 
 #define ATA_PRD_BUFFER(x) ((x) & 0xFFFFFFFF)
 #define ATA_PRD_TRANSFER_SIZE(x) (((x) & 0xFFFFULL) << 32)
@@ -53,8 +65,14 @@ namespace kernel::drivers::block::ata {
 #define ATA_PRIMARY_IRQ 14
 #define ATA_SECONDARY_IRQ 15
 
+enum ATAPortType
+{
+    ATA = 0,
+    ATAPI = 1
+};
+
 struct ATAController;
-class ATADevice : public drivemgr::Drive
+class ATAPort : public drivemgr::Drive
 {
     private:
     ATAController *parent;
@@ -65,35 +83,39 @@ class ATADevice : public drivemgr::Drive
 
     uint64_t *prdt;
 
-    bool rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write);
+    void outbcmd(uint8_t offset, uint8_t val);
+    void outwcmd(uint8_t offset, uint16_t val);
+    void outlcmd(uint8_t offset, uint32_t val);
+
+    uint8_t inbcmd(uint8_t offset);
+    uint16_t inwcmd(uint8_t offset);
+    uint32_t inlcmd(uint8_t offset);
+
+    bool rw(uint64_t sector, uint32_t sectorCount, bool write);
 
     public:
+    bool initialised = false;
+
+    ATAPortType portType;
+    uint64_t sectors;
+    uint64_t size;
+
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 
-    ATADevice(size_t port, size_t drive, ATAController *parent);
+    ATAPort(size_t port, size_t drive, ATAController *parent);
 };
 
 struct ATAController
 {
     pci::pcidevice_t *pcidevice;
 
-    vector<ATADevice*> drives;
+    vector<ATAPort*> ports;
 
-    int port0 = 0x1F0;
-    int port1 = 0x170;
-    int ctrlport0 = 0x3F6;
-    int ctrlport1 = 0x376;
+    int port[2] = { 0x1F0, 0x170 };
+    int ctrlport[2] = { 0x3F6, 0x376 };
 
     uint32_t bmport;
-
-    void outreg(uint8_t port, uint8_t reg, uint8_t val);
-    uint8_t inreg(uint8_t port, uint8_t reg);
-
-    void outctrlreg(uint8_t port, uint8_t reg, uint8_t val);
-    uint8_t inctrlreg(uint8_t port, uint8_t reg);
-
-    bool detect(size_t port, size_t drive);
 
     bool initialised = false;
 

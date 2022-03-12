@@ -12,6 +12,16 @@
 #define CPUID_X2APIC (1 << 21)
 #define CPUID_GBPAGE (1 << 26)
 
+enum PAT
+{
+    Uncachable = 0x00,
+    WriteCombining = 0x01,
+    WriteThrough = 0x04,
+    WriteProtected = 0x05,
+    WriteBack = 0x06,
+    Uncached = 0x07
+};
+
 struct [[gnu::packed]] registers_t
 {
     uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
@@ -46,3 +56,4 @@ void enableSSE();
 void enableSMEP();
 void enableSMAP();
 void enableUMIP();
+void enablePAT();

@@ -219,10 +219,11 @@ bool search(uint16_t vendorid, uint16_t deviceid)
     for (size_t i = 0; i < count; i++)
     {
         devices.push_back(new RTL8169(pci::search(vendorid, deviceid, i)));
-        if (devices.front()->initialised == false)
+        if (devices.back()->initialised == false)
         {
-            free(devices.front());
+            free(devices.back());
             devices.pop_back();
+            error("Could not initialise RTL8139 driver #%zu", devices.size());
         }
     }
     return true;
@@ -252,6 +253,6 @@ void init()
             return;
         }
     }
-    error("No RTL8169 cards found!\n");
+    serial::newline();
 }
 }

@@ -17,6 +17,7 @@ enum PT_Flag
     CacheDisable = (1 << 4),
     Accessed = (1 << 5),
     LargerPages = (1 << 7),
+    PAT = (1 << 7),
     Custom0 = (1 << 9),
     Custom1 = (1 << 10),
     Custom2 = (1 << 11),
@@ -27,14 +28,39 @@ struct PDEntry
 {
     uint64_t value = 0;
 
-    void setflag(PT_Flag flag, bool enabled);
-    void setflags(uint64_t flags, bool enabled);
+    void setflag(PT_Flag flag, bool enabled)
+    {
+        uint64_t bitSel = static_cast<uint64_t>(flag);
+        this->value &= ~bitSel;
+        if (enabled) this->value |= bitSel;
+    }
+    void setflags(uint64_t flags, bool enabled)
+    {
+        uint64_t bitSel = flags;
+        this->value &= ~bitSel;
+        if (enabled) this->value |= bitSel;
+    }
 
-    bool getflag(PT_Flag flag);
-    bool getflags(uint64_t flags);
+    bool getflag(PT_Flag flag)
+    {
+        uint64_t bitSel = static_cast<uint64_t>(flag);
+        return (this->value & bitSel) ? true : false;
+    }
+    bool getflags(uint64_t flags)
+    {
+        return (this->value & flags) ? true : false;
+    }
 
-    void setAddr(uint64_t address);
-    uint64_t getAddr();
+    uint64_t getAddr()
+    {
+        return (this->value & 0x000FFFFFFFFFF000) >> 12;
+    }
+    void setAddr(uint64_t address)
+    {
+        address &= 0x000000FFFFFFFFFF;
+        this->value &= 0xFFF0000000000FFF;
+        this->value |= (address << 12);
+    }
 };
 
 struct [[gnu::aligned(0x1000)]] PTable
@@ -51,10 +77,14 @@ struct Pagemap
 
     void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
     void mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, uint64_t flags = (Present | ReadWrite));
+
     void remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags = (Present | ReadWrite));
+
     void unmapMem(uint64_t vaddr);
+    void unmapMemRange(uint64_t vaddr, uint64_t pagecount);
 
     void setflags(uint64_t vaddr, uint64_t flags, bool enabled = true);
+    bool getflags(uint64_t vaddr, uint64_t flags);
 };
 
 extern bool initialised;

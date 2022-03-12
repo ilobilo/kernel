@@ -181,10 +181,11 @@ void init()
     for (size_t i = 0; i < count; i++)
     {
         devices.push_back(new RTL8139(pci::search(0x10EC, 0x8139, i)));
-        if (devices.front()->initialised == false)
+        if (devices.back()->initialised == false)
         {
-            free(devices.front());
+            free(devices.back());
             devices.pop_back();
+            error("Could not initialise RTL8139 driver #%zu", devices.size());
         }
     }
 
