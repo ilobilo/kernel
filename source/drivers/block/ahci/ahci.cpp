@@ -71,7 +71,7 @@ void AHCIDevice::configure()
     hbaport->FISBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
 
     HBACommandHeader *commandHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase + (static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32));
-    for (int i = 0; i < 32; i++)
+    for (size_t i = 0; i < 32; i++)
     {
         commandHdr[i].PRDTLength = 8;
         void *cmdTableAddr = malloc(256);
@@ -113,7 +113,7 @@ size_t AHCIDevice::findSlot()
     return -1;
 }
 
-[[clang::optnone]] bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
+bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {
@@ -130,9 +130,10 @@ size_t AHCIDevice::findSlot()
     HBACommandHeader *cmdHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase | static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32);
     cmdHdr += slot;
     cmdHdr->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
-    cmdHdr->Write = (write) ? 1 : 0;
+    cmdHdr->Write = write ? 1 : 0;
     cmdHdr->ClearBusy = 1;
     cmdHdr->PRDTLength = static_cast<uint16_t>((sectorCount - 1) >> 4) + 1;
+    // if (portType == SATAPI) cmdHdr->ATAPI = 1;
 
     HBACommandTable *cmdtable = reinterpret_cast<HBACommandTable*>(cmdHdr->CommandTableBaseAddress | static_cast<uint64_t>(cmdHdr->CommandTableBaseAddressUpper) << 32);
     memset(cmdtable, 0, sizeof(HBACommandTable) + (cmdHdr->PRDTLength - 1) * sizeof(HBAPRDTEntry));
@@ -144,6 +145,7 @@ size_t AHCIDevice::findSlot()
         cmdtable->PRDTEntry[i].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(buffer) << 32);
         cmdtable->PRDTEntry[i].ByteCount = 0x2000 - 1;
         cmdtable->PRDTEntry[i].InterruptOnCompletion = 1;
+        // if (portType == SATAPI) cmdtable->ATAPICommand[0] = 0xA8;
         buffer += 0x1000;
         sectorCount -= 16;
     }
@@ -152,18 +154,20 @@ size_t AHCIDevice::findSlot()
     cmdtable->PRDTEntry[i].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(buffer) << 32);
     cmdtable->PRDTEntry[i].ByteCount = (sectorCount << 9) - 1;
     cmdtable->PRDTEntry[i].InterruptOnCompletion = 1;
+    // if (portType == SATAPI) cmdtable->ATAPICommand[0] = 0xA8;
 
     FIS_REG_H2D *cmdFIS = reinterpret_cast<FIS_REG_H2D*>(&cmdtable->CommandFIS);
     cmdFIS->FISType = FIS_TYPE::FIS_TYPE_REG_H2D;
     cmdFIS->CommandControl = 1;
-    cmdFIS->Command = (write) ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX;
+    // cmdFIS->Command = (portType == SATAPI ? ATAPI_PACKET : (write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX));
+    cmdFIS->Command = write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX;
 
     cmdFIS->LBA0 = static_cast<uint8_t>(sector);
     cmdFIS->LBA1 = static_cast<uint8_t>(sector >> 8);
     cmdFIS->LBA2 = static_cast<uint8_t>(sector >> 16);
-    cmdFIS->LBA3 = static_cast<uint8_t>(sector >> 32);
-    cmdFIS->LBA4 = static_cast<uint8_t>(sector >> 40);
-    cmdFIS->LBA5 = static_cast<uint8_t>(sector >> 48);
+    cmdFIS->LBA3 = static_cast<uint8_t>(sector >> 24);
+    cmdFIS->LBA4 = static_cast<uint8_t>(sector >> 32);
+    cmdFIS->LBA5 = static_cast<uint8_t>(sector >> 40);
 
     cmdFIS->DeviceRegister = 1 << 6;
 
@@ -173,7 +177,7 @@ size_t AHCIDevice::findSlot()
     while ((hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000) spin++;
     if (spin == 1000000)
     {
-        error("AHCI: Port is hung!");
+        error("AHCI: Port #%d is hung!", this->portNum);
         this->lock.unlock();
         return false;
     }
@@ -185,7 +189,7 @@ size_t AHCIDevice::findSlot()
         if ((hbaport->CommandIssue & (1 << slot)) == 0) break;
         if (hbaport->InterruptStatus & HBA_PxIS_TFES)
         {
-            error("AHCI: %s error!", (write) ? "write" : "read");
+            error("AHCI: Port #%d %s error!", this->portNum, write ? "write" : "read");
             this->lock.unlock();
             return false;
         }
@@ -193,7 +197,7 @@ size_t AHCIDevice::findSlot()
 
     if (hbaport->InterruptStatus & HBA_PxIS_TFES)
     {
-        error("AHCI: %s error!", (write) ? "write" : "read");
+        error("AHCI: Port #%d %s error!", this->portNum, write ? "write" : "read");
         this->lock.unlock();
         return false;
     }

@@ -1,5 +1,6 @@
 // Copyright (C) 2021-2022  ilobilo
 
+#include <drivers/display/framebuffer/framebuffer.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/kernel.hpp>
@@ -7,6 +8,8 @@
 #include <lib/math.hpp>
 #include <lib/cpu.hpp>
 #include <lib/log.hpp>
+
+using namespace kernel::drivers::display;
 
 namespace kernel::system::mm::vmm {
 
@@ -115,6 +118,14 @@ void Pagemap::unmapMem(uint64_t vaddr)
     this->lock.unlock();
 }
 
+void Pagemap::unmapMemRange(uint64_t vaddr, uint64_t pagecount)
+{
+    for (size_t i = 0; i < pagecount; i += 0x1000)
+    {
+        this->unmapMem(vaddr);
+    }
+}
+
 void Pagemap::setflags(uint64_t vaddr, uint64_t flags, bool enabled)
 {
     this->lock.lock();
@@ -129,41 +140,18 @@ void Pagemap::setflags(uint64_t vaddr, uint64_t flags, bool enabled)
     this->lock.unlock();
 }
 
-void PDEntry::setflag(PT_Flag flag, bool enabled)
+bool Pagemap::getflags(uint64_t vaddr, uint64_t flags)
 {
-    uint64_t bitSel = static_cast<uint64_t>(flag);
-    this->value &= ~bitSel;
-    if (enabled) this->value |= bitSel;
-}
-
-void PDEntry::setflags(uint64_t flags, bool enabled)
-{
-    uint64_t bitSel = flags;
-    this->value &= ~bitSel;
-    if (enabled) this->value |= bitSel;
-}
-
-bool PDEntry::getflag(PT_Flag flag)
-{
-    uint64_t bitSel = static_cast<uint64_t>(flag);
-    return (this->value & bitSel) ? true : false;
-}
-
-bool PDEntry::getflags(uint64_t flags)
-{
-    return (this->value & flags) ? true : false;
-}
-
-uint64_t PDEntry::getAddr()
-{
-    return (this->value & 0x000FFFFFFFFFF000) >> 12;
-}
-
-void PDEntry::setAddr(uint64_t address)
-{
-    address &= 0x000000FFFFFFFFFF;
-    this->value &= 0xFFF0000000000FFF;
-    this->value |= (address << 12);
+    this->lock.lock();
+    PDEntry *pml1_entry = this->virt2pte(vaddr, false);
+    if (pml1_entry == nullptr)
+    {
+        error("VMM: Could not get page map entry!");
+        this->lock.unlock();
+        return false;
+    };
+    this->lock.unlock();
+    return pml1_entry->getflags(flags);
 }
 
 Pagemap *newPagemap()
@@ -212,6 +200,8 @@ Pagemap *newPagemap()
                 pagemap->mapMem(t + hhdm_tag->addr, t);
             }
         }
+
+        pagemap->mapMem(framebuffer::frm_addr, framebuffer::frm_addr - hhdm_tag->addr, Present | ReadWrite | CacheDisable);
 
         return pagemap;
     }

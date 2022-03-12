@@ -13,7 +13,8 @@ enum type_t
     NVME,
     SATA,
     SATAPI,
-    IDE
+    ATA,
+    ATAPI
 };
 
 enum partStyle

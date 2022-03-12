@@ -42,6 +42,7 @@ static void cpu_init(stivale2_smp_info *cpu)
     enableSMEP();
     enableSMAP();
     enableUMIP();
+    enablePAT();
 
     uint32_t a = 0, b = 0, c = 0, d = 0;
     __get_cpuid(1, &a, &b, &c, &d);

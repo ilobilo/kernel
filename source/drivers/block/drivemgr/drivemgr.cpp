@@ -98,9 +98,9 @@ void addATA()
 {
     for (size_t i = 0; i < ata::devices.size(); i++)
     {
-        for (size_t t = 0; t < ata::devices[i]->drives.size(); t++)
+        for (size_t t = 0; t < ata::devices[i]->ports.size(); t++)
         {
-            addDrive(ata::devices[i]->drives[t], IDE);
+            addDrive(ata::devices[i]->ports[t], (ata::devices[i]->ports[t]->portType == ata::ATA ? ATA : ATAPI));
         }
     }
 }
