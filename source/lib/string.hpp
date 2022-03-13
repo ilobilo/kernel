@@ -2002,6 +2002,8 @@ public:
 	string_base<T> &operator =(const std_string &str) { return assign(str); }			/* assign std::basic_string value to current string */
 #endif
 
+	friend string_base<T> operator +(const string_base<T> &str, const char *str2) { return string_base<T>(str) += str2; } /* create copy of current string and append second string to it */
+	friend string_base<T> operator +(const string_base<T> &str, const string_base<T> &str2) { return string_base<T>(str) += str2; } /* create copy of current string and append second string to it */
 	string_base<T> &operator +=(const T &ch) { return append(ch); }						/* append (concatenate) ch's value to current string value */
 	string_base<T> &operator +=(const T *c_str) { return append(c_str); }				/* append c_str's value to current string value */
 	string_base<T> &operator +=(const string_base<T> &str) { return append(str); }		/* append str's value to current string value */
@@ -2142,6 +2144,7 @@ class printer
 	printer(int (*func)(const char *, ...));
 
 	printer &operator<<(string str);
+	printer &operator<<(string *str);
 	printer &operator<<(size_t i);
 	printer &operator<<(int i);
 	printer &operator<<(unsigned int i);
@@ -2151,3 +2154,5 @@ extern printer cout;
 extern printer coutl;
 extern printer coutw;
 extern printer coute;
+
+char *operator"" _c(const char *str, size_t length);

@@ -93,7 +93,7 @@ char* node2path(fs_node_t *node)
     while (parent != fs_root->ptr && parent != fs_root && parent != nullptr)
     {
         pathvec.push_back(parent->name);
-        pathvec.push_back(const_cast<char*>("/"));
+        pathvec.push_back("/"_c);
         parent = parent->parent;
     }
     pathvec.reverse();
