@@ -267,7 +267,7 @@ void init()
     setSCIevent(ACPI_POWER_BUTTON | ACPI_SLEEP_BUTTON | ACPI_WAKE);
     getSCIevent();
 
-    idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler);
+    idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler, true);
     ioapic_redirect_irq(acpi::fadthdr->SCI_Interrupt, acpi::fadthdr->SCI_Interrupt + 32);
 
     // COM1

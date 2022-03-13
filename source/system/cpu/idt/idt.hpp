@@ -46,12 +46,42 @@ struct [[gnu::packed]] IDTPtr
     uint64_t Base;
 };
 
-using int_handler_t = void (*)(registers_t *);
+using int_handler_func = void (*)(registers_t *);
+using int_handler_func_arg = void (*)(registers_t *, uint64_t);
+
+struct int_handler_t
+{
+    uintptr_t handler;
+    uint64_t args;
+    bool arg = false;
+};
+
+extern int_handler_t interrupt_handlers[];
+
+#define SET_HANDLER_ARG(x, y, z) { \
+    interrupt_handlers[x].handler = reinterpret_cast<uint64_t>(y); \
+    interrupt_handlers[x].arg = true; \
+    interrupt_handlers[x].args = (z); \
+}
+
+#define SET_HANDLER(x, y) { \
+    interrupt_handlers[x].handler = reinterpret_cast<uint64_t>(y); \
+    interrupt_handlers[x].arg = false; \
+}
+
+#define GET_HANDLER(x, y) { \
+    if (interrupt_handlers[x].handler) \
+    { \
+        if (interrupt_handlers[x].arg) \
+        { \
+            reinterpret_cast<int_handler_func_arg>(interrupt_handlers[x].handler)(y, interrupt_handlers[x].args); \
+        } \
+        else reinterpret_cast<int_handler_func>(interrupt_handlers[x].handler)(y); \
+    } \
+}
 
 extern IDTEntry idt[];
 extern IDTPtr idtr;
-
-extern int_handler_t interrupt_handlers[];
 
 extern bool initialised;
 
@@ -62,5 +92,7 @@ extern "C" void *int_table[];
 void init();
 
 uint8_t alloc_vector();
-void register_interrupt_handler(uint8_t vector, int_handler_t handler, bool ioapic = true);
+
+void register_interrupt_handler(uint8_t vector, int_handler_func handler, bool ioapic = true);
+void register_interrupt_handler(uint8_t vector, int_handler_func_arg handler, uint64_t args, bool ioapic = true);
 }

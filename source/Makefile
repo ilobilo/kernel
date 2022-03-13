@@ -38,7 +38,7 @@ QEMUFLAGS = -M q35 -serial stdio \
 	-device ide-hd,drive=disk,bus=ide.0 \
 	-audiodev id=audio,driver=alsa \
 	-machine pcspk-audiodev=audio \
-	-net nic,model=rtl8139 -net user
+	-net nic,model=rtl8139 -net user,hostfwd=tcp::1234-:1234
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
