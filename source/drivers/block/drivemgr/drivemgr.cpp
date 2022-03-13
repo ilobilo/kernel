@@ -80,14 +80,14 @@ void addDrive(Drive *drive, type_t type)
         }
         log("- Partition count: %zu", drive->partitions.size());
     }
-    else warn("- No partition table found!", drives.size() - 1);
+    else warn("- No partition table found!");
 }
 
 void addAHCI()
 {
     for (size_t i = 0; i < ahci::devices.size(); i++)
     {
-        for (size_t t = 0; t < ahci::devices[i]->portCount; t++)
+        for (size_t t = 0; t < ahci::devices[i]->ports.size(); t++)
         {
             addDrive(ahci::devices[i]->ports[t], (ahci::devices[i]->ports[t]->portType == ahci::SATA ? SATA : SATAPI));
         }

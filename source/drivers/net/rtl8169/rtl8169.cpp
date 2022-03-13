@@ -252,6 +252,6 @@ void init()
             return;
         }
     }
-    serial::newline();
+    error("No RTL8169 cards found!\n");
 }
 }

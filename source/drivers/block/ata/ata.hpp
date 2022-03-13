@@ -75,13 +75,13 @@ struct ATAController;
 class ATAPort : public drivemgr::Drive
 {
     private:
-    ATAController *parent;
-
     lock_t lock;
-    size_t port;
+    uint16_t port;
+    uint16_t bmport;
     size_t drive;
 
     uint64_t *prdt;
+    uint64_t *prdtBuffer;
 
     void outbcmd(uint8_t offset, uint8_t val);
     void outwcmd(uint8_t offset, uint16_t val);
@@ -103,7 +103,7 @@ class ATAPort : public drivemgr::Drive
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 
-    ATAPort(size_t port, size_t drive, ATAController *parent);
+    ATAPort(uint16_t port, uint16_t bmport, size_t drive);
 };
 
 struct ATAController
@@ -112,10 +112,10 @@ struct ATAController
 
     vector<ATAPort*> ports;
 
-    int port[2] = { 0x1F0, 0x170 };
-    int ctrlport[2] = { 0x3F6, 0x376 };
+    uint16_t port[2] = { 0x1F0, 0x170 };
+    uint16_t ctrlport[2] = { 0x3F6, 0x376 };
 
-    uint32_t bmport;
+    uint16_t bmport;
 
     bool initialised = false;
 
