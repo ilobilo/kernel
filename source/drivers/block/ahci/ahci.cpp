@@ -36,54 +36,7 @@ AHCIPortType checkPortType(HBAPort *port)
     }
 }
 
-void AHCIController::probePorts()
-{
-    int portsImpl = ABAR->PortsImplemented;
-    for (uint64_t i = 0; i < 32; i++)
-    {
-        if (portsImpl & (1 << i))
-        {
-            AHCIPortType portType = checkPortType(&ABAR->Ports[i]);
-            if (portType == AHCIPortType::SATA || portType == AHCIPortType::SATAPI)
-            {
-                ports[portCount] = new AHCIDevice;
-                ports[portCount]->portType = portType;
-                ports[portCount]->hbaport = &ABAR->Ports[i];
-                ports[portCount]->portNum = portCount;
-                ports[portCount]->buffer = static_cast<uint8_t*>(pmm::alloc());
-
-                portCount++;
-            }
-        }
-    }
-}
-
-void AHCIDevice::configure()
-{
-    stopCMD();
-
-    void *newbase = malloc(1024);
-    hbaport->CommandListBase = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase));
-    hbaport->CommandListBaseUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase) >> 32);
-
-    void *fisBase = malloc(256);
-    hbaport->FISBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase));
-    hbaport->FISBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
-
-    HBACommandHeader *commandHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase + (static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32));
-    for (size_t i = 0; i < 32; i++)
-    {
-        commandHdr[i].PRDTLength = 8;
-        void *cmdTableAddr = malloc(256);
-        uint64_t address = reinterpret_cast<uint64_t>(cmdTableAddr) + (i << 8);
-        commandHdr[i].CommandTableBaseAddress = static_cast<uint32_t>(address);
-        commandHdr[i].CommandTableBaseAddressUpper = static_cast<uint32_t>(static_cast<uint64_t>(address) >> 32);
-    }
-
-    startCMD();
-}
-
-void AHCIDevice::stopCMD()
+void AHCIPort::stopCMD()
 {
     hbaport->CommandStatus &= ~HBA_PxCMD_ST;
     hbaport->CommandStatus &= ~HBA_PxCMD_FRE;
@@ -96,14 +49,14 @@ void AHCIDevice::stopCMD()
     }
 }
 
-void AHCIDevice::startCMD()
+void AHCIPort::startCMD()
 {
     while (hbaport->CommandStatus & HBA_PxCMD_CR);
     hbaport->CommandStatus |= HBA_PxCMD_FRE;
     hbaport->CommandStatus |= HBA_PxCMD_ST;
 }
 
-size_t AHCIDevice::findSlot()
+size_t AHCIPort::findSlot()
 {
     uint32_t slots = hbaport->SataActive | hbaport->CommandIssue;
     for (uint8_t i = 0; i < 32; i++)
@@ -113,7 +66,7 @@ size_t AHCIDevice::findSlot()
     return -1;
 }
 
-bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
+bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {
@@ -207,13 +160,43 @@ bool AHCIDevice::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, boo
     return true;
 }
 
-bool AHCIDevice::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
+bool AHCIPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
     return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), false);
 }
-bool AHCIDevice::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
+bool AHCIPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
     return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), true);
+}
+
+AHCIPort::AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum)
+{
+    this->portType = portType;
+    this->hbaport = hbaport;
+    this->portNum = portNum;
+    this->buffer = static_cast<uint8_t*>(pmm::alloc());
+
+    stopCMD();
+
+    void *newbase = malloc(1024);
+    hbaport->CommandListBase = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase));
+    hbaport->CommandListBaseUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase) >> 32);
+
+    void *fisBase = malloc(256);
+    hbaport->FISBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase));
+    hbaport->FISBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
+
+    HBACommandHeader *commandHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase + (static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32));
+    for (size_t i = 0; i < 32; i++)
+    {
+        commandHdr[i].PRDTLength = 8;
+        void *cmdTableAddr = malloc(256);
+        uint64_t address = reinterpret_cast<uint64_t>(cmdTableAddr) + (i << 8);
+        commandHdr[i].CommandTableBaseAddress = static_cast<uint32_t>(address);
+        commandHdr[i].CommandTableBaseAddressUpper = static_cast<uint32_t>(static_cast<uint64_t>(address) >> 32);
+    }
+
+    startCMD();
 }
 
 AHCIController::AHCIController(pci::pcidevice_t *pcidevice)
@@ -223,24 +206,25 @@ AHCIController::AHCIController(pci::pcidevice_t *pcidevice)
 
     ABAR = reinterpret_cast<HBAMemory*>(pcidevice->get_bar(5).address);
 
-    probePorts();
+    uint32_t portsImpl = ABAR->PortsImplemented;
+    for (size_t i = 0; i < 32; i++)
+    {
+        if (portsImpl & (1 << i))
+        {
+            AHCIPortType portType = checkPortType(&ABAR->Ports[i]);
+            if (portType == AHCIPortType::SATA || portType == AHCIPortType::SATAPI)
+            {
+                ports.push_back(new AHCIPort(portType, &ABAR->Ports[i], ports.size()));
+            }
+        }
+    }
 
-    if (portCount == 0)
+    if (ports.size() == 0)
     {
         error("AHCI: No ports found!");
         return;
     }
 
-    for (size_t i = 0; i < portCount; i++)
-    {
-        AHCIDevice *port = ports[i];
-        port->configure();
-
-        // MBR bootsector
-        // uint8_t mbr[] = { [0 ... 509] = 0, 0x55, 0xAA };
-        // memcpy(ports[i]->buffer, mbr, 512);
-        // ports[i]->write(0, 2, ports[i]->buffer);
-    }
     this->initialised = true;
 }
 

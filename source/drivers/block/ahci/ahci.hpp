@@ -235,9 +235,11 @@ struct FIS_DMA_SETUP
     uint32_t Reserved3;
 };
 
-class AHCIDevice : public drivemgr::Drive
+class AHCIPort : public drivemgr::Drive
 {
     private:
+    HBAPort *hbaport;
+    uint8_t portNum;
     lock_t lock;
 
     [[clang::optnone]] void stopCMD();
@@ -247,14 +249,12 @@ class AHCIDevice : public drivemgr::Drive
     [[clang::optnone]] bool rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write);
 
     public:
-    HBAPort *hbaport;
     AHCIPortType portType;
-    uint8_t portNum;
-
-    void configure();
 
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
+
+    AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
 };
 
 class AHCIController
@@ -265,10 +265,8 @@ class AHCIController
 
     public:
     bool initialised = false;
-    AHCIDevice *ports[32];
-    uint8_t portCount;
+    vector<AHCIPort*> ports;
 
-    void probePorts();
     AHCIController(pci::pcidevice_t *pcidevice);
 };
 

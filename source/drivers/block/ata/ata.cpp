@@ -1,12 +1,10 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <system/sched/timer/timer.hpp>
 #include <drivers/block/ata/ata.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
-using namespace kernel::system::sched;
 using namespace kernel::system::mm;
 
 namespace kernel::drivers::block::ata {
@@ -45,12 +43,11 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
     if (this->initialised == false) return false;
     this->lock.lock();
 
-    outb(this->parent->bmport + ATA_BMR_CMD, 0);
-    outl(this->parent->bmport + ATA_BMR_PRDT_ADDRESS, static_cast<uint32_t>(reinterpret_cast<uint64_t>(this->prdt)));
-    outb(this->parent->bmport + ATA_BMR_STATUS, inb(this->parent->bmport + ATA_BMR_STATUS) | 0x04 | 0x02);
+    outb(this->bmport + ATA_BMR_CMD, 0);
+    outl(this->bmport + ATA_BMR_PRDT_ADDRESS, static_cast<uint32_t>(reinterpret_cast<uint64_t>(this->prdt)));
+    outb(this->bmport + ATA_BMR_STATUS, inb(this->bmport + ATA_BMR_STATUS) | 0x04 | 0x02);
 
     this->outbcmd(ATA_REGISTER_DRIVE_HEAD, 0x40 | (this->drive << 4));
-    for (size_t i = 0; i < 4; i++) inb(this->parent->ctrlport[0]);
 
     while (this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_BUSY);
 
@@ -60,20 +57,16 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
     this->outbcmd(ATA_REGISTER_LBA_MID, (sector >> 32) & 0xFF);
     this->outbcmd(ATA_REGISTER_LBA_HIGH, (sector >> 40) & 0xFF);
 
-    for (size_t i = 0; i < 4; i++) inb(this->parent->ctrlport[0]);
-
     this->outbcmd(ATA_REGISTER_SECTOR_COUNT, sectorCount & 0xFF);
 
     this->outbcmd(ATA_REGISTER_LBA_LOW, sector & 0xFF);
     this->outbcmd(ATA_REGISTER_LBA_MID, (sector >> 8) & 0xFF);
     this->outbcmd(ATA_REGISTER_LBA_HIGH, (sector >> 16) & 0xFF);
 
-    for (size_t i = 0; i < 4; i++) inb(this->parent->ctrlport[0]);
-
     while (this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_BUSY || !(this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_DRDY));
 
     this->outbcmd(ATA_REGISTER_COMMAND, (write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX));
-    outb(this->parent->bmport + ATA_BMR_CMD, (write ? 0x00 : 0x08) | 0x01);
+    outb(this->bmport + ATA_BMR_CMD, (write ? 0x00 : 0x08) | 0x01);
 
     uint8_t status = this->inbcmd(ATA_REGISTER_STATUS);
     while (status & ATA_DEV_BUSY)
@@ -87,7 +80,7 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
         status = this->inbcmd(ATA_REGISTER_STATUS);
     }
 
-    outb(this->parent->bmport + ATA_BMR_CMD, 0);
+    outb(this->bmport + ATA_BMR_CMD, 0);
 
     if (this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_ERR)
     {
@@ -105,7 +98,7 @@ bool ATAPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     for (size_t i = 0; i < sectorCount; i++)
     {
         if (!this->rw(sector + i, 1, false)) return false;
-        memcpy(buffer, this->buffer, 512);
+        memcpy(buffer, this->prdtBuffer, 512);
         buffer += 512;
     }
     return true;
@@ -114,22 +107,20 @@ bool ATAPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
     for (size_t i = 0; i < sectorCount; i++)
     {
+        memcpy(this->prdtBuffer, buffer, 512);
         if (!this->rw(sector + i, 1, true)) return true;
-        memcpy(buffer, this->buffer, 512);
         buffer += 512;
     }
     return true;
 }
 
-ATAPort::ATAPort(size_t port, size_t drive, ATAController *parent)
+ATAPort::ATAPort(uint16_t port, uint16_t bmport, size_t drive)
 {
-    this->parent = parent;
-    this->port = (port ? this->parent->port[1] : this->parent->port[0]);
+    this->port = port;
     this->drive = drive;
+    this->bmport = bmport;
 
     this->outbcmd(ATA_REGISTER_DRIVE_HEAD, 0xA0 | (drive << 4));
-    for (size_t i = 0; i < 4; i++) inb(this->parent->ctrlport[0]);
-    timer::msleep(1);
 
     this->outbcmd(ATA_REGISTER_SECTOR_COUNT, 0);
     this->outbcmd(ATA_REGISTER_LBA_LOW, 0);
@@ -137,7 +128,6 @@ ATAPort::ATAPort(size_t port, size_t drive, ATAController *parent)
     this->outbcmd(ATA_REGISTER_LBA_HIGH, 0);
 
     this->outbcmd(ATA_REGISTER_COMMAND, ATA_CMD_IDENTIFY);
-    timer::msleep(1);
 
     if (!this->inbcmd(ATA_REGISTER_STATUS)) return;
 
@@ -184,8 +174,9 @@ ATAPort::ATAPort(size_t port, size_t drive, ATAController *parent)
 
     this->buffer = static_cast<uint8_t*>(pmm::alloc());
     this->prdt = static_cast<uint64_t*>(pmm::alloc());
+    this->prdtBuffer = static_cast<uint64_t*>(pmm::alloc());
 
-    *this->prdt = ATA_PRD_BUFFER(reinterpret_cast<uint64_t>(this->buffer) | (static_cast<uint64_t>(0x1000) << 32) | ATA_PRD_END);
+    *this->prdt = ATA_PRD_BUFFER(reinterpret_cast<uint64_t>(this->prdtBuffer) | (static_cast<uint64_t>(0x1000) << 32) | ATA_PRD_END);
 
     this->initialised = true;
 }
@@ -221,7 +212,7 @@ ATAController::ATAController(pci::pcidevice_t *pcidevice)
 
         for (size_t t = 0; t < 2; t++)
         {
-            this->ports.push_back(new ATAPort(i, t, this));
+            this->ports.push_back(new ATAPort((i ? this->port[1] : this->port[0]), this->bmport, t));
             if (this->ports.back()->initialised == false)
             {
                 free(this->ports.back());
