@@ -23,6 +23,11 @@ printer &printer::operator<<(string str)
     if (this->func) this->func("%s", str.c_str());
 	return *this;
 }
+printer &printer::operator<<(string *str)
+{
+    if (this->func) this->func("%s", str->c_str());
+	return *this;
+}
 printer &printer::operator<<(size_t i)
 {
     if (this->func) this->func("%zu", i);
@@ -37,6 +42,11 @@ printer &printer::operator<<(unsigned int i)
 {
     if (this->func) this->func("%zu", i);
 	return *this;
+}
+
+char *operator"" _c(const char *str, size_t length)
+{
+    return const_cast<char*>(str);
 }
 
 size_t strlen(const char *str)

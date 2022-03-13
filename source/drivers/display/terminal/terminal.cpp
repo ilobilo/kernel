@@ -15,7 +15,7 @@ bool initialised = false;
 uint16_t columns;
 uint16_t rows;
 
-char *colour = const_cast<char*>("\033[0m");
+char *colour = "\033[0m"_c;
 
 void (*write)(const char*, uint64_t);
 
@@ -80,7 +80,7 @@ void setcolour(const char *ascii_colour)
 
 void resetcolour()
 {
-    colour = const_cast<char*>("\033[0m");
+    colour = "\033[0m"_c;
     printf("%s", colour);
 }
 #pragma endregion Colour
