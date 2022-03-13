@@ -464,7 +464,7 @@ void init()
         if (sched_vector == 0) sched_vector = idt::alloc_vector();
         if (!idt_init)
         {
-            idt::register_interrupt_handler(sched_vector, switchTask);
+            idt::register_interrupt_handler(sched_vector, switchTask, true);
             idt::idt_set_descriptor(sched_vector, idt::int_table[sched_vector], 0x8E, 1);
             idt_init = true;
         }
@@ -474,7 +474,7 @@ void init()
     {
         if (!idt_init)
         {
-            idt::idt_set_descriptor(sched_vector, idt::int_table[idt::IRQ0], 0x8E, 1);
+            idt::idt_set_descriptor(idt::IRQ0, idt::int_table[idt::IRQ0], 0x8E, 1);
             idt_init = true;
         }
         pit::schedule = true;

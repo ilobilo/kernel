@@ -293,7 +293,7 @@ void init()
         return;
     }
 
-    idt::register_interrupt_handler(SYSCALL, handler);
+    idt::register_interrupt_handler(SYSCALL, handler, true);
 
     serial::newline();
     initialised = true;

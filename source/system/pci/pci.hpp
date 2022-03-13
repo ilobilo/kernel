@@ -227,7 +227,8 @@ struct pcidevice_t
 
     pcibar get_bar(size_t bar);
     void msi_set(uint8_t vector);
-    uint8_t irq_set(cpu::idt::int_handler_t handler);
+    uint8_t irq_set(cpu::idt::int_handler_func handler);
+    uint8_t irq_set(cpu::idt::int_handler_func_arg handler, uint64_t args);
 };
 
 struct pciheader0

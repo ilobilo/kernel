@@ -12,29 +12,28 @@ namespace kernel::drivers::net::rtl8169 {
 bool initialised = false;
 vector<RTL8169*> devices;
 
-static void RTL8169_Handler(registers_t *regs)
+static void RTL8169_Handler(registers_t *regs, uint64_t i)
 {
-    for (size_t i = 0; i < devices.size(); i++)
+    if (i >= devices.size()) return;
+    RTL8169 *device = devices[i];
+
+    uint16_t status = device->status();
+    if (status & IST_SYSTEM_ERROR) error("RTL8169: Card #%zu: Error!", i);
+    if (status & IST_TIME_OUT) if (device->debug) warn("RTL8169: Card #%zu: Time out!", i);
+    if (status & IST_SOFT_INT) if (device->debug) warn("RTL8169: Card #%zu: Software interrupt!", i);
+    if (status & IST_TX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: TX descriptor unavailable!", i);
+    if (status & IST_RX_FIFO_OVER) if (device->debug) error("RTL8169: Card #%zu: RX FIFO overflow!", i);
+    if (status & IST_LINK_CHANGE) if (device->debug) log("RTL8169: Card #%zu: Link status change!", i);
+    if (status & IST_RX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: RX descriptor unavailable!", i);
+    if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while sending packet!", i);
+    if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8169: Card #%zu: Packet sent!", i);
+    if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while receiving packet!", i);
+    if (status & IST_RECEIVE_OK)
     {
-        RTL8169 *device = devices[i];
-        uint16_t status = device->status();
-        if (status & IST_SYSTEM_ERROR) error("RTL8169: Card #%zu: Error!", i);
-        if (status & IST_TIME_OUT) if (device->debug) warn("RTL8169: Card #%zu: Time out!", i);
-        if (status & IST_SOFT_INT) if (device->debug) warn("RTL8169: Card #%zu: Software interrupt!", i);
-        if (status & IST_TX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: TX descriptor unavailable!", i);
-        if (status & IST_RX_FIFO_OVER) if (device->debug) error("RTL8169: Card #%zu: RX FIFO overflow!", i);
-        if (status & IST_LINK_CHANGE) if (device->debug) log("RTL8169: Card #%zu: Link status change!", i);
-        if (status & IST_RX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: RX descriptor unavailable!", i);
-        if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while sending packet!", i);
-        if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8169: Card #%zu: Packet sent!", i);
-        if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while receiving packet!", i);
-        if (status & IST_RECEIVE_OK)
-        {
-            if (device->debug) log("RTL8169: Card #%zu: Packet received!", i);
-            device->receive();
-        }
-        device->irq_reset(status);
+        if (device->debug) log("RTL8169: Card #%zu: Packet received!", i);
+        device->receive();
     }
+    device->irq_reset(status);
 }
 
 void RTL8169::outb(uint16_t addr, uint8_t val)
@@ -199,7 +198,7 @@ RTL8169::RTL8169(pci::pcidevice_t *pcidevice)
 
     this->start();
 
-    pcidevice->irq_set(RTL8169_Handler);
+    pcidevice->irq_set(RTL8169_Handler, devices.size());
 }
 
 uint16_t ids[6][2] = {

@@ -53,7 +53,7 @@ void pcidevice_t::msi_set(uint8_t vector)
     this->writew(this->msi_offset + 2, (msg_ctrl | 1) & ~(0b111 << 4));
 }
 
-uint8_t pcidevice_t::irq_set(idt::int_handler_t handler)
+uint8_t pcidevice_t::irq_set(idt::int_handler_func handler)
 {
     if (this->int_on) return 0;
     uint8_t irq = 0;
@@ -68,14 +68,43 @@ uint8_t pcidevice_t::irq_set(idt::int_handler_t handler)
         if (legacy) irq = this->readb(PCI_INTERRUPT_LINE);
         else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
         irq += 32;
-        idt::register_interrupt_handler(irq, handler);
-        if (idt::interrupt_handlers[irq] == nullptr) idt::register_interrupt_handler(irq, handler);
+        idt::register_interrupt_handler(irq, handler, true);
+        if (idt::interrupt_handlers[irq].handler == 0) idt::register_interrupt_handler(irq, handler, true);
         else if (!apic::initialised)
         {
             irq = idt::alloc_vector();
             if (legacy) this->writeb(PCI_INTERRUPT_LINE, irq - 32);
             else reinterpret_cast<pciheader0*>(this->device)->intLine = irq - 32;
             idt::register_interrupt_handler(irq, handler, false);
+        }
+    }
+    this->int_on = true;
+    return irq;
+}
+
+uint8_t pcidevice_t::irq_set(idt::int_handler_func_arg handler, uint64_t args)
+{
+    if (this->int_on) return 0;
+    uint8_t irq = 0;
+    if (this->msi_support)
+    {
+        irq = idt::alloc_vector();
+        this->msi_set(irq);
+        idt::register_interrupt_handler(irq, handler, args, false);
+    }
+    else
+    {
+        if (legacy) irq = this->readb(PCI_INTERRUPT_LINE);
+        else irq = reinterpret_cast<pciheader0*>(this->device)->intLine;
+        irq += 32;
+        idt::register_interrupt_handler(irq, handler, args, true);
+        if (idt::interrupt_handlers[irq].handler == 0) idt::register_interrupt_handler(irq, handler, args, true);
+        else if (!apic::initialised)
+        {
+            irq = idt::alloc_vector();
+            if (legacy) this->writeb(PCI_INTERRUPT_LINE, irq - 32);
+            else reinterpret_cast<pciheader0*>(this->device)->intLine = irq - 32;
+            idt::register_interrupt_handler(irq, handler, args, false);
         }
     }
     this->int_on = true;

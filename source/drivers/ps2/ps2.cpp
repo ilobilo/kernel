@@ -389,7 +389,7 @@ static bool setupKbd(devices device)
     buff = new char[KBD_BUFFSIZE];
     retstr = new char[KBD_BUFFSIZE];
 
-    idt::register_interrupt_handler(idt::IRQ1, Keyboard_handler);
+    idt::register_interrupt_handler(idt::IRQ1, Keyboard_handler, true);
 
     kbdinitialised = true;
     return kbdinitialised;
@@ -600,7 +600,7 @@ static bool setupMouse(devices device)
     writedev(mousedevice, PS2_MOUSE_DEFAULTS);
     writedev(mousedevice, PS2_DEVICE_ENABLE);
 
-    idt::register_interrupt_handler(idt::IRQ12, Mouse_Handler);
+    idt::register_interrupt_handler(idt::IRQ12, Mouse_Handler, true);
 
     mouseinitialised = true;
     return mouseinitialised;

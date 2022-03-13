@@ -90,7 +90,7 @@ void init()
 
     print("\033[0m");
 
-    idt::register_interrupt_handler(idt::IRQ4, COM1_Handler);
+    idt::register_interrupt_handler(idt::IRQ4, COM1_Handler, true);
     outb(COMS::COM1 + 1, 0x01);
 
     initialised = true;

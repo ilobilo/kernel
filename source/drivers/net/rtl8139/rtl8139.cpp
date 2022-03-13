@@ -12,26 +12,25 @@ namespace kernel::drivers::net::rtl8139 {
 bool initialised = false;
 vector<RTL8139*> devices;
 
-static void RTL8139_Handler(registers_t *regs)
+static void RTL8139_Handler(registers_t *regs, uint64_t i)
 {
-    for (size_t i = 0; i < devices.size(); i++)
+    if (i >= devices.size()) return;
+    RTL8139 *device = devices[i];
+
+    uint16_t status = device->status();
+    if (status & IST_SYSTEM_ERROR) error("RTL8139: Card #%zu: Error!", i);
+    if (status & IST_TIME_OUT) if (device->debug) warn("RTL8139: Card #%zu: Time out!", i);
+    if (status & IST_CABLE_LENGTH_CHANGE) if (device->debug) warn("RTL8139: Card #%zu: Cable length change!", i);
+    if (status & IST_RX_BUFF_OVER) if (device->debug) error("RTL8139: Card #%zu: RX buffer overflow!", i);
+    if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while sending packet!", i);
+    if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8139: Card #%zu: Packet sent!", i);
+    if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while receiving packet!", i);
+    if (status & IST_RECEIVE_OK)
     {
-        RTL8139 *device = devices[i];
-        uint16_t status = device->status();
-        if (status & IST_SYSTEM_ERROR) error("RTL8139: Card #%zu: Error!", i);
-        if (status & IST_TIME_OUT) if (device->debug) warn("RTL8139: Card #%zu: Time out!", i);
-        if (status & IST_CABLE_LENGTH_CHANGE) if (device->debug) warn("RTL8139: Card #%zu: Cable length change!", i);
-        if (status & IST_RX_BUFF_OVER) if (device->debug) error("RTL8139: Card #%zu: RX buffer overflow!", i);
-        if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while sending packet!", i);
-        if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8139: Card #%zu: Packet sent!", i);
-        if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while receiving packet!", i);
-        if (status & IST_RECEIVE_OK)
-        {
-            if (device->debug) log("RTL8139: Card #%zu: Packet received!", i);
-            device->receive();
-        }
-        device->irq_reset();
+        if (device->debug) log("RTL8139: Card #%zu: Packet received!", i);
+        device->receive();
     }
+    device->irq_reset();
 }
 
 void RTL8139::outb(uint16_t addr, uint8_t val)
@@ -155,7 +154,7 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
 
     this->start();
 
-    pcidevice->irq_set(RTL8139_Handler);
+    pcidevice->irq_set(RTL8139_Handler, devices.size());
 
     this->initialised = true;
 }

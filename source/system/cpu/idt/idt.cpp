@@ -77,9 +77,15 @@ uint8_t alloc_vector()
     return (++next_free == SYSCALL ? ++next_free : next_free);
 }
 
-void register_interrupt_handler(uint8_t vector, int_handler_t handler, bool ioapic)
+void register_interrupt_handler(uint8_t vector, int_handler_func handler, bool ioapic)
 {
-    interrupt_handlers[vector] = handler;
+    SET_HANDLER(vector, handler);
+    if (ioapic && apic::initialised && vector > 31 && vector < 48) apic::ioapic_redirect_irq(vector - 32, vector);
+}
+
+void register_interrupt_handler(uint8_t vector, int_handler_func_arg handler, uint64_t args, bool ioapic)
+{
+    SET_HANDLER_ARG(vector, handler, args);
     if (ioapic && apic::initialised && vector > 31 && vector < 48) apic::ioapic_redirect_irq(vector - 32, vector);
 }
 
@@ -177,7 +183,7 @@ static void irq_handler(registers_t *regs)
 {
     if (apic::initialised) apic::eoi();
     else pic::eoi(regs->int_no);
-    if (interrupt_handlers[regs->int_no]) interrupt_handlers[regs->int_no](regs);
+    GET_HANDLER(regs->int_no, regs);
 }
 
 extern "C" void int_handler(registers_t *regs)

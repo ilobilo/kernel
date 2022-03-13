@@ -157,7 +157,7 @@ class E1000 : public nicmgr::NIC
     void receive();
 
     uint32_t status();
-    void irq_reset();
+    void irq_reset(uint32_t stat);
 
     void startlink();
     void start();

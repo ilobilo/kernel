@@ -85,7 +85,7 @@ void init(uint64_t freq)
     }
 
     setfreq(freq);
-    idt::register_interrupt_handler(idt::IRQ0, PIT_Handler);
+    idt::register_interrupt_handler(idt::IRQ0, PIT_Handler, true);
 
     serial::newline();
     initialised = true;

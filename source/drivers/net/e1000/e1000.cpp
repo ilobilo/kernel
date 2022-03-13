@@ -13,28 +13,27 @@ namespace kernel::drivers::net::e1000 {
 bool initialised = false;
 vector<E1000*> devices;
 
-static void E1000_Handler(registers_t *regs)
+static void E1000_Handler(registers_t *regs, uint64_t i)
 {
-    for (size_t i = 0; i < devices.size(); i++)
+    if (i >= devices.size()) return;
+    E1000 *device = devices[i];
+
+    uint32_t status = device->status();
+    if (status & (1 << 24)) if (device->debug) warn("E1000: Card #%zu: Time out!", i);
+    if (status & (1 << 23)) if (device->debug) warn("E1000: Card #%zu: Non-fatal error!", i);
+    if (status & (1 << 22)) error("E1000: Card #%zu: Fatal error!", i);
+    if (status & (1 << 7))
     {
-        E1000 *device = devices[i];
-        device->irq_reset();
-        uint32_t status = device->status();
-        if (status & (1 << 24)) if (device->debug) warn("E1000: Card #%zu: Time out!", i);
-        if (status & (1 << 23)) if (device->debug) warn("E1000: Card #%zu: Non-fatal error!", i);
-        if (status & (1 << 22)) error("E1000: Card #%zu: Fatal error!", i);
-        if (status & (1 << 7))
-        {
-            if (device->debug) log("E1000: Card #%zu: Packets received!", i);
-            device->receive();
-        }
-        if (status & (1 << 2))
-        {
-            if (device->debug) log("E1000: Card #%zu: Link status changed!", i);
-            device->startlink();
-        }
-        if (status & (1 << 0)) if (device->debug) log("E1000: Card #%zu: Packet sent!", i);
+        if (device->debug) log("E1000: Card #%zu: Packets received!", i);
+        device->receive();
     }
+    if (status & (1 << 2))
+    {
+        if (device->debug) log("E1000: Card #%zu: Link status changed!", i);
+        device->startlink();
+    }
+    if (status & (1 << 0)) if (device->debug) log("E1000: Card #%zu: Packet sent!", i);
+    device->irq_reset(status);
 }
 
 uint32_t E1000::status()
@@ -42,9 +41,9 @@ uint32_t E1000::status()
     return this->incmd(0xC0);
 }
 
-void E1000::irq_reset()
+void E1000::irq_reset(uint32_t stat)
 {
-    this->outcmd(REG_IMASK, 0x01);
+    this->outcmd(REG_IMASK, stat);
 }
 
 void E1000::outcmd(uint16_t addr, uint32_t val)
@@ -254,7 +253,7 @@ E1000::E1000(pci::pcidevice_t *pcidevice)
 
     this->start();
 
-    pcidevice->irq_set(E1000_Handler);
+    pcidevice->irq_set(E1000_Handler, devices.size());
 
     this->initialised = true;
 }
