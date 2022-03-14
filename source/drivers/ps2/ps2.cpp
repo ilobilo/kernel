@@ -145,6 +145,24 @@ static bool writedev(devices device, uint8_t value)
     return false;
 }
 
+// static bool checkint(devices device)
+// {
+//     disabledev(PS2_DEVICE_FIRST);
+//     disabledev(PS2_DEVICE_SECOND);
+
+//     uint8_t status = inb(PS2_PORT_STATUS);
+//     // uint8_t data = inb(PS2_PORT_DATA);
+
+//     enabledev(PS2_DEVICE_FIRST);
+//     enabledev(PS2_DEVICE_SECOND);
+
+//     if (!(status & 0x01)) return false;
+
+//     if (!(status & 0x20) && device == PS2_DEVICE_FIRST) return true;
+//     else if ((status & 0x21) && device == PS2_DEVICE_SECOND) return true;
+//     return false;
+// }
+
 #pragma endregion ps2utils
 
 #pragma region kbd
@@ -162,8 +180,8 @@ volatile bool pressed = false;
 volatile bool enter = false;
 
 kbd_mod_t kbd_mod;
-DEFINE_LOCK(kbd_lock)
-DEFINE_LOCK(getline_lock)
+new_lock(kbd_lock)
+new_lock(getline_lock)
 
 void setscancodeset(uint8_t scancode)
 {
@@ -252,7 +270,7 @@ char getchar()
 char *getline()
 {
     if (!kbdinitialised) return nullptr;
-    getline_lock.lock();
+    lockit(getline_lock);
     reading = true;
     memset(retstr, '\0', KBD_BUFFSIZE);
     while (!enter)
@@ -265,7 +283,6 @@ char *getline()
                 enter = false;
                 reading = false;
                 gi = 0;
-                getline_lock.unlock();
                 return nullptr;
             }
             retstr[gi] = getchar();
@@ -275,14 +292,14 @@ char *getline()
     enter = false;
     reading = false;
     gi = 0;
-    getline_lock.unlock();
     return retstr;
 }
 
 static void Keyboard_handler(registers_t *)
 {
+    // if (checkint(kbddevice) == false) return;
     uint8_t scancode = inb(PS2_PORT_DATA);
-    kbd_lock.lock();
+    lockit(kbd_lock);
 
     if (scancode & 0x80)
     {
@@ -370,7 +387,6 @@ static void Keyboard_handler(registers_t *)
                 break;
         }
     }
-    kbd_lock.unlock();
 }
 
 static bool setupKbd(devices device)
@@ -554,6 +570,7 @@ void proccesspacket()
 
 static void Mouse_Handler(registers_t *)
 {
+    // if (checkint(mousedevice) == false) return;
     uint8_t mousedata = inb(0x60);
 
     if (mousevmware)

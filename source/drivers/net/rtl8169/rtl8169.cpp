@@ -94,7 +94,8 @@ void RTL8169::read_mac()
 
 void RTL8169::send(void *data, uint64_t length)
 {
-    this->lock.lock();
+    lockit(this->lock);
+
     void *tdata = malloc(length);
     memcpy(tdata, data, length);
     this->txdescs[this->txcurr]->buffer = reinterpret_cast<uint64_t>(tdata);
@@ -107,7 +108,6 @@ void RTL8169::send(void *data, uint64_t length)
     }
     this->outb(REG_TPPOLL, 0x40);
     free(tdata);
-    this->lock.unlock();
 }
 
 void RTL8169::receive()

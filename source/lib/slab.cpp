@@ -27,23 +27,23 @@ void slab_t::init(uint64_t size)
 
 void *slab_t::alloc()
 {
-    this->lock.lock();
+    lockit(this->lock);
+
     if (this->firstfree == 0) this->init(this->size);
     uint64_t *oldfree = reinterpret_cast<uint64_t*>(this->firstfree);
     this->firstfree = oldfree[0];
     memset(oldfree, 0, this->size);
-    this->lock.unlock();
     return oldfree;
 }
 
 void slab_t::free(void *ptr)
 {
     if (ptr == nullptr) return;
-    this->lock.lock();
+    lockit(this->lock);
+
     uint64_t *newhead = static_cast<uint64_t*>(ptr);
     newhead[0] = this->firstfree;
     this->firstfree = reinterpret_cast<uint64_t>(newhead);
-    this->lock.unlock();
 }
 
 SlabAlloc::SlabAlloc()

@@ -61,18 +61,17 @@ PDEntry *Pagemap::virt2pte(uint64_t vaddr, bool allocate)
 
 void Pagemap::mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags)
 {
-    this->lock.lock();
+    lockit(this->lock);
+
     PDEntry *pml1_entry = this->virt2pte(vaddr);
     if (pml1_entry == nullptr)
     {
         error("VMM: Could not get page map entry!");
-        this->lock.unlock();
         return;
     }
 
     pml1_entry->setAddr(paddr >> 12);
     pml1_entry->setflags(flags, true);
-    this->lock.unlock();
 }
 
 void Pagemap::mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, uint64_t flags)
@@ -86,6 +85,7 @@ void Pagemap::mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, ui
 void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
     this->lock.lock();
+
     PDEntry *pml1_entry = this->virt2pte(vaddr_old, false);
     if (pml1_entry == nullptr)
     {
@@ -104,7 +104,8 @@ void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 
 void Pagemap::unmapMem(uint64_t vaddr)
 {
-    this->lock.lock();
+    lockit(this->lock);
+
     PDEntry *pml1_entry = this->virt2pte(vaddr, false);
     if (pml1_entry == nullptr)
     {
@@ -115,7 +116,6 @@ void Pagemap::unmapMem(uint64_t vaddr)
 
     pml1_entry->value = 0;
     invlpg(vaddr);
-    this->lock.unlock();
 }
 
 void Pagemap::unmapMemRange(uint64_t vaddr, uint64_t pagecount)
@@ -128,7 +128,8 @@ void Pagemap::unmapMemRange(uint64_t vaddr, uint64_t pagecount)
 
 void Pagemap::setflags(uint64_t vaddr, uint64_t flags, bool enabled)
 {
-    this->lock.lock();
+    lockit(this->lock);
+
     PDEntry *pml1_entry = this->virt2pte(vaddr, false);
     if (pml1_entry == nullptr)
     {
@@ -137,12 +138,12 @@ void Pagemap::setflags(uint64_t vaddr, uint64_t flags, bool enabled)
         return;
     }
     pml1_entry->setflags(flags, enabled);
-    this->lock.unlock();
 }
 
 bool Pagemap::getflags(uint64_t vaddr, uint64_t flags)
 {
-    this->lock.lock();
+    lockit(this->lock);
+
     PDEntry *pml1_entry = this->virt2pte(vaddr, false);
     if (pml1_entry == nullptr)
     {
@@ -150,7 +151,6 @@ bool Pagemap::getflags(uint64_t vaddr, uint64_t flags)
         this->lock.unlock();
         return false;
     };
-    this->lock.unlock();
     return pml1_entry->getflags(flags);
 }
 

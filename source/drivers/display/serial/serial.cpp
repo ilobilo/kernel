@@ -11,7 +11,7 @@ using namespace kernel::system::cpu;
 namespace kernel::drivers::display::serial {
 
 bool initialised = false;
-DEFINE_LOCK(serial_lock)
+new_lock(serial_lock)
 
 bool check()
 {
@@ -44,12 +44,12 @@ void printc(char c, void *arg)
 
 void print(const char *fmt, ...)
 {
-    serial_lock.lock();
+    lockit(serial_lock);
+
     va_list args;
     va_start(args, fmt);
     vfctprintf(&printc, nullptr, fmt, args);
     va_end(args);
-    serial_lock.unlock();
 }
 
 void newline()

@@ -11,7 +11,7 @@ namespace kernel::drivers::fs::vfs {
 bool initialised = false;
 bool debug = false;
 fs_node_t *fs_root;
-DEFINE_LOCK(vfs_lock)
+new_lock(vfs_lock)
 
 uint64_t read_fs(fs_node_t *node, uint64_t offset, uint64_t size, char *buffer)
 {
@@ -113,12 +113,11 @@ char* node2path(fs_node_t *node)
 fs_node_t *open(fs_node_t *parent, const char *path, bool create)
 {
     if ((parent == nullptr || parent == fs_root) && !strcmp(path, "/") && fs_root) return fs_root->ptr;
-    vfs_lock.lock();
+    lockit(vfs_lock);
 
     if (path == nullptr)
     {
         if (debug) error("VFS: Invalid path!");
-        vfs_lock.unlock();
         return nullptr;
     }
 
@@ -135,7 +134,6 @@ fs_node_t *open(fs_node_t *parent, const char *path, bool create)
             error("VFS: Couldn't find directory /");
             error("VFS: Is root mounted?");
         }
-        vfs_lock.unlock();
         return nullptr;
     }
 
@@ -160,7 +158,6 @@ fs_node_t *open(fs_node_t *parent, const char *path, bool create)
     if (!strcmp(_path, "/"))
     {
         delete[] _path;
-        vfs_lock.unlock();
         return fs_root->ptr;
     }
 
@@ -171,7 +168,6 @@ fs_node_t *open(fs_node_t *parent, const char *path, bool create)
     {
         if (debug) error("VFS: Path doesn't have any segments!");
         delete[] _path;
-        vfs_lock.unlock();
         return nullptr;
     }
 
@@ -205,7 +201,6 @@ fs_node_t *open(fs_node_t *parent, const char *path, bool create)
     for (const char *&seg : segments) delete seg;
     segments.destroy();
 
-    vfs_lock.unlock();
     return child_node;
 
     notfound:
@@ -213,7 +208,6 @@ fs_node_t *open(fs_node_t *parent, const char *path, bool create)
     for (const char *&seg : segments) delete seg;
     segments.destroy();
 
-    vfs_lock.unlock();
     return nullptr;
 }
 

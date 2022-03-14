@@ -117,13 +117,13 @@ class vector
     type *begin()
     {
         if (this->storage == nullptr) return nullptr;
-        return &*(this->storage);
+        return this->storage;
     }
 
     type *end()
     {
         if (this->storage == nullptr) return nullptr;
-        return &*(this->storage + this->num);
+        return this->storage + this->num;
     }
 
     type *data()
@@ -133,12 +133,19 @@ class vector
 
     const type *cbegin()
     {
+        if (this->storage == nullptr) return nullptr;
         return this->storage;
     }
 
     const type *cend()
     {
+        if (this->storage == nullptr) return nullptr;
         return this->storage + this->num;
+    }
+
+    bool empty()
+    {
+        return this->num == 0;
     }
 
     size_t size()

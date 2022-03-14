@@ -20,6 +20,8 @@ namespace kernel::drivers::block::ahci {
 
 #define ATAPI_PACKET 0xA0
 #define ATAPI_IDENTIFY 0xA1
+#define ATAPI_CMD_READ 0xA8
+#define ATAPI_CMD_EJECT 0x1B
 
 #define HBA_PxIS_TFES (1 << 30)
 
@@ -246,7 +248,7 @@ class AHCIPort : public drivemgr::Drive
     void startCMD();
 
     size_t findSlot();
-    [[clang::optnone]] bool rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write);
+    [[clang::optnone]] bool rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool write);
 
     public:
     AHCIPortType portType;

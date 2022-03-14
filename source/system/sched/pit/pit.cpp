@@ -15,7 +15,7 @@ bool initialised = false;
 bool schedule = false;
 uint64_t tick = 0;
 uint64_t frequency = PIT_DEF_FREQ;
-DEFINE_LOCK(pit_lock)
+new_lock(pit_lock)
 
 void sleep(uint64_t sec)
 {
@@ -42,7 +42,8 @@ static void PIT_Handler(registers_t *regs)
 
 void setfreq(uint64_t freq)
 {
-    pit_lock.lock();
+    lockit(pit_lock);
+
     if (freq < 19) freq = 19;
     frequency = freq;
     uint64_t divisor = 1193180 / frequency;
@@ -54,18 +55,18 @@ void setfreq(uint64_t freq)
 
     outb(0x40, l);
     outb(0x40, h);
-    pit_lock.unlock();
 }
 
 uint64_t getfreq()
 {
-    pit_lock.lock();
+    lockit(pit_lock);
+
     uint64_t freq = 0;
     outb(0x43, 0b0000000);
     freq = inb(0x40);
     freq |= inb(0x40) << 8;
     freq = 1193180 / freq;
-    pit_lock.unlock();
+
     return freq;
 }
 

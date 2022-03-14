@@ -182,29 +182,29 @@ void lapic_timer_init()
     }
 }
 
-DEFINE_LOCK(lapic_timer_lock);
+new_lock(lapic_timer_lock);
 void lapic_oneshot(uint8_t vector, uint64_t ms)
 {
-    lapic_timer_lock.lock();
+    lockit(lapic_timer_lock);
+
     lapic_timer_init();
     lapic_timer_mask(true);
     lapic_write(0x3E0, 0x03);
     lapic_write(0x320, (((lapic_read(0x320) & ~(0x03 << 17)) | (0x00 << 17)) & 0xFFFFFF00) | vector);
     lapic_write(0x380, ticks_in_1ms * ms);
     lapic_timer_mask(false);
-    lapic_timer_lock.unlock();
 }
 
 void lapic_periodic(uint8_t vector, uint64_t ms)
 {
-    lapic_timer_lock.lock();
+    lockit(lapic_timer_lock);
+
     lapic_timer_init();
     lapic_timer_mask(true);
     lapic_write(0x3E0, 0x03);
     lapic_write(0x320, (((lapic_read(0x320) & ~(0x03 << 17)) | (0x01 << 17)) & 0xFFFFFF00) | vector);
     lapic_write(0x380, ticks_in_1ms * ms);
     lapic_timer_mask(false);
-    lapic_timer_lock.unlock();
 }
 
 uint16_t getSCIevent()

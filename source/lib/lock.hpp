@@ -15,4 +15,21 @@ class lock_t
     bool test();
 };
 
-#define DEFINE_LOCK(name) static lock_t name;
+class lockit
+{
+    private:
+    lock_t *lock;
+    public:
+    lockit(lock_t &lock)
+    {
+        this->lock = &lock;
+        lock.lock();
+    }
+    ~lockit()
+    {
+        lock->unlock();
+    }
+};
+
+#define new_lock(name) static lock_t name;
+#define lockit(name) lockit lock(name);
