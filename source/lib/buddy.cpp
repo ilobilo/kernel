@@ -123,7 +123,7 @@ void BuddyAlloc::coalescence()
 
 void BuddyAlloc::init()
 {
-    this->lock.lock();
+    lockit(this->lock);
 
     size_t size = ALIGN_UP_2(0x1000, INIT_PAGES * 0x1000);
     ASSERT(POWER_OF_2(size), "Buddy: Size is not power of two!");
@@ -138,7 +138,6 @@ void BuddyAlloc::init()
     this->tail = this->next(this->head);
 
     if (this->debug) log("Buddy: Initialised the heap. Current size: %zu bytes, %zu pages", size, size / 0x1000);
-    this->lock.unlock();
 }
 
 void *BuddyAlloc::malloc(size_t size)
@@ -146,7 +145,7 @@ void *BuddyAlloc::malloc(size_t size)
     if (size == 0) return nullptr;
     if (this->data == nullptr) this->init();
 
-    this->lock.lock();
+    lockit(this->lock);
 
     size_t actual_size = this->required_size(size);
 
@@ -161,12 +160,10 @@ void *BuddyAlloc::malloc(size_t size)
     {
         if (this->debug) log("Buddy: Allocated %zu bytes", size);
         found->free = false;
-        this->lock.unlock();
         return reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(found) + sizeof(BuddyBlock));
     }
 
     error("Buddy: Could not allocate memory!");
-    this->lock.unlock();
     return nullptr;
 }
 
@@ -209,7 +206,7 @@ void BuddyAlloc::free(void *ptr)
     ASSERT(this->head <= ptr, "Buddy: Head is not smaller than pointer!");
     ASSERT(ptr < this->tail, "Buddy: Pointer is not smaller than tail!");
 
-    this->lock.lock();
+    lockit(this->lock);
 
     BuddyBlock *block = reinterpret_cast<BuddyBlock*>(reinterpret_cast<uint8_t*>(ptr) - sizeof(BuddyBlock));
     block->free = true;
@@ -217,8 +214,6 @@ void BuddyAlloc::free(void *ptr)
     if (this->debug) log("Buddy: Freed %zu bytes", block->size - sizeof(BuddyBlock));
 
     this->coalescence();
-
-    this->lock.unlock();
 }
 
 size_t BuddyAlloc::allocsize(void *ptr)

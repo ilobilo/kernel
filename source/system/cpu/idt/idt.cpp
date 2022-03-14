@@ -16,7 +16,7 @@ using namespace kernel::drivers::display;
 
 namespace kernel::system::cpu::idt {
 
-DEFINE_LOCK(idt_lock)
+new_lock(idt_lock)
 bool initialised = false;
 
 IDTEntry idt[256];
@@ -52,8 +52,6 @@ void init()
         return;
     }
 
-    idt_lock.lock();
-
     trace::init();
 
     idtr.Limit = sizeof(IDTEntry) * 256 - 1;
@@ -68,7 +66,6 @@ void init()
 
     serial::newline();
     initialised = true;
-    idt_lock.unlock();
 }
 
 static uint8_t next_free = 48;
@@ -127,6 +124,8 @@ static const char *exception_messages[32] = {
 static volatile bool halt = true;
 static void exception_handler(registers_t *regs)
 {
+    lockit(idt_lock);
+
     error("System exception!");
     error("Exception: %s on CPU %zu", exception_messages[regs->int_no], (smp::initialised ? this_cpu->id : 0));
     error("Address: 0x%lX", regs->rip);
@@ -181,9 +180,9 @@ static void exception_handler(registers_t *regs)
 
 static void irq_handler(registers_t *regs)
 {
+    GET_HANDLER(regs->int_no, regs);
     if (apic::initialised) apic::eoi();
     else pic::eoi(regs->int_no);
-    GET_HANDLER(regs->int_no, regs);
 }
 
 extern "C" void int_handler(registers_t *regs)

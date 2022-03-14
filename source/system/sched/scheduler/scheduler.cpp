@@ -26,9 +26,9 @@ process_t *initproc = nullptr;
 size_t proc_count = 0;
 size_t thread_count = 0;
 
-DEFINE_LOCK(thread_lock)
-DEFINE_LOCK(sched_lock)
-DEFINE_LOCK(proc_lock)
+new_lock(thread_lock)
+new_lock(sched_lock)
+new_lock(proc_lock)
 
 void func_wrapper(uint64_t addr, uint64_t args)
 {
@@ -38,7 +38,8 @@ void func_wrapper(uint64_t addr, uint64_t args)
 
 static thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user)
 {
-    thread_lock.lock();
+    lockit(thread_lock);
+
     thread_t *thread = new thread_t;
 
     thread->state = INITIAL;
@@ -71,8 +72,6 @@ static thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent, p
     thread->priority = priority;
     thread->parent = parent;
 
-    thread_lock.unlock();
-
     return thread;
 }
 
@@ -80,7 +79,7 @@ thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priorit
 {
     thread_t *thread = thread_alloc(addr, args, parent, priority, user);
 
-    thread_lock.lock();
+    lockit(thread_lock);
 
     if (parent)
     {
@@ -90,8 +89,6 @@ thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent, priorit
         parent->threads.push_back(thread);
         thread->state = READY;
     }
-
-    thread_lock.unlock();
 
     return thread;
 }
@@ -104,15 +101,14 @@ void idle()
 static process_t *proc_alloc(const char *name)
 {
     process_t *proc = new process_t;
+    lockit(proc_lock);
 
-    proc_lock.lock();
     strncpy(proc->name, name, (strlen(name) < PROC_NAME_LENGTH) ? strlen(name) : PROC_NAME_LENGTH);
 
     proc->state = INITIAL;
     proc->pagemap = vmm::newPagemap();
     proc->current_dir = vfs::open(nullptr, "/");
     proc->parent = nullptr;
-    proc_lock.unlock();
 
     return proc;
 }
@@ -120,6 +116,7 @@ static process_t *proc_alloc(const char *name)
 process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority, bool user)
 {
     process_t *proc = proc_alloc(name);
+    lockit(proc_lock);
 
     proc->pid = next_pid++;
 
@@ -129,9 +126,7 @@ process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_
     proc_table.push_back(proc);
     proc_count++;
 
-    proc_lock.lock();
     proc->state = READY;
-    proc_lock.unlock();
 
     return proc;
 }
@@ -325,8 +320,8 @@ void switchTask(registers_t *regs)
         yield();
         return;
     }
+    lockit(sched_lock);
 
-    sched_lock.lock();
     uint64_t timeslice = MID;
 
     if (!this_proc() || !this_thread())
@@ -419,7 +414,6 @@ void switchTask(registers_t *regs)
 
     if (debug) log("Running process[%d]->thread[%d] on CPU core %zu with timeslice: %zu", this_proc()->pid - 1, this_thread()->tid - 1, this_cpu->id, timeslice);
 
-    sched_lock.unlock();
     yield(timeslice);
     return;
 
@@ -445,7 +439,6 @@ void switchTask(registers_t *regs)
 
     if (debug) log("Running Idle process on CPU core %zu", this_cpu->id);
 
-    sched_lock.unlock();
     yield();
 }
 

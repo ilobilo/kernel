@@ -66,7 +66,7 @@ size_t AHCIPort::findSlot()
     return -1;
 }
 
-bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool write)
+bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool write)
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {
@@ -74,7 +74,8 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
         return false;
     }
 
-    this->lock.lock();
+    lockit(this->lock);
+
     hbaport->InterruptStatus = static_cast<uint32_t>(-1);
     size_t spin = 0;
     int slot = findSlot();
@@ -98,7 +99,6 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
         cmdtable->PRDTEntry[i].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(buffer) << 32);
         cmdtable->PRDTEntry[i].ByteCount = 0x2000 - 1;
         cmdtable->PRDTEntry[i].InterruptOnCompletion = 1;
-        // if (portType == SATAPI) cmdtable->ATAPICommand[0] = 0xA8;
         buffer += 0x1000;
         sectorCount -= 16;
     }
@@ -107,7 +107,15 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
     cmdtable->PRDTEntry[i].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(buffer) << 32);
     cmdtable->PRDTEntry[i].ByteCount = (sectorCount << 9) - 1;
     cmdtable->PRDTEntry[i].InterruptOnCompletion = 1;
-    // if (portType == SATAPI) cmdtable->ATAPICommand[0] = 0xA8;
+    // if (portType == SATAPI)
+    // {
+    //     cmdtable->ATAPICommand[0] = ATAPI_CMD_READ;
+    //     cmdtable->ATAPICommand[2] = static_cast<uint8_t>(sector >> 24);
+    //     cmdtable->ATAPICommand[3] = static_cast<uint8_t>(sector >> 16);
+    //     cmdtable->ATAPICommand[4] = static_cast<uint8_t>(sector >> 8);
+    //     cmdtable->ATAPICommand[5] = static_cast<uint8_t>(sector);
+    //     cmdtable->ATAPICommand[9] = sectorCount;
+    // }
 
     FIS_REG_H2D *cmdFIS = reinterpret_cast<FIS_REG_H2D*>(&cmdtable->CommandFIS);
     cmdFIS->FISType = FIS_TYPE::FIS_TYPE_REG_H2D;
@@ -131,7 +139,6 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
     if (spin == 1000000)
     {
         error("AHCI: Port #%d is hung!", this->portNum);
-        this->lock.unlock();
         return false;
     }
 
@@ -143,7 +150,6 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
         if (hbaport->InterruptStatus & HBA_PxIS_TFES)
         {
             error("AHCI: Port #%d %s error!", this->portNum, write ? "write" : "read");
-            this->lock.unlock();
             return false;
         }
     }
@@ -151,22 +157,20 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint16_t *buffer, bool 
     if (hbaport->InterruptStatus & HBA_PxIS_TFES)
     {
         error("AHCI: Port #%d %s error!", this->portNum, write ? "write" : "read");
-        this->lock.unlock();
         return false;
     }
     while (hbaport->CommandIssue);
 
-    this->lock.unlock();
     return true;
 }
 
 bool AHCIPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
-    return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), false);
+    return rw(sector, sectorCount, buffer, false);
 }
 bool AHCIPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
-    return rw(sector, sectorCount, reinterpret_cast<uint16_t*>(buffer), true);
+    return rw(sector, sectorCount, buffer, true);
 }
 
 AHCIPort::AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum)

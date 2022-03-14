@@ -30,6 +30,7 @@ struct cpu_t
     volatile bool is_up;
 };
 
+extern bool initialised;
 extern cpu_t *cpus;
 
 #define this_cpu \
@@ -38,8 +39,6 @@ extern cpu_t *cpus;
     asm volatile("movq %%gs:[0], %0" : "=r"(cpu_number) : : "memory"); \
     &kernel::system::cpu::smp::cpus[cpu_number]; \
 })
-
-extern bool initialised;
 
 void init();
 }

@@ -9,7 +9,7 @@
 
 namespace kernel::drivers::display::terminal {
 
-DEFINE_LOCK(term_lock)
+new_lock(term_lock)
 
 bool initialised = false;
 uint16_t columns;
@@ -34,9 +34,9 @@ void init()
 void print(const char *string)
 {
     if (!initialised) return;
-    term_lock.lock();
+    lockit(term_lock);
+
     write(string, strlen(string));
-    term_lock.unlock();
 }
 
 void printi(int num)
@@ -88,9 +88,8 @@ void resetcolour()
 #pragma region Clear
 void reset()
 {
-    term_lock.lock();
+    lockit(term_lock);
     write("", STIVALE2_TERM_FULL_REFRESH);
-    term_lock.unlock();
 }
 
 void clear(const char *ansii_colour)

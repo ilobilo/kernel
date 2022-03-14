@@ -41,7 +41,7 @@ uint32_t ATAPort::inlcmd(uint8_t offset)
 bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
 {
     if (this->initialised == false) return false;
-    this->lock.lock();
+    lockit(this->lock);
 
     outb(this->bmport + ATA_BMR_CMD, 0);
     outl(this->bmport + ATA_BMR_PRDT_ADDRESS, static_cast<uint32_t>(reinterpret_cast<uint64_t>(this->prdt)));
@@ -74,7 +74,6 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
         if (status & ATA_DEV_ERR)
         {
             error("ATA: %s error!", write ? "write" : "read");
-            this->lock.unlock();
             return false;
         }
         status = this->inbcmd(ATA_REGISTER_STATUS);
@@ -85,11 +84,9 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
     if (this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_ERR)
     {
         error("ATA: %s error 0x%X!", write ? "write" : "read", this->inbcmd(ATA_REGISTER_ERROR));
-        this->lock.unlock();
         return false;
     }
 
-    this->lock.unlock();
     return true;
 }
 

@@ -24,7 +24,7 @@ namespace kernel::system::cpu::gdt {
     {0x0000, 0, 0, 0x89, 0x00, 0, 0, 0} // TSS
 };
 
-DEFINE_LOCK(gdt_lock)
+new_lock(gdt_lock)
 bool initialised = false;
 GDTDescriptor gdtDescriptor;
 TSS *tss;
@@ -41,7 +41,7 @@ void reloadtss()
 
 void reloadall(size_t cpu)
 {
-    gdt_lock.lock();
+    lockit(gdt_lock);
 
     uintptr_t base = reinterpret_cast<uintptr_t>(&tss[cpu]);
     uintptr_t limit = base + sizeof(tss[cpu]);
@@ -58,8 +58,6 @@ void reloadall(size_t cpu)
 
     reloadgdt();
     reloadtss();
-
-    gdt_lock.unlock();
 }
 
 void init()
