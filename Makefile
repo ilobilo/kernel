@@ -9,9 +9,9 @@ bios: $(SOURCEDIR)/stivale2.h $(ROOTDIR)/limine
 	@$(MAKE) -sC $(SOURCEDIR) clean
 	@$(MAKE) -sC $(SOURCEDIR) bios
 
-test: $(SOURCEDIR)/stivale2.h $(ROOTDIR)/limine
+vnc: $(SOURCEDIR)/stivale2.h $(ROOTDIR)/limine
 	@$(MAKE) -sC $(SOURCEDIR) clean
-	@$(MAKE) -sC $(SOURCEDIR) test
+	@$(MAKE) -sC $(SOURCEDIR) vnc
 
 $(SOURCEDIR)/stivale2.h:
 	@echo "Downloading stivale2.h"

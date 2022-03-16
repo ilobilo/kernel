@@ -108,17 +108,12 @@ auto path2node(fs_node_t *parent, string path)
     struct ret { fs_node_t *parent; fs_node_t *node; string basename; };
     ret null = { nullptr, nullptr, "" };
 
-    if (path.empty())
-    {
-        errno_set(ENOENT);
-        return null;
-    }
-
     if (path.first() == '/' || parent == nullptr) parent = fs_root;
     path = path2normal(path);
 
     fs_node_t *curr_node = node2reduced(parent, false);
     if (path == "/") return ret { curr_node, curr_node, "/" };
+    if (path.empty()) return ret { parent->parent, parent, parent->name };
 
     bool last = false;
 
@@ -205,8 +200,8 @@ void fs_node_t::dotentries(fs_node_t *parent)
 
     fs_node_t *dotdot = create_node(this->fs, this, "..");
 
-    if (parent == fs_root) dot->redir = parent;
-    else dot->redir = this->parent;
+    if (parent == fs_root) dotdot->redir = parent;
+    else dotdot->redir = this->parent;
 
     this->children.push_back(dot);
     this->children.push_back(dotdot);

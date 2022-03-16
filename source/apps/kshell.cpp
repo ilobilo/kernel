@@ -25,11 +25,11 @@ using namespace kernel::system;
 
 namespace kernel::apps::kshell {
 
-vfs::fs_node_t *current_path;
+vfs::fs_node_t *current_path = nullptr;
 
-void parse(char *cmd, char *arg)
+void parse(string cmd, string arg)
 {
-    switch (hash(cmd))
+    switch (hash(cmd.c_str()))
     {
         case hash("help"):
             printf("- help -- This\n");
@@ -52,164 +52,111 @@ void parse(char *cmd, char *arg)
         case hash("clear"):
             terminal::clear();
             break;
-        // case hash("ls"):
-        // {
-        //     char *path = new char[strlen(arg) + 1];
-        //     cwk_path_normalize(arg, path, strlen(arg) + 1);
+        case hash("ls"):
+        {
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg);
+            if (node == nullptr)
+            {
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                break;
+            }
+            if (!vfs::isdir(node->res->stat.mode))
+            {
+                printf("%s\n", arg.c_str());
+                break;
+            }
 
-        //     vfs::fs_node_t *node = vfs::open(current_path, path);
-        //     if (!node)
-        //     {
-        //         printf("\033[31mNo such file directory!%s\n", terminal::colour);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     if ((node->flags & 0x07) != vfs::FS_DIRECTORY)
-        //     {
-        //         printf("%s\n", path);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     delete[] path;
-
-        //     for (size_t i = 0; i < node->children.size(); i++)
-        //     {
-        //         switch (node->children[i]->flags & 0x07)
-        //         {
-        //             case vfs::FS_DIRECTORY:
-        //                 printf("\033[35m%s%s ", node->children[i]->name, terminal::colour);
-        //                 break;
-        //         }
-        //     }
-        //     for (size_t i = 0; i < node->children.size(); i++)
-        //     {
-        //         switch (node->children[i]->flags & 0x07)
-        //         {
-        //             case vfs::FS_CHARDEVICE:
-        //                 printf("\033[93m%s%s ", node->children[i]->name, terminal::colour);
-        //                 break;
-        //         }
-        //     }
-        //     for (size_t i = 0; i < node->children.size(); i++)
-        //     {
-        //         switch (node->children[i]->flags & 0x07)
-        //         {
-        //             case vfs::FS_SYMLINK:
-        //                 printf("\033[96m%s%s ", node->children[i]->name, terminal::colour);
-        //                 break;
-        //         }
-        //     }
-        //     for (size_t i = 0; i < node->children.size(); i++)
-        //     {
-        //         switch (node->children[i]->flags & 0x07)
-        //         {
-        //             case vfs::FS_FILE:
-        //                 printf("%s ", node->children[i]->name);
-        //                 break;
-        //         }
-        //     }
-        //     for (size_t i = 0; i < node->children.size(); i++)
-        //     {
-        //         switch (node->children[i]->flags & 0x07)
-        //         {
-        //             case vfs::FS_FILE:
-        //             case vfs::FS_SYMLINK:
-        //             case vfs::FS_DIRECTORY:
-        //             case vfs::FS_CHARDEVICE:
-        //                 break;
-        //             default:
-        //                 printf("\033[31m%s%s ", node->children[i]->name, terminal::colour);
-        //                 break;
-        //         }
-        //     }
-        //     printf("\n");
-        //     break;
-        // }
-        // case hash("cat"):
-        // {
-        //     char *path = new char[strlen(arg) + 1];
-        //     cwk_path_normalize(arg, path, strlen(arg) + 1);
-
-        //     vfs::fs_node_t *node = vfs::open(current_path, path);
-        //     if (!node)
-        //     {
-        //         printf("\033[31mNo such file or directory!%s\n", terminal::colour);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     switch (node->flags & 0x07)
-        //     {
-        //         case vfs::FS_FILE:
-        //             printf("%.*s%c", static_cast<int>(node->length), reinterpret_cast<char*>(node->address), (reinterpret_cast<char*>(node->address)[node->length - 1] != '\n') ? '\n' : 0);
-        //             break;
-        //         case vfs::FS_CHARDEVICE:
-        //         {
-        //             size_t size = 50;
-        //             if (node->length) size = node->length;
-        //             char *txt = static_cast<char*>(calloc(size, sizeof(char)));
-        //             vfs::read_fs(node, 0, size, txt);
-        //             printf("%.*s\n", static_cast<int>(size), txt);
-        //             free(txt);
-        //             break;
-        //         }
-        //         default:
-        //             printf("\033[31m%s is not a text file!%s\n", path, terminal::colour);
-        //             break;
-        //     }
-        //     delete[] path;
-        //     break;
-        // }
-        // case hash("cd"):
-        // {
-        //     if (isempty(arg)) strcpy(arg, "/");
-
-        //     char *path = new char[strlen(arg) + 1];
-        //     cwk_path_normalize(arg, path, strlen(arg) + 1);
-
-        //     vfs::fs_node_t *node = vfs::open(current_path, path);
-        //     if (!node)
-        //     {
-        //         printf("\033[31mNo such directory!%s\n", terminal::colour);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     if ((node->flags & 0x07) != vfs::FS_DIRECTORY)
-        //     {
-        //         printf("\033[31m%s is not a directory!%s\n", path, terminal::colour);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     current_path = node;
-        //     delete[] path;
-        //     break;
-        // }
-        // case hash("exec"):
-        // {
-        //     if (isempty(arg))
-        //     {
-        //         printf("exec <filename>\n");
-        //         break;
-        //     }
-        //     char *path = new char[strlen(arg) + 1];
-        //     cwk_path_normalize(arg, path, strlen(arg) + 1);
-
-        //     vfs::fs_node_t *node = vfs::open(current_path, path);
-        //     if (!node)
-        //     {
-        //         printf("\033[31mNo such file or directory!%s\n", terminal::colour);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     if ((node->flags & 0x07) != vfs::FS_FILE)
-        //     {
-        //         printf("\033[31m%s is not an executable file!%s\n", path, terminal::colour);
-        //         delete[] path;
-        //         break;
-        //     }
-        //     reinterpret_cast<int (*)()>(node->address)();
-        //     delete[] path;
-        //     break;
-        // }
+            for (vfs::fs_node_t *child : node->children)
+            {
+                if (child->name != "." && child->name != ".." && vfs::isdir(child->res->stat.mode))
+                {
+                    printf("\033[35m%s%s ", child->name.c_str(), terminal::colour);
+                }
+            }
+            for (vfs::fs_node_t *child : node->children)
+            {
+                if (child->name != "." && child->name != ".." &&vfs::ischr(child->res->stat.mode))
+                {
+                    printf("\033[93m%s%s ", child->name.c_str(), terminal::colour);
+                }
+            }
+            for (vfs::fs_node_t *child : node->children)
+            {
+                if (child->name != "." && child->name != ".." && vfs::islnk(child->res->stat.mode))
+                {
+                    printf("\033[96m%s%s ", child->name.c_str(), terminal::colour);
+                }
+            }
+            for (vfs::fs_node_t *child : node->children)
+            {
+                if (child->name != "." && child->name != ".." && !vfs::isdir(child->res->stat.mode) && !vfs::ischr(child->res->stat.mode) && !vfs::islnk(child->res->stat.mode))
+                {
+                    printf("%s ", child->name.c_str());
+                }
+            }
+            printf("\n");
+            break;
+        }
+        case hash("cat"):
+        {
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg);
+            if (node == nullptr)
+            {
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                break;
+            }
+            if (vfs::isreg(node->res->stat.mode))
+            {
+                size_t size = node->res->stat.size;
+                char *buffer = new char[size];
+                node->res->read(nullptr, reinterpret_cast<uint8_t*>(buffer), 0, size);
+                printf("%s%c", buffer, buffer[size - 1] == '\n' ? 0 : '\n');
+                delete[] buffer;
+            }
+            else printf("\033[31m%s is not a text file!%s\n", arg.c_str(), terminal::colour);
+            break;
+        }
+        case hash("cd"):
+        {
+            if (arg.empty()) arg = "/";
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg);                                        if (node == nullptr)
+            {
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                break;
+            }
+            if (!vfs::isdir(node->res->stat.mode))
+            {
+                printf("\033[31m%s is not a directory!%s\n", arg.c_str(), terminal::colour);
+                break;
+            }
+            current_path = node;
+            break;
+        }
+        case hash("exec"):
+        {
+            if (arg.empty())
+            {
+                printf("exec <filename>\n");
+                break;
+            }
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg);
+            if (node == nullptr)
+            {
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                break;
+            }
+            if (!vfs::isreg(node->res->stat.mode))
+            {
+                printf("\033[31m%s is not a regular file!%s\n", arg.c_str(), terminal::colour);
+                break;
+            }
+            size_t size = node->res->stat.size;
+            uint8_t *buffer = new uint8_t[size];
+            node->res->read(nullptr, buffer, 0, size);
+            reinterpret_cast<int (*)()>(buffer)();
+            delete[] buffer;
+            break;
+        }
         case hash("free"):
         {
             uint64_t free = pmm::freemem() / 1024;
@@ -241,9 +188,26 @@ void parse(char *cmd, char *arg)
                     pci::devices[i]->devicestr);
             }
             break;
-        // case hash("crash"):
-        //     reinterpret_cast<int (*)()>(vfs::open(nullptr, "/bin/crash")->address)();
-        //     break;
+        case hash("crash"):
+        {
+            vfs::fs_node_t *node = vfs::get_node(current_path, "/bin/crash");
+            if (node == nullptr)
+            {
+                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                break;
+            }
+            if (!vfs::isreg(node->res->stat.mode))
+            {
+                printf("\033[31m%s is not a regular file!%s\n", arg.c_str(), terminal::colour);
+                break;
+            }
+            size_t size = node->res->stat.size;
+            uint8_t *buffer = new uint8_t[size];
+            node->res->read(nullptr, buffer, 0, size);
+            reinterpret_cast<int (*)()>(buffer)();
+            delete[] buffer;
+            break;
+        }
         case hash("shutdown"):
         case hash("poweroff"):
             acpi::shutdown();
@@ -257,21 +221,8 @@ void parse(char *cmd, char *arg)
             acpi::reboot();
             printf("\033[31mCould not reboot!\033[0m\n");
             break;
-        case hash(""):
-            break;
         default:
         {
-            // vfs::fs_node_t *node = vfs::open(vfs::open(nullptr, "/bin"), cmd);
-            // if (node != nullptr)
-            // {
-            //     if ((node->flags & 0x07) != vfs::FS_FILE)
-            //     {
-            //         printf("\033[31m%s is not an executable file!%s\n", cmd, terminal::colour);
-            //         break;
-            //     }
-            //     reinterpret_cast<int (*)()>(node->address)();
-            // }
-            // else printf("\033[31mCommand not found!\033[0m\n");
             printf("\033[31mCommand not found!\033[0m\n");
             break;
         }
@@ -286,24 +237,17 @@ void run()
         if (!current_path)
         {
             current_path = scheduler::this_proc()->current_dir;
-            // current_path->flags = vfs::FS_DIRECTORY;
         }
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name.first() != '/') ? "/" : "", current_path->name.c_str(), terminal::colour);
-        char *command = ps2::getline();
-        char cmd[10] = "\0";
+        string command(ps2::getline());
 
-        for (size_t i = 0; i < strlen(command); i++)
-        {
-            if (command[i] != ' ' && command[i] != '\0')
-            {
-                char c[2] = "\0";
-                c[0] = command[i];
-                strcat(cmd, c);
-            }
-            else break;
-        }
-        char *arg = strrm(command, cmd);
-        arg = strrm(arg, " ");
+        command.remove_leading();
+        command.remove_middle();
+        command.remove_trailing();
+
+        string arg(command.c_str());
+        arg.erase(0, command.find(" ") + 1);
+        string cmd(command.substr(0, command.find(" ")));
 
         parse(cmd, arg);
     }

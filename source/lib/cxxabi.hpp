@@ -8,9 +8,9 @@ using uarch_t = unsigned;
 
 struct atexit_func_entry_t
 {
-	void (*destructor_func)(void*);
-	void *obj_ptr;
-	void *dso_handle;
+    void (*destructor_func)(void*);
+    void *obj_ptr;
+    void *dso_handle;
 };
 
 }

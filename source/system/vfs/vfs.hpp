@@ -38,43 +38,43 @@ enum dtypes
 enum oflags
 {
     o_accmode = 0x0007,
-	o_exec = 1,
-	o_rdonly = 2,
-	o_rdwr = 3,
-	o_search = 4,
-	o_wronly = 5,
-	o_append = 0x0008,
-	o_creat = 0x0010,
-	o_directory = 0x0020,
-	o_excl = 0x0040,
-	o_noctty = 0x0080,
-	o_nofollow = 0x0100,
-	o_trunc = 0x0200,
-	o_nonblock = 0x0400,
-	o_dsync = 0x0800,
-	o_rsync = 0x1000,
-	o_sync = 0x2000,
-	o_cloexec = 0x4000,
+    o_exec = 1,
+    o_rdonly = 2,
+    o_rdwr = 3,
+    o_search = 4,
+    o_wronly = 5,
+    o_append = 0x0008,
+    o_creat = 0x0010,
+    o_directory = 0x0020,
+    o_excl = 0x0040,
+    o_noctty = 0x0080,
+    o_nofollow = 0x0100,
+    o_trunc = 0x0200,
+    o_nonblock = 0x0400,
+    o_dsync = 0x0800,
+    o_rsync = 0x1000,
+    o_sync = 0x2000,
+    o_cloexec = 0x4000,
 
     file_creation_flags_mask = o_creat | o_directory | o_excl | o_noctty | o_nofollow | o_trunc,
-	file_descriptor_flags_mask = o_cloexec,
-	file_status_flags_mask = ~(file_creation_flags_mask | file_descriptor_flags_mask)
+    file_descriptor_flags_mask = o_cloexec,
+    file_status_flags_mask = ~(file_creation_flags_mask | file_descriptor_flags_mask)
 };
 
 enum fcntls
 {
-	f_dupfd = 1,
-	f_dupfd_cloexec = 2,
-	f_getfd = 3,
-	f_setfd = 4,
-	f_getfl = 5,
-	f_setfl = 6,
-	f_getlk = 7,
-	f_setlk = 8,
-	f_setlkw = 9,
-	f_getown = 10,
-	f_setown = 11,
-	fd_cloexec = 1
+    f_dupfd = 1,
+    f_dupfd_cloexec = 2,
+    f_getfd = 3,
+    f_setfd = 4,
+    f_getfl = 5,
+    f_setfl = 6,
+    f_getlk = 7,
+    f_setlk = 8,
+    f_setlkw = 9,
+    f_getown = 10,
+    f_setown = 11,
+    fd_cloexec = 1
 };
 
 struct timespec_t
@@ -213,7 +213,7 @@ struct fd_t
     }
 };
 
-struct filesystem_t
+struct [[gnu::aligned(16)]] filesystem_t
 {
     string name;
 
@@ -283,7 +283,7 @@ auto path2node(fs_node_t *parent, string path);
 fs_node_t *node2reduced(fs_node_t *node, bool symlinks);
 
 fs_node_t *get_parent_dir(int dirfd, string path);
-fs_node_t *get_node(fs_node_t *parent, string path, bool links);
+fs_node_t *get_node(fs_node_t *parent, string path, bool links = false);
 
 fs_node_t *create(fs_node_t *parent, string name, int mode);
 fs_node_t *symlink(fs_node_t *parent, string path, string target);
