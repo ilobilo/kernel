@@ -18,7 +18,7 @@ static size_t lastI = 0;
 static size_t usedRam = 0;
 static size_t freeRam = 0;
 
-new_lock(pmm_lock)
+new_lock(pmm_lock);
 
 static void *inner_alloc(size_t count, size_t limit)
 {

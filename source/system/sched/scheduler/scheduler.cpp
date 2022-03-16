@@ -26,9 +26,9 @@ process_t *initproc = nullptr;
 size_t proc_count = 0;
 size_t thread_count = 0;
 
-new_lock(thread_lock)
-new_lock(sched_lock)
-new_lock(proc_lock)
+new_lock(thread_lock);
+new_lock(sched_lock);
+new_lock(proc_lock);
 
 void func_wrapper(uint64_t addr, uint64_t args)
 {
@@ -98,22 +98,22 @@ void idle()
     while (true) asm volatile ("hlt");
 }
 
-static process_t *proc_alloc(const char *name)
+static process_t *proc_alloc(string name)
 {
     process_t *proc = new process_t;
     lockit(proc_lock);
 
-    strncpy(proc->name, name, (strlen(name) < PROC_NAME_LENGTH) ? strlen(name) : PROC_NAME_LENGTH);
+    proc->name = name;
 
     proc->state = INITIAL;
     proc->pagemap = vmm::newPagemap();
-    proc->current_dir = vfs::open(nullptr, "/");
+    proc->current_dir = vfs::fs_root;
     proc->parent = nullptr;
 
     return proc;
 }
 
-process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority, bool user)
+process_t *proc_create(string name, uint64_t addr, uint64_t args, priority_t priority, bool user)
 {
     process_t *proc = proc_alloc(name);
     lockit(proc_lock);

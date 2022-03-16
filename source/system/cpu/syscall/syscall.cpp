@@ -4,9 +4,9 @@
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/syscall/syscall.hpp>
 #include <system/sched/rtc/rtc.hpp>
-#include <drivers/fs/vfs/vfs.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/acpi/acpi.hpp>
+#include <system/vfs/vfs.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
 #include <linux/reboot.h>
@@ -14,7 +14,6 @@
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::drivers::fs;
 using namespace kernel::system::sched;
 using namespace kernel::system::cpu;
 using namespace kernel::system::mm;
@@ -96,72 +95,72 @@ static void syscall_uname(registers_t *regs)
 
 static void syscall_chdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    if (node == nullptr || (node->flags & 0x07) != vfs::FS_DIRECTORY)
-    {
-        RAX = -1;
-        return;
-    }
-    scheduler::this_proc()->current_dir = node;
+    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
+    // if (node == nullptr || (node->flags & 0x07) != vfs::FS_DIRECTORY)
+    // {
+    //     RAX = -1;
+    //     return;
+    // }
+    // scheduler::this_proc()->current_dir = node;
     RAX = 0;
 }
 
 static void syscall_rename(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    if (node == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-    size_t count = 0;
-    char **name = strsplit_count(reinterpret_cast<const char*>(RSI_ARG1), "/", count);
-    strcpy(node->name, name[count]);
+    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
+    // if (node == nullptr)
+    // {
+    //     RAX = -1;
+    //     return;
+    // }
+    // size_t count = 0;
+    // char **name = strsplit_count(reinterpret_cast<const char*>(RSI_ARG1), "/", count);
+    // strcpy(node->name, name[count]);
     RAX = 0;
 }
 
 static void syscall_mkdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0), true);
-    node->mode = RSI_ARG1;
-    node->flags = vfs::FS_DIRECTORY;
+    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0), true);
+    // node->mode = RSI_ARG1;
+    // node->flags = vfs::FS_DIRECTORY;
     RAX = 0;
 }
 
 static void syscall_rmdir(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    if (node == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-    vfs::remove_child(node->parent, node->name);
+    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
+    // if (node == nullptr)
+    // {
+    //     RAX = -1;
+    //     return;
+    // }
+    // vfs::remove_child(node->parent, node->name);
     RAX = 0;
 }
 
 static void syscall_chmod(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    if (node == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-    node->mode = RSI_ARG1;
+    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
+    // if (node == nullptr)
+    // {
+    //     RAX = -1;
+    //     return;
+    // }
+    // node->mode = RSI_ARG1;
     RAX = 0;
 }
 
 static void syscall_chown(registers_t *regs)
 {
-    vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    if (node == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-    node->uid = RSI_ARG1;
-    node->gid = RDX_ARG2;
+    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
+    // if (node == nullptr)
+    // {
+    //     RAX = -1;
+    //     return;
+    // }
+    // node->uid = RSI_ARG1;
+    // node->gid = RDX_ARG2;
     RAX = 0;
 }
 

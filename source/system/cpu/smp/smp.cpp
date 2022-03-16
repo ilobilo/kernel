@@ -20,7 +20,7 @@ namespace kernel::system::cpu::smp {
 
 bool initialised = false;
 
-new_lock(cpu_lock)
+new_lock(cpu_lock);
 cpu_t *cpus = nullptr;
 static size_t i = 0;
 

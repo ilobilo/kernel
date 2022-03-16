@@ -2,18 +2,17 @@
 
 #pragma once
 
-#include <drivers/fs/vfs/vfs.hpp>
 #include <system/mm/vmm/vmm.hpp>
+#include <system/vfs/vfs.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
 #include <stdint.h>
 
-using namespace kernel::drivers::fs;
 using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
-#define PROC_NAME_LENGTH 128
+constexpr uint64_t max_fds = 256;
 
 enum state_t
 {
@@ -47,12 +46,14 @@ struct thread_t
 
 struct process_t
 {
-    char name[PROC_NAME_LENGTH];
+    string name;
     int pid = 0;
     int next_tid = 1;
     state_t state;
     vmm::Pagemap *pagemap;
+    lock_t fd_lock;
     vfs::fs_node_t *current_dir;
+    void *fds[max_fds];
     vector<thread_t*> threads;
     vector<process_t*> children;
     process_t *parent;
@@ -68,7 +69,7 @@ extern size_t proc_count;
 extern size_t thread_count;
 
 thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr, priority_t priority = MID, bool user = false);
-process_t *proc_create(const char *name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
+process_t *proc_create(string name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
 
 thread_t *this_thread();
 process_t *this_proc();

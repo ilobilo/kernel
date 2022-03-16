@@ -97,8 +97,6 @@ class ATAPort : public drivemgr::Drive
     bool initialised = false;
 
     ATAPortType portType;
-    uint64_t sectors;
-    uint64_t size;
 
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);

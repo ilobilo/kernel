@@ -92,6 +92,7 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
 
 bool ATAPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
+    if (sector + sectorCount > this->sectors) sectorCount = this->sectors = sector;
     for (size_t i = 0; i < sectorCount; i++)
     {
         if (!this->rw(sector + i, 1, false)) return false;
@@ -102,6 +103,7 @@ bool ATAPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 }
 bool ATAPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
 {
+    if (sector + sectorCount > this->sectors) sectorCount = this->sectors = sector;
     for (size_t i = 0; i < sectorCount; i++)
     {
         memcpy(this->prdtBuffer, buffer, 512);
@@ -168,6 +170,17 @@ ATAPort::ATAPort(uint16_t port, uint16_t bmport, size_t drive)
     for (size_t i = 0; i < 256; i++) identify[i] = this->inwcmd(ATA_REGISTER_DATA);
 
     this->portType = ATA;
+
+    if (static_cast<uint32_t>(identify[ATA_IDENT_COMMANDSETS / 2] | (identify[ATA_IDENT_COMMANDSETS / 2 + 1] << 16)) & (1 << 26))
+    {
+        this->sectors = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA_EXT / 2] | (identify[ATA_IDENT_MAX_LBA_EXT / 2 + 1] << 16));
+        this->size = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA_EXT / 2] | (identify[ATA_IDENT_MAX_LBA_EXT / 2 + 1] << 16)) * 512;
+    }
+    else
+    {
+        this->sectors = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA / 2] | (identify[ATA_IDENT_MAX_LBA / 2 + 1] << 16));
+        this->size = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA / 2] | (identify[ATA_IDENT_MAX_LBA / 2 + 1] << 16)) * 512;
+    }
 
     this->buffer = static_cast<uint8_t*>(pmm::alloc());
     this->prdt = static_cast<uint64_t*>(pmm::alloc());

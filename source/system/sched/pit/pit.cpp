@@ -15,7 +15,7 @@ bool initialised = false;
 bool schedule = false;
 uint64_t tick = 0;
 uint64_t frequency = PIT_DEF_FREQ;
-new_lock(pit_lock)
+new_lock(pit_lock);
 
 void sleep(uint64_t sec)
 {

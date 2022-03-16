@@ -19,7 +19,8 @@ namespace kernel::drivers::block::ahci {
 #define ATA_CMD_IDENTIFY 0xEC
 
 #define ATAPI_PACKET 0xA0
-#define ATAPI_IDENTIFY 0xA1
+#define ATAPI_IDENTIFY 0xEC
+#define ATAPI_IDENTIFY_PACKET 0xA1
 #define ATAPI_CMD_READ 0xA8
 #define ATAPI_CMD_EJECT 0x1B
 
@@ -129,7 +130,7 @@ struct HBAPRDTEntry
     uint32_t Reserved0;
     uint32_t ByteCount : 22;
     uint32_t Reserved1 : 9;
-    uint32_t InterruptOnCompletion:1;
+    uint32_t InterruptOnCompletion : 1;
 };
 
 struct HBACommandTable
@@ -256,7 +257,7 @@ class AHCIPort : public drivemgr::Drive
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 
-    AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
+    [[clang::optnone]] AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
 };
 
 class AHCIController

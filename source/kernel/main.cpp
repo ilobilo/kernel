@@ -14,8 +14,9 @@
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/net/e1000/e1000.hpp>
 #include <drivers/block/ahci/ahci.hpp>
-#include <drivers/fs/ustar/ustar.hpp>
+#include <drivers/fs/tmpfs/tmpfs.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
+#include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <drivers/block/ata/ata.hpp>
@@ -30,6 +31,7 @@
 #include <system/acpi/acpi.hpp>
 #include <drivers/ps2/ps2.hpp>
 #include <system/pci/pci.hpp>
+#include <system/vfs/vfs.hpp>
 #include <kernel/kernel.hpp>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
@@ -131,8 +133,9 @@ void main()
 
     terminal::check("Initialising VFS...", reinterpret_cast<uint64_t>(vfs::init), -1, vfs::initialised);
     stivale2_module *initrd_mod = find_module("initrd");
-    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), initrd_mod->begin, ustar::initialised, (initrd_mod != nullptr && strstr(cmdline, "initrd")));
+    terminal::check("Initialising TMPFS...", reinterpret_cast<uint64_t>(tmpfs::init), -1, tmpfs::initialised);
     terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
+    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), initrd_mod->begin, ustar::initialised, (initrd_mod != nullptr && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
 

@@ -1,172 +1,229 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <drivers/display/terminal/terminal.hpp>
-#include <drivers/fs/vfs/vfs.hpp>
-#include <lib/string.hpp>
+#include <drivers/fs/devfs/devfs.hpp>
+#include <system/mm/pmm/pmm.hpp>
+#include <system/vfs/vfs.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
+using namespace kernel::system::mm;
 
 namespace kernel::drivers::fs::devfs {
 
 bool initialised = false;
-vfs::fs_node_t *devfs_root;
+vfs::fs_node_t *devfs_root = nullptr;
+devfs_fs *devfs = nullptr;
 
-uint64_t count = 0;
+uint64_t inode_counter = 0;
+uint64_t dev_id = 0;
 
-vfs::fs_node_t *add(vfs::fs_t *fs, uint64_t mode, const char *name)
+int64_t devfs_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
-    vfs::fs_node_t *node = vfs::open(devfs_root, name, true);
-    node->fs = fs;
-    if (mode) node->mode = mode;
-    node->inode = count;
-    count++;
+    lockit(this->lock);
+
+    uint64_t actual_size = size;
+    if (offset + size > static_cast<uint64_t>(this->stat.size))
+    {
+        actual_size = size - ((offset + size) - this->stat.size);
+    }
+    memcpy(buffer, this->storage + offset, actual_size);
+
+    return actual_size;
+}
+
+int64_t devfs_res::write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+{
+    lockit(this->lock);
+
+    if (offset + size > this->cap)
+    {
+        uint64_t new_cap = this->cap;
+        while (offset + size > new_cap) new_cap *= 2;
+
+        uint8_t *new_storage = static_cast<uint8_t*>(realloc(this->storage, new_cap));
+        if (new_storage == nullptr || new_storage == this->storage) return 0;
+
+        this->storage = new_storage;
+        this->cap = new_cap;
+    }
+
+    memcpy(this->storage + offset, buffer, size);
+
+    if (offset + size > static_cast<uint64_t>(this->stat.size))
+    {
+        this->stat.size = offset + size;
+        this->stat.blocks = DIV_ROUNDUP(this->stat.size, this->stat.blksize);
+    }
+
+    return size;
+}
+
+int devfs_res::ioctl(void *handle, uint64_t request, void *argp)
+{
+    return vfs::default_ioctl(handle, request, argp);
+}
+
+bool devfs_res::grow(void *handle, size_t new_size)
+{
+    lockit(this->lock);
+
+    uint64_t new_cap = this->cap;
+    while (new_size > new_cap) new_cap *= 2;
+
+    uint8_t *new_storage = static_cast<uint8_t*>(realloc(this->storage, new_cap));
+    if (new_storage == nullptr || new_storage == this->storage) return false;
+
+    this->storage = new_storage;
+    this->cap = new_cap;
+
+    this->stat.size = new_size;
+    this->stat.blocks = DIV_ROUNDUP(new_size, this->stat.blksize);
+
+    return true;
+}
+
+void devfs_res::unref(void *handle)
+{
+    lockit(this->lock);
+
+    this->refcount--;
+}
+
+void devfs_res::link(void *handle)
+{
+    lockit(this->lock);
+
+    this->stat.nlink++;
+}
+
+void devfs_res::unlink(void *handle)
+{
+    lockit(this->lock);
+
+    this->stat.nlink--;
+}
+
+void *devfs_res::mmap(uint64_t page, int flags)
+{
+    return nullptr;
+}
+
+void devfs_fs::init() { }
+void devfs_fs::populate(vfs::fs_node_t *node) { }
+
+vfs::fs_node_t *devfs_fs::symlink(vfs::fs_node_t *parent, string source, string dest)
+{
+    vfs::fs_node_t *node = vfs::create_node(this, parent, source);
+
+    devfs_res *res = new devfs_res;
+    res->refcount = 1;
+
+    res->stat.size = dest.length();
+    res->stat.blocks = 0;
+    res->stat.blksize = 512;
+    res->stat.dev = dev_id;
+    res->stat.inode = inode_counter++;
+    res->stat.mode = 0777 | vfs::iflnk;
+    res->stat.nlink = 1;
+
+    // res->stat.atime = ;
+    // res->stat.mtime = ;
+    // res->stat.ctime = ;
+
+    node->res = res;
+    node->target = dest;
+
     return node;
 }
 
-#pragma region null
-static size_t read_null(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+vfs::fs_node_t *devfs_fs::create(vfs::fs_node_t *parent, string name, int mode)
 {
-    return 0;
-}
-static size_t write_null(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    return 0;
-}
-static void open_null(vfs::fs_node_t *node, uint8_t read, uint8_t write)
-{
-    return;
-}
-static void close_null(vfs::fs_node_t *node)
-{
-    return;
-}
-static vfs::fs_t null_fs = {
-    .name = "null",
-    .read = &read_null,
-    .write = &write_null,
-    .open = &open_null,
-    .close = &close_null
-};
-#pragma endregion null
+    vfs::fs_node_t *node = vfs::create_node(this, parent, name);
 
-#pragma region zero
-static size_t read_zero(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    memset(buffer, 0x00, size);
-    return 1;
-}
-static size_t write_zero(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    return 0;
-}
-static void open_zero(vfs::fs_node_t *node, uint8_t read, uint8_t write)
-{
-    return;
-}
-static void close_zero(vfs::fs_node_t *node)
-{
-    return;
-}
-static vfs::fs_t zero_fs = {
-    .name = "zero",
-    .read = &read_zero,
-    .write = &write_zero,
-    .open = &open_zero,
-    .close = &close_zero
-};
-#pragma endregion zero
+    devfs_res *res = new devfs_res;
+    res->refcount = 1;
 
-#pragma region rand
-static size_t read_rand(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    size_t s = 0;
-    while (s < size)
+    if (vfs::isreg(mode))
     {
-        buffer[s] = rand() % 0xFF;
-        s++;
+        res->cap = 0x1000;
+        res->storage = static_cast<uint8_t*>(malloc(0x1000));
+        res->can_mmap = true;
     }
-    return size;
-}
-static vfs::fs_t rand_fs = {
-    .name = "rand",
-    .read = &read_rand
-};
-#pragma endregion rand
 
-#pragma region tty
-static size_t read_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    return 0;
-}
-static size_t write_ttys(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    if (!size) size = strlen(buffer);
-    serial::print("%.*s", static_cast<int>(size), buffer);
-    return size;
-}
-static vfs::fs_t ttys_fs = {
-    .name = "ttys",
-    .read = &read_ttys,
-    .write = &write_ttys
-};
+    res->stat.size = 0;
+    res->stat.blocks = 0;
+    res->stat.blksize = 512;
+    res->stat.dev = dev_id;
+    res->stat.inode = inode_counter++;
+    res->stat.mode = mode;
+    res->stat.nlink = 1;
 
-static size_t read_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
-{
-    return 0;
+    // res->stat.atime = ;
+    // res->stat.mtime = ;
+    // res->stat.ctime = ;
+
+    node->res = res;
+
+    return node;
 }
-static size_t write_tty(vfs::fs_node_t *node, size_t offset, size_t size, char *buffer)
+
+vfs::fs_node_t *devfs_fs::link(vfs::fs_node_t *parent, string name, vfs::fs_node_t *old)
 {
-    if (!size) size = strlen(buffer);
-    printf("%.*s", static_cast<int>(size), buffer);
-    return size;
+    vfs::fs_node_t *node = vfs::create_node(this, parent, name);
+
+    old->res->refcount++;
+
+    node->res = old->res;
+    node->children.copyfrom(old->children);
+
+    return node;
 }
-static vfs::fs_t tty_fs = {
-    .name = "tty",
-    .read = &read_tty,
-    .write = &write_tty
-};
-static void addtty(const char *name, bool serial)
+
+vfs::fs_node_t *devfs_fs::mount(vfs::fs_node_t *parent, vfs::fs_node_t *source, string dest)
 {
-    vfs::fs_node_t *tty;
-    if (!serial) tty = add(&tty_fs, 0, name);
-    else tty = add(&ttys_fs, 0, name);
-    tty->flags = vfs::FS_CHARDEVICE;
+    if (dev_id == 0) dev_id = vfs::dev_new_id();
+    if (devfs_root == nullptr) devfs_root = create(parent, dest, 0644 | vfs::ifdir);
+    return devfs_root;
 }
-#pragma endregion tty
+
+bool add(vfs::resource_t *res, string name)
+{
+    vfs::fs_node_t *node = vfs::create_node(devfs, devfs_root, name);
+    if (node == nullptr) return false;
+
+    node->res = res;
+    node->res->stat.dev = dev_id;
+    node->res->stat.inode = inode_counter++;
+    node->res->stat.nlink = 1;
+
+    // res->stat.atime = ;
+    // res->stat.mtime = ;
+    // res->stat.ctime = ;
+
+    devfs_root->children.push_back(node);
+
+    return true;
+}
 
 void init()
 {
-    log("Mounting and populating DEVFS");
+    log("Initialising DEVFS");
 
     if (initialised)
     {
-        warn("DEV filesystem has already been mounted!\n");
+        warn("DEVFS has already been initialised!\n");
         return;
     }
 
-    devfs_root = vfs::mount(0, 0, "/dev");
-    devfs_root->mode = 0755;
+    devfs = new devfs_fs;
+    devfs->name = "devfs";
 
-    vfs::fs_node_t *null = add(&null_fs, 0666, "null");
-    null->flags = vfs::FS_CHARDEVICE;
+    vfs::install_fs(devfs);
 
-    vfs::fs_node_t *zero = add(&zero_fs, 0666, "zero");
-    zero->flags = vfs::FS_CHARDEVICE;
-
-    vfs::fs_node_t *rand = add(&rand_fs, 0444, "random");
-    rand->flags = vfs::FS_CHARDEVICE;
-    rand->length = 1024;
-
-    vfs::fs_node_t *urand = add(&rand_fs, 0444, "urandom");
-    urand->flags = vfs::FS_CHARDEVICE;
-    urand->length = 1024;
-
-    addtty("ttyS0", true);
-    addtty("tty0", false);
-    addtty("console", false);
+    vfs::create(vfs::fs_root, "/dev", 0644 | vfs::ifdir);
+    vfs::mount(vfs::fs_root, "", "/dev", devfs);
 
     serial::newline();
     initialised = true;

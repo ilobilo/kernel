@@ -24,7 +24,7 @@ namespace kernel::system::cpu::gdt {
     {0x0000, 0, 0, 0x89, 0x00, 0, 0, 0} // TSS
 };
 
-new_lock(gdt_lock)
+new_lock(gdt_lock);
 bool initialised = false;
 GDTDescriptor gdtDescriptor;
 TSS *tss;

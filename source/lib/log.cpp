@@ -6,7 +6,7 @@
 
 using namespace kernel::drivers::display;
 
-new_lock(log_lock)
+new_lock(log_lock);
 
 int log(const char *fmt, ...)
 {

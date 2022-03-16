@@ -16,7 +16,7 @@ using namespace kernel::drivers::display;
 
 namespace kernel::system::cpu::idt {
 
-new_lock(idt_lock)
+new_lock(idt_lock);
 bool initialised = false;
 
 IDTEntry idt[256];

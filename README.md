@@ -5,7 +5,7 @@ Contributors are welcome
 ## [LICENSE](LICENSE)
 
 ## Need to fix/update
-- [ ] VFS
+- [x] VFS
 - [x] Scheduler
 - [ ] Some of the syscalls
 
@@ -84,7 +84,8 @@ Contributors are welcome
 - [x] GPT
 
 ### Filesystems
-- [x] VFS
+- [x] VFS (Based on Vinix)
+- [x] TMPFS
 - [x] DEVFS
 - [x] Initrd
 - [ ] Echfs
