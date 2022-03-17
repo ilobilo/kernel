@@ -70,7 +70,6 @@ Contributors are welcome
 
 ### Tasking
 - [x] SMP
-- [x] Threading
 - [x] Scheduling
 - [ ] IPC
 
