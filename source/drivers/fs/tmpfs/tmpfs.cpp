@@ -14,7 +14,7 @@ using namespace kernel::system::mm;
 namespace kernel::drivers::fs::tmpfs {
 
 bool initialised = false;
-tmpfs_fs *tmpfs = nullptr;
+tmpfs_fs *tmpfs = new tmpfs_fs;
 
 int64_t tmpfs_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
@@ -39,7 +39,7 @@ int64_t tmpfs_res::write(void *handle, uint8_t *buffer, uint64_t offset, uint64_
         uint64_t new_cap = this->cap;
         while (offset + size > new_cap) new_cap *= 2;
 
-        uint8_t *new_storage = static_cast<uint8_t*>(realloc(this->storage, new_cap));
+        uint8_t *new_storage = realloc<uint8_t*>(this->storage, new_cap);
         if (new_storage == nullptr || new_storage == this->storage) return 0;
 
         this->storage = new_storage;
@@ -69,7 +69,7 @@ bool tmpfs_res::grow(void *handle, size_t new_size)
     uint64_t new_cap = this->cap;
     while (new_size > new_cap) new_cap *= 2;
 
-    uint8_t *new_storage = static_cast<uint8_t*>(realloc(this->storage, new_cap));
+    uint8_t *new_storage = realloc<uint8_t*>(this->storage, new_cap);
     if (new_storage == nullptr || new_storage == this->storage) return false;
 
     this->storage = new_storage;
@@ -150,7 +150,7 @@ vfs::fs_node_t *tmpfs_fs::create(vfs::fs_node_t *parent, string name, int mode)
     if (vfs::isreg(mode))
     {
         res->cap = 0x1000;
-        res->storage = static_cast<uint8_t*>(malloc(0x1000));
+        res->storage = malloc<uint8_t*>(0x1000);
         res->can_mmap = true;
     }
 
@@ -199,7 +199,6 @@ void init()
         return;
     }
 
-    tmpfs = new tmpfs_fs;
     tmpfs->name = "tmpfs";
 
     vfs::install_fs(tmpfs);

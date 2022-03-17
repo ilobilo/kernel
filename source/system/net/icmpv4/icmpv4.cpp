@@ -13,7 +13,7 @@ bool debug = NET_DEBUG;
 
 void reply(nicmgr::NIC *nic, uint8_t *dip, icmpv4Hdr *oldpacket, size_t length)
 {
-    icmpv4Hdr *newpacket = static_cast<icmpv4Hdr*>(malloc(length));
+    icmpv4Hdr *newpacket = malloc<icmpv4Hdr*>(length);
 
     newpacket->type = TYPE_ECHO_REPLY;
     newpacket->code = 0;

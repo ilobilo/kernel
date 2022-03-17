@@ -129,7 +129,7 @@ void RTL8139::start()
 
     reset();
 
-    RXBuffer = static_cast<uint8_t*>(malloc(8192 + 16 + 1500));
+    RXBuffer = malloc<uint8_t*>(8192 + 16 + 1500);
     this->outl(REG_RBSTART, static_cast<uint32_t>(reinterpret_cast<uint64_t>(RXBuffer)));
 
     this->outw(REG_IMR, IMR_RECEIVE_OK | IMR_RECEIVE_ERROR | IMR_TRANSMIT_OK | IMR_TRANSMIT_ERROR | IMR_RX_OVERFLOW | IMR_LINK_CHANGE | IMR_RX_FIFO_OVERFLOW | IMR_CABLE_LENGTH_CHANGE | IMR_TIME_OUT | IMR_SYSTEM_ERROR);

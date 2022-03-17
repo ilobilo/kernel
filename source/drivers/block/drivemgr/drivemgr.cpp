@@ -1,6 +1,5 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <drivers/display/terminal/terminal.hpp>
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <drivers/block/ata/ata.hpp>
@@ -20,7 +19,8 @@ void addDrive(Drive *drive, type_t type)
     drives.push_back(drive);
     drive->type = type;
     drive->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
-    sprintf(drive->name, "Drive #%zu", drives.size() - 1);
+    drive->name = "Drive #";
+    drive->name.push_back(static_cast<char>(drives.size() - 1 + '0'));
 
     drive->read(0, 2, drive->buffer);
     memcpy(&drive->parttable, drive->buffer, sizeof(partTable));
@@ -42,7 +42,8 @@ void addDrive(Drive *drive, type_t type)
                 if (gptpart.TypeLow || gptpart.TypeHigh)
                 {
                     Partition *partition = new Partition;
-                    sprintf(partition->Label, "GPT Part #%zu", drive->partitions.size());
+                    partition->label = "GPT Part #";
+                    partition->label.push_back(static_cast<char>(drives.size() - 1 + '0'));
                     partition->StartLBA = gptpart.StartLBA;
                     partition->EndLBA = gptpart.EndLBA;
                     partition->Sectors = partition->EndLBA - partition->StartLBA;
@@ -67,7 +68,8 @@ void addDrive(Drive *drive, type_t type)
             if (drive->parttable.mbr.Partitions[p].LBAFirst != 0)
             {
                 Partition *partition = new Partition;
-                sprintf(partition->Label, "MBR Part #%zu", drive->partitions.size());
+                partition->label = "MBR Part #";
+                partition->label.push_back(static_cast<char>(drives.size() - 1 + '0'));
                 partition->StartLBA = drive->parttable.mbr.Partitions[p].LBAFirst;
                 partition->EndLBA = drive->parttable.mbr.Partitions[p].LBAFirst + drive->parttable.mbr.Partitions[p].Sectors;
                 partition->Sectors = drive->parttable.mbr.Partitions[p].Sectors;

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <lib/vector.hpp>
+#include <lib/string.hpp>
 #include <lib/log.hpp>
 #include <stdint.h>
 
@@ -89,7 +90,7 @@ struct partTable
 struct Partition;
 struct Drive
 {
-    char name[32] = "New drive";
+    string name;
     uint8_t *buffer = nullptr;
 
     partTable parttable;
@@ -117,7 +118,7 @@ struct Drive
 
 struct Partition
 {
-    char Label[72];
+    string label;
     uint64_t StartLBA;
     uint64_t EndLBA;
     uint64_t Sectors;

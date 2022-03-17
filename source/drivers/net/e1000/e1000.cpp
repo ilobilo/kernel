@@ -157,7 +157,7 @@ void E1000::receive()
         if (this->debug) log("E1000: Handling packet #%zu!", i);
 
         uint16_t length = this->rxdescs[this->rxcurr]->length;
-        uint8_t *packet = static_cast<uint8_t*>(malloc(length));
+        uint8_t *packet = new uint8_t[length];
         memcpy(packet, reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr), length);
 
         this->rxdescs[this->rxcurr]->status = 0;
@@ -166,18 +166,18 @@ void E1000::receive()
         this->outcmd(REG_RXDESCTAIL, old_cur);
 
         ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
-        free(packet);
+        delete[] packet;
     }
 }
 
 void E1000::rxinit()
 {
-    uint8_t *ptr = static_cast<uint8_t*>(malloc(sizeof(RXDesc) * E1000_NUM_RX_DESC + 16));
+    uint8_t *ptr = new uint8_t[E1000_NUM_RX_DESC + 1];
     RXDesc *descs = reinterpret_cast<RXDesc*>(ptr);
     for (size_t i = 0; i < E1000_NUM_RX_DESC; i++)
     {
         this->rxdescs[i] = reinterpret_cast<RXDesc*>(reinterpret_cast<uint8_t*>(descs) + i * 16);
-        this->rxdescs[i]->addr = reinterpret_cast<uint64_t>(static_cast<uint8_t*>(malloc(E1000_RX_BUFF_SIZE + 16)));
+        this->rxdescs[i]->addr = malloc<uint64_t>(E1000_RX_BUFF_SIZE + 16);
         this->rxdescs[i]->status = 0;
     }
     this->outcmd(REG_RXDESCLO, reinterpret_cast<uint64_t>(ptr));
@@ -191,7 +191,7 @@ void E1000::rxinit()
 
 void E1000::txinit()
 {
-    uint8_t *ptr = static_cast<uint8_t*>(malloc(sizeof(TXDesc) * E1000_NUM_TX_DESC + 16));
+    uint8_t *ptr = new uint8_t[E1000_NUM_RX_DESC + 1];
     TXDesc *descs = reinterpret_cast<TXDesc*>(ptr);
     for (size_t i = 0; i < E1000_NUM_TX_DESC; i++)
     {
