@@ -24,7 +24,6 @@ new_lock(cpu_lock);
 cpu_t *cpus = new cpu_t[smp_tag->cpu_count]();;
 static size_t i = 0;
 
-extern "C" void InitSSE();
 static void cpu_init(stivale2_smp_info *cpu)
 {
     cpu_lock.lock();
