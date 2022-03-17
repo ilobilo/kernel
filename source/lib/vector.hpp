@@ -94,6 +94,25 @@ class vector
         this->num--;
     }
 
+    void remove(type &item)
+    {
+        if (!this->on) return;
+        for (size_t i = 0; i < this->num; i++)
+        {
+            if (*(this->storage + i) == item) this->remove(i);
+        }
+    }
+
+    void copyfrom(vector<type> old)
+    {
+        memset(this->storage, 0, this->num - 1);
+        this->num = 0;
+        for (size_t i = 0; i < old.size(); i++)
+        {
+            this->push_back(old[i]);
+        }
+    }
+
     type &operator[](size_t pos)
     {
         return *(this->storage + pos);

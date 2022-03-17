@@ -182,7 +182,7 @@ void lapic_timer_init()
     }
 }
 
-new_lock(lapic_timer_lock);
+new_lock(lapic_timer_lock);;
 void lapic_oneshot(uint8_t vector, uint64_t ms)
 {
     lockit(lapic_timer_lock);

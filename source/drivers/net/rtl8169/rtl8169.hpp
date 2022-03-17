@@ -57,15 +57,18 @@ enum intstat
     IST_SYSTEM_ERROR = (1 << 15),
 };
 
-#define RTL8169_OWN (1 << 31)
-#define RTL8169_EOR (1 << 30)
-#define RTL8169_FFR (1 << 29)
-#define RTL8169_LFR (1 << 28)
+enum desc
+{
+    RTL8169_OWN = (1 << 31),
+    RTL8169_EOR = (1 << 30),
+    RTL8169_FFR = (1 << 29),
+    RTL8169_LFR = (1 << 28)
+};
 
-#define RTL8169_NUM_RX_DESC 32
-#define RTL8169_NUM_TX_DESC 8
+static constexpr uint8_t RTL8169_NUM_RX_DESC = 32;
+static constexpr uint8_t RTL8169_NUM_TX_DESC = 8;
 
-#define RTL8169_RX_BUFF_SIZE 8192
+static constexpr uint32_t RTL8169_RX_BUFF_SIZE = 8192;
 
 struct [[gnu::packed]] Desc
 {

@@ -32,4 +32,8 @@ class lockit
 };
 
 #define new_lock(name) static lock_t name;
-#define lockit(name) lockit lock(name);
+
+#define CONCAT_IMPL(x, y) x##y
+#define CONCAT(x, y) CONCAT_IMPL(x, y)
+
+#define lockit(name) lockit CONCAT(lock##_, __COUNTER__)(name)

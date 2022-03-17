@@ -21,27 +21,27 @@ printer::printer(int (*func)(const char *, ...))
 printer &printer::operator<<(string str)
 {
     if (this->func) this->func("%s", str.c_str());
-	return *this;
+    return *this;
 }
 printer &printer::operator<<(string *str)
 {
     if (this->func) this->func("%s", str->c_str());
-	return *this;
+    return *this;
 }
 printer &printer::operator<<(size_t i)
 {
     if (this->func) this->func("%zu", i);
-	return *this;
+    return *this;
 }
 printer &printer::operator<<(int i)
 {
     if (this->func) this->func("%zu", i);
-	return *this;
+    return *this;
 }
 printer &printer::operator<<(unsigned int i)
 {
     if (this->func) this->func("%zu", i);
-	return *this;
+    return *this;
 }
 
 char *operator"" _c(const char *str, size_t length)
@@ -223,7 +223,7 @@ long strtol(const char *nPtr, char **endPtr, int base)
                     return 0;
                 }
             }
-            else if (* divider == 'x' || * divider == 'X')
+            else if (*divider == 'x' || *divider == 'X')
             {
                 base = 16;
                 divider++;
@@ -251,39 +251,39 @@ long strtol(const char *nPtr, char **endPtr, int base)
 
     while (*divider != 0)
     {
-    	if (isdigit(*divider)) currentdigit = * divider - '0';
-    	else
-        {
-    		if (isalpha(*divider))
-            {
-    			if (islower(*divider) && (*divider - 'a') + 10 < base) currentdigit = (*divider - 'a') + 10;
-    			else if (!islower(*divider) && (*divider - 'A') + 10 < base) currentdigit = (*divider - 'A') + 10;
-                else break;
-    		}
-            else break;
-    	}
-    	if (!correctconversion || number > static_cast<long>(cutoff) || (number == static_cast<long>(cutoff) && static_cast<int>(currentdigit) > cutlim))
-        {
-    		correctconversion = false;
-    		divider++;
-    	}
+        if (isdigit(*divider)) currentdigit = * divider - '0';
         else
         {
-    		correctconversion = true;
-    		number = (number * base) + currentdigit;
-    		divider++;
-    	}
+            if (isalpha(*divider))
+            {
+                if (islower(*divider) && (*divider - 'a') + 10 < base) currentdigit = (*divider - 'a') + 10;
+                else if (!islower(*divider) && (*divider - 'A') + 10 < base) currentdigit = (*divider - 'A') + 10;
+                else break;
+            }
+            else break;
+        }
+        if (!correctconversion || number > static_cast<long>(cutoff) || (number == static_cast<long>(cutoff) && static_cast<int>(currentdigit) > cutlim))
+        {
+            correctconversion = false;
+            divider++;
+        }
+        else
+        {
+            correctconversion = true;
+            number = (number * base) + currentdigit;
+            divider++;
+        }
     }
     if (!correctconversion)
     {
-    	if (sign) number = LONG_MAX;
-    	else number = LONG_MIN;
+        if (sign) number = LONG_MAX;
+        else number = LONG_MIN;
     }
     if (sign == NEGATIVE) number *= -1;
     if (endPtr != nullptr)
     {
         if (isspace(*divider)) divider++;
-    	*endPtr = const_cast<char*>(divider);
+        *endPtr = const_cast<char*>(divider);
     }
     return number;
 }

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <drivers/fs/vfs/vfs.hpp>
+#include <stdint.h>
 
 namespace kernel::drivers::fs::ustar {
 
@@ -37,16 +37,7 @@ struct file_header_t
     char prefix[155];
 };
 
-struct header_t
-{
-    file_header_t *header;
-    unsigned int address;
-    unsigned int size;
-};
-
 extern bool initialised;
-extern vector<header_t*> headers;
-extern vfs::fs_node_t *initrd_root;
 
-void init(unsigned int address);
+void init(uint64_t address);
 }

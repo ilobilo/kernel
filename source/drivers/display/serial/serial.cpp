@@ -11,7 +11,7 @@ using namespace kernel::system::cpu;
 namespace kernel::drivers::display::serial {
 
 bool initialised = false;
-new_lock(serial_lock)
+new_lock(serial_lock);
 
 bool check()
 {

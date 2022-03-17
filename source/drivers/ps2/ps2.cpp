@@ -180,8 +180,8 @@ volatile bool pressed = false;
 volatile bool enter = false;
 
 kbd_mod_t kbd_mod;
-new_lock(kbd_lock)
-new_lock(getline_lock)
+new_lock(kbd_lock);
+new_lock(getline_lock);
 
 void setscancodeset(uint8_t scancode)
 {

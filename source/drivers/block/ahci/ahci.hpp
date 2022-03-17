@@ -11,36 +11,46 @@ using namespace kernel::system;
 
 namespace kernel::drivers::block::ahci {
 
-#define ATA_DEV_BUSY 0x80
-#define ATA_DEV_DRQ 0x08
+enum status
+{
+    ATA_DEV_BUSY = 0x80,
+    ATA_DEV_DRQ = 0x08
+};
 
-#define ATA_CMD_READ_DMA_EX 0x25
-#define ATA_CMD_WRITE_DMA_EX 0x35
-#define ATA_CMD_IDENTIFY 0xEC
+enum cmds
+{
+    ATA_CMD_READ_DMA_EX = 0x25,
+    ATA_CMD_WRITE_DMA_EX = 0x35,
+    ATA_CMD_IDENTIFY = 0xEC,
+    ATAPI_PACKET = 0xA0,
+    ATAPI_IDENTIFY = 0xEC,
+    ATAPI_IDENTIFY_PACKET = 0xA1,
+    ATAPI_CMD_READ = 0xA8,
+    ATAPI_CMD_EJECT = 0x1B
+};
 
-#define ATAPI_PACKET 0xA0
-#define ATAPI_IDENTIFY 0xA1
-#define ATAPI_CMD_READ 0xA8
-#define ATAPI_CMD_EJECT 0x1B
+enum hbaportstatus
+{
+    HBA_PxIS_TFES = (1 << 30),
+    HBA_PORT_DEV_PRESENT = 0x03,
+    HBA_PORT_IPM_ACTIVE = 0x01
+};
 
-#define HBA_PxIS_TFES (1 << 30)
+enum types
+{
+    SATA_SIG_ATAPI = 0xEB140101,
+    SATA_SIG_ATA = 0x00000101,
+    SATA_SIG_SEMB = 0xC33C0101,
+    SATA_SIG_PM = 0x96690101
+};
 
-#define HBA_PORT_DEV_PRESENT 0x3
-#define HBA_PORT_IPM_ACTIVE 0x1
-#define SATA_SIG_ATAPI 0xEB140101
-#define SATA_SIG_ATA 0x00000101
-#define SATA_SIG_SEMB 0xC33C0101
-#define SATA_SIG_PM 0x96690101
-
-#define HBA_PxCMD_CR 0x8000
-#define HBA_PxCMD_FRE 0x0010
-#define HBA_PxCMD_ST 0x0001
-#define HBA_PxCMD_FR 0x4000
-
-#define HBA_PxCMD_CR 0x8000
-#define HBA_PxCMD_FRE 0x0010
-#define HBA_PxCMD_ST 0x0001
-#define HBA_PxCMD_FR 0x4000
+enum hbacmd
+{
+    HBA_PxCMD_CR = 0x8000,
+    HBA_PxCMD_FRE = 0x0010,
+    HBA_PxCMD_ST = 0x0001,
+    HBA_PxCMD_FR = 0x4000
+};
 
 enum FIS_TYPE
 {
@@ -129,7 +139,7 @@ struct HBAPRDTEntry
     uint32_t Reserved0;
     uint32_t ByteCount : 22;
     uint32_t Reserved1 : 9;
-    uint32_t InterruptOnCompletion:1;
+    uint32_t InterruptOnCompletion : 1;
 };
 
 struct HBACommandTable
@@ -256,7 +266,7 @@ class AHCIPort : public drivemgr::Drive
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 
-    AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
+    [[clang::optnone]] AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
 };
 
 class AHCIController

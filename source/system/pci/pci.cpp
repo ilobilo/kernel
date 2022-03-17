@@ -2,7 +2,6 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/cpu/apic/apic.hpp>
-#include <drivers/fs/vfs/vfs.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/pci/pcidesc.hpp>
 #include <system/pci/pci.hpp>
@@ -10,7 +9,6 @@
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::display;
-using namespace kernel::drivers::fs;
 using namespace kernel::system::cpu;
 
 namespace kernel::system::pci {

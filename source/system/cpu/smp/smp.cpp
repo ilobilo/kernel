@@ -20,7 +20,7 @@ namespace kernel::system::cpu::smp {
 
 bool initialised = false;
 
-new_lock(cpu_lock)
+new_lock(cpu_lock);
 cpu_t *cpus = nullptr;
 static size_t i = 0;
 
@@ -71,7 +71,7 @@ static void cpu_init(stivale2_smp_info *cpu)
         ASSERT(__get_cpuid_count(0x0D, 1, &a, &b, &c, &d), "CPUID failure");
         if (a & bit_XSAVEOPT) this_cpu->fpu_save = xsaveopt;
         else this_cpu->fpu_save = xsave;
-	}
+    }
     else if (d & bit_FXSAVE)
     {
         write_cr(4, read_cr(4) | (1 << 9));
@@ -79,7 +79,7 @@ static void cpu_init(stivale2_smp_info *cpu)
         this_cpu->fpu_storage_size = 512;
         this_cpu->fpu_save = fxsave;
         this_cpu->fpu_restore = fxrstor;
-	}
+    }
     else PANIC("No known SIMD save mechanism");
 
     log("CPU %ld is up", this_cpu->id);

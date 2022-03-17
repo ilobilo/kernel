@@ -116,10 +116,10 @@ bios: $(KERNEL) initrd
 	$(MAKE) iso
 	$(MAKE) clean run-bios
 
-.PHONY: test
-test: $(KERNEL) initrd
+.PHONY: vnc
+vnc: $(KERNEL) initrd
 	$(MAKE) iso
-	$(MAKE) clean run-test
+	$(MAKE) clean run-vnc
 
 $(KERNEL):
 	$(MAKE) $(OBJ)
@@ -186,9 +186,9 @@ else
 endif
 endif
 
-run-test:
+run-vnc:
 ifndef NORUN
-	@echo "\nBooting iso in bios mode... (testing)\n"
+	@echo "\nBooting iso in bios mode... (VNC)\n"
 ifndef DEBUG
 	$(QEMU) $(QEMUFLAGS) -vnc 0.0.0.0:1 -cdrom $(ISO) | $(CXXFILT)
 else

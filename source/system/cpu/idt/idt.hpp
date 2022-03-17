@@ -7,7 +7,7 @@
 
 namespace kernel::system::cpu::idt {
 
-#define SYSCALL 0x69
+static constexpr uint8_t SYSCALL = 0x69;
 
 enum IRQS
 {

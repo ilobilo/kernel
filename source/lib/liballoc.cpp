@@ -19,7 +19,7 @@ static int l_initialised = 0;
 static int l_pageSize = 4096;
 static int l_pageCount = 16;
 
-new_lock(alloc_lock)
+new_lock(alloc_lock);
 static int liballoc_lock()
 {
     alloc_lock.lock();

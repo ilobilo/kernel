@@ -11,59 +11,72 @@ using namespace kernel::system;
 
 namespace kernel::drivers::block::ata {
 
-#define ATA_REGISTER_DATA 0
-#define ATA_REGISTER_ERROR 1
-#define ATA_REGISTER_FEATURES 1
-#define ATA_REGISTER_SECTOR_COUNT 2
-#define ATA_REGISTER_LBA_LOW 3
-#define ATA_REGISTER_LBA_MID 4
-#define ATA_REGISTER_LBA_HIGH 5
-#define ATA_REGISTER_DRIVE_HEAD 6
-#define ATA_REGISTER_STATUS 7
-#define ATA_REGISTER_COMMAND 7
+enum regs
+{
+    ATA_REGISTER_DATA = 0x00,
+    ATA_REGISTER_ERROR = 0x01,
+    ATA_REGISTER_FEATURES = 0x01,
+    ATA_REGISTER_SECTOR_COUNT = 0x02,
+    ATA_REGISTER_LBA_LOW = 0x03,
+    ATA_REGISTER_LBA_MID = 0x04,
+    ATA_REGISTER_LBA_HIGH = 0x05,
+    ATA_REGISTER_DRIVE_HEAD = 0x06,
+    ATA_REGISTER_STATUS = 0x07,
+    ATA_REGISTER_COMMAND = 0x07
+};
 
-#define ATA_IDENT_DEVICETYPE 0
-#define ATA_IDENT_CYLINDERS 2
-#define ATA_IDENT_HEADS 6
-#define ATA_IDENT_SECTORS 12
-#define ATA_IDENT_SERIAL 20
-#define ATA_IDENT_MODEL 54
-#define ATA_IDENT_CAPABILITIES 98
-#define ATA_IDENT_FIELDVALID 106
-#define ATA_IDENT_MAX_LBA 120
-#define ATA_IDENT_COMMANDSETS 164
-#define ATA_IDENT_MAX_LBA_EXT 200
+enum idents
+{
+    ATA_IDENT_DEVICETYPE = 0,
+    ATA_IDENT_CYLINDERS = 1,
+    ATA_IDENT_HEADS = 3,
+    ATA_IDENT_SECTORS = 6,
+    ATA_IDENT_SERIAL = 10,
+    ATA_IDENT_MODEL = 27,
+    ATA_IDENT_CAPABILITIES = 49,
+    ATA_IDENT_FIELDVALID = 53,
+    ATA_IDENT_MAX_LBA = 160,
+    ATA_IDENT_COMMANDSETS = 82,
+    ATA_IDENT_MAX_LBA_EXT = 100
+};
 
-#define ATA_BMR_CMD 0
-#define ATA_BMR_DEV_SPECIFIC_1 1
-#define ATA_BMR_STATUS 2
-#define ATA_BMR_DEV_SPECIFIC_2 3
-#define ATA_BMR_PRDT_ADDRESS 4
-#define ATA_BMR_CMD_SECONDARY 8
-#define ATA_BMR_DEV_SPECIFIC_1_SECONDARY 9
-#define ATA_BMR_STATUS_SECONDARY 10
-#define ATA_BMR_DEV_SPECIFIC_2_SECONDARY 11
-#define ATA_BMR_PRDT_ADDRESS_SECONDARY 12
+enum bmrcmd
+{
+    ATA_BMR_CMD = 0x00,
+    ATA_BMR_DEV_SPECIFIC_1 = 0x01,
+    ATA_BMR_STATUS = 0x02,
+    ATA_BMR_DEV_SPECIFIC_2 = 0x03,
+    ATA_BMR_PRDT_ADDRESS = 0x04,
+    ATA_BMR_CMD_SECONDARY = 0x08,
+    ATA_BMR_DEV_SPECIFIC_1_SECONDARY = 0x09,
+    ATA_BMR_STATUS_SECONDARY = 0x0A,
+    ATA_BMR_DEV_SPECIFIC_2_SECONDARY = 0x0B,
+    ATA_BMR_PRDT_ADDRESS_SECONDARY = 0x0C
+};
 
-#define ATA_DEV_BUSY 0x80
-#define ATA_DEV_DRDY 0x40
-#define ATA_DEV_DF 0x20
-#define ATA_DEV_DSC 0x10
-#define ATA_DEV_DRQ 0x08
-#define ATA_DEV_CORR 0x04
-#define ATA_DEV_IDX 0x02
-#define ATA_DEV_ERR 0x01
+enum status
+{
+    ATA_DEV_BUSY = 0x80,
+    ATA_DEV_DRDY = 0x40,
+    ATA_DEV_DF = 0x20,
+    ATA_DEV_DSC = 0x10,
+    ATA_DEV_DRQ = 0x08,
+    ATA_DEV_CORR = 0x04,
+    ATA_DEV_IDX = 0x02,
+    ATA_DEV_ERR = 0x01
+};
 
-#define ATA_CMD_READ_DMA_EX 0x25
-#define ATA_CMD_WRITE_DMA_EX 0x35
-#define ATA_CMD_IDENTIFY 0xEC
-
-#define ATA_PRD_BUFFER(x) ((x) & 0xFFFFFFFF)
-#define ATA_PRD_TRANSFER_SIZE(x) (((x) & 0xFFFFULL) << 32)
-#define ATA_PRD_END 0x8000000000000000ULL
-
-#define ATA_PRIMARY_IRQ 14
-#define ATA_SECONDARY_IRQ 15
+enum cmds
+{
+    ATA_CMD_READ_DMA_EX = 0x25,
+    ATA_CMD_WRITE_DMA_EX = 0x35,
+    ATA_CMD_IDENTIFY = 0xEC,
+    ATAPI_PACKET = 0xA0,
+    ATAPI_IDENTIFY = 0xEC,
+    ATAPI_IDENTIFY_PACKET = 0xA1,
+    ATAPI_CMD_READ = 0xA8,
+    ATAPI_CMD_EJECT = 0x1B
+};
 
 enum ATAPortType
 {
@@ -97,8 +110,6 @@ class ATAPort : public drivemgr::Drive
     bool initialised = false;
 
     ATAPortType portType;
-    uint64_t sectors;
-    uint64_t size;
 
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);

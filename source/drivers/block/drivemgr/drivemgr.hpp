@@ -91,9 +91,14 @@ struct Drive
 {
     char name[32] = "New drive";
     uint8_t *buffer = nullptr;
+
     partTable parttable;
     partStyle partstyle;
     vector<Partition*> partitions;
+
+    uint64_t sectors;
+    uint64_t size;
+
     type_t type;
     uint64_t uniqueid;
 
