@@ -2,16 +2,41 @@
 
 #pragma once
 
-#include <drivers/fs/vfs/vfs.hpp>
+#include <system/vfs/vfs.hpp>
+
+using namespace kernel::system;
 
 namespace kernel::drivers::fs::devfs {
 
+struct devfs_fs : vfs::filesystem_t
+{
+    void init();
+    void populate(vfs::fs_node_t *node);
+    vfs::fs_node_t *mount(vfs::fs_node_t *parent, vfs::fs_node_t *source, string dest);
+    vfs::fs_node_t *symlink(vfs::fs_node_t *parent, string source, string dest);
+    vfs::fs_node_t *create(vfs::fs_node_t *parent, string name, int mode);
+    vfs::fs_node_t *link(vfs::fs_node_t *parent, string name, vfs::fs_node_t *old);
+};
+
+struct devfs_res : vfs::resource_t
+{
+    uint8_t *storage;
+    uint64_t cap;
+
+    int64_t read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size);
+    int64_t write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size);
+    int ioctl(void *handle, uint64_t request, void *argp);
+    bool grow(void *handle, size_t new_size);
+    void unref(void *handle);
+    void link(void *handle);
+    void unlink(void *handle);
+    void *mmap(uint64_t page, int flags);
+};
+
 extern bool initialised;
-extern vfs::fs_node_t *devfs_root;
+extern devfs_fs *devfs;
 
-extern uint64_t count;
-
-vfs::fs_node_t *add(vfs::fs_t *fs, const char *name);
+bool add(vfs::resource_t *res, string name);
 
 void init();
 }

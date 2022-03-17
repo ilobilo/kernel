@@ -96,10 +96,10 @@ enum cmd
     CMD_IDE = (1 << 7)
 };
 
-#define E1000_NUM_RX_DESC 32
-#define E1000_NUM_TX_DESC 8
+static constexpr uint8_t E1000_NUM_RX_DESC = 32;
+static constexpr uint8_t E1000_NUM_TX_DESC = 8;
 
-#define E1000_RX_BUFF_SIZE 8192
+static constexpr uint32_t E1000_RX_BUFF_SIZE = 8192;
 
 struct [[gnu::packed]] RXDesc
 {

@@ -9,8 +9,8 @@ using namespace kernel::drivers::net;
 
 namespace kernel::system::net::ipv4 {
 
-#define IP_TTL 64
-#define IP_TRIES 3
+static constexpr uint8_t IP_TTL = 64;
+static constexpr uint64_t IP_TRIES = 3;
 
 enum version
 {

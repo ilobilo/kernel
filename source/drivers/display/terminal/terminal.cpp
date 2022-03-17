@@ -9,7 +9,7 @@
 
 namespace kernel::drivers::display::terminal {
 
-new_lock(term_lock)
+new_lock(term_lock);
 
 bool initialised = false;
 uint16_t columns;

@@ -212,7 +212,7 @@ void init()
     hpethdr = reinterpret_cast<HPETHeader*>(findtable("HPET", 0));
 
     outb(fadthdr->SMI_CommandPort, fadthdr->AcpiEnable);
-    while (!(inw(fadthdr->PM1aControlBlock) & 1));
+    while (!(inw(fadthdr->PM1aControlBlock) & 1)) asm volatile ("nop");
 
     if (madt) madt_init();
     dsdt_init();

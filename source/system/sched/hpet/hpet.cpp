@@ -52,8 +52,8 @@ void init()
     clk = hpet->general_capabilities >> 32;
 
     mmoutq(&hpet->general_configuration, 0);
-	mmoutq(&hpet->main_counter_value, 0);
-	mmoutq(&hpet->general_configuration, 1);
+    mmoutq(&hpet->main_counter_value, 0);
+    mmoutq(&hpet->general_configuration, 1);
 
     serial::newline();
     initialised = true;

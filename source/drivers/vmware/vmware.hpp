@@ -10,18 +10,17 @@ using namespace kernel::drivers::ps2;
 
 namespace kernel::drivers::vmware {
 
-#define VMWARE_MAGIC  0x564D5868
-#define VMWARE_PORT   0x5658
-#define VMWARE_PORTHB 0x5659
+static constexpr uint32_t VMWARE_MAGIC = 0x564D5868;
+static constexpr uint16_t VMWARE_PORT = 0x5658;
 
-#define CMD_GETVERSION         10
-#define CMD_ABSPOINTER_DATA    39
-#define CMD_ABSPOINTER_STATUS  40
-#define CMD_ABSPOINTER_COMMAND 41
+static constexpr uint16_t CMD_GETVERSION = 10;
+static constexpr uint16_t CMD_ABSPOINTER_DATA = 39;
+static constexpr uint16_t CMD_ABSPOINTER_STATUS = 40;
+static constexpr uint16_t CMD_ABSPOINTER_COMMAND = 41;
 
-#define ABSPOINTER_ENABLE   0x45414552
-#define ABSPOINTER_RELATIVE 0xF5
-#define ABSPOINTER_ABSOLUTE 0x53424152
+static constexpr uint32_t ABSPOINTER_ENABLE = 0x45414552;
+static constexpr uint32_t ABSPOINTER_RELATIVE = 0xF5;
+static constexpr uint32_t ABSPOINTER_ABSOLUTE = 0x53424152;
 
 struct CMD
 {
