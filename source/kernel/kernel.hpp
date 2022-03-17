@@ -4,7 +4,7 @@
 
 #include <stivale2.h>
 
-#define STACK_SIZE 0x2000
+static constexpr uint64_t STACK_SIZE = 0x2000;
 
 extern uint8_t kernel_stack[];
 

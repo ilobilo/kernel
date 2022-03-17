@@ -12,7 +12,7 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
-constexpr uint64_t max_fds = 256;
+static constexpr uint64_t max_fds = 256;
 
 enum state_t
 {
@@ -89,6 +89,12 @@ void proc_exit();
 static inline int getpid()
 {
     return this_proc()->pid;
+}
+
+static inline int getppid()
+{
+    if (this_proc()->parent == nullptr) return -1;
+    return this_proc()->parent->pid;
 }
 
 static inline int gettid()

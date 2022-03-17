@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define RAND_MAX 32768
+static constexpr uint64_t RAND_MAX = 32768;
 
 #define DIV_ROUNDUP(A, B) \
 ({ \

@@ -1,6 +1,8 @@
 #pragma once
 
-#define ATEXIT_MAX_FUNCS 128
+#include <stdint.h>
+
+static constexpr uint64_t ATEXIT_MAX_FUNCS = 128;
 
 extern "C" {
 

@@ -21,39 +21,126 @@ using namespace kernel::system::mm;
 namespace kernel::system::cpu::syscall {
 
 bool initialised = false;
+extern syscall_t syscalls[];
 
 static void syscall_read(registers_t *regs)
 {
-    char *str = (char*)"Read currently not working!\n";
-    RAX = reinterpret_cast<uint64_t>(str);
+    vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
+    if (fd == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+    RAX = fd->handle->read(reinterpret_cast<uint8_t*>(RSI_ARG1), RDX_ARG2);
+    fd->unref();
 }
 
 static void syscall_write(registers_t *regs)
 {
-    switch (RDI_ARG0)
+    vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
+    if (fd == nullptr)
     {
-        case 0:
-        {
-            printf("%.*s", static_cast<int>(RDX_ARG2), reinterpret_cast<char*>(RSI_ARG1));
-            RAX = RDX_ARG2 * sizeof(char);
-            break;
-        }
-        case 1:
-            break;
-        case 2:
-        {
-            error("%.*s", static_cast<int>(RDX_ARG2), reinterpret_cast<char*>(RSI_ARG1));
-            RAX = RDX_ARG2 * sizeof(char);
-            break;
-        }
-        default:
-            break;
+        RAX = -1;
+        return;
     }
+    RAX = fd->handle->write(reinterpret_cast<uint8_t*>(RSI_ARG1), RDX_ARG2);
+    fd->unref();
+}
+
+static void syscall_open(registers_t *regs)
+{
+    uint64_t path = RDI_ARG0;
+    uint64_t flags = RSI_ARG1;
+    uint64_t fd = RDX_ARG2;
+
+    RDI_ARG0 = vfs::at_fdcwd;
+    RSI_ARG1 = path;
+    RDX_ARG2 = flags;
+    R10_ARG3 = fd;
+
+    syscalls[SYSCALL_OPENAT](regs);
+}
+
+static void syscall_close(registers_t *regs)
+{
+    if (!vfs::fdnum_close(nullptr, RDI_ARG0))
+    {
+        RAX = -1;
+        return;
+    }
+    RAX = 0;
+}
+
+static void syscall_ioctl(registers_t *regs)
+{
+    vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
+    if (fd == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+    int ret = fd->handle->ioctl(RSI_ARG1, reinterpret_cast<void*>(RDX_ARG2));
+    RAX = ret;
+    fd->unref();
 }
 
 static void syscall_getpid(registers_t *regs)
 {
     RAX = scheduler::getpid();
+}
+
+static void syscall_openat(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RSI_ARG1));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
+    if (parent == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(parent, path, !(RDX_ARG2 & vfs::o_nofollow));
+    if (node == nullptr && (RDX_ARG2 & vfs::file_creation_flags_mask) & vfs::o_creat)
+    {
+        node = vfs::create(parent, path, vfs::ifreg | 0644);
+        if (node == nullptr)
+        {
+            RAX = -1;
+            return;
+        }
+    }
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    if (vfs::islnk(node->res->stat.mode))
+    {
+        RAX = -1;
+        return;
+    }
+
+    node = vfs::node2reduced(node, true);
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    if (!vfs::isdir(node->res->stat.mode) && RDX_ARG2 & vfs::o_directory)
+    {
+        RAX = -1;
+        return;
+    }
+
+    RAX = vfs::fdnum_from_node(node, RDX_ARG2, 0, false);
 }
 
 static void syscall_exit(registers_t *regs)
@@ -95,27 +182,25 @@ static void syscall_uname(registers_t *regs)
 
 static void syscall_chdir(registers_t *regs)
 {
-    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    // if (node == nullptr || (node->flags & 0x07) != vfs::FS_DIRECTORY)
-    // {
-    //     RAX = -1;
-    //     return;
-    // }
-    // scheduler::this_proc()->current_dir = node;
-    RAX = 0;
-}
+    string path(reinterpret_cast<char*>(RDI_ARG0));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
 
-static void syscall_rename(registers_t *regs)
-{
-    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    // if (node == nullptr)
-    // {
-    //     RAX = -1;
-    //     return;
-    // }
-    // size_t count = 0;
-    // char **name = strsplit_count(reinterpret_cast<const char*>(RSI_ARG1), "/", count);
-    // strcpy(node->name, name[count]);
+    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path, true);
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+    if (!vfs::isdir(node->res->stat.mode))
+    {
+        RAX = -1;
+        return;
+    }
+    scheduler::this_proc()->current_dir = node;
     RAX = 0;
 }
 
@@ -141,26 +226,93 @@ static void syscall_rmdir(registers_t *regs)
 
 static void syscall_chmod(registers_t *regs)
 {
-    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    // if (node == nullptr)
-    // {
-    //     RAX = -1;
-    //     return;
-    // }
-    // node->mode = RSI_ARG1;
+    string path(reinterpret_cast<char*>(RDI_ARG0));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path);
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    node->res->stat.mode = RSI_ARG1;
     RAX = 0;
+}
+
+static void syscall_fchmod(registers_t *regs)
+{
+    vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
+    if (fd == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    fd->handle->res->stat.mode = RSI_ARG1;
+    RAX = 0;
+    fd->unref();
 }
 
 static void syscall_chown(registers_t *regs)
 {
-    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    // if (node == nullptr)
-    // {
-    //     RAX = -1;
-    //     return;
-    // }
-    // node->uid = RSI_ARG1;
-    // node->gid = RDX_ARG2;
+    string path(reinterpret_cast<char*>(RDI_ARG0));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path, true);
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    node->res->stat.uid = RSI_ARG1;
+    node->res->stat.gid = RDX_ARG2;
+    RAX = 0;
+}
+
+static void syscall_fchown(registers_t *regs)
+{
+    vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
+    if (fd == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    fd->handle->res->stat.uid = RSI_ARG1;
+    fd->handle->res->stat.gid = RDX_ARG2;
+
+    RAX = 0;
+    fd->unref();
+}
+
+static void syscall_lchown(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RDI_ARG0));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path);
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    node->res->stat.uid = RSI_ARG1;
+    node->res->stat.gid = RDX_ARG2;
     RAX = 0;
 }
 
@@ -189,6 +341,11 @@ static void syscall_sysinfo(registers_t *regs)
     sf->totalram = getmemsize();
     sf->freeram = pmm::freemem();
     RAX = 0;
+}
+
+static void syscall_getppid(registers_t *regs)
+{
+    RAX = scheduler::getppid();
 }
 
 static void syscall_reboot(registers_t *regs)
@@ -232,25 +389,119 @@ static void syscall_reboot(registers_t *regs)
 static void syscall_time(registers_t *regs)
 {
     long *tloc = reinterpret_cast<long*>(RDI_ARG0);
+    if (tloc == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
     *tloc = rtc::epoch();
     RAX = *tloc;
+}
+
+static void syscall_mkdirat(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RSI_ARG1));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
+    if (parent == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    auto [tgt_parent, target, basename] = vfs::path2node(parent, path);
+    if (tgt_parent == nullptr || target != nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    if (vfs::create(tgt_parent, basename, RDX_ARG2 | vfs::ifdir))
+    {
+        RAX = -1;
+        return;
+    }
+    RAX = 0;
+}
+
+static void syscall_unlinkat(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RSI_ARG1));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
+    if (parent == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+    vfs::unlink(parent, path, RDX_ARG2 & vfs::at_removedir);
+    RAX = 0;
+}
+
+static void syscall_readlinkat(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RSI_ARG1));
+    if (path.empty())
+    {
+        RAX = -1;
+        return;
+    }
+
+    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
+    if (parent == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+    vfs::fs_node_t *node = vfs::get_node(parent, path);
+    if (node == nullptr)
+    {
+        RAX = -1;
+        return;
+    }
+
+    uint64_t copy = node->target.length() + 1;
+    if (copy > R10_ARG3) copy = R10_ARG3;
+    memcpy(reinterpret_cast<uint8_t*>(RDX_ARG2), node->target.c_str(), copy);
+
+    RAX = copy;
 }
 
 syscall_t syscalls[] = {
     [SYSCALL_READ] = syscall_read,
     [SYSCALL_WRITE] = syscall_write,
+    [SYSCALL_OPEN] = syscall_open,
+    [SYSCALL_CLOSE] = syscall_close,
+    [SYSCALL_IOCTL] = syscall_ioctl,
     [SYSCALL_GETPID] = syscall_getpid,
+    [SYSCALL_OPENAT] = syscall_openat,
     [SYSCALL_EXIT] = syscall_exit,
     [SYSCALL_UNAME] = syscall_uname,
     [SYSCALL_CHDIR] = syscall_chdir,
-    [SYSCALL_RENAME] = syscall_rename,
     [SYSCALL_MKDIR] = syscall_mkdir,
     [SYSCALL_RMDIR] = syscall_rmdir,
     [SYSCALL_CHMOD] = syscall_chmod,
+    [SYSCALL_FCHMOD] = syscall_fchmod,
     [SYSCALL_CHOWN] = syscall_chown,
+    [SYSCALL_FCHOWN] = syscall_fchown,
+    [SYSCALL_LCHOWN] = syscall_lchown,
     [SYSCALL_SYSINFO] = syscall_sysinfo,
+    [SYSCALL_GETPPID] = syscall_getppid,
     [SYSCALL_REBOOT] = syscall_reboot,
-    [SYSCALL_TIME] = syscall_time
+    [SYSCALL_TIME] = syscall_time,
+    [SYSCALL_MKDIRAT] = syscall_mkdirat,
+    [SYSCALL_UNLINKAT] = syscall_unlinkat,
+    [SYSCALL_READLINKAT] = syscall_readlinkat,
 };
 
 static void handler(registers_t *regs)
@@ -292,7 +543,7 @@ void init()
         return;
     }
 
-    idt::register_interrupt_handler(SYSCALL, handler, true);
+    idt::register_interrupt_handler(idt::SYSCALL, handler, true);
 
     serial::newline();
     initialised = true;

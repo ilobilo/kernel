@@ -48,12 +48,14 @@ void init(uint64_t address)
         string name(header->name);
         string link(header->link);
 
+        vfs::fs_node_t *node = nullptr;
         if (name == "./") goto next;
 
         switch (header->typeflag[0])
         {
             case DIRECTORY:
-                if (!vfs::create(vfs::fs_root, name, mode | vfs::ifdir))
+                node = vfs::create(vfs::fs_root, name, mode | vfs::ifdir);
+                if (node == nullptr)
                 {
                     error("Initrd: Could not create directory %s", name.c_str());
                     break;
@@ -61,7 +63,7 @@ void init(uint64_t address)
                 break;
             case REGULAR_FILE:
             {
-                vfs::fs_node_t *node = vfs::create(vfs::fs_root, name, mode | vfs::ifreg);
+                node = vfs::create(vfs::fs_root, name, mode | vfs::ifreg);
                 if (node == nullptr)
                 {
                     error("Initrd: Could not create file %s", name.c_str());
@@ -76,13 +78,17 @@ void init(uint64_t address)
                 break;
             }
             case SYMLINK:
-                if (!vfs::symlink(vfs::fs_root, name, link))
+                node = vfs::symlink(vfs::fs_root, name, link);
+                if (node == nullptr)
                 {
                     error("Initrd: Could not create symlink %s", name.c_str());
                     break;
                 }
                 break;
         }
+
+        node->res->stat.uid = oct2dec(header->uid);
+        node->res->stat.gid = oct2dec(header->gid);
 
         next:
         pmm::free(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(header) - hhdm_tag->addr), (512 + ALIGN_UP(size, 512)) / 0x1000);

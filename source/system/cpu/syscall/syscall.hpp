@@ -52,20 +52,30 @@ namespace kernel::system::cpu::syscall {
     asm volatile ("int $0x69" : "=a"(ret) : "a"(NUM), "D"(ARG0), "S"(ARG1), "d"(ARG2), "r"(arg3), "r"(arg4), "r"(arg5) : "rcx", "r11", "memory"); \
 })
 
-#define SYSCALL_READ 0
-#define SYSCALL_WRITE 1
-#define SYSCALL_GETPID 39
-#define SYSCALL_EXIT 60
-#define SYSCALL_UNAME 63
-#define SYSCALL_CHDIR 80
-#define SYSCALL_RENAME 82
-#define SYSCALL_MKDIR 83
-#define SYSCALL_RMDIR 84
-#define SYSCALL_CHMOD 90
-#define SYSCALL_CHOWN 92
-#define SYSCALL_SYSINFO 99
-#define SYSCALL_REBOOT 169
-#define SYSCALL_TIME 201
+static constexpr uint64_t SYSCALL_READ = 0;
+static constexpr uint64_t SYSCALL_WRITE = 1;
+static constexpr uint64_t SYSCALL_OPEN = 2;
+static constexpr uint64_t SYSCALL_CLOSE = 3;
+static constexpr uint64_t SYSCALL_IOCTL = 16;
+static constexpr uint64_t SYSCALL_GETPID = 39;
+static constexpr uint64_t SYSCALL_OPENAT = 56;
+static constexpr uint64_t SYSCALL_EXIT = 60;
+static constexpr uint64_t SYSCALL_UNAME = 63;
+static constexpr uint64_t SYSCALL_CHDIR = 80;
+static constexpr uint64_t SYSCALL_MKDIR = 83;
+static constexpr uint64_t SYSCALL_RMDIR = 84;
+static constexpr uint64_t SYSCALL_CHMOD = 90;
+static constexpr uint64_t SYSCALL_FCHMOD = 91;
+static constexpr uint64_t SYSCALL_CHOWN = 92;
+static constexpr uint64_t SYSCALL_FCHOWN = 93;
+static constexpr uint64_t SYSCALL_LCHOWN = 94;
+static constexpr uint64_t SYSCALL_SYSINFO = 99;
+static constexpr uint64_t SYSCALL_GETPPID = 110;
+static constexpr uint64_t SYSCALL_REBOOT = 169;
+static constexpr uint64_t SYSCALL_TIME = 201;
+static constexpr uint64_t SYSCALL_MKDIRAT = 258;
+static constexpr uint64_t SYSCALL_UNLINKAT = 263;
+static constexpr uint64_t SYSCALL_READLINKAT = 267;
 
 using syscall_t = void (*)(registers_t *);
 

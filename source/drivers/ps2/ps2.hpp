@@ -7,16 +7,16 @@
 
 namespace kernel::drivers::ps2 {
 
-#define PS2_MAX_TIMEOUT 1000
-#define PS2_MAX_RESENDS 10
-#define PS2_KBD_SCANCODE 2
+static constexpr uint64_t PS2_MAX_TIMEOUT = 1000;
+static constexpr uint64_t PS2_MAX_RESENDS = 10;
+static constexpr uint8_t PS2_KBD_SCANCODE = 2;
 
-#define KBD_BUFFSIZE 1024
+static constexpr uint64_t KBD_BUFFSIZE = 1024;
 
-#define PS2_X_SIGN 0b00010000
-#define PS2_Y_SIGN 0b00100000
-#define PS2_X_OVER 0b01000000
-#define PS2_Y_OVER 0b10000000
+static constexpr uint8_t PS2_X_SIGN = 0b00010000;
+static constexpr uint8_t PS2_Y_SIGN = 0b00100000;
+static constexpr uint8_t PS2_X_OVER = 0b01000000;
+static constexpr uint8_t PS2_Y_OVER = 0b10000000;
 
 enum mousestate
 {

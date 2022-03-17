@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define INIT_PAGES 1024
+static constexpr uint64_t INIT_PAGES = 1024;
 
 struct BuddyBlock
 {

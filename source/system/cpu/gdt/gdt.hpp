@@ -7,16 +7,16 @@
 
 namespace kernel::system::cpu::gdt {
 
-#define GDT_NULL 0x00
-#define GDT_CODE_16 0x08
-#define GDT_DATA_16 0x10
-#define GDT_CODE_32 0x18
-#define GDT_DATA_32 0x20
-#define GDT_CODE_64 0x28
-#define GDT_DATA_64 0x30
-#define GDT_USER_CODE_64 0x38
-#define GDT_USER_DATA_64 0x40
-#define GDT_TSS 0x48
+static constexpr uint8_t GDT_NULL = 0x00;
+static constexpr uint8_t GDT_CODE_16 = 0x08;
+static constexpr uint8_t GDT_DATA_16 = 0x10;
+static constexpr uint8_t GDT_CODE_32 = 0x18;
+static constexpr uint8_t GDT_DATA_32 = 0x20;
+static constexpr uint8_t GDT_CODE_64 = 0x28;
+static constexpr uint8_t GDT_DATA_64 = 0x30;
+static constexpr uint8_t GDT_USER_CODE_64 = 0x38;
+static constexpr uint8_t GDT_USER_DATA_64 = 0x40;
+static constexpr uint8_t GDT_TSS = 0x48;
 
 struct [[gnu::packed]] GDTDescriptor
 {

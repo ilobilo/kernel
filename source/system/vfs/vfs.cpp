@@ -103,69 +103,6 @@ fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, string name)
     return node;
 }
 
-auto path2node(fs_node_t *parent, string path)
-{
-    struct ret { fs_node_t *parent; fs_node_t *node; string basename; };
-    ret null = { nullptr, nullptr, "" };
-
-    if (path.first() == '/' || parent == nullptr) parent = fs_root;
-    path = path2normal(path);
-
-    fs_node_t *curr_node = node2reduced(parent, false);
-    if (path == "/") return ret { curr_node, curr_node, "/" };
-    if (path.empty()) return ret { parent->parent, parent, parent->name };
-
-    bool last = false;
-
-    cwk_segment segment;
-    cwk_path_get_first_segment(path.c_str(), &segment);
-
-    cwk_segment lastsegment;
-    cwk_path_get_last_segment(path.c_str(), &lastsegment);
-    string lastseg(lastsegment.begin, lastsegment.size);
-
-    do {
-        string seg(segment.begin, segment.size);
-        if (seg == lastseg) last = true;
-
-        curr_node = node2reduced(curr_node, false);
-
-        for (fs_node_t *child : curr_node->children)
-        {
-            if (child->name == seg)
-            {
-                fs_node_t *node = node2reduced(child, false);
-                if (last == true) return ret { curr_node, node, seg };
-
-                curr_node = node;
-
-                if (islnk(curr_node->res->stat.mode))
-                {
-                    curr_node = path2node(curr_node->parent, curr_node->target).node;
-                    if (curr_node == nullptr) return null;
-                    continue;
-                }
-                if (!isdir(curr_node->res->stat.mode))
-                {
-                    errno_set(ENOTDIR);
-                    return null;
-                }
-                goto next;
-            }
-        }
-
-        errno_set(ENOENT);
-        if (last == true) return ret { curr_node, nullptr, seg };
-        return null;
-
-        next:;
-    }
-    while (cwk_path_get_next_segment(&segment));
-
-    errno_set(ENOENT);
-    return null;
-}
-
 fs_node_t *node2reduced(fs_node_t *node, bool symlinks)
 {
     if (node->redir) return node2reduced(node->redir, symlinks);
@@ -182,7 +119,24 @@ fs_node_t *node2reduced(fs_node_t *node, bool symlinks)
 
 fs_node_t *get_parent_dir(int dirfd, string path)
 {
-    return nullptr;
+    scheduler::process_t *proc = scheduler::this_proc();
+    fs_node_t *parent = nullptr;
+    if (cwk_path_is_absolute(path.c_str())) parent = fs_root;
+    else
+    {
+        if (dirfd == at_fdcwd) parent = proc->current_dir;
+        else
+        {
+            fd_t *dir_fd = fd_from_fdnum(proc, dirfd);
+            if (!isdir(dir_fd->handle->res->stat.mode))
+            {
+                errno_set(ENOTDIR);
+                return nullptr;
+            }
+            parent = dir_fd->handle->node;
+        }
+    }
+    return parent;
 }
 
 fs_node_t *get_node(fs_node_t *parent, string path, bool links)
@@ -301,6 +255,14 @@ bool mount(fs_node_t *parent, string source, string target, filesystem_t *filesy
     else log("VFS: Mounted filesystem %s on %s", filesystem->name.c_str(), target.c_str());
 
     return true;
+}
+
+int fdnum_from_node(fs_node_t *node, int flags, int oldfd, bool specific)
+{
+    fd_t *fd = fd_from_res(node->res, flags);
+    if (fd == nullptr) return -1;
+    fd->handle->node = node;
+    return fdnum_from_fd(scheduler::this_proc(), fd, oldfd, specific);
 }
 
 int fdnum_from_fd(scheduler::process_t *proc, fd_t *fd, int oldfd, bool specific)

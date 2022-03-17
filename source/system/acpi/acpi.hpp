@@ -8,12 +8,11 @@
 
 namespace kernel::system::acpi {
 
-#define ACPI_ENABLED 0x0001
-#define ACPI_SLEEP 0x2000
+static constexpr uint16_t ACPI_SLEEP = 0x2000;
 
-#define ACPI_GAS_MMIO 0
-#define ACPI_GAS_IO 1
-#define ACPI_GAS_PCI 2
+static constexpr uint8_t ACPI_GAS_MMIO = 0x00;
+static constexpr uint8_t ACPI_GAS_IO = 0x01;
+static constexpr uint8_t ACPI_GAS_PCI = 0x02;
 
 struct [[gnu::packed]] RSDP
 {

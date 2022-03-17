@@ -29,6 +29,7 @@ vfs::fs_node_t *current_path = nullptr;
 
 void parse(string cmd, string arg)
 {
+    if (cmd.empty()) return;
     switch (hash(cmd.c_str()))
     {
         case hash("help"):
@@ -105,15 +106,19 @@ void parse(string cmd, string arg)
                 printf("\033[31mNo such file or directory!%s\n", terminal::colour);
                 break;
             }
-            if (vfs::isreg(node->res->stat.mode))
+            if (vfs::isreg(node->res->stat.mode) || vfs::ischr(node->res->stat.mode))
             {
                 size_t size = node->res->stat.size;
+                if (size == 0) size = 50;
+
                 char *buffer = new char[size];
                 node->res->read(nullptr, reinterpret_cast<uint8_t*>(buffer), 0, size);
+                if (buffer[0] == 0) strcpy(buffer, "0");
+
                 printf("%s%c", buffer, buffer[size - 1] == '\n' ? 0 : '\n');
                 delete[] buffer;
             }
-            else printf("\033[31m%s is not a text file!%s\n", arg.c_str(), terminal::colour);
+            else printf("\033[31m%s is not a text file or character device!%s\n", arg.c_str(), terminal::colour);
             break;
         }
         case hash("cd"):

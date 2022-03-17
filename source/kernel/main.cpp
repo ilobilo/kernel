@@ -132,9 +132,9 @@ void main()
     terminal::check("Initialising NIC Manager...", reinterpret_cast<uint64_t>(nicmgr::init), -1, nicmgr::initialised);
 
     terminal::check("Initialising VFS...", reinterpret_cast<uint64_t>(vfs::init), -1, vfs::initialised);
-    stivale2_module *initrd_mod = find_module("initrd");
     terminal::check("Initialising TMPFS...", reinterpret_cast<uint64_t>(tmpfs::init), -1, tmpfs::initialised);
     terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
+    stivale2_module *initrd_mod = find_module("initrd");
     terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), initrd_mod->begin, ustar::initialised, (initrd_mod != nullptr && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);

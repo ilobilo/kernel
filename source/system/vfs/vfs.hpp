@@ -5,9 +5,26 @@
 #include <lib/vector.hpp>
 #include <lib/string.hpp>
 #include <lib/errno.hpp>
+#include <lib/cwalk.hpp>
 #include <stdint.h>
 
+namespace kernel::system::sched::scheduler
+{
+    struct process_t;
+}
+using namespace kernel::system::sched;
+
 namespace kernel::system::vfs {
+
+static constexpr int64_t at_fdcwd = -100;
+static constexpr uint64_t at_empty_path = 1;
+static constexpr uint64_t at_symlink_follow = 2;
+static constexpr uint64_t at_symlink_nofollow = 4;
+static constexpr uint64_t at_removedir = 8;
+static constexpr uint64_t at_eaccess = 512;
+static constexpr uint64_t seek_cur = 1;
+static constexpr uint64_t seek_end = 2;
+static constexpr uint64_t seek_set = 3;
 
 enum stats
 {
@@ -200,6 +217,25 @@ struct handle_t
     int flags;
     bool dirlist_valid;
     vector<dirent_t*> dirlist;
+
+    int64_t read(uint8_t *buffer, uint64_t size)
+    {
+        lockit(this->lock);
+        uint64_t ret = this->res->read(this, buffer, this->offset, size);
+        this->offset += ret;
+        return ret;
+    }
+    int64_t write(uint8_t *buffer, uint64_t size)
+    {
+        lockit(this->lock);
+        uint64_t ret = this->res->write(this, buffer, this->offset, size);
+        this->offset += ret;
+        return ret;
+    }
+    int ioctl(uint64_t request, void *argp)
+    {
+        return this->res->ioctl(this, request, argp);
+    }
 };
 
 struct fd_t
@@ -279,7 +315,6 @@ string path2normal(string path);
 string node2path(fs_node_t *node);
 
 fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, string name);
-auto path2node(fs_node_t *parent, string path);
 fs_node_t *node2reduced(fs_node_t *node, bool symlinks);
 
 fs_node_t *get_parent_dir(int dirfd, string path);
@@ -290,15 +325,79 @@ fs_node_t *symlink(fs_node_t *parent, string path, string target);
 bool unlink(fs_node_t *parent, string name, bool remdir);
 bool mount(fs_node_t *parent, string source, string target, filesystem_t *filesystem);
 
-struct process_t;
-int fdnum_from_fd(process_t *proc, fd_t *fd, int oldfd, bool specific);
-int fdnum_from_res(process_t *proc, resource_t *res, int flags, int oldfd, bool specific);
+int fdnum_from_node(fs_node_t *node, int flags, int oldfd, bool specific);
 
-fd_t *fd_from_fdnum(process_t *proc, int fdnum);
+int fdnum_from_fd(scheduler::process_t *proc, fd_t *fd, int oldfd, bool specific);
+int fdnum_from_res(scheduler::process_t *proc, resource_t *res, int flags, int oldfd, bool specific);
+
+fd_t *fd_from_fdnum(scheduler::process_t *proc, int fdnum);
 fd_t *fd_from_res(resource_t *res, int flags);
 
-int fdnum_dup(process_t *oldproc, int oldfdnum, process_t *newproc, int newfdnum, int flags, bool specific, bool cloexec);
-bool fdnum_close(process_t *proc, int fdnum);
+int fdnum_dup(scheduler::process_t *oldproc, int oldfdnum, scheduler::process_t *newproc, int newfdnum, int flags, bool specific, bool cloexec);
+bool fdnum_close(scheduler::process_t *proc, int fdnum);
 
 void init();
+
+static auto path2node(fs_node_t *parent, string path)
+{
+    struct ret { fs_node_t *parent; fs_node_t *node; string basename; };
+    ret null = { nullptr, nullptr, "" };
+
+    if (path.first() == '/' || parent == nullptr) parent = fs_root;
+    path = path2normal(path);
+
+    fs_node_t *curr_node = node2reduced(parent, false);
+    if (path == "/") return ret { curr_node, curr_node, "/" };
+    if (path.empty()) return ret { parent->parent, parent, parent->name };
+
+    bool last = false;
+
+    cwk_segment segment;
+    cwk_path_get_first_segment(path.c_str(), &segment);
+
+    cwk_segment lastsegment;
+    cwk_path_get_last_segment(path.c_str(), &lastsegment);
+    string lastseg(lastsegment.begin, lastsegment.size);
+
+    do {
+        string seg(segment.begin, segment.size);
+        if (seg == lastseg) last = true;
+
+        curr_node = node2reduced(curr_node, false);
+
+        for (fs_node_t *child : curr_node->children)
+        {
+            if (child->name == seg)
+            {
+                fs_node_t *node = node2reduced(child, false);
+                if (last == true) return ret { curr_node, node, seg };
+
+                curr_node = node;
+
+                if (islnk(curr_node->res->stat.mode))
+                {
+                    curr_node = path2node(curr_node->parent, curr_node->target).node;
+                    if (curr_node == nullptr) return null;
+                    continue;
+                }
+                if (!isdir(curr_node->res->stat.mode))
+                {
+                    errno_set(ENOTDIR);
+                    return null;
+                }
+                goto next;
+            }
+        }
+
+        errno_set(ENOENT);
+        if (last == true) return ret { curr_node, nullptr, seg };
+        return null;
+
+        next:;
+    }
+    while (cwk_path_get_next_segment(&segment));
+
+    errno_set(ENOENT);
+    return null;
+}
 }

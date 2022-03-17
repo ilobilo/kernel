@@ -27,7 +27,7 @@ int_handler_t interrupt_handlers[256];
 void idt_set_descriptor(uint8_t vector, void *isr, uint8_t typeattr, uint8_t ist)
 {
     idt[vector].Offset1 = reinterpret_cast<uint64_t>(isr);
-    idt[vector].Selector = GDT_CODE_64;
+    idt[vector].Selector = gdt::GDT_CODE_64;
     idt[vector].IST = ist;
     idt[vector].TypeAttr = typeattr;
     idt[vector].Offset2 = reinterpret_cast<uint64_t>(isr) >> 16;

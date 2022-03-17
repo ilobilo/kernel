@@ -4,11 +4,6 @@ Contributors are welcome
 
 ## [LICENSE](LICENSE)
 
-## Need to fix/update
-- [x] VFS
-- [x] Scheduler
-- [ ] Some of the syscalls
-
 ## TODO
 
 ### System

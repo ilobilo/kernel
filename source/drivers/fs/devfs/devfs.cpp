@@ -1,5 +1,8 @@
 // Copyright (C) 2021-2022  ilobilo
 
+#include <drivers/fs/devfs/streams/random.hpp>
+#include <drivers/fs/devfs/streams/null.hpp>
+#include <drivers/fs/devfs/streams/zero.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/vfs/vfs.hpp>
@@ -224,6 +227,10 @@ void init()
 
     vfs::create(vfs::fs_root, "/dev", 0644 | vfs::ifdir);
     vfs::mount(vfs::fs_root, "", "/dev", devfs);
+
+    streams::random::init();
+    streams::null::init();
+    streams::zero::init();
 
     serial::newline();
     initialised = true;
