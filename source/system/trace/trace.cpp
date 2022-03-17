@@ -97,7 +97,7 @@ void init()
         entries--;
     }
 
-    symbol_table = static_cast<symtable_t*>(calloc(entries, sizeof(symtable_t)));
+    symbol_table = new symtable_t[entries];
 
     for (size_t i = 0, entriesbck = entries; i < entriesbck; i++)
     {

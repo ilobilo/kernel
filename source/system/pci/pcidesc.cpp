@@ -2,8 +2,6 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <lib/string.hpp>
-#include <lib/memory.hpp>
-#include <lib/alloc.hpp>
 
 namespace kernel::system::pci {
 
@@ -31,7 +29,7 @@ const char *device_classes[20]
     "Non Essential Instrumentation"
 };
 
-const char *getvendorname(uint16_t vendorid)
+string getvendorname(uint16_t vendorid)
 {
     switch (vendorid)
     {
@@ -46,12 +44,12 @@ const char *getvendorname(uint16_t vendorid)
         case 0x10EC:
             return "Realtek";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", vendorid);
+    string ret(4);
+    sprintf(ret.data(), "%.4X", vendorid);
     return ret;
 }
 
-const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
+string getdevicename(uint16_t vendorid, uint16_t deviceid)
 {
     switch (vendorid)
     {
@@ -115,7 +113,7 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82801I (ICH9 Family) SMBus Controller";
             }
             break;
-        case 0x10EC:    
+        case 0x10EC:
             switch (deviceid)
             {
                 case 0x8139:
@@ -123,12 +121,12 @@ const char *getdevicename(uint16_t vendorid, uint16_t deviceid)
             }
             break;
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", deviceid);
+    string ret(4);
+    sprintf(ret.data(), "%.4X", deviceid);
     return ret;
 }
 
-const char *unclasssubclassname(uint8_t subclasscode)
+string unclasssubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -137,12 +135,12 @@ const char *unclasssubclassname(uint8_t subclasscode)
         case 0x01:
             return "VGA-Compatible Unclassified Device";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *mscsubclassname(uint8_t subclasscode)
+string mscsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -167,12 +165,12 @@ const char *mscsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *netsubclassname(uint8_t subclasscode)
+string netsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -197,12 +195,12 @@ const char *netsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *dispsubclassname(uint8_t subclasscode)
+string dispsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -215,12 +213,12 @@ const char *dispsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *multimediasubclassname(uint8_t subclasscode)
+string multimediasubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -235,12 +233,12 @@ const char *multimediasubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *memsubclassname(uint8_t subclasscode)
+string memsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -251,12 +249,12 @@ const char *memsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *bridgesubclassname(uint8_t subclasscode){
+string bridgesubclassname(uint8_t subclasscode){
     switch (subclasscode){
         case 0x00:
             return "Host Bridge";
@@ -283,12 +281,12 @@ const char *bridgesubclassname(uint8_t subclasscode){
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *simplecomsubclassname(uint8_t subclasscode)
+string simplecomsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -307,12 +305,12 @@ const char *simplecomsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *basesyspersubclassname(uint8_t subclasscode)
+string basesyspersubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -333,12 +331,12 @@ const char *basesyspersubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *inputdevsubclassname(uint8_t subclasscode)
+string inputdevsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -355,12 +353,12 @@ const char *inputdevsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *dockstatsubclassname(uint8_t subclasscode)
+string dockstatsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -369,12 +367,12 @@ const char *dockstatsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *procsubclassname(uint8_t subclasscode)
+string procsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -397,12 +395,12 @@ const char *procsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *sbcsubclassname(uint8_t subclasscode){
+string sbcsubclassname(uint8_t subclasscode){
     switch (subclasscode){
         case 0x00:
             return "FireWire (IEEE 1394) Controller";
@@ -427,12 +425,12 @@ const char *sbcsubclassname(uint8_t subclasscode){
         case 0x80:
             return "SerialBusController - Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *wirelsubclassname(uint8_t subclasscode)
+string wirelsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -453,24 +451,24 @@ const char *wirelsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *intelsubclassname(uint8_t subclasscode)
+string intelsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
         case 0x00:
             return "I20";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *satcomsubclassname(uint8_t subclasscode)
+string satcomsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -483,12 +481,12 @@ const char *satcomsubclassname(uint8_t subclasscode)
         case 0x03:
             return "Satellite Data Controller";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *encryptsubclassname(uint8_t subclasscode)
+string encryptsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -499,12 +497,12 @@ const char *encryptsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *signprocsubclassname(uint8_t subclasscode)
+string signprocsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -519,12 +517,12 @@ const char *signprocsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *getsubclassname(uint8_t classcode, uint8_t subclasscode)
+string getsubclassname(uint8_t classcode, uint8_t subclasscode)
 {
     switch (classcode)
     {
@@ -565,12 +563,12 @@ const char *getsubclassname(uint8_t classcode, uint8_t subclasscode)
         case 0x11:
             return signprocsubclassname(subclasscode);
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", subclasscode);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
 
-const char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
+string getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
 {
     switch (classcode)
     {
@@ -848,8 +846,8 @@ const char *getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progi
             }
             break;
     }
-    char *ret = static_cast<char*>(calloc(6, sizeof(char)));
-    sprintf(ret, "%.4X", progif);
+    string ret(4);
+    sprintf(ret.data(), "%.2X", progif);
     return ret;
 }
 }

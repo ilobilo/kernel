@@ -5,6 +5,7 @@
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
 #include <lib/vector.hpp>
+#include <lib/string.hpp>
 #include <lib/mmio.hpp>
 #include <lib/io.hpp>
 #include <stdint.h>
@@ -158,11 +159,11 @@ extern bool legacy;
 struct pcidevice_t
 {
     pciheader_t *device;
-    const char *vendorstr;
-    const char *devicestr;
-    const char *progifstr;
-    const char *subclassStr;
-    const char *ClassStr;
+    string vendorstr;
+    string devicestr;
+    string progifstr;
+    string subclassStr;
+    string ClassStr;
     uint16_t seg;
     uint8_t bus;
     uint8_t dev;

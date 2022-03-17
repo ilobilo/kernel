@@ -57,7 +57,7 @@ class vector
         }
         else
         {
-            this->storage = static_cast<type*>(realloc(this->storage, (this->cap + 2) * sizeof(type)));
+            this->storage = realloc<type*>(this->storage, (this->cap + 2) * sizeof(type));
             this->cap = allocsize(this->storage) / sizeof(type);
             if (this->storage)
             {
@@ -180,7 +180,7 @@ class vector
     void resize(size_t size)
     {
         if (!this->on) this->init();
-        this->storage = static_cast<type*>(realloc(this->storage, size * sizeof(type)));
+        this->storage = realloc<type*>(this->storage, size * sizeof(type));
         this->cap = allocsize(this->storage) / sizeof(type);
         if (this->num > size) this->num = size + 1;
     }
@@ -188,7 +188,7 @@ class vector
     void expand(size_t size)
     {
         if (!this->on) this->init();
-        this->storage = static_cast<type*>(realloc(this->storage, size * sizeof(type)));
+        this->storage = realloc<type*>(this->storage, size * sizeof(type));
         this->cap = allocsize(this->storage) / sizeof(type);
     }
 
@@ -206,7 +206,7 @@ class vector
         }
         else
         {
-            this->storage = static_cast<type*>(realloc(this->storage, (this->cap + 1) * sizeof(type)));
+            this->storage = realloc<type*>(this->storage, (this->cap + 1) * sizeof(type));
             this->cap = allocsize(this->storage) / sizeof(type);
             if (this->storage)
             {

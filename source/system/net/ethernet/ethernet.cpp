@@ -13,7 +13,7 @@ bool debug = NET_DEBUG;
 
 void send(nicmgr::NIC *nic, uint8_t *dmac, void *data, size_t length, uint16_t protocol)
 {
-    ethHdr *frame = static_cast<ethHdr*>(malloc(sizeof(ethHdr) + length));
+    ethHdr *frame = malloc<ethHdr*>(sizeof(ethHdr) + length);
 
     memcpy(frame->smac, nic->MAC, 6);
     memcpy(frame->dmac, dmac, 6);

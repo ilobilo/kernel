@@ -21,7 +21,7 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 
 new_lock(cpu_lock);
-cpu_t *cpus = nullptr;
+cpu_t *cpus = new cpu_t[smp_tag->cpu_count]();;
 static size_t i = 0;
 
 extern "C" void InitSSE();
@@ -104,19 +104,17 @@ void init()
         return;
     }
 
-    cpus = static_cast<cpu_t*>(calloc(smp_tag->cpu_count, sizeof(cpu_t)));
-
     for (; i < smp_tag->cpu_count; i++)
     {
         smp_tag->smp_info[i].extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);
         cpus[i].id = i;
 
-        uint64_t sched_stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
+        uint64_t sched_stack = malloc<uint64_t>(STACK_SIZE);
         gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + hhdm_tag->addr;
 
         if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
         {
-            uint64_t stack = reinterpret_cast<uint64_t>(malloc(STACK_SIZE));
+            uint64_t stack = malloc<uint64_t>(STACK_SIZE);
             gdt::tss[i].RSP[0] = stack + STACK_SIZE + hhdm_tag->addr;
 
             smp_tag->smp_info[i].target_stack = stack + STACK_SIZE + hhdm_tag->addr;

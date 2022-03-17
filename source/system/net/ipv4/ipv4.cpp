@@ -14,7 +14,7 @@ bool debug = NET_DEBUG;
 
 void send(nicmgr::NIC *nic, uint8_t *dip, void *data, size_t length, ipv4Prot protocol)
 {
-    ipv4Hdr *packet = static_cast<ipv4Hdr*>(malloc(length + sizeof(ipv4Hdr)));
+    ipv4Hdr *packet = malloc<ipv4Hdr*>(length + sizeof(ipv4Hdr));
 
     packet->version = VER_IPv4;
     packet->ihl = sizeof(ipv4Hdr) / 4;

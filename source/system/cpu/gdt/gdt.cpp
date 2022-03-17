@@ -27,7 +27,7 @@ namespace kernel::system::cpu::gdt {
 new_lock(gdt_lock);
 bool initialised = false;
 GDTDescriptor gdtDescriptor;
-TSS *tss;
+TSS *tss = new TSS[smp_tag->cpu_count]();
 
 void reloadgdt()
 {
@@ -69,8 +69,6 @@ void init()
         warn("GDT has already been initialised!\n");
         return;
     }
-
-    tss = static_cast<TSS*>(calloc(smp_tag->cpu_count, sizeof(TSS)));
 
     gdtDescriptor.Size = sizeof(GDT) - 1;
     gdtDescriptor.Offset = reinterpret_cast<uint64_t>(&DefaultGDT);

@@ -250,8 +250,8 @@ static void enumfunc(uint64_t devaddr, uint8_t func, uint8_t dev, uint8_t bus, u
     log("%.4X:%.4X %s %s",
         devices.back()->device->vendorid,
         devices.back()->device->deviceid,
-        devices.back()->vendorstr,
-        devices.back()->devicestr);
+        devices.back()->vendorstr.c_str(),
+        devices.back()->devicestr.c_str());
 
     msi_check(devices.back());
 }
@@ -329,8 +329,8 @@ static void enumbus(uint8_t bus)
             log("%.4X:%.4X %s %s",
                 devices.back()->device->vendorid,
                 devices.back()->device->deviceid,
-                devices.back()->vendorstr,
-                devices.back()->devicestr);
+                devices.back()->vendorstr.c_str(),
+                devices.back()->devicestr.c_str());
 
             if (tpcidevice->device->Class == 0x06 && tpcidevice->device->subclass == 0x04)
             {

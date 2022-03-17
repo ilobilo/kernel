@@ -140,9 +140,12 @@ char *strrm(char *str, const char *substr)
 char *strdup(const char *src)
 {
     size_t len = strlen(src) + 1;
-    char *s = static_cast<char*>(malloc(len));
+    char *s = new char[len];
     if (s == nullptr) return nullptr;
-    return static_cast<char*>(memcpy(s, const_cast<void*>(reinterpret_cast<const void*>(src)), len));
+
+    memcpy(s, const_cast<char*>(src), len);
+
+    return s;
 }
 
 long strtol(const char *nPtr, char **endPtr, int base)
@@ -317,7 +320,7 @@ static char** _strsplit(const char* s, const char* delim, size_t* nb)
         ++nbWords;
     }
     ptrsSize = (nbWords + 1) * sizeof(char*);
-    ptrs = static_cast<const char**>(malloc(ptrsSize + sLen + 1));
+    ptrs = malloc<const char **>(ptrsSize + sLen + 1);
     data = ptrs;
     if (data)
     {

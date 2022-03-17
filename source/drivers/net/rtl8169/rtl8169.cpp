@@ -132,19 +132,19 @@ void RTL8169::receive()
 
 void RTL8169::rxinit()
 {
-    Desc *descs = static_cast<Desc*>(malloc(sizeof(Desc) * RTL8169_NUM_RX_DESC));
+    Desc *descs = new Desc[RTL8169_NUM_RX_DESC];
     for (size_t i = 0; i < RTL8169_NUM_RX_DESC; i++)
     {
         this->rxdescs[i] = reinterpret_cast<Desc*>(reinterpret_cast<uint8_t*>(descs) + i * 16);
         if (i == RTL8169_NUM_RX_DESC - 1) this->rxdescs[i]->command = RTL8169_OWN | RTL8169_EOR | (RTL8169_RX_BUFF_SIZE & 0x3FFF);
         else this->rxdescs[i]->command = RTL8169_OWN | (RTL8169_RX_BUFF_SIZE & 0x3FFF);
-        this->rxdescs[i]->buffer = reinterpret_cast<uint64_t>(static_cast<uint8_t*>(malloc(RTL8169_RX_BUFF_SIZE + 16)));;
+        this->rxdescs[i]->buffer = malloc<uint64_t>(RTL8169_RX_BUFF_SIZE + 16);
     }
 }
 
 void RTL8169::txinit()
 {
-    Desc *descs = static_cast<Desc*>(malloc(sizeof(Desc) * RTL8169_NUM_TX_DESC));
+    Desc *descs = new Desc[RTL8169_NUM_TX_DESC];
     for (size_t i = 0; i < RTL8169_NUM_TX_DESC; i++)
     {
         this->txdescs[i] = reinterpret_cast<Desc*>(reinterpret_cast<uint8_t*>(descs) + i * 16);

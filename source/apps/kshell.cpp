@@ -189,8 +189,8 @@ void parse(string cmd, string arg)
                 printf("%.4X:%.4X %s %s\n",
                     pci::devices[i]->device->vendorid,
                     pci::devices[i]->device->deviceid,
-                    pci::devices[i]->vendorstr,
-                    pci::devices[i]->devicestr);
+                    pci::devices[i]->vendorstr.c_str(),
+                    pci::devices[i]->devicestr.c_str());
             }
             break;
         case hash("crash"):

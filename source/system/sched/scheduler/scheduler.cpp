@@ -43,7 +43,7 @@ static thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent, p
     thread_t *thread = new thread_t;
 
     thread->state = INITIAL;
-    thread->stack_phys = static_cast<uint8_t*>(malloc(STACK_SIZE));
+    thread->stack_phys = malloc<uint8_t*>(STACK_SIZE);
 
     if (user && parent)
     {
@@ -58,7 +58,7 @@ static thread_t *thread_alloc(uint64_t addr, uint64_t args, process_t *parent, p
     }
     else thread->stack = thread->stack_phys + hhdm_tag->addr;
 
-    thread->fpu_storage = static_cast<uint8_t*>(malloc(this_cpu->fpu_storage_size)) + hhdm_tag->addr;
+    thread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_tag->addr;
 
     thread->regs.rflags = 0x202;
     thread->regs.cs = (user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
