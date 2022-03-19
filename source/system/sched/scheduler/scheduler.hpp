@@ -35,6 +35,7 @@ struct process_t;
 struct thread_t
 {
     int tid = 1;
+    errno err;
     state_t state;
     uint8_t *stack;
     uint8_t *stack_phys;

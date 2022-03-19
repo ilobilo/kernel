@@ -113,7 +113,7 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
     enableUMIP();
     enablePAT();
 
-    serial::init();
+    serial::early_init();
 
     term_tag = get_tag<stivale2_struct_tag_terminal>(stivale2_struct, STIVALE2_STRUCT_TAG_TERMINAL_ID);
     frm_tag = get_tag<stivale2_struct_tag_framebuffer>(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
