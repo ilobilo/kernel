@@ -33,6 +33,7 @@
 #include <system/pci/pci.hpp>
 #include <system/vfs/vfs.hpp>
 #include <kernel/kernel.hpp>
+#include <lai/helpers/sci.h>
 #include <apps/kshell.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
@@ -120,6 +121,7 @@ void main()
     terminal::check("Initialising PCI...", reinterpret_cast<uint64_t>(pci::init), -1, pci::initialised);
     terminal::check("Initialising APIC...", reinterpret_cast<uint64_t>(apic::init), -1, apic::initialised);
     terminal::check("Initialising SMP...", reinterpret_cast<uint64_t>(smp::init), -1, smp::initialised);
+    // lai_enable_acpi(apic::initialised ? 1 : 0);
 
     terminal::check("Initialising AHCI...", reinterpret_cast<uint64_t>(ahci::init), -1, ahci::initialised);
     terminal::check("Initialising ATA...", reinterpret_cast<uint64_t>(ata::init), -1, ata::initialised);
@@ -146,8 +148,9 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    scheduler::proc_create("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH);
-    scheduler::thread_create(reinterpret_cast<uint64_t>(time), 0, scheduler::initproc, scheduler::LOW);
+    scheduler::process_t *proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH, false);
+    proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW, false);
+    proc->table_add();
 
     scheduler::init();
 }

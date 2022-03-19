@@ -86,7 +86,7 @@ static void syscall_ioctl(registers_t *regs)
 
 static void syscall_getpid(registers_t *regs)
 {
-    RAX = scheduler::getpid();
+    RAX = getpid();
 }
 
 static void syscall_openat(registers_t *regs)
@@ -145,7 +145,7 @@ static void syscall_openat(registers_t *regs)
 
 static void syscall_exit(registers_t *regs)
 {
-    scheduler::proc_exit();
+    this_proc()->exit();
     RAX = 0;
 }
 
@@ -189,7 +189,7 @@ static void syscall_chdir(registers_t *regs)
         return;
     }
 
-    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path, true);
+    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path, true);
     if (node == nullptr)
     {
         RAX = -1;
@@ -200,7 +200,7 @@ static void syscall_chdir(registers_t *regs)
         RAX = -1;
         return;
     }
-    scheduler::this_proc()->current_dir = node;
+    this_proc()->current_dir = node;
     RAX = 0;
 }
 
@@ -233,7 +233,7 @@ static void syscall_chmod(registers_t *regs)
         return;
     }
 
-    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path);
+    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path);
     if (node == nullptr)
     {
         RAX = -1;
@@ -267,7 +267,7 @@ static void syscall_chown(registers_t *regs)
         return;
     }
 
-    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path, true);
+    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path, true);
     if (node == nullptr)
     {
         RAX = -1;
@@ -304,7 +304,7 @@ static void syscall_lchown(registers_t *regs)
         return;
     }
 
-    vfs::fs_node_t *node = vfs::get_node(scheduler::this_proc()->current_dir, path);
+    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path);
     if (node == nullptr)
     {
         RAX = -1;
@@ -345,7 +345,7 @@ static void syscall_sysinfo(registers_t *regs)
 
 static void syscall_getppid(registers_t *regs)
 {
-    RAX = scheduler::getppid();
+    RAX = getppid();
 }
 
 static void syscall_reboot(registers_t *regs)

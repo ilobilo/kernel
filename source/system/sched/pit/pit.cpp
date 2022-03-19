@@ -37,7 +37,7 @@ uint64_t get_tick()
 static void PIT_Handler(registers_t *regs)
 {
     tick++;
-    if (schedule) scheduler::switchTask(regs);
+    if (schedule) scheduler::schedule(regs);
 }
 
 void setfreq(uint64_t freq)

@@ -8,12 +8,6 @@
 
 namespace kernel::system::acpi {
 
-static constexpr uint16_t ACPI_SLEEP = 0x2000;
-
-static constexpr uint8_t ACPI_GAS_MMIO = 0x00;
-static constexpr uint8_t ACPI_GAS_IO = 0x01;
-static constexpr uint8_t ACPI_GAS_PCI = 0x02;
-
 struct [[gnu::packed]] RSDP
 {
     unsigned char signature[8];
@@ -200,17 +194,6 @@ extern vector<MADTLapic*> lapics;
 extern vector<MADTIOApic*> ioapics;
 extern vector<MADTIso*> isos;
 extern vector<MADTNmi*> nmis;
-
-extern uint32_t *SMI_CMD;
-extern uint8_t ACPI_ENABLE;
-extern uint8_t ACPI_DISABLE;
-extern uint32_t PM1a_CNT;
-extern uint32_t PM1b_CNT;
-extern uint16_t SLP_TYPa;
-extern uint16_t SLP_TYPb;
-extern uint16_t SLP_EN;
-extern uint16_t SCI_EN;
-extern uint8_t PM1_CNT_LEN;
 
 extern uintptr_t lapic_addr;
 

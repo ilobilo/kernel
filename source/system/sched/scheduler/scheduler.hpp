@@ -42,6 +42,12 @@ struct thread_t
     registers_t regs;
     process_t *parent;
     priority_t priority;
+
+    void block();
+    void unblock();
+    void exit();
+
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user);
 };
 
 struct process_t
@@ -58,6 +64,18 @@ struct process_t
     vector<process_t*> children;
     process_t *parent;
     uint64_t thread_stack_top = 0x70000000000;
+
+    bool in_table = false;
+
+    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user);
+    bool table_add();
+
+    void block();
+    void unblock();
+    void exit();
+
+    process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user);
+    process_t(string name);
 };
 
 extern bool debug;
@@ -68,23 +86,15 @@ extern vector<process_t*> proc_table;
 extern size_t proc_count;
 extern size_t thread_count;
 
-thread_t *thread_create(uint64_t addr, uint64_t args, process_t *parent = nullptr, priority_t priority = MID, bool user = false);
-process_t *proc_create(string name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
+void yield(uint64_t ms = 1);
+void schedule(registers_t *regs);
 
-thread_t *this_thread();
-process_t *this_proc();
+void kill();
+void init();
+}
 
-void thread_block();
-void thread_block(thread_t *thread);
-
-void proc_block();
-void proc_block(process_t *proc);
-
-void thread_unblock(thread_t *thread);
-void proc_unblock(process_t *proc);
-
-void thread_exit();
-void proc_exit();
+scheduler::thread_t *this_thread();
+scheduler::process_t *this_proc();
 
 static inline int getpid()
 {
@@ -100,11 +110,4 @@ static inline int getppid()
 static inline int gettid()
 {
     return this_thread()->tid;
-}
-
-void yield(uint64_t ms = 1);
-void switchTask(registers_t *regs);
-
-void kill();
-void init();
 }

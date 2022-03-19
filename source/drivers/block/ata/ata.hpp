@@ -91,6 +91,7 @@ class ATAPort : public drivemgr::Drive
     lock_t lock;
     uint16_t port;
     uint16_t bmport;
+    uint16_t ctrlport0;
     size_t drive;
 
     uint64_t *prdt;
@@ -114,7 +115,7 @@ class ATAPort : public drivemgr::Drive
     bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
     bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
 
-    ATAPort(uint16_t port, uint16_t bmport, size_t drive);
+    ATAPort(uint16_t port, uint16_t bmport, uint16_t ctrlport0, size_t drive);
 };
 
 struct ATAController
