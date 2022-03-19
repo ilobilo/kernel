@@ -85,7 +85,7 @@ string node2path(fs_node_t *node)
     if (node == fs_root) return "/";
     string ret;
 
-    while (node != nullptr && node != fs_root)
+    while (node != nullptr && node != fs_root && node != fs_root->mountpoint)
     {
         ret.insert("/" + node->name, 0);
         node = node->parent;
@@ -395,6 +395,19 @@ bool fdnum_close(scheduler::process_t *proc, int fdnum)
     proc->fds[fdnum] = nullptr;
 
     return true;
+}
+
+void dump_vfs(fs_node_t *current_node)
+{
+    if (current_node == nullptr) return;
+
+    current_node = node2reduced(current_node, false);
+    for (fs_node_t *node : current_node->children)
+    {
+        if (node->name == "." || node->name == "..") continue;
+        coutl << node2path(node);
+        if (node->res && isdir(node->res->stat.mode)) dump_vfs(node);
+    }
 }
 
 void init()

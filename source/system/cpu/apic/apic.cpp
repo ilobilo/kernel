@@ -244,9 +244,6 @@ void init()
     idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler, true);
     ioapic_redirect_irq(acpi::fadthdr->SCI_Interrupt, acpi::fadthdr->SCI_Interrupt + 32);
 
-    // COM1
-    ioapic_redirect_irq(4, 36);
-
     serial::newline();
     initialised = true;
 }

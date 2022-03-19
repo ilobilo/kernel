@@ -14,9 +14,9 @@ int log(const char *fmt, ...)
 
     va_list args;
     va_start(args, fmt);
-    int ret = vfctprintf(serial::printc, nullptr, "[INFO] ", args);
-    ret += vfctprintf(serial::printc, nullptr, fmt, args);
-    ret += vfctprintf(serial::printc, nullptr, "\n", args);
+    int ret = vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "[INFO] ", args);
+    ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
+    ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
     return ret;
 }
@@ -27,9 +27,9 @@ int warn(const char *fmt, ...)
 
     va_list args;
     va_start(args, fmt);
-    int ret = vfctprintf(serial::printc, nullptr, "[\033[33mWARN\033[0m] ", args);
-    ret += vfctprintf(serial::printc, nullptr, fmt, args);
-    ret += vfctprintf(serial::printc, nullptr, "\n", args);
+    int ret = vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "[\033[33mWARN\033[0m] ", args);
+    ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
+    ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
     return ret;
 }
@@ -40,9 +40,9 @@ int error(const char *fmt, ...)
 
     va_list args;
     va_start(args, fmt);
-    int ret = vfctprintf(serial::printc, nullptr, "[\033[31mERROR\033[0m] ", args);
-    ret += vfctprintf(serial::printc, nullptr, fmt, args);
-    ret += vfctprintf(serial::printc, nullptr, "\n", args);
+    int ret = vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "[\033[31mERROR\033[0m] ", args);
+    ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
+    ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
     return ret;
 }

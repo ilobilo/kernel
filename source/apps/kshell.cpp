@@ -227,10 +227,8 @@ void parse(string cmd, string arg)
             printf("\033[31mCould not reboot!\033[0m\n");
             break;
         default:
-        {
             printf("\033[31mCommand not found!\033[0m\n");
             break;
-        }
     }
 }
 

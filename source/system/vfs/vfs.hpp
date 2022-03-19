@@ -336,6 +336,8 @@ fd_t *fd_from_res(resource_t *res, int flags);
 int fdnum_dup(scheduler::process_t *oldproc, int oldfdnum, scheduler::process_t *newproc, int newfdnum, int flags, bool specific, bool cloexec);
 bool fdnum_close(scheduler::process_t *proc, int fdnum);
 
+void dump_vfs(fs_node_t *current_node = fs_root);
+
 void init();
 
 static auto path2node(fs_node_t *parent, string path)
