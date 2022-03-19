@@ -20,26 +20,31 @@ printer::printer(int (*func)(const char *, ...))
 }
 printer &printer::operator<<(string str)
 {
+    lockit(this->lock);
     if (this->func) this->func("%s", str.c_str());
     return *this;
 }
 printer &printer::operator<<(string *str)
 {
+    lockit(this->lock);
     if (this->func) this->func("%s", str->c_str());
     return *this;
 }
 printer &printer::operator<<(size_t i)
 {
+    lockit(this->lock);
     if (this->func) this->func("%zu", i);
     return *this;
 }
 printer &printer::operator<<(int i)
 {
+    lockit(this->lock);
     if (this->func) this->func("%zu", i);
     return *this;
 }
 printer &printer::operator<<(unsigned int i)
 {
+    lockit(this->lock);
     if (this->func) this->func("%zu", i);
     return *this;
 }

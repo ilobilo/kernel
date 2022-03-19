@@ -237,12 +237,10 @@ void parse(string cmd, string arg)
 void run()
 {
     log("Starting kernel shell\n");
+
+    current_path = this_proc()->current_dir;
     while (true)
     {
-        if (!current_path)
-        {
-            current_path = scheduler::this_proc()->current_dir;
-        }
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name.first() != '/') ? "/" : "", current_path->name.c_str(), terminal::colour);
         string command(ps2::getline());
 

@@ -119,7 +119,7 @@ fs_node_t *node2reduced(fs_node_t *node, bool symlinks)
 
 fs_node_t *get_parent_dir(int dirfd, string path)
 {
-    scheduler::process_t *proc = scheduler::this_proc();
+    scheduler::process_t *proc = this_proc();
     fs_node_t *parent = nullptr;
     if (cwk_path_is_absolute(path.c_str())) parent = fs_root;
     else
@@ -262,12 +262,12 @@ int fdnum_from_node(fs_node_t *node, int flags, int oldfd, bool specific)
     fd_t *fd = fd_from_res(node->res, flags);
     if (fd == nullptr) return -1;
     fd->handle->node = node;
-    return fdnum_from_fd(scheduler::this_proc(), fd, oldfd, specific);
+    return fdnum_from_fd(this_proc(), fd, oldfd, specific);
 }
 
 int fdnum_from_fd(scheduler::process_t *proc, fd_t *fd, int oldfd, bool specific)
 {
-    if (proc == nullptr) proc = scheduler::this_proc();
+    if (proc == nullptr) proc = this_proc();
     lockit(proc->fd_lock);
 
     if (specific)
@@ -295,7 +295,7 @@ int fdnum_from_res(scheduler::process_t *proc, resource_t *res, int flags, int o
 
 fd_t *fd_from_fdnum(scheduler::process_t *proc, int fdnum)
 {
-    if (proc == nullptr) proc = scheduler::this_proc();
+    if (proc == nullptr) proc = this_proc();
     lockit(proc->fd_lock);
 
     if (static_cast<uint64_t>(fdnum) >= scheduler::max_fds || fdnum < 0)
@@ -333,8 +333,8 @@ fd_t *fd_from_res(resource_t *res, int flags)
 
 int fdnum_dup(scheduler::process_t *oldproc, int oldfdnum, scheduler::process_t *newproc, int newfdnum, int flags, bool specific, bool cloexec)
 {
-    if (oldproc == nullptr) oldproc = scheduler::this_proc();
-    if (newproc == nullptr) newproc = scheduler::this_proc();
+    if (oldproc == nullptr) oldproc = this_proc();
+    if (newproc == nullptr) newproc = this_proc();
 
     if (specific && oldfdnum == newfdnum && oldproc == newproc)
     {
@@ -366,7 +366,7 @@ int fdnum_dup(scheduler::process_t *oldproc, int oldfdnum, scheduler::process_t 
 
 bool fdnum_close(scheduler::process_t *proc, int fdnum)
 {
-    if (proc == nullptr) proc = scheduler::this_proc();
+    if (proc == nullptr) proc = this_proc();
 
     if (static_cast<uint64_t>(fdnum) >= scheduler::max_fds)
     {

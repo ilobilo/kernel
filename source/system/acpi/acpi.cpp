@@ -1,13 +1,17 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <drivers/display/terminal/terminal.hpp>
+#include <system/sched/timer/timer.hpp>
+#include <system/sched/hpet/hpet.hpp>
+#include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
 #include <system/pci/pci.hpp>
 #include <kernel/kernel.hpp>
-#include <lib/memory.hpp>
-#include <lib/string.hpp>
+#include <acpispec/tables.h>
+#include <lai/helpers/pm.h>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
+#include <lai/host.h>
+#include <lai/core.h>
 #include <lib/io.hpp>
 
 [[gnu::always_inline]] inline bool is_canonical(uint64_t addr)
@@ -33,17 +37,6 @@ vector<MADTLapic*> lapics;
 vector<MADTIOApic*> ioapics;
 vector<MADTIso*> isos;
 vector<MADTNmi*> nmis;
-
-uint32_t *SMI_CMD;
-uint8_t ACPI_ENABLE;
-uint8_t ACPI_DISABLE;
-uint32_t PM1a_CNT;
-uint32_t PM1b_CNT;
-uint16_t SLP_TYPa;
-uint16_t SLP_TYPb;
-uint16_t SLP_EN;
-uint16_t SCI_EN;
-uint8_t PM1_CNT_LEN;
 
 uintptr_t lapic_addr = 0;
 
@@ -80,88 +73,21 @@ void madt_init()
     }
 }
 
-void dsdt_init()
-{
-    uint64_t dsdtaddr = ((is_canonical(fadthdr->X_Dsdt) && use_xstd) ? fadthdr->X_Dsdt : fadthdr->Dsdt);
-    uint8_t *S5Addr = reinterpret_cast<uint8_t*>(dsdtaddr) + 36;
-    uint64_t dsdtlength = reinterpret_cast<SDTHeader*>(dsdtaddr)->length;
-
-    dsdtaddr *= 2;
-    while (dsdtlength-- > 0)
-    {
-        if (!memcmp(S5Addr, "_S5_", 4)) break;
-        S5Addr++;
-    }
-
-    if (dsdtlength <= 0)
-    {
-        error("_S5 not present in ACPI");
-        error("ACPI shutdown may not be possible");
-        return;
-    }
-
-    if ((*(S5Addr - 1) == 0x08 || (*(S5Addr - 2) == 0x08 && *(S5Addr - 1) == '\\')) && *(S5Addr + 4) == 0x12)
-    {
-        S5Addr += 5;
-        S5Addr += ((*S5Addr & 0xC0) >> 6) + 2;
-
-        if (*S5Addr == 0x0A) S5Addr++;
-        SLP_TYPa = *(S5Addr) << 10;
-        S5Addr++;
-        if (*S5Addr == 0x0A) S5Addr++;
-        SLP_TYPb = *(S5Addr) << 10;
-        SMI_CMD = reinterpret_cast<uint32_t*>(fadthdr->SMI_CommandPort);
-
-        ACPI_ENABLE = fadthdr->AcpiEnable;
-        ACPI_DISABLE = fadthdr->AcpiDisable;
-
-        PM1a_CNT = fadthdr->PM1aControlBlock;
-        PM1b_CNT = fadthdr->PM1bControlBlock;
-
-        PM1_CNT_LEN = fadthdr->PM1ControlLength;
-
-        SLP_EN = 1 << 13;
-        SCI_EN = 1;
-        return;
-    }
-    error("Failed to parse _S5 in ACPI");
-    error("ACPI shutdown may not be possible");
-    SCI_EN = 0;
-}
-
 void shutdown()
 {
-    if (SCI_EN == 1)
-    {
-        outw(fadthdr->PM1aControlBlock, (inw(fadthdr->PM1aControlBlock) & 0xE3FF) | ((SLP_TYPa << 10) | ACPI_SLEEP));
-        if (fadthdr->PM1bControlBlock) outw(fadthdr->PM1bControlBlock, (inw(fadthdr->PM1bControlBlock) & 0xE3FF) | ((SLP_TYPb << 10) | ACPI_SLEEP));
-
-        outw(PM1a_CNT, SLP_TYPa | SLP_EN);
-        if (PM1b_CNT) outw(PM1b_CNT, SLP_TYPb | SLP_EN);
-        asm volatile ("hlt");
-    }
+    lai_enter_sleep(5);
 }
 
 void reboot()
 {
-    switch (fadthdr->ResetReg.AddressSpace)
-    {
-        case ACPI_GAS_MMIO:
-            *reinterpret_cast<uint8_t*>(fadthdr->ResetReg.Address) = fadthdr->ResetValue;
-            break;
-        case ACPI_GAS_IO:
-            outb(fadthdr->ResetReg.Address, fadthdr->ResetValue);
-            break;
-        case ACPI_GAS_PCI:
-            pci::writeb(0, 0, (fadthdr->ResetReg.Address >> 32) & 0xFFFF, (fadthdr->ResetReg.Address >> 16) & 0xFFFF, fadthdr->ResetReg.Address & 0xFFFF, fadthdr->ResetValue);
-            break;
-    }
+    lai_acpi_reset();
 }
 
 void *findtable(const char *signature, size_t skip)
 {
     if (skip < 0) skip = 0;
     size_t entries = (rsdt->length - sizeof(SDTHeader)) / (use_xstd ? 8 : 4);
+
     for (size_t i = 0; i < entries; i++)
     {
         SDTHeader *newsdthdr;
@@ -172,12 +98,11 @@ void *findtable(const char *signature, size_t skip)
 
         if (!strncmp(reinterpret_cast<const char*>(newsdthdr->signature), signature, 4))
         {
-            if (!skip) return newsdthdr;
+            if (skip == 0) return newsdthdr;
             else skip--;
         }
-        else continue;
     }
-    return 0;
+    return nullptr;
 }
 
 void init()
@@ -211,13 +136,147 @@ void init()
     fadthdr = reinterpret_cast<FADTHeader*>(findtable("FACP", 0));
     hpethdr = reinterpret_cast<HPETHeader*>(findtable("HPET", 0));
 
-    outb(fadthdr->SMI_CommandPort, fadthdr->AcpiEnable);
-    while (!(inw(fadthdr->PM1aControlBlock) & 1)) asm volatile ("nop");
-
     if (madt) madt_init();
-    dsdt_init();
+
+    lai_set_acpi_revision(rsdp->revision);
+    lai_create_namespace();
 
     serial::newline();
     initialised = true;
 }
+}
+
+void laihost_log(int level, const char *msg)
+{
+    switch (level)
+    {
+        case LAI_DEBUG_LOG:
+            log("%s", msg);
+            break;
+        case LAI_WARN_LOG:
+            warn("%s", msg);
+            break;
+    }
+}
+
+__attribute__((noreturn)) void laihost_panic(const char *msg)
+{
+    error("%s", msg);
+    while (true) asm volatile ("cli; hlt");
+}
+
+void *laihost_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+void *laihost_realloc(void *ptr, size_t size, size_t oldsize)
+{
+    return realloc(ptr, size);
+}
+
+void laihost_free(void *ptr, size_t oldsize)
+{
+    free(ptr);
+}
+
+void *laihost_map(size_t address, size_t count)
+{
+    for (size_t i = 0; i < count; i += 0x1000)
+    {
+        kernel::system::mm::vmm::kernel_pagemap->mapMem(address + hhdm_tag->addr, address);
+    }
+	return reinterpret_cast<void*>(address + hhdm_tag->addr);
+}
+
+void laihost_unmap(void *address, size_t count)
+{
+    for (size_t i = 0; i < count; i += 0x1000)
+    {
+        kernel::system::mm::vmm::kernel_pagemap->unmapMem(reinterpret_cast<uint64_t>(address) + i);
+    }
+}
+
+void *laihost_scan(const char *signature, size_t index)
+{
+	if (!strncmp(signature, "DSDT", 4))
+    {
+		uint64_t dsdt_addr = 0;
+
+		if (is_canonical(kernel::system::acpi::fadthdr->X_Dsdt) && kernel::system::acpi::use_xstd) dsdt_addr = kernel::system::acpi::fadthdr->X_Dsdt;
+		else dsdt_addr = kernel::system::acpi::fadthdr->Dsdt;
+
+		return reinterpret_cast<void*>(dsdt_addr);
+    }
+    else return kernel::system::acpi::findtable(signature, index);
+}
+
+void laihost_outb(uint16_t port, uint8_t val)
+{
+    outb(port, val);
+}
+
+void laihost_outw(uint16_t port, uint16_t val)
+{
+    outw(port, val);
+}
+
+void laihost_outd(uint16_t port, uint32_t val)
+{
+    outl(port, val);
+}
+
+uint8_t laihost_inb(uint16_t port)
+{
+    return inb(port);
+}
+
+uint16_t laihost_inw(uint16_t port)
+{
+    return inw(port);
+}
+
+uint32_t laihost_ind(uint16_t port)
+{
+    return inl(port);
+}
+
+void laihost_pci_writeb(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset, uint8_t val)
+{
+    kernel::system::pci::writeb(seg, bus, slot, fun, offset, val);
+}
+
+void laihost_pci_writew(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset, uint16_t val)
+{
+    kernel::system::pci::writew(seg, bus, slot, fun, offset, val);
+}
+
+void laihost_pci_writed(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset, uint32_t val)
+{
+    kernel::system::pci::writel(seg, bus, slot, fun, offset, val);
+}
+
+uint8_t laihost_pci_readb(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset)
+{
+    return kernel::system::pci::readb(seg, bus, slot, fun, offset);
+}
+
+uint16_t laihost_pci_readw(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset)
+{
+    return kernel::system::pci::readw(seg, bus, slot, fun, offset);
+}
+
+uint32_t laihost_pci_readd(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun, uint16_t offset)
+{
+    return kernel::system::pci::readl(seg, bus, slot, fun, offset);
+}
+
+void laihost_sleep(uint64_t ms)
+{
+    kernel::system::sched::timer::usleep(ms * 1000);
+}
+
+uint64_t laihost_timer()
+{
+    return kernel::system::sched::hpet::counter() / 100000000;
 }

@@ -3,7 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/trace/trace.hpp>
 #include <kernel/kernel.hpp>
-#include <lib/string.hpp>
+#include <lib/vector.hpp>
 #include <lib/alloc.hpp>
 #include <lib/log.hpp>
 #include <elf.h>
@@ -12,17 +12,17 @@ using namespace kernel::drivers::display;
 
 namespace kernel::system::trace {
 
-symtable_t *symbol_table;
-size_t entries = 0;
+vector<symtable_t> symbol_table;
+static size_t entries = 1;
 
 symtable_t lookup(uint64_t addr)
 {
-    symtable_t result{0, "<unknown>"};
-    for (size_t i = 0; i < entries; i++)
+    symtable_t result { 0, "<unknown>" };
+    for (symtable_t entry : symbol_table)
     {
-        if (symbol_table[i].addr <= addr && symbol_table[i].addr > result.addr)
+        if (entry.addr <= addr && entry.addr > result.addr)
         {
-            result = symbol_table[i];
+            result = entry;
         }
     }
     return result;
@@ -31,15 +31,15 @@ symtable_t lookup(uint64_t addr)
 bool backtrace(uint64_t addr, size_t &i, bool terminal)
 {
     symtable_t symtable = lookup(addr);
-    while (!strcmp(symtable.name, "int_handler") || !strcmp(symtable.name, "int_common_stub"))
+    while (symtable.name == "int_handler" || symtable.name == "int_common_stub")
     {
         i--;
         return true;
     }
 
-    if (!strcmp(symtable.name, "<unknown>") || symtable.addr == 0) return false;
-    error("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
-    if (terminal) printf("\n[\033[31mPANIC\033[0m] #%zu 0x%lX \t%s", i, symtable.addr, symtable.name);
+    if (symtable.name == "<unknown>" || symtable.addr == 0) return false;
+    error("#%zu 0x%lX \t%s", i, symtable.addr, symtable.name.c_str());
+    if (terminal) printf("\n[\033[31mPANIC\033[0m] #%zu 0x%lX \t%s", i, symtable.addr, symtable.name.c_str());
 
     return true;
 }
@@ -97,12 +97,9 @@ void init()
         entries--;
     }
 
-    symbol_table = new symtable_t[entries];
-
     for (size_t i = 0, entriesbck = entries; i < entriesbck; i++)
     {
-        symbol_table[i].addr = symtab[i].st_value;
-        symbol_table[i].name = &strtab[symtab[i].st_name];
+        symbol_table.push_back(symtable_t { symtab[i].st_value, string(&strtab[symtab[i].st_name]) });
     }
 }
 }

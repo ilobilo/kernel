@@ -5,6 +5,8 @@
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
+#include <lai/helpers/sci.h>
+#include <lai/helpers/pm.h>
 #include <kernel/main.hpp>
 #include <lib/mmio.hpp>
 #include <lib/cpu.hpp>
@@ -207,34 +209,9 @@ void lapic_periodic(uint8_t vector, uint64_t ms)
     lapic_timer_mask(false);
 }
 
-uint16_t getSCIevent()
-{
-    uint16_t a = 0, b = 0;
-    if (acpi::fadthdr->PM1aEventBlock)
-    {
-        a = inw(acpi::fadthdr->PM1aEventBlock);
-        outw(acpi::fadthdr->PM1aEventBlock, a);
-    }
-    if (acpi::fadthdr->PM1bEventBlock)
-    {
-        b = inw(acpi::fadthdr->PM1bEventBlock);
-        outw(acpi::fadthdr->PM1bEventBlock, b);
-    }
-    return a | b;
-}
-
-void setSCIevent(uint16_t value)
-{
-    uint16_t a = acpi::fadthdr->PM1aEventBlock + (acpi::fadthdr->PM1EventLength / 2);
-    uint16_t b = acpi::fadthdr->PM1bEventBlock + (acpi::fadthdr->PM1EventLength / 2);
-
-    if (acpi::fadthdr->PM1aEventBlock) outw(a, value);
-    if (acpi::fadthdr->PM1bEventBlock) outw(b, value);
-}
-
 static void SCI_Handler(registers_t *)
 {
-    uint16_t event = getSCIevent();
+    uint16_t event = lai_get_sci_event();
     if (event & ACPI_POWER_BUTTON)
     {
         acpi::shutdown();
@@ -263,9 +240,6 @@ void init()
 
     pic::disable();
     lapic_init(acpi::lapics[0]->processor_id);
-
-    setSCIevent(ACPI_POWER_BUTTON | ACPI_SLEEP_BUTTON | ACPI_WAKE);
-    getSCIevent();
 
     idt::register_interrupt_handler(acpi::fadthdr->SCI_Interrupt + 32, SCI_Handler, true);
     ioapic_redirect_irq(acpi::fadthdr->SCI_Interrupt, acpi::fadthdr->SCI_Interrupt + 32);

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <lib/string.hpp>
 #include <stdint.h>
 
 namespace kernel::system::trace {
@@ -15,7 +16,7 @@ struct stackframe_t
 struct symtable_t
 {
     uint64_t addr;
-    const char *name;
+    string name;
 };
 
 void trace(bool terminal);

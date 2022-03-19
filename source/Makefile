@@ -63,6 +63,7 @@ override INTERNALLDFLAGS :=  \
 override INTERNALCFLAGS :=     \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/            \
+	-I$(SOURCEDIR)/lai/include \
 	-std=gnu17                 \
 	-ffreestanding             \
 	-fno-exceptions            \
@@ -82,6 +83,7 @@ override INTERNALCFLAGS :=     \
 override INTERNALCPPFLAGS :=   \
 	-target x86_64-pc-none-elf \
 	-I$(SOURCEDIR)/            \
+	-I$(SOURCEDIR)/lai/include \
 	-std=gnu++20               \
 	-ffreestanding             \
 	-fno-exceptions            \
@@ -123,11 +125,11 @@ vnc: $(KERNEL) initrd
 
 $(KERNEL):
 	$(MAKE) $(OBJ)
-	@printf "LD\t%s\n" $(KERNEL:$(SOURCEDIR)/%=%)
+	@printf "LD\t%s\n" $(KERNEL:$(ROOTDIR)/%=%)
 	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(SFNFONT) $(OBJ) -o $@
 
 %.o: %.c
-	@printf "CC\t%s\n" $(<:$(SOURCEDIR)/%=%)
+	@printf "CC\t%s\n" $(<:$(ROOTDIR)/%=%)
 ifndef NOUBSAN
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -fsanitize=undefined -c $< -o $@
 else
@@ -135,7 +137,7 @@ else
 endif
 
 %.o: %.cpp
-	@printf "CPP\t%s\n" $(<:$(SOURCEDIR)/%=%)
+	@printf "CPP\t%s\n" $(<:$(ROOTDIR)/%=%)
 ifndef NOUBSAN
 	$(CPP) $(CPPFLAGS) $(INTERNALCPPFLAGS) -fsanitize=undefined -c $< -o $@
 else
@@ -143,12 +145,12 @@ else
 endif
 
 %_asm.o: %.asm
-	@printf "ASM\t%s\n" $(<:$(SOURCEDIR)/%=%)
+	@printf "ASM\t%s\n" $(<:$(ROOTDIR)/%=%)
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 .PHONY: initrd
 initrd:
-	@printf "TAR\t%s\n" $(INITRD:$(SOURCEDIR)/%=%)
+	@printf "TAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
 	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
 
 iso:

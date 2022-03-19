@@ -62,7 +62,7 @@ void *alloc(size_t count)
 
 void free(void *ptr, size_t count)
 {
-    if (!ptr) return;
+    if (ptr == nullptr) return;
     lockit(pmm_lock);
 
     size_t page = reinterpret_cast<size_t>(ptr) / 0x1000;
@@ -75,7 +75,7 @@ void free(void *ptr, size_t count)
 
 void *realloc(void *ptr, size_t oldcount, size_t newcount)
 {
-    if (!ptr) return alloc(newcount);
+    if (ptr == nullptr) return alloc(newcount);
 
     if (!newcount)
     {

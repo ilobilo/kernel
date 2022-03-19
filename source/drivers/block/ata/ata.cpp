@@ -49,6 +49,8 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
 
     this->outbcmd(ATA_REGISTER_DRIVE_HEAD, 0x40 | (this->drive << 4));
 
+    for (size_t i = 0; i < 4; i++) inb(this->ctrlport0);
+
     while (this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_BUSY);
 
     this->outbcmd(ATA_REGISTER_SECTOR_COUNT, (sectorCount >> 8) & 0xFF);
@@ -57,11 +59,15 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
     this->outbcmd(ATA_REGISTER_LBA_MID, (sector >> 32) & 0xFF);
     this->outbcmd(ATA_REGISTER_LBA_HIGH, (sector >> 40) & 0xFF);
 
+    for (size_t i = 0; i < 4; i++) inb(this->ctrlport0);
+
     this->outbcmd(ATA_REGISTER_SECTOR_COUNT, sectorCount & 0xFF);
 
     this->outbcmd(ATA_REGISTER_LBA_LOW, sector & 0xFF);
     this->outbcmd(ATA_REGISTER_LBA_MID, (sector >> 8) & 0xFF);
     this->outbcmd(ATA_REGISTER_LBA_HIGH, (sector >> 16) & 0xFF);
+
+    for (size_t i = 0; i < 4; i++) inb(this->ctrlport0);
 
     while (this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_BUSY || !(this->inbcmd(ATA_REGISTER_STATUS) & ATA_DEV_DRDY));
 
@@ -113,13 +119,16 @@ bool ATAPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
     return true;
 }
 
-ATAPort::ATAPort(uint16_t port, uint16_t bmport, size_t drive)
+ATAPort::ATAPort(uint16_t port, uint16_t bmport, uint16_t ctrlport0, size_t drive)
 {
     this->port = port;
     this->drive = drive;
     this->bmport = bmport;
+    this->ctrlport0 = ctrlport0;
 
     this->outbcmd(ATA_REGISTER_DRIVE_HEAD, 0xA0 | (drive << 4));
+
+    for (size_t i = 0; i < 4; i++) inb(this->ctrlport0);
 
     this->outbcmd(ATA_REGISTER_SECTOR_COUNT, 0);
     this->outbcmd(ATA_REGISTER_LBA_LOW, 0);
@@ -222,7 +231,7 @@ ATAController::ATAController(pci::pcidevice_t *pcidevice)
 
         for (size_t t = 0; t < 2; t++)
         {
-            this->ports.push_back(new ATAPort((i ? this->port[1] : this->port[0]), this->bmport, t));
+            this->ports.push_back(new ATAPort((i ? this->port[1] : this->port[0]), this->bmport, this->ctrlport[0], t));
             if (this->ports.back()->initialised == false)
             {
                 free(this->ports.back());

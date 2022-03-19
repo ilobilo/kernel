@@ -249,7 +249,7 @@ struct fd_t
     }
 };
 
-struct filesystem_t
+struct [[gnu::aligned(16)]] filesystem_t
 {
     string name;
 

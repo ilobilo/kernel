@@ -2138,6 +2138,7 @@ std_wistream &operator >>(std_wistream &stream, str::wstring &str) { return stre
 class printer
 {
 	private:
+	lock_t lock;
 	int (*func)(const char *, ...);
 
 	public:

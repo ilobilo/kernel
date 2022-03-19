@@ -21,7 +21,7 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 
 new_lock(cpu_lock);
-cpu_t *cpus = new cpu_t[smp_tag->cpu_count]();;
+cpu_t *cpus = new cpu_t[smp_tag->cpu_count]();
 static size_t i = 0;
 
 static void cpu_init(stivale2_smp_info *cpu)
