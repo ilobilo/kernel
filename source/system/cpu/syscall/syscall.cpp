@@ -28,10 +28,12 @@ static void syscall_read(registers_t *regs)
     vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
     if (fd == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
-    RAX = fd->handle->read(reinterpret_cast<uint8_t*>(RSI_ARG1), RDX_ARG2);
+    RAX_RET = fd->handle->read(reinterpret_cast<uint8_t*>(RSI_ARG1), RDX_ARG2);
+    RDX_ERRNO = 0;
     fd->unref();
 }
 
@@ -40,10 +42,12 @@ static void syscall_write(registers_t *regs)
     vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
     if (fd == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
-    RAX = fd->handle->write(reinterpret_cast<uint8_t*>(RSI_ARG1), RDX_ARG2);
+    RAX_RET = fd->handle->write(reinterpret_cast<uint8_t*>(RSI_ARG1), RDX_ARG2);
+    RDX_ERRNO = 0;
     fd->unref();
 }
 
@@ -65,10 +69,12 @@ static void syscall_close(registers_t *regs)
 {
     if (!vfs::fdnum_close(nullptr, RDI_ARG0))
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_ioctl(registers_t *regs)
@@ -76,77 +82,53 @@ static void syscall_ioctl(registers_t *regs)
     vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
     if (fd == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
     int ret = fd->handle->ioctl(RSI_ARG1, reinterpret_cast<void*>(RDX_ARG2));
-    RAX = ret;
+    if (ret == -1)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+    RAX_RET = ret;
+    RDX_ERRNO = 0;
     fd->unref();
+}
+
+static void syscall_access(registers_t *regs)
+{
+    uint64_t path = RDI_ARG0;
+    uint64_t mode = RSI_ARG1;
+
+    RDI_ARG0 = vfs::at_fdcwd;
+    RSI_ARG1 = path;
+    RDX_ARG2 = mode;
+    R10_ARG3 = 0;
+
+    syscalls[SYSCALL_FACCESAT](regs);
 }
 
 static void syscall_getpid(registers_t *regs)
 {
-    RAX = getpid();
-}
-
-static void syscall_openat(registers_t *regs)
-{
-    string path(reinterpret_cast<char*>(RSI_ARG1));
-    if (path.empty())
+    int pid = getpid();
+    if (pid == -1)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
         return;
     }
-
-    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
-    if (parent == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-
-    vfs::fs_node_t *node = vfs::get_node(parent, path, !(RDX_ARG2 & vfs::o_nofollow));
-    if (node == nullptr && (RDX_ARG2 & vfs::file_creation_flags_mask) & vfs::o_creat)
-    {
-        node = vfs::create(parent, path, vfs::ifreg | 0644);
-        if (node == nullptr)
-        {
-            RAX = -1;
-            return;
-        }
-    }
-    if (node == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-
-    if (vfs::islnk(node->res->stat.mode))
-    {
-        RAX = -1;
-        return;
-    }
-
-    node = vfs::node2reduced(node, true);
-    if (node == nullptr)
-    {
-        RAX = -1;
-        return;
-    }
-
-    if (!vfs::isdir(node->res->stat.mode) && RDX_ARG2 & vfs::o_directory)
-    {
-        RAX = -1;
-        return;
-    }
-
-    RAX = vfs::fdnum_from_node(node, RDX_ARG2, 0, false);
+    RAX_RET = pid;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_exit(registers_t *regs)
 {
     this_proc()->exit();
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 #define SYSNAME "Kernel"
@@ -169,6 +151,13 @@ struct utsname
 static void syscall_uname(registers_t *regs)
 {
     utsname *buf = reinterpret_cast<utsname*>(RDI_ARG0);
+    if (buf == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EFAULT;
+        return;
+    }
+
     strcpy(buf->sysname, SYSNAME);
     strcpy(buf->nodename, NODENAME);
     strcpy(buf->release, RELEASE);
@@ -177,7 +166,38 @@ static void syscall_uname(registers_t *regs)
 #ifdef  _GNU_SOURCE
     strcpy(buf->domainname, DOMAINNAME);
 #endif
-    RAX = 0;
+
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
+}
+
+static void syscall_getcwd(registers_t *regs)
+{
+    char *buffer = reinterpret_cast<char*>(RDI_ARG0);
+    if (buffer == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
+        return;
+    }
+
+    scheduler::process_t *proc = this_proc();
+    if (proc == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
+        return;
+    }
+    string cwd(vfs::node2path(proc->current_dir));
+    if (cwd.length() >= RSI_ARG1)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = ERANGE;
+        return;
+    }
+    strcpy(buffer, cwd.c_str());
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_chdir(registers_t *regs)
@@ -185,43 +205,61 @@ static void syscall_chdir(registers_t *regs)
     string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
-    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path, true);
+    scheduler::process_t *proc = this_proc();
+    if (proc == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(proc->current_dir, path, true);
     if (node == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
     if (!vfs::isdir(node->res->stat.mode))
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOTDIR;
         return;
     }
-    this_proc()->current_dir = node;
-    RAX = 0;
+    proc->current_dir = node;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_mkdir(registers_t *regs)
 {
-    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0), true);
-    // node->mode = RSI_ARG1;
-    // node->flags = vfs::FS_DIRECTORY;
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_rmdir(registers_t *regs)
 {
-    // vfs::fs_node_t *node = vfs::open(nullptr, reinterpret_cast<const char*>(RDI_ARG0));
-    // if (node == nullptr)
-    // {
-    //     RAX = -1;
-    //     return;
-    // }
-    // vfs::remove_child(node->parent, node->name);
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
+}
+
+static void syscall_link(registers_t *regs)
+{
+    uint64_t oldpath = RDI_ARG0;
+    uint64_t newpath = RSI_ARG1;
+
+    RDI_ARG0 = vfs::at_fdcwd;
+    RSI_ARG1 = oldpath;
+    RDX_ARG2 = vfs::at_fdcwd;
+    R10_ARG3 = newpath;
+    R8_ARG4 = 0;
+
+    syscalls[SYSCALL_LINKAT](regs);
 }
 
 static void syscall_chmod(registers_t *regs)
@@ -229,19 +267,30 @@ static void syscall_chmod(registers_t *regs)
     string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
-    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path);
+    scheduler::process_t *proc = this_proc();
+    if (proc == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(proc->current_dir, path);
     if (node == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
 
     node->res->stat.mode = RSI_ARG1;
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_fchmod(registers_t *regs)
@@ -249,12 +298,14 @@ static void syscall_fchmod(registers_t *regs)
     vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
     if (fd == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
 
     fd->handle->res->stat.mode = RSI_ARG1;
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
     fd->unref();
 }
 
@@ -263,20 +314,23 @@ static void syscall_chown(registers_t *regs)
     string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
     vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path, true);
     if (node == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
 
     node->res->stat.uid = RSI_ARG1;
     node->res->stat.gid = RDX_ARG2;
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_fchown(registers_t *regs)
@@ -284,14 +338,16 @@ static void syscall_fchown(registers_t *regs)
     vfs::fd_t *fd = vfs::fd_from_fdnum(nullptr, RDI_ARG0);
     if (fd == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
 
     fd->handle->res->stat.uid = RSI_ARG1;
     fd->handle->res->stat.gid = RDX_ARG2;
 
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
     fd->unref();
 }
 
@@ -300,20 +356,24 @@ static void syscall_lchown(registers_t *regs)
     string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
     vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path);
     if (node == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
 
     node->res->stat.uid = RSI_ARG1;
     node->res->stat.gid = RDX_ARG2;
-    RAX = 0;
+
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 struct sysinfo
@@ -340,62 +400,150 @@ static void syscall_sysinfo(registers_t *regs)
     sf->uptime = rtc::seconds_since_boot();
     sf->totalram = getmemsize();
     sf->freeram = pmm::freemem();
-    RAX = 0;
+    RAX_RET = 0;
 }
 
 static void syscall_getppid(registers_t *regs)
 {
-    RAX = getppid();
+    int ppid = getppid();
+    if (ppid == -1)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
+        return;
+    }
+    RAX_RET = ppid;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_reboot(registers_t *regs)
 {
-    if (RDI_ARG0 != LINUX_REBOOT_MAGIC1 || (RSI_ARG1 != LINUX_REBOOT_MAGIC2 && RSI_ARG1 != LINUX_REBOOT_MAGIC2A && RSI_ARG1 != LINUX_REBOOT_MAGIC2B && RSI_ARG1 != LINUX_REBOOT_MAGIC2C)) RAX = -1;
-    else
+    if (RDI_ARG0 != LINUX_REBOOT_MAGIC1 || (RSI_ARG1 != LINUX_REBOOT_MAGIC2 && RSI_ARG1 != LINUX_REBOOT_MAGIC2A && RSI_ARG1 != LINUX_REBOOT_MAGIC2B && RSI_ARG1 != LINUX_REBOOT_MAGIC2C))
     {
-        switch (RDX_ARG2)
-        {
-            case LINUX_REBOOT_CMD_CAD_OFF: break;
-            case LINUX_REBOOT_CMD_CAD_ON:
-                acpi::reboot();
-                break;
-            case LINUX_REBOOT_CMD_HALT:
-                printf("\nSystem halted.\n");
-                log("System halted.");
-                asm volatile ("cli; hlt");
-                break;
-            case LINUX_REBOOT_CMD_KEXEC: break;
-            case LINUX_REBOOT_CMD_POWER_OFF:
-                printf("\nPower down.\n");
-                log("Power down.");
-                acpi::shutdown();
-                break;
-            case LINUX_REBOOT_CMD_RESTART:
-                printf("\nRestarting system.\n");
-                log("Restarting system.");
-                acpi::reboot();
-                break;
-            case LINUX_REBOOT_CMD_RESTART2:
-                printf("\nRestarting system with command '%s'.\n", reinterpret_cast<char*>(R10_ARG3));
-                log("Restarting system with command '%s'.", reinterpret_cast<char*>(R10_ARG3));
-                acpi::reboot();
-                break;
-            case LINUX_REBOOT_CMD_SW_SUSPEND: break;
-        }
-        RAX = 0;
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
+        return;
     }
+
+    switch (RDX_ARG2)
+    {
+        case LINUX_REBOOT_CMD_CAD_OFF: break;
+        case LINUX_REBOOT_CMD_CAD_ON:
+            acpi::reboot();
+            break;
+        case LINUX_REBOOT_CMD_HALT:
+            printf("\nSystem halted.\n");
+            log("System halted.");
+            asm volatile ("cli; hlt");
+            break;
+        case LINUX_REBOOT_CMD_KEXEC: break;
+        case LINUX_REBOOT_CMD_POWER_OFF:
+            printf("\nPower down.\n");
+            log("Power down.");
+            acpi::shutdown();
+            break;
+        case LINUX_REBOOT_CMD_RESTART:
+            printf("\nRestarting system.\n");
+            log("Restarting system.");
+            acpi::reboot();
+            break;
+        case LINUX_REBOOT_CMD_RESTART2:
+            printf("\nRestarting system with command '%s'.\n", reinterpret_cast<char*>(R10_ARG3));
+            log("Restarting system with command '%s'.", reinterpret_cast<char*>(R10_ARG3));
+            acpi::reboot();
+            break;
+        case LINUX_REBOOT_CMD_SW_SUSPEND: break;
+        default:
+            RAX_RET = -1;
+            RDX_ERRNO = EINVAL;
+            return;
+    }
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_time(registers_t *regs)
 {
-    long *tloc = reinterpret_cast<long*>(RDI_ARG0);
+    uint64_t *tloc = reinterpret_cast<uint64_t*>(RDI_ARG0);
     if (tloc == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
         return;
     }
+
     *tloc = rtc::epoch();
-    RAX = *tloc;
+    RAX_RET = *tloc;
+    RDX_ERRNO = 0;
+}
+
+static void syscall_openat(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RSI_ARG1));
+    if (path.empty())
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
+        return;
+    }
+
+    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
+    if (parent == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    vfs::fs_node_t *node = vfs::get_node(parent, path, !(RDX_ARG2 & vfs::o_nofollow));
+    if (node == nullptr && (RDX_ARG2 & vfs::file_creation_flags_mask) & vfs::o_creat)
+    {
+        node = vfs::create(parent, path, vfs::ifreg | 0644);
+        if (node == nullptr)
+        {
+            RAX_RET = -1;
+            RDX_ERRNO = errno_get();
+            return;
+        }
+    }
+    if (node == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    if (vfs::islnk(node->res->stat.mode))
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = ELOOP;
+        return;
+    }
+
+    node = vfs::node2reduced(node, true);
+    if (node == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    if (!vfs::isdir(node->res->stat.mode) && RDX_ARG2 & vfs::o_directory)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = ENOTDIR;
+        return;
+    }
+
+    int fdnum = vfs::fdnum_from_node(node, RDX_ARG2, 0, false);
+    if (fdnum == -1)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+    RAX_RET = fdnum;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_mkdirat(registers_t *regs)
@@ -403,30 +551,42 @@ static void syscall_mkdirat(registers_t *regs)
     string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
     vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
     if (parent == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
 
     auto [tgt_parent, target, basename] = vfs::path2node(parent, path);
-    if (tgt_parent == nullptr || target != nullptr)
+    if (tgt_parent == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
+        return;
+    }
+
+    if (target != nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EEXIST;
         return;
     }
 
     if (vfs::create(tgt_parent, basename, RDX_ARG2 | vfs::ifdir))
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
-    RAX = 0;
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_unlinkat(registers_t *regs)
@@ -434,18 +594,87 @@ static void syscall_unlinkat(registers_t *regs)
     string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
     vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
     if (parent == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
-    vfs::unlink(parent, path, RDX_ARG2 & vfs::at_removedir);
-    RAX = 0;
+    if (!vfs::unlink(parent, path, RDX_ARG2 & vfs::at_removedir))
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
+}
+
+static void syscall_linkat(registers_t *regs)
+{
+    string oldpath(reinterpret_cast<char*>(RSI_ARG1));
+    if (oldpath.empty())
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
+        return;
+    }
+
+    string newpath(reinterpret_cast<char*>(R10_ARG3));
+
+    vfs::fs_node_t *oldparent = vfs::get_parent_dir(RDI_ARG0, oldpath);
+    if (oldparent == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    vfs::fs_node_t *_newparent = vfs::get_parent_dir(RDX_ARG2, newpath);
+    if (_newparent == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    oldparent = vfs::path2node(oldparent, oldpath).parent;
+    auto [newparent, _, basename] = vfs::path2node(_newparent, newpath);
+
+    if (oldparent->fs != newparent->fs)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EXDEV;
+        return;
+    }
+
+    vfs::fs_node_t *oldnode = vfs::get_node(oldparent, oldpath, !(R8_ARG4 & vfs::at_symlink_nofollow));
+    if (oldnode == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    vfs::fs_node_t *node = newparent->fs->link(newparent, newpath, oldnode);
+    if (node == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    node->res->link(nullptr);
+    newparent->children.push_back(node);
+
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 static void syscall_readlinkat(registers_t *regs)
@@ -453,20 +682,30 @@ static void syscall_readlinkat(registers_t *regs)
     string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
         return;
     }
 
     vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
     if (parent == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
         return;
     }
     vfs::fs_node_t *node = vfs::get_node(parent, path);
     if (node == nullptr)
     {
-        RAX = -1;
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    if (!vfs::islnk(node->res->stat.mode))
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = EINVAL;
         return;
     }
 
@@ -474,7 +713,36 @@ static void syscall_readlinkat(registers_t *regs)
     if (copy > R10_ARG3) copy = R10_ARG3;
     memcpy(reinterpret_cast<uint8_t*>(RDX_ARG2), node->target.c_str(), copy);
 
-    RAX = copy;
+    RAX_RET = copy;
+    RDX_ERRNO = 0;
+}
+
+static void syscall_faccessat(registers_t *regs)
+{
+    string path(reinterpret_cast<char*>(RSI_ARG1));
+    if (path.empty())
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = ENOENT;
+        return;
+    }
+
+    vfs::fs_node_t *parent = vfs::get_parent_dir(RDI_ARG0, path);
+    if (parent == nullptr)
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    if (!vfs::get_node(parent, path, !(R10_ARG3 & vfs::at_symlink_nofollow)))
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+    RAX_RET = 0;
+    RDX_ERRNO = 0;
 }
 
 syscall_t syscalls[] = {
@@ -483,13 +751,16 @@ syscall_t syscalls[] = {
     [SYSCALL_OPEN] = syscall_open,
     [SYSCALL_CLOSE] = syscall_close,
     [SYSCALL_IOCTL] = syscall_ioctl,
+    [SYSCALL_ACCESS] = syscall_access,
     [SYSCALL_GETPID] = syscall_getpid,
     [SYSCALL_OPENAT] = syscall_openat,
     [SYSCALL_EXIT] = syscall_exit,
     [SYSCALL_UNAME] = syscall_uname,
+    [SYSCALL_GETCWD] = syscall_getcwd,
     [SYSCALL_CHDIR] = syscall_chdir,
     [SYSCALL_MKDIR] = syscall_mkdir,
     [SYSCALL_RMDIR] = syscall_rmdir,
+    [SYSCALL_LINK] = syscall_link,
     [SYSCALL_CHMOD] = syscall_chmod,
     [SYSCALL_FCHMOD] = syscall_fchmod,
     [SYSCALL_CHOWN] = syscall_chown,
@@ -501,36 +772,19 @@ syscall_t syscalls[] = {
     [SYSCALL_TIME] = syscall_time,
     [SYSCALL_MKDIRAT] = syscall_mkdirat,
     [SYSCALL_UNLINKAT] = syscall_unlinkat,
+    [SYSCALL_LINKAT] = syscall_linkat,
     [SYSCALL_READLINKAT] = syscall_readlinkat,
+    [SYSCALL_FACCESAT] = syscall_faccessat
 };
 
 static void handler(registers_t *regs)
 {
-    if (RAX >= 0 && syscalls[RAX]) syscalls[RAX](regs);
+    if (RAX_RET >= 0 && syscalls[RAX_RET]) syscalls[RAX_RET](regs);
 }
 
-const char *read(const char *string, int length)
+void reboot(string message)
 {
-    uint64_t ret;
-    SYSCALL3(SYSCALL_READ, 1, string, length);
-    return reinterpret_cast<const char*>(ret);
-}
-const char *write(const char *string, int length)
-{
-    uint64_t ret;
-    SYSCALL3(SYSCALL_WRITE, 0, string, length);
-    return reinterpret_cast<const char*>(ret);
-}
-const char *err(const char *string, int length)
-{
-    uint64_t ret;
-    SYSCALL3(SYSCALL_WRITE, 2, string, length);
-    return reinterpret_cast<const char*>(ret);
-}
-void reboot(const char *message)
-{
-    uint64_t ret = 0;
-    SYSCALL4(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message);
+    syscall(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message.c_str());
 }
 
 void init()

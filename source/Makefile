@@ -1,6 +1,9 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ROOTDIR := $(shell dirname $(SOURCEDIR))
 
+LIBDIR := $(ROOTDIR)/extlibs
+LIMINEDIR = $(ROOTDIR)/limine
+
 BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
 FONT = $(SOURCEDIR)/misc/font.bin
 SFNFONT = $(SOURCEDIR)/misc/font.sfn
@@ -25,7 +28,7 @@ ASM = nasm
 
 CXXFILT = llvm-cxxfilt
 
-LIMINE = $(ROOTDIR)/limine/limine-install
+LIMINE = $(LIMINEDIR)/limine-install
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
@@ -54,6 +57,13 @@ CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter -Wno-unused-varia
 LDFLAGS = 
 ASMFLAGS = -f elf64 -g
 
+INCLUDES := \
+	-I$(SOURCEDIR)/ \
+	-I$(LIBDIR)/ \
+	-I$(LIBDIR)/lai/include/ \
+	-I$(LIBDIR)/cxxshim/stage2/include/ \
+	-I$(LIBDIR)/cxxshim/std-coroutine/include/
+
 override INTERNALLDFLAGS :=  \
 	-T$(SOURCEDIR)/linker.ld \
 	-nostdlib                \
@@ -62,8 +72,6 @@ override INTERNALLDFLAGS :=  \
 
 override INTERNALCFLAGS :=     \
 	-target x86_64-pc-none-elf \
-	-I$(SOURCEDIR)/            \
-	-I$(SOURCEDIR)/lai/include \
 	-std=gnu17                 \
 	-ffreestanding             \
 	-fno-exceptions            \
@@ -78,12 +86,11 @@ override INTERNALCFLAGS :=     \
 	-mno-sse                   \
 	-mno-sse2                  \
 	-mno-red-zone              \
-	-mcmodel=kernel
+	-mcmodel=kernel            \
+	$(INCLUDES)
 
 override INTERNALCPPFLAGS :=   \
 	-target x86_64-pc-none-elf \
-	-I$(SOURCEDIR)/            \
-	-I$(SOURCEDIR)/lai/include \
 	-std=gnu++20               \
 	-ffreestanding             \
 	-fno-exceptions            \
@@ -98,9 +105,12 @@ override INTERNALCPPFLAGS :=   \
 	-mno-sse                   \
 	-mno-sse2                  \
 	-mno-red-zone              \
-	-mcmodel=kernel
+	-mcmodel=kernel            \
+	$(INCLUDES)
 
-override CFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*")
+override CFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*") \
+	$(shell find $(LIBDIR)/lai/ -type f -name '*.c' 2> /dev/null)
+
 override CPPFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
 override ASMFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")
 
@@ -154,8 +164,8 @@ initrd:
 	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
 
 iso:
-	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(ROOTDIR)/limine.cfg $(ROOTDIR)/limine/limine.sys \
-		$(ROOTDIR)/limine/limine-cd.bin $(ROOTDIR)/limine/limine-eltorito-efi.bin $(ROOTDIR)/iso_root/
+	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \
+		$(LIMINEDIR)/limine-cd.bin $(LIMINEDIR)/limine-eltorito-efi.bin $(ROOTDIR)/iso_root/
 
 	@printf "XORRISO\t%s\n" $(ISO:$(ROOTDIR)/%=%)
 	$(XORRISO) $(XORRISOFLAGS) $(ROOTDIR)/iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"

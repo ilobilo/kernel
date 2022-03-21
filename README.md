@@ -150,3 +150,4 @@ https://discord.gg/fM5GK3RpS7
 * Liballoc: https://github.com/blanham/liballoc
 * CWalk: https://github.com/likle/cwalk
 * String: https://github.com/cocoz1/cpp-string
+* Cxxshim: https://github.com/managarm/cxxshim

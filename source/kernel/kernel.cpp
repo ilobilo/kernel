@@ -10,7 +10,7 @@
 #include <lib/panic.hpp>
 #include <lib/cpu.hpp>
 #include <stivale2.h>
-#include <stddef.h>
+#include <cstddef>
 
 using namespace kernel::drivers::display;
 
@@ -128,25 +128,25 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
     pmrs_tag = get_tag<stivale2_struct_tag_pmrs>(stivale2_struct, STIVALE2_STRUCT_TAG_PMRS_ID);
     kbad_tag = get_tag<stivale2_struct_tag_kernel_base_address>(stivale2_struct, STIVALE2_STRUCT_TAG_KERNEL_BASE_ADDRESS_ID);
 
-    ASSERT(term_tag, "Could not get terminal structure tag!");
+    assert(term_tag, "Could not get terminal structure tag!");
     terminal::init();
 
-    ASSERT(frm_tag, "Could not get framebuffer structure tag!");
+    assert(frm_tag, "Could not get framebuffer structure tag!");
     framebuffer::init();
     ssfn::init();
 
-    ASSERT(smp_tag, "Could not get smp structure tag!");
-    ASSERT(mmap_tag, "Could not get memmap structure tag!");
-    ASSERT(rsdp_tag, "Could not get rsdp structure tag!");
-    ASSERT(mod_tag, "Could not get modules structure tag!");
-    ASSERT(cmd_tag, "Could not get cmdline structure tag!");
+    assert(smp_tag, "Could not get smp structure tag!");
+    assert(mmap_tag, "Could not get memmap structure tag!");
+    assert(rsdp_tag, "Could not get rsdp structure tag!");
+    assert(mod_tag, "Could not get modules structure tag!");
+    assert(cmd_tag, "Could not get cmdline structure tag!");
     cmdline = reinterpret_cast<char*>(cmd_tag->cmdline);
 
-    ASSERT(kfilev2_tag, "Could not get kernel file v2 structure tag!");
-    ASSERT(epoch_tag, "Could not get epoch structure tag!");
-    ASSERT(hhdm_tag, "Could not get hhdm structure tag!");
-    ASSERT(pmrs_tag, "Could not get pmrs structure tag!");
-    ASSERT(kbad_tag, "Could not get kernel base address structure tag!");
+    assert(kfilev2_tag, "Could not get kernel file v2 structure tag!");
+    assert(epoch_tag, "Could not get epoch structure tag!");
+    assert(hhdm_tag, "Could not get hhdm structure tag!");
+    assert(pmrs_tag, "Could not get pmrs structure tag!");
+    assert(kbad_tag, "Could not get kernel base address structure tag!");
 
     kernel::main();
 

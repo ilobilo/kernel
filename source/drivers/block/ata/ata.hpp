@@ -5,7 +5,7 @@
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <system/pci/pci.hpp>
 #include <lib/lock.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace kernel::system;
 

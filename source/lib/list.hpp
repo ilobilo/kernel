@@ -5,7 +5,7 @@
 #include <lib/string.hpp>
 #include <lib/vector.hpp>
 #include <lib/alloc.hpp>
-#include <stddef.h>
+#include <cstddef>
 
 template<typename type>
 class list

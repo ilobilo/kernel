@@ -4,7 +4,7 @@
 #define CWK_LIBRARY_H
 
 #include <stdbool.h>
-#include <stddef.h>
+#include <cstddef>
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #define CWK_EXPORT __declspec(dllexport)

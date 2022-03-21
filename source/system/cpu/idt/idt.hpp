@@ -3,7 +3,7 @@
 #pragma once
 
 #include <lib/cpu.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::system::cpu::idt {
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #define FLAT_PTR(PTR) (*reinterpret_cast<uintptr_t*>(PTR))
 #define BYTE_PTR(PTR) (*reinterpret_cast<uint8_t*>(PTR))

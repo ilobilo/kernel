@@ -1,7 +1,7 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 void outb(uint16_t port, uint8_t val)
 {

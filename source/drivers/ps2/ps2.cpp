@@ -669,6 +669,14 @@ static bool initdev(devices device)
     return false;
 }
 
+void reboot()
+{
+    if (!initialised) return;
+    uint8_t good = 0x02;
+    while (good & 0x02) good = inb(0x64);
+    outb(0x64, 0xFE);
+}
+
 void init()
 {
     log("Initialising PS/2 controller");

@@ -6,7 +6,7 @@
 #include <lib/string.hpp>
 #include <lib/errno.hpp>
 #include <lib/cwalk.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::system::sched::scheduler
 {

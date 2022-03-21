@@ -3,7 +3,7 @@
 #include <lib/string.hpp>
 #include <lib/mmio.hpp>
 #include <lib/cpu.hpp>
-#include <stdint.h>
+#include <cstdint>
 #include <cpuid.h>
 
 uint64_t rdmsr(uint32_t msr)

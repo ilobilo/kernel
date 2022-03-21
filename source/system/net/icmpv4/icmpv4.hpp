@@ -4,7 +4,7 @@
 
 #include <drivers/net/nicmgr/nicmgr.hpp>
 #include <system/net/ipv4/ipv4.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace kernel::drivers::net;
 

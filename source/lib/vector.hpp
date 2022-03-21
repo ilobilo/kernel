@@ -4,7 +4,7 @@
 
 #include <lib/memory.hpp>
 #include <lib/alloc.hpp>
-#include <stddef.h>
+#include <cstddef>
 
 template<typename type>
 class vector

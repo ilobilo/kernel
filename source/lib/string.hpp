@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 unsigned constexpr hash(char const *input)
 {

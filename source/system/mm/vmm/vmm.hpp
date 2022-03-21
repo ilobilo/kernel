@@ -3,8 +3,8 @@
 #pragma once
 
 #include <lib/lock.hpp>
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 namespace kernel::system::mm::vmm {
 

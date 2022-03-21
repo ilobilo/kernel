@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 static constexpr uint64_t RAND_MAX = 32768;
 

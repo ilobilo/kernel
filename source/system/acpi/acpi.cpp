@@ -4,6 +4,7 @@
 #include <system/sched/hpet/hpet.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
+#include <drivers/ps2/ps2.hpp>
 #include <system/pci/pci.hpp>
 #include <kernel/kernel.hpp>
 #include <acpispec/tables.h>
@@ -13,6 +14,9 @@
 #include <lai/host.h>
 #include <lai/core.h>
 #include <lib/io.hpp>
+
+using namespace kernel::system::sched;
+using namespace kernel::drivers;
 
 [[gnu::always_inline]] inline bool is_canonical(uint64_t addr)
 {
@@ -81,6 +85,7 @@ void shutdown()
 void reboot()
 {
     lai_acpi_reset();
+    ps2::reboot();
 }
 
 void *findtable(const char *signature, size_t skip)

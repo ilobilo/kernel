@@ -6,7 +6,7 @@
 
 static void print(const char *message, source_location loc)
 {
-    if (strstr(loc.file, "acpi.cpp") && ((loc.line == 95 && loc.column == 55) || (loc.line == 94 && loc.column == 64))) return;
+    if (strstr(loc.file, "acpi.cpp") && ((loc.line == 100 && loc.column == 55) || (loc.line == 99 && loc.column == 64))) return;
     warn("Ubsan: %s at file %s, line %d, column %d", message, loc.file, loc.line, loc.column);
 }
 
@@ -99,4 +99,9 @@ extern "C" void __ubsan_handle_invalid_builtin(invalid_builtin_data *data)
 extern "C" void __ubsan_handle_float_cast_overflow(source_location *data)
 {
     print("float cast overflow", *data);
+}
+
+extern "C" void __ubsan_handle_missing_return(source_location *data)
+{
+    print("missing return", *data);
 }

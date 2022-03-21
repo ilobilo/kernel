@@ -4,7 +4,7 @@
 
 #include <lib/bitmap.hpp>
 #include <kernel/main.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::system::mm::pmm {
 

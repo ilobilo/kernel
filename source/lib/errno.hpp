@@ -4,6 +4,9 @@
 
 enum errno
 {
+    EDOM = 1,
+    EILSEQ = 2,
+    ERANGE = 3,
     E2BIG = 1001,
     EACCES = 1002,
     EADDRINUSE = 1003,

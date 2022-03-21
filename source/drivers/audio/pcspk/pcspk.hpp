@@ -11,7 +11,7 @@ enum notes
     A0 = 28,
     AS0 = 29,
     B0 = 31,
-    
+
     C1 = 33,
     CS1 = 35,
     D1 = 37,
@@ -24,7 +24,7 @@ enum notes
     A1 = 55,
     AS1 = 58,
     B1 = 62,
-    
+
     C2 = 65,
     CS2 = 69,
     D2 = 73,
@@ -37,7 +37,7 @@ enum notes
     A2 = 110,
     AS2 = 117,
     B2 = 123,
-    
+
     C3 = 131,
     CS3 = 139,
     D3 = 147,
@@ -100,13 +100,11 @@ enum durations
     Quarter = Half / 2,
     Eighth = Quarter / 2,
     Sixteenth = Eighth / 2,
-    
+
     DefaultDur = 200,
 };
 
 void play(uint64_t freq);
-
 void stop();
-
 void beep(uint64_t freq, uint64_t msec);
 }

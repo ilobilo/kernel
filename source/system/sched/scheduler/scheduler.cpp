@@ -30,6 +30,17 @@ new_lock(thread_lock);
 new_lock(sched_lock);
 new_lock(proc_lock);
 
+void yield(uint64_t ms)
+{
+    if (apic::initialised) apic::lapic_oneshot(sched_vector, ms);
+    else pit::setfreq(MS2PIT(ms));
+}
+
+void idle()
+{
+    while (true) asm volatile ("hlt");
+}
+
 void func_wrapper(uint64_t addr, uint64_t args)
 {
     reinterpret_cast<void (*)(uint64_t)>(addr)(args);
@@ -44,6 +55,8 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
     this->stack = this->stack_phys + hhdm_tag->addr;
 
+    if (user == true) this->map_user();
+
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_tag->addr;
 
     this->regs.rflags = 0x202;
@@ -57,6 +70,23 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     this->priority = priority;
     this->parent = parent;
+
+    this->user = user;
+}
+
+bool thread_t::map_user()
+{
+    if (this->parent == nullptr) return false;
+
+    // TODO: Fix this if broken
+    this->parent->thread_stack_top -= STACK_SIZE;
+    uint64_t stack_bottom_vma = this->parent->thread_stack_top;
+    this->parent->thread_stack_top -= 0x1000;
+
+    this->parent->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE / 0x1000, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
+    this->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
+
+    return true;
 }
 
 thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user)
@@ -64,18 +94,6 @@ thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priorit
     lockit(proc_lock);
 
     thread_t *thread = new thread_t(addr, args, this, priority, user);
-
-    if (user == true)
-    {
-        // TODO: Fix this if broken
-        this->thread_stack_top -= STACK_SIZE;
-        uint64_t stack_bottom_vma = this->thread_stack_top;
-        this->thread_stack_top -= 0x1000;
-
-        this->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(thread->stack_phys), STACK_SIZE / 0x1000, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
-
-        thread->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
-    }
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -86,9 +104,34 @@ thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priorit
     return thread;
 }
 
-void idle()
+thread_t *process_t::add_thread(thread_t *thread)
 {
-    while (true) asm volatile ("hlt");
+    lockit(proc_lock);
+
+    if (thread->parent != this) thread->parent = this;
+
+    thread->tid = this->next_tid++;
+    thread_count++;
+
+    this->threads.push_back(thread);
+    thread->state = READY;
+
+    return thread;
+}
+
+bool process_t::table_add()
+{
+    if (this->in_table) return false;
+    lockit(proc_lock);
+
+    if (initproc == nullptr) initproc = this;
+    proc_table.push_back(this);
+    proc_count++;
+
+    this->state = READY;
+    this->in_table = true;
+
+    return true;
 }
 
 process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user)
@@ -118,27 +161,6 @@ process_t::process_t(string name)
     this->pagemap = vmm::newPagemap();
     this->current_dir = vfs::fs_root;
     this->parent = nullptr;
-}
-
-bool process_t::table_add()
-{
-    if (this->in_table) return false;
-    lockit(proc_lock);
-
-    if (initproc == nullptr) initproc = this;
-    proc_table.push_back(this);
-    proc_count++;
-
-    this->state = READY;
-    this->in_table = true;
-
-    return true;
-}
-
-void yield(uint64_t ms)
-{
-    if (apic::initialised) apic::lapic_oneshot(sched_vector, ms);
-    else pit::setfreq(MS2PIT(ms));
 }
 
 void process_t::block()

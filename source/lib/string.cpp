@@ -5,8 +5,8 @@
 #include <lib/string.hpp>
 #include <lib/alloc.hpp>
 #include <lib/math.hpp>
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 #include <limits.h>
 
 printer cout(printf);

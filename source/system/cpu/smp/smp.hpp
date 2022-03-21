@@ -5,7 +5,7 @@
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/cpu/gdt/gdt.hpp>
 #include <lib/errno.hpp>
-#include <stddef.h>
+#include <cstddef>
 
 using namespace kernel::system::sched;
 

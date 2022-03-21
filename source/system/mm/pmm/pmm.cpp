@@ -50,7 +50,7 @@ void *alloc(size_t count)
     {
         lastI = 0;
         ret = inner_alloc(count, i);
-        if (ret == nullptr) PANIC("Out of memory!");
+        if (ret == nullptr) panic("Out of memory!");
     }
     memset(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(ret) + hhdm_tag->addr), 0, count * 0x1000);
 

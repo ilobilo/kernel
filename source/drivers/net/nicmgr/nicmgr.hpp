@@ -4,7 +4,7 @@
 
 #include <lib/vector.hpp>
 #include <lib/log.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::drivers::net::nicmgr {
 
