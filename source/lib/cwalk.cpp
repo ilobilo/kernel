@@ -628,7 +628,7 @@ static size_t cwk_path_join_and_normalize_multiple(const char **paths,
     // This may happen if the path is absolute and all segments have been
     // removed. We can not have an empty output - and empty output means we stay
     // in the current directory. So we will output a ".".
-    ASSERT(absolute == false);
+    assert(absolute == false);
     pos += cwk_path_output_current(buffer, buffer_size, pos);
   }
 
@@ -1235,7 +1235,7 @@ bool cwk_path_get_next_segment(struct cwk_segment *segment)
 
   // Now we skip all separator until we reach something else. We are not yet
   // guaranteed to have a segment, since the string could just end afterwards.
-  ASSERT(cwk_path_is_separator(c));
+  assert(cwk_path_is_separator(c));
   do {
     ++c;
   } while (cwk_path_is_separator(c));
@@ -1432,7 +1432,7 @@ void cwk_path_set_style(enum cwk_path_style style)
 {
   // We can just set the global path style variable and then the behaviour for
   // all functions will change accordingly.
-  ASSERT(style == CWK_STYLE_UNIX || style == CWK_STYLE_WINDOWS);
+  assert(style == CWK_STYLE_UNIX || style == CWK_STYLE_WINDOWS);
   path_style = style;
 }
 

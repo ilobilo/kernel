@@ -8,7 +8,7 @@
 #include <lib/string.hpp>
 #include <lib/mmio.hpp>
 #include <lib/io.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::system::pci {
 

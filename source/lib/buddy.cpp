@@ -126,10 +126,10 @@ void BuddyAlloc::init()
     lockit(this->lock);
 
     size_t size = ALIGN_UP_2(0x1000, INIT_PAGES * 0x1000);
-    ASSERT(POWER_OF_2(size), "Buddy: Size is not power of two!");
+    assert(POWER_OF_2(size), "Buddy: Size is not power of two!");
 
     this->data = pmm::alloc(size / 0x1000);
-    ASSERT(this->data != nullptr, "Buddy: Could not allocate memory!");
+    assert(this->data != nullptr, "Buddy: Could not allocate memory!");
 
     this->head = static_cast<BuddyBlock*>(this->data);
     this->head->size = size;
@@ -203,8 +203,8 @@ void BuddyAlloc::free(void *ptr)
     if (this->data == nullptr) return;
     if (ptr == nullptr) return;
 
-    ASSERT(this->head <= ptr, "Buddy: Head is not smaller than pointer!");
-    ASSERT(ptr < this->tail, "Buddy: Pointer is not smaller than tail!");
+    assert(this->head <= ptr, "Buddy: Head is not smaller than pointer!");
+    assert(ptr < this->tail, "Buddy: Pointer is not smaller than tail!");
 
     lockit(this->lock);
 

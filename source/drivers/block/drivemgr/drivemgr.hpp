@@ -5,7 +5,7 @@
 #include <lib/vector.hpp>
 #include <lib/string.hpp>
 #include <lib/log.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::drivers::block::drivemgr {
 

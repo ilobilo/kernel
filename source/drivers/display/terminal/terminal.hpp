@@ -3,7 +3,7 @@
 #pragma once
 
 #include <drivers/display/terminal/printf.h>
-#include <stdint.h>
+#include <cstdint>
 #include <stdarg.h>
 
 namespace kernel::drivers::display::terminal {

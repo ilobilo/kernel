@@ -6,7 +6,7 @@
 #include <system/vfs/vfs.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace kernel::system::mm;
 
@@ -35,6 +35,7 @@ struct process_t;
 struct thread_t
 {
     int tid = 1;
+    bool user;
     errno err;
     state_t state;
     uint8_t *stack;
@@ -44,11 +45,14 @@ struct thread_t
     process_t *parent;
     priority_t priority;
 
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user);
+    thread_t() { };
+
+    bool map_user();
+
     void block();
     void unblock();
     void exit();
-
-    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user);
 };
 
 struct process_t
@@ -69,14 +73,16 @@ struct process_t
     bool in_table = false;
 
     thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user);
+    thread_t *add_thread(thread_t *thread);
     bool table_add();
+
+    process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user);
+    process_t(string name);
+    process_t() { };
 
     void block();
     void unblock();
     void exit();
-
-    process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user);
-    process_t(string name);
 };
 
 extern bool debug;
@@ -99,16 +105,19 @@ scheduler::process_t *this_proc();
 
 static inline int getpid()
 {
+    if (this_proc() == nullptr) return -1;
     return this_proc()->pid;
 }
 
 static inline int getppid()
 {
+    if (this_proc() == nullptr) return -1;
     if (this_proc()->parent == nullptr) return -1;
     return this_proc()->parent->pid;
 }
 
 static inline int gettid()
 {
+    if (this_thread() == nullptr) return -1;
     return this_thread()->tid;
 }

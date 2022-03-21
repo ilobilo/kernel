@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 static constexpr uint64_t CPUID_INVARIANT_TSC = (1 << 8);
 static constexpr uint64_t CPUID_TSC_DEADLINE = (1 << 24);

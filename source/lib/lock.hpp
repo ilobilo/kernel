@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 
 class lock_t
 {

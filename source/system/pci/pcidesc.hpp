@@ -3,7 +3,7 @@
 #pragma once
 
 #include <lib/string.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::system::pci {
 

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 uint8_t flip8(uint8_t num, size_t bits);
 uint16_t flip16(uint16_t num);

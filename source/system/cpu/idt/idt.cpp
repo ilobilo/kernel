@@ -189,6 +189,6 @@ extern "C" void int_handler(registers_t *regs)
 {
     if (regs->int_no < 32) exception_handler(regs);
     else if (regs->int_no >= 32 && regs->int_no < 256) irq_handler(regs);
-    else PANIC("Unknown interrupt!");
+    else panic("Unknown interrupt!");
 }
 }

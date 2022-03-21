@@ -1,8 +1,8 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <kernel/kernel.hpp>
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 uint64_t getmemsize()
 {

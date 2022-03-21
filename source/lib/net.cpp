@@ -1,7 +1,7 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 
 uint8_t flip8(uint8_t num, size_t bits)
 {

@@ -6,7 +6,7 @@
 #include <lib/buddy.hpp>
 #include <lib/panic.hpp>
 #include <lib/slab.hpp>
-#include <stddef.h>
+#include <cstddef>
 
 enum allocs
 {
@@ -15,14 +15,14 @@ enum allocs
     SLAB
 };
 
-static allocs allocator = SLAB;
+static allocs defalloc = SLAB;
 
 extern BuddyAlloc buddyheap;
 extern SlabAlloc slabheap;
 
 static inline void *malloc(size_t size, bool calloc = true)
 {
-    switch (allocator)
+    switch (defalloc)
     {
         case LIBALLOC:
             if (calloc) return liballoc_calloc(1, size);
@@ -37,13 +37,13 @@ static inline void *malloc(size_t size, bool calloc = true)
             return slabheap.malloc(size);
             break;
     }
-    PANIC("No default allocator!");
+    panic("No default allocator!");
     return nullptr;
 }
 
 static inline void *calloc(size_t num, size_t size)
 {
-    switch (allocator)
+    switch (defalloc)
     {
         case LIBALLOC:
             return liballoc_calloc(num, size);
@@ -55,13 +55,13 @@ static inline void *calloc(size_t num, size_t size)
             return slabheap.calloc(num, size);
             break;
     }
-    PANIC("No default allocator!");
+    panic("No default allocator!");
     return nullptr;
 }
 
 static inline void *realloc(void *ptr, size_t size)
 {
-    switch (allocator)
+    switch (defalloc)
     {
         case LIBALLOC:
             return liballoc_realloc(ptr, size);
@@ -73,13 +73,13 @@ static inline void *realloc(void *ptr, size_t size)
             return slabheap.realloc(ptr, size);
             break;
     }
-    PANIC("No default allocator!");
+    panic("No default allocator!");
     return nullptr;
 }
 
 static inline void free(void *ptr)
 {
-    switch (allocator)
+    switch (defalloc)
     {
         case LIBALLOC:
             return liballoc_free(ptr);
@@ -91,13 +91,13 @@ static inline void free(void *ptr)
             return slabheap.free(ptr);
             break;
     }
-    PANIC("No default allocator!");
+    panic("No default allocator!");
     return;
 }
 
 static inline size_t allocsize(void *ptr)
 {
-    switch (allocator)
+    switch (defalloc)
     {
         case LIBALLOC:
             return liballoc_allocsize(ptr);
@@ -109,7 +109,7 @@ static inline size_t allocsize(void *ptr)
             return slabheap.allocsize(ptr);
             break;
     }
-    PANIC("No default allocator!");
+    panic("No default allocator!");
     return 0;
 }
 

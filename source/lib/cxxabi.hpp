@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 static constexpr uint64_t ATEXIT_MAX_FUNCS = 128;
 

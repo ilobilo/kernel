@@ -2,7 +2,7 @@
 
 #include <system/sched/rtc/rtc.hpp>
 #include <lib/math.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace kernel::system::sched;
 

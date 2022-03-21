@@ -63,11 +63,11 @@ static void cpu_init(stivale2_smp_info *cpu)
         // }
         // wrxcr(0, xcr0);
 
-        ASSERT(__get_cpuid_count(0x0D, 0, &a, &b, &c, &d), "CPUID failure");
+        assert(__get_cpuid_count(0x0D, 0, &a, &b, &c, &d), "CPUID failure");
         this_cpu->fpu_storage_size = c;
         this_cpu->fpu_restore = xrstor;
 
-        ASSERT(__get_cpuid_count(0x0D, 1, &a, &b, &c, &d), "CPUID failure");
+        assert(__get_cpuid_count(0x0D, 1, &a, &b, &c, &d), "CPUID failure");
         if (a & bit_XSAVEOPT) this_cpu->fpu_save = xsaveopt;
         else this_cpu->fpu_save = xsave;
     }
@@ -79,7 +79,7 @@ static void cpu_init(stivale2_smp_info *cpu)
         this_cpu->fpu_save = fxsave;
         this_cpu->fpu_restore = fxrstor;
     }
-    else PANIC("No known SIMD save mechanism");
+    else panic("No known SIMD save mechanism");
 
     log("CPU %ld is up", this_cpu->id);
     this_cpu->is_up = true;

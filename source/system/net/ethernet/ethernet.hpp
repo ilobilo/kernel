@@ -3,7 +3,7 @@
 #pragma once
 
 #include <drivers/net/nicmgr/nicmgr.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace kernel::drivers::net;
 

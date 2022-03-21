@@ -1,5 +1,5 @@
 #include <lib/cxxabi.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 extern "C" {
 

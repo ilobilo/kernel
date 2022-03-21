@@ -3,7 +3,7 @@
 #pragma once
 
 #include <lib/math.hpp>
-#include <stdint.h>
+#include <cstdint>
 
 namespace kernel::drivers::ps2 {
 
@@ -130,5 +130,6 @@ void mouseclear();
 char getchar();
 [[clang::optnone]] char *getline();
 
+void reboot();
 void init();
 }
