@@ -1,7 +1,7 @@
 LIBDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ROOTDIR := $(shell dirname $(LIBDIR))
 
-all: lai stivale2.h cxxshim
+all: lai stivale2.h cxxshim scalable-font2
 
 lai:
 	echo "Downloading lai"
@@ -15,5 +15,9 @@ cxxshim:
 	echo "Downloading cxxshim"
 	git clone --single-branch --branch=master --depth=1 https://github.com/managarm/cxxshim || echo "\e[31mFailed to download cxxshim!\e[0m"
 
+scalable-font2:
+	echo "Downloading scalable-font2"
+	git clone --single-branch --branch=master --depth=1 https://gitlab.com/bztsrc/scalable-font2 || echo "\e[31mFailed to download ssfn!\e[0m"
+
 clean:
-	rm -rf $(LIBDIR)/lai $(LIBDIR)/stivale2.h $(LIBDIR)/cxxshim
+	rm -rf lai stivale2.h cxxshim scalable-font2

@@ -340,7 +340,7 @@ void dump_vfs(fs_node_t *current_node = fs_root);
 
 void init();
 
-static auto path2node(fs_node_t *parent, string path)
+static inline auto path2node(fs_node_t *parent, string path)
 {
     struct ret { fs_node_t *parent; fs_node_t *node; string basename; };
     ret null = { nullptr, nullptr, "" };

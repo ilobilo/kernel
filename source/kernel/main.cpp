@@ -70,9 +70,11 @@ void time()
         uint64_t free = pmm::freemem() / 1024;
 
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
-        ssfn::printfat(0, 0, "\rCurrent RTC time: %s", rtc::getTime());
-        ssfn::printfat(0, 1, "\rMaximum stack usage: %zu Bytes, Free RAM: %ld KB", STACK_SIZE - size, free);
-        ssfn::printfat(0, 2, "\rProcess count: %zu, Thread count: %zu", scheduler::proc_count, scheduler::thread_count);
+        ssfn::setpos(0, 0);
+
+        ssfn::printf("Current RTC time: %s\n", rtc::getTime());
+        ssfn::printf("Maximum stack usage: %zu Bytes, Free RAM: %ld KB\n", STACK_SIZE - size, free);
+        ssfn::printf("Process count: %zu, Thread count: %zu", scheduler::proc_count, scheduler::thread_count);
     }
 }
 

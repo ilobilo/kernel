@@ -3,7 +3,6 @@
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
-#include <lib/memory.hpp>
 #include <lib/alloc.hpp>
 #include <lib/log.hpp>
 

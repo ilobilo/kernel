@@ -52,15 +52,18 @@ CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=$(NET_DEBUG) -DLVL5_PAGING=$(LVL5_PAGING) -g
 
-CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function
+CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter -Wno-register
 
 LDFLAGS = 
 ASMFLAGS = -f elf64 -g
 
 INCLUDES := \
 	-I$(SOURCEDIR)/ \
+	-I$(SOURCEDIR)/wrappers/ \
 	-I$(LIBDIR)/ \
+	-I$(LIBDIR)/incbin/ \
 	-I$(LIBDIR)/lai/include/ \
+	-I$(LIBDIR)/scalable-font2/ \
 	-I$(LIBDIR)/cxxshim/stage2/include/ \
 	-I$(LIBDIR)/cxxshim/std-coroutine/include/
 

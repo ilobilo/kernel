@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <lib/vector.hpp>
 #include <lib/string.hpp>
+#include <lib/vector.hpp>
 #include <lib/log.hpp>
 #include <cstdint>
 

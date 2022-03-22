@@ -1,4 +1,6 @@
 #include <lib/cxxabi.hpp>
+#include <lib/panic.hpp>
+#include <lib/lock.hpp>
 #include <cstdint>
 
 extern "C" {
@@ -45,6 +47,25 @@ void __cxa_finalize(void *func)
     };
 };
 
-void __cxa_pure_virtual() { }
+namespace __cxxabiv1
+{
+    int __cxa_guard_acquire(uint64_t *guard)
+    {
+        reinterpret_cast<lock_t*>(guard)->lock();
+        return static_cast<int>(reinterpret_cast<uint64_t>(guard));
+    }
+    void __cxa_guard_release(uint64_t *guard)
+    {
+        reinterpret_cast<lock_t*>(guard)->unlock();
+    }
+    void __cxa_guard_abort(uint64_t *guard)
+    {
+        panic("__cxa_guard_abort was called!");
+    }
+}
 
+void __cxa_pure_virtual()
+{
+    panic("Pure virtual function called!");
+}
 }

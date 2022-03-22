@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <lib/math.hpp>
+
 namespace kernel::drivers::display::ssfn {
 
 extern uint64_t bgcolour;
