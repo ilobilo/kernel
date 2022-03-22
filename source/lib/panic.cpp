@@ -5,7 +5,10 @@
 #include <cstddef>
 #include <utility>
 
-using namespace kernel::drivers::display;
+namespace kernel::system::sched::scheduler
+{
+    void kill();
+}
 
 [[noreturn]] void panic(const char *message, std::source_location location)
 {
@@ -23,5 +26,6 @@ using namespace kernel::drivers::display;
     printf("\n[\033[31mPANIC\033[0m] Column: %u", location.column());
     printf("\n[\033[31mPANIC\033[0m] System halted!\n");
 
+    kernel::system::sched::scheduler::kill();
     while (true) asm volatile ("cli; hlt");
 }

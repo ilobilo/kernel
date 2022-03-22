@@ -1,13 +1,13 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <lib/memory.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 #include <lib/alloc.hpp>
 #include <lib/math.hpp>
+#include <limits.h>
 #include <cstdint>
 #include <cstddef>
-#include <limits.h>
 
 printer cout(printf);
 printer coutl(log);
@@ -47,11 +47,6 @@ printer &printer::operator<<(unsigned int i)
     lockit(this->lock);
     if (this->func) this->func("%zu", i);
     return *this;
-}
-
-char *operator"" _c(const char *str, size_t length)
-{
-    return const_cast<char*>(str);
 }
 
 size_t strlen(const char *str)

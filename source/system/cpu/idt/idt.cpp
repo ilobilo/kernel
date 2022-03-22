@@ -175,7 +175,7 @@ static void exception_handler(registers_t *regs)
     //     asm volatile ("sti");
     // }
     scheduler::kill();
-    asm volatile ("cli; hlt");
+    while (true) asm volatile ("cli; hlt");
 }
 
 static void irq_handler(registers_t *regs)

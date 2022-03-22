@@ -115,7 +115,7 @@ Contributors are welcome
 Make sure you have following programs installed:
 * Clang
 * lld
-* LLVM
+* llvm
 * Make
 * Nasm
 * Qemu x86-64
@@ -126,13 +126,16 @@ Make sure you have following programs installed:
 If you have Debian based system (Ubuntu, linux mint, Pop_os! etc) you can install them with this command:\
 ```sudo apt install clang lld make nasm qemu-system-x86 xorriso wget tar```
 
-Follow this steps to build and run the os
+Follow these steps to build and run the os
 1. Clone this repo with:\
-``git clone --single-branch --branch master --depth 1 https://github.com/ilobilo/kernel``
+``git clone --single-branch --branch=master --depth=1 https://github.com/ilobilo/kernel``
 
 2. Go to the root directory of cloned repo and run:\
-``make -j$(nproc --all)`` For UEFI\
-``make bios -j$(nproc --all)`` For BIOS\
+``make -j$(nproc --all)`` For UEFI mode\
+``make bios -j$(nproc --all)`` For BIOS mode
+
+If you, for some reason, are on Termux, run this command instead and connect to ``127.0.0.1:5901`` with VNC viewer:\
+``make vnc -j$(nproc --all)``
 
 ## Discord server
 https://discord.gg/fM5GK3RpS7

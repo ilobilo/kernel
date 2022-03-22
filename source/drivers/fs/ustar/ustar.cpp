@@ -4,8 +4,8 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/vfs/vfs.hpp>
 #include <kernel/kernel.hpp>
-#include <lib/memory.hpp>
 #include <lib/string.hpp>
+#include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/log.hpp>
 
