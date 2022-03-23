@@ -12,7 +12,7 @@ uint64_t bgcolour;
 uint64_t fgcolour = 0xFFFFFF;
 point pos;
 
-void printc(char c, void *arg)
+void putc(char c, void *arg)
 {
     ssfn_putc(c);
 }
@@ -28,90 +28,34 @@ void setcolour(uint64_t fg, uint64_t bg)
 
 void setpos(uint64_t x, uint64_t y)
 {
-    x++;
-    y++;
-    pos.X = x * 8 - 8;
-    pos.Y = y * 16 - 16;
-
-    ssfn_dst.x = pos.X;
-    ssfn_dst.y = pos.Y;
+    pos.X = ssfn_dst.x = x * 8;
+    pos.Y = ssfn_dst.y = y * 16;
 }
 
-void setppos(uint64_t x, uint64_t y)
+void resetpos()
 {
-    pos.X = x;
-    pos.Y = y;
-
-    ssfn_dst.x = pos.X;
-    ssfn_dst.y = pos.Y;
+    pos.X = ssfn_dst.x = 0;
+    pos.Y = ssfn_dst.y = 0;
 }
 
 void printf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vfctprintf(&printc, nullptr, fmt, args);
+    vfctprintf(&putc, nullptr, fmt, args);
     va_end(args);
-
-    pos.X = ssfn_dst.x / 8;
-    pos.Y = ssfn_dst.y / 16;
 }
 
-void printfat(uint64_t x, uint64_t y, const char *fmt, ...)
+void init(uint64_t sfn)
 {
-    x++;
-    y++;
-    ssfn_dst.x = x * 8 - 8;
-    ssfn_dst.y = y * 16 - 16;
-
-    va_list args;
-    va_start(args, fmt);
-    vfctprintf(&printc, nullptr, fmt, args);
-    va_end(args);
-
-    pos.X = ssfn_dst.x / 8;
-    pos.Y = ssfn_dst.y / 16;
-}
-
-void pprintf(const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    vfctprintf(&printc, nullptr, fmt, args);
-    va_end(args);
-
-    pos.X = ssfn_dst.x;
-    pos.Y = ssfn_dst.y;
-}
-
-void pprintfat(uint64_t x, uint64_t y, const char *fmt, ...)
-{
-    ssfn_dst.x = x;
-    ssfn_dst.y = y;
-
-    va_list args;
-    va_start(args, fmt);
-    vfctprintf(&printc, nullptr, fmt, args);
-    va_end(args);
-
-    pos.X = ssfn_dst.x;
-    pos.Y = ssfn_dst.y;
-}
-
-extern "C" uint64_t _binary_font_sfn_start;
-void init()
-{
-    ssfn_src = reinterpret_cast<ssfn_font_t*>(&_binary_font_sfn_start);
+    ssfn_src = reinterpret_cast<ssfn_font_t*>(sfn);
 
     ssfn_dst.ptr = reinterpret_cast<uint8_t*>(framebuffer::frm_addr);
     ssfn_dst.w = framebuffer::frm_width;
     ssfn_dst.h = framebuffer::frm_height;
     ssfn_dst.p = framebuffer::frm_pitch;
-    ssfn_dst.x = ssfn_dst.y = 0;
-    pos.X = 0;
-    pos.Y = 0;
+    ssfn_dst.x = ssfn_dst.y = pos.X = pos.Y = 0;
     ssfn_dst.fg = fgcolour;
-    ssfn_dst.bg = bgcolour;
 }
 }
 
@@ -120,6 +64,7 @@ void init()
 // #include <drivers/display/framebuffer/framebuffer.hpp>
 // #include <drivers/display/terminal/terminal.hpp>
 // #define SSFN_CONSOLEBITMAP_TRUECOLOR
+// #define SSFN_CONSOLEBITMAP_CONTROL
 // #define SSFN_IMPLEMENTATION
 // #define __THROW
 // #include <ssfn.h>
@@ -144,7 +89,7 @@ void init()
 
 // void printc(char c, void *arg)
 // {
-//     error("%s", font.ErrorStr(font.Render(&buf, tostr(c))).c_str());
+//     font.Render(&buf, tostr(c));
 // }
 
 // void setcolour(uint64_t fg, uint64_t bg)
@@ -228,9 +173,13 @@ void init()
 //     pos.Y = buf.y;
 // }
 
-// extern "C" uint64_t _binary_font_sfn_start;
-// [[gnu::constructor]] void init()
+// void init(uint8_t *sfn)
 // {
-//     font.Load(reinterpret_cast<char*>(&_binary_font_sfn_start));
+//     error("%s", font.ErrorStr(font.Load(sfn)).c_str());
+//     error("%s", font.ErrorStr(font.Select(SSFN_FAMILY_ANY, nullptr, SSFN_STYLE_REGULAR, 16)).c_str());
+//     char *str = "Hello, World!"_c;
+//     int i = 1;
+//     while ((i = font.Render(&buf, str)) > 0) str += i;
+//     if (i < 0) error("%s", font.ErrorStr(i).c_str());
 // }
 // }

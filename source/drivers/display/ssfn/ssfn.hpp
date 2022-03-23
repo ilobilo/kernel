@@ -13,13 +13,10 @@ extern point pos;
 void setcolour(uint64_t fg = fgcolour, uint64_t bg = bgcolour);
 
 void setpos(uint64_t x, uint64_t y);
-void setppos(uint64_t x, uint64_t y);
+void resetpos();
 
 void printf(const char *fmt, ...);
 void printfat(uint64_t x, uint64_t y, const char *fmt, ...);
 
-void pprintf(const char *fmt, ...);
-void pprintfat(uint64_t x, uint64_t y, const char *fmt, ...);
-
-void init();
+void init(uint64_t sfn);
 }

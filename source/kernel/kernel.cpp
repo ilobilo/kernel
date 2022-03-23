@@ -133,7 +133,6 @@ extern "C" void _start(stivale2_struct *stivale2_struct)
 
     assert(frm_tag, "Could not get framebuffer structure tag!");
     framebuffer::init();
-    ssfn::init();
 
     assert(smp_tag, "Could not get smp structure tag!");
     assert(mmap_tag, "Could not get memmap structure tag!");

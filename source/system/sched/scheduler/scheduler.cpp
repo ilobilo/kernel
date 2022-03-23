@@ -8,6 +8,7 @@
 #include <system/cpu/smp/smp.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
+#include <lib/bitmap.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::system::cpu;
@@ -17,7 +18,7 @@ namespace kernel::system::sched::scheduler {
 bool debug = false;
 static bool die = false;
 
-static uint64_t next_pid = 1;
+Bitmap pids;
 static uint8_t sched_vector = 0;
 
 vector<process_t*> proc_table;
@@ -29,6 +30,20 @@ size_t thread_count = 0;
 new_lock(thread_lock);
 new_lock(sched_lock);
 new_lock(proc_lock);
+
+int alloc_pid()
+{
+    if (pids.buffer == nullptr) pids.buffer = new uint8_t[(max_procs - 1) / 8 + 1];
+    for (size_t i = 1; i < max_procs; i++)
+    {
+        if (pids[i] == false)
+        {
+            pids.Set(i, true);
+            return i;
+        }
+    }
+    return -1;
+}
 
 void yield(uint64_t ms)
 {
@@ -55,9 +70,8 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
     this->stack = this->stack_phys + hhdm_tag->addr;
 
-    if (user == true) this->map_user();
-
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_tag->addr;
+    this->fpu_storage_size = this_cpu->fpu_storage_size;
 
     this->regs.rflags = 0x202;
     this->regs.cs = (user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
@@ -86,7 +100,42 @@ bool thread_t::map_user()
     this->parent->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE / 0x1000, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
     this->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
 
+    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
+
     return true;
+}
+
+thread_t *thread_t::fork(registers_t *regs)
+{
+    lockit(thread_lock);
+
+    thread_t *newthread = new thread_t;
+
+    newthread->state = INITIAL;
+    newthread->stack_phys = malloc<uint8_t*>(STACK_SIZE);
+    newthread->stack = newthread->stack_phys + hhdm_tag->addr;
+
+    newthread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_tag->addr;
+    newthread->fpu_storage_size = this->fpu_storage_size;
+    memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
+
+    newthread->regs = *regs;
+
+    // newthread->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
+    // newthread->regs.rdi = reinterpret_cast<uint64_t>(regs->rip);
+
+    newthread->regs.rflags = 0x202;
+    newthread->regs.cs = (this->user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
+    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
+
+    newthread->regs.rsp = reinterpret_cast<uint64_t>(newthread->stack) + STACK_SIZE;
+
+    newthread->priority = this->priority;
+    newthread->parent = this->parent;
+
+    newthread->user = this->user;
+
+    return newthread;
 }
 
 thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user)
@@ -94,6 +143,7 @@ thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priorit
     lockit(proc_lock);
 
     thread_t *thread = new thread_t(addr, args, this, priority, user);
+    if (user == true) thread->map_user();
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -109,6 +159,7 @@ thread_t *process_t::add_thread(thread_t *thread)
     lockit(proc_lock);
 
     if (thread->parent != this) thread->parent = this;
+    if (thread->user == true) thread->map_user();
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -139,7 +190,7 @@ process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t prior
     lockit(proc_lock);
 
     this->name = name;
-    this->pid = next_pid++;
+    this->pid = alloc_pid();
     this->state = INITIAL;
 
     this->pagemap = vmm::newPagemap();
@@ -155,7 +206,7 @@ process_t::process_t(string name)
     lockit(proc_lock);
 
     this->name = name;
-    this->pid = next_pid++;
+    this->pid = alloc_pid();
     this->state = INITIAL;
 
     this->pagemap = vmm::newPagemap();
@@ -282,6 +333,12 @@ void clean_proc(process_t *proc)
             free(thread);
             thread_count--;
         }
+        for (size_t i = 0; i < max_fds; i++)
+        {
+            if (proc->fds[i] == nullptr) continue;
+            vfs::fdnum_close(proc, i);
+        }
+
         process_t *parentproc = proc->parent;
         if (parentproc != nullptr)
         {
@@ -292,6 +349,7 @@ void clean_proc(process_t *proc)
                 clean_proc(parentproc);
             }
         }
+        pids.Set(proc->pid, false);
         free(proc->pagemap);
         free(proc);
         proc_count--;

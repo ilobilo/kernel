@@ -5,8 +5,8 @@ LIBDIR := $(ROOTDIR)/extlibs
 LIMINEDIR = $(ROOTDIR)/limine
 
 BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
-FONT = $(SOURCEDIR)/misc/font.bin
-SFNFONT = $(SOURCEDIR)/misc/font.sfn
+TERMFONT = $(SOURCEDIR)/misc/unifont.bin
+SFNFONT = $(SOURCEDIR)/misc/unifont.sfn
 
 INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
@@ -139,7 +139,7 @@ vnc: $(KERNEL) initrd
 $(KERNEL):
 	$(MAKE) $(OBJ)
 	@printf "LD\t%s\n" $(KERNEL:$(ROOTDIR)/%=%)
-	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(SFNFONT) $(OBJ) -o $@
+	$(LD) $(LDFLAGS) $(INTERNALLDFLAGS) $(OBJ) -o $@
 
 %.o: %.c
 	@printf "CC\t%s\n" $(<:$(ROOTDIR)/%=%)
@@ -167,7 +167,7 @@ initrd:
 	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
 
 iso:
-	cp $(KERNEL) $(BACKGROUND) $(FONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \
+	cp $(KERNEL) $(BACKGROUND) $(TERMFONT) $(SFNFONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \
 		$(LIMINEDIR)/limine-cd.bin $(LIMINEDIR)/limine-eltorito-efi.bin $(ROOTDIR)/iso_root/
 
 	@printf "XORRISO\t%s\n" $(ISO:$(ROOTDIR)/%=%)

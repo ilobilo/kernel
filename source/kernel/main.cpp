@@ -58,6 +58,10 @@ namespace kernel {
 
 void time()
 {
+    stivale2_module *ssfn_mod = find_module("sfn");
+    if (ssfn_mod == nullptr) return;
+    ssfn::init(ssfn_mod->begin);
+
     while (true)
     {
         size_t size = 0;
@@ -70,7 +74,7 @@ void time()
         uint64_t free = pmm::freemem() / 1024;
 
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
-        ssfn::setpos(0, 0);
+        ssfn::resetpos();
 
         ssfn::printf("Current RTC time: %s\n", rtc::getTime());
         ssfn::printf("Maximum stack usage: %zu Bytes, Free RAM: %ld KB\n", STACK_SIZE - size, free);

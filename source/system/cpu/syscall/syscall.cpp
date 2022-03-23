@@ -124,6 +124,36 @@ static void syscall_getpid(registers_t *regs)
     RDX_ERRNO = 0;
 }
 
+static void syscall_fork(registers_t *regs)
+{
+    auto *oldproc = this_proc();
+    auto *newproc = new scheduler::process_t();
+
+    newproc->name = oldproc->name;
+    newproc->pid = scheduler::alloc_pid();
+    newproc->state = scheduler::INITIAL;
+
+    newproc->pagemap = vmm::clonePagemap(oldproc->pagemap);
+    newproc->current_dir = oldproc->current_dir;
+    newproc->parent = oldproc;
+
+    for (size_t i = 0; i < scheduler::max_fds; i++)
+    {
+        if (oldproc->fds[i] == nullptr) continue;
+        vfs::fdnum_dup(oldproc, i, newproc, i, 0, true, false);
+    }
+
+    for (auto *oldthread : oldproc->threads)
+    {
+        newproc->add_thread(oldthread->fork(regs));
+    }
+
+    newproc->table_add();
+
+    RAX_RET = newproc->pid;
+    RDX_ERRNO = 0;
+}
+
 static void syscall_exit(registers_t *regs)
 {
     this_proc()->exit();
@@ -181,14 +211,7 @@ static void syscall_getcwd(registers_t *regs)
         return;
     }
 
-    scheduler::process_t *proc = this_proc();
-    if (proc == nullptr)
-    {
-        RAX_RET = -1;
-        RDX_ERRNO = EINVAL;
-        return;
-    }
-    string cwd(vfs::node2path(proc->current_dir));
+    string cwd(vfs::node2path(this_proc()->current_dir));
     if (cwd.length() >= RSI_ARG1)
     {
         RAX_RET = -1;
@@ -210,15 +233,7 @@ static void syscall_chdir(registers_t *regs)
         return;
     }
 
-    scheduler::process_t *proc = this_proc();
-    if (proc == nullptr)
-    {
-        RAX_RET = -1;
-        RDX_ERRNO = EINVAL;
-        return;
-    }
-
-    vfs::fs_node_t *node = vfs::get_node(proc->current_dir, path, true);
+    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path, true);
     if (node == nullptr)
     {
         RAX_RET = -1;
@@ -231,7 +246,7 @@ static void syscall_chdir(registers_t *regs)
         RDX_ERRNO = ENOTDIR;
         return;
     }
-    proc->current_dir = node;
+    this_proc()->current_dir = node;
     RAX_RET = 0;
     RDX_ERRNO = 0;
 }
@@ -272,15 +287,7 @@ static void syscall_chmod(registers_t *regs)
         return;
     }
 
-    scheduler::process_t *proc = this_proc();
-    if (proc == nullptr)
-    {
-        RAX_RET = -1;
-        RDX_ERRNO = EINVAL;
-        return;
-    }
-
-    vfs::fs_node_t *node = vfs::get_node(proc->current_dir, path);
+    vfs::fs_node_t *node = vfs::get_node(this_proc()->current_dir, path);
     if (node == nullptr)
     {
         RAX_RET = -1;
@@ -753,7 +760,7 @@ syscall_t syscalls[] = {
     [SYSCALL_IOCTL] = syscall_ioctl,
     [SYSCALL_ACCESS] = syscall_access,
     [SYSCALL_GETPID] = syscall_getpid,
-    [SYSCALL_OPENAT] = syscall_openat,
+    [SYSCALL_FORK] = syscall_fork,
     [SYSCALL_EXIT] = syscall_exit,
     [SYSCALL_UNAME] = syscall_uname,
     [SYSCALL_GETCWD] = syscall_getcwd,
@@ -770,6 +777,7 @@ syscall_t syscalls[] = {
     [SYSCALL_GETPPID] = syscall_getppid,
     [SYSCALL_REBOOT] = syscall_reboot,
     [SYSCALL_TIME] = syscall_time,
+    [SYSCALL_OPENAT] = syscall_openat,
     [SYSCALL_MKDIRAT] = syscall_mkdirat,
     [SYSCALL_UNLINKAT] = syscall_unlinkat,
     [SYSCALL_LINKAT] = syscall_linkat,
