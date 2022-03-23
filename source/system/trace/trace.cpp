@@ -3,7 +3,6 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/trace/trace.hpp>
 #include <kernel/kernel.hpp>
-#include <lib/vector.hpp>
 #include <lib/log.hpp>
 #include <elf.h>
 
@@ -11,18 +10,16 @@ using namespace kernel::drivers::display;
 
 namespace kernel::system::trace {
 
-vector<symtable_t> symbol_table;
+symtable_t *symbol_table;
 static size_t entries = 1;
 
 symtable_t lookup(uint64_t addr)
 {
     symtable_t result { 0, "<unknown>" };
-    for (symtable_t entry : symbol_table)
+    for (size_t i = 0; i < entries; i++)
     {
-        if (entry.addr <= addr && entry.addr > result.addr)
-        {
-            result = entry;
-        }
+        symtable_t entry = symbol_table[i];
+        if (entry.addr <= addr && entry.addr > result.addr) result = entry;
     }
     return result;
 }
@@ -96,9 +93,16 @@ void init()
         entries--;
     }
 
+    symbol_table = new symtable_t[entries];
+
     for (size_t i = 0, entriesbck = entries; i < entriesbck; i++)
     {
-        symbol_table.push_back(symtable_t { symtab[i].st_value, string(&strtab[symtab[i].st_name]) });
+        symtable_t sym
+        {
+            symtab[i].st_value,
+            string(&strtab[symtab[i].st_name])
+        };
+        symbol_table[i] = sym;
     }
 }
 }

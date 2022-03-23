@@ -92,6 +92,7 @@ Contributors are welcome
 ### Userspace
 - [x] System calls
 - [ ] ELF
+- [ ] Signals
 - [ ] Userspace
 - [ ] Libc
 - [ ] Bash
@@ -154,3 +155,4 @@ https://discord.gg/fM5GK3RpS7
 * CWalk: https://github.com/likle/cwalk
 * String: https://github.com/cocoz1/cpp-string
 * Cxxshim: https://github.com/managarm/cxxshim
+* Unifont: https://ftp.gnu.org/gnu/unifont/unifont-14.0.02

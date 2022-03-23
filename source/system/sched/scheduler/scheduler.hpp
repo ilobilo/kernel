@@ -12,6 +12,7 @@ using namespace kernel::system::mm;
 
 namespace kernel::system::sched::scheduler {
 
+static constexpr uint64_t max_procs = 65536;
 static constexpr uint64_t max_fds = 256;
 
 enum state_t
@@ -41,6 +42,7 @@ struct thread_t
     uint8_t *stack;
     uint8_t *stack_phys;
     uint8_t *fpu_storage;
+    size_t fpu_storage_size;
     registers_t regs;
     process_t *parent;
     priority_t priority;
@@ -49,6 +51,8 @@ struct thread_t
     thread_t() { };
 
     bool map_user();
+
+    thread_t *fork(registers_t *regs);
 
     void block();
     void unblock();
@@ -92,6 +96,8 @@ extern vector<process_t*> proc_table;
 
 extern size_t proc_count;
 extern size_t thread_count;
+
+int alloc_pid();
 
 void yield(uint64_t ms = 1);
 void schedule(registers_t *regs);
