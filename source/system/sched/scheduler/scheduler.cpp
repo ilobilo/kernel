@@ -97,7 +97,7 @@ bool thread_t::map_user()
     uint64_t stack_bottom_vma = this->parent->thread_stack_top;
     this->parent->thread_stack_top -= 0x1000;
 
-    this->parent->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE / 0x1000, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
+    this->parent->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
     this->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
 
     this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;

@@ -8,6 +8,9 @@
 
 namespace kernel::system::mm::vmm {
 
+static uint64_t large_page_size = 0x200000;
+static uint64_t page_size = 0x1000;
+
 enum PT_Flag
 {
     Present = (1 << 0),
@@ -73,18 +76,18 @@ struct Pagemap
     lock_t lock;
     PTable *TOPLVL = nullptr;
 
-    PDEntry *virt2pte(uint64_t vaddr, bool allocate = true);
+    PDEntry *virt2pte(uint64_t vaddr, bool allocate = true, bool hugepages = false);
 
-    void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite));
-    void mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t pagecount, uint64_t flags = (Present | ReadWrite));
+    void mapMem(uint64_t vaddr, uint64_t paddr, uint64_t flags = (Present | ReadWrite), bool hugepages = false);
+    void mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t size, uint64_t flags = (Present | ReadWrite), bool hugepages = false);
 
     void remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags = (Present | ReadWrite));
 
-    void unmapMem(uint64_t vaddr);
-    void unmapMemRange(uint64_t vaddr, uint64_t pagecount);
+    void unmapMem(uint64_t vaddr, bool hugepages = false);
+    void unmapMemRange(uint64_t vaddr, uint64_t pagecount, bool hugepages = false);
 
-    void setflags(uint64_t vaddr, uint64_t flags, bool enabled = true);
-    bool getflags(uint64_t vaddr, uint64_t flags);
+    void setflags(uint64_t vaddr, uint64_t flags, bool hugepages = false, bool enabled = true);
+    bool getflags(uint64_t vaddr, uint64_t flags, bool hugepages = false);
 };
 
 extern bool initialised;
