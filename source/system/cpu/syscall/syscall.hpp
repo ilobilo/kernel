@@ -64,6 +64,8 @@ extern bool initialised;
 [[gnu::naked]] static inline syscall_ret syscall(size_t number, ...)
 {
     asm volatile (
+        "push %rbp \n\t"
+        "mov %rsp, %rbp \n\t"
         "mov %rdi, %rax \n\t"
         "mov %rsi, %rdi \n\t"
         "mov %rdx, %rsi \n\t"
@@ -72,6 +74,8 @@ extern bool initialised;
         "mov %r9, %r8 \n\t"
         "mov 8(%rsp), %r9 \n\t"
         "int $0x69 \n\t"
+        "mov %rbp, %rsp \n\t"
+        "pop %rbp \n\t"
         "ret"
     );
 }

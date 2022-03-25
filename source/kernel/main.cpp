@@ -156,7 +156,7 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    scheduler::process_t *proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH, false);
+    auto proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH, false);
     proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW, false);
     proc->table_add();
 

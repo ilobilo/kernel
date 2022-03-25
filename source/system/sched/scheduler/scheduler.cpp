@@ -120,15 +120,18 @@ thread_t *thread_t::fork(registers_t *regs)
     memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
 
     newthread->regs = *regs;
-
-    // newthread->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
-    // newthread->regs.rdi = reinterpret_cast<uint64_t>(regs->rip);
+    newthread->regs.rax = 0;
+    newthread->regs.rdx = 0;
 
     newthread->regs.rflags = 0x202;
     newthread->regs.cs = (this->user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
-    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
+    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);\
 
-    newthread->regs.rsp = reinterpret_cast<uint64_t>(newthread->stack) + STACK_SIZE;
+    uint64_t offset = reinterpret_cast<uint64_t>(newthread->stack) - reinterpret_cast<uint64_t>(this->stack);
+    newthread->regs.rsp += offset;
+    newthread->regs.rbp += offset;
+
+    memcpy(newthread->stack, this->stack, STACK_SIZE);
 
     newthread->priority = this->priority;
     newthread->parent = this->parent;
@@ -435,17 +438,22 @@ void schedule(registers_t *regs)
     }
     else
     {
-        for (size_t t = this_proc()->threads.find(this_thread()) + 1; t < this_proc()->threads.size(); t++)
+        size_t this_proc_id = proc_table.find(this_proc());
+        size_t this_thread_id = this_proc()->threads.find(this_thread());
+
+        for (size_t t = this_thread_id + 1; t < this_proc()->threads.size(); t++)
         {
             thread_t *thread = this_proc()->threads[t];
 
             if (this_proc()->state != READY) break;
             if (thread->state != READY) continue;
 
+            clean_proc(this_proc());
+
             timeslice = switchThread(regs, thread);
             goto success;
         }
-        for (size_t p = proc_table.find(this_proc()) + 1; p < proc_table.size(); p++)
+        for (size_t p = this_proc_id + 1; p < proc_table.size(); p++)
         {
             process_t *proc = proc_table[p];
             if (proc->state != READY) continue;
@@ -461,7 +469,7 @@ void schedule(registers_t *regs)
                 goto success;
             }
         }
-        for (size_t p = 0; p < proc_table.find(this_proc()) + 1; p++)
+        for (size_t p = 0; p < this_proc_id + 1; p++)
         {
             process_t *proc = proc_table[p];
             if (proc->state != READY) continue;
@@ -529,7 +537,7 @@ void init()
             idt::idt_set_descriptor(idt::IRQ0, idt::int_table[idt::IRQ0], 0x8E, 1);
             idt_init = true;
         }
-        pit::schedule = true;
+        if (initproc != nullptr) pit::schedule = true;
     }
     while (true) asm volatile ("hlt");
 }
