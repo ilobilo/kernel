@@ -91,7 +91,7 @@ Contributors are welcome
 
 ### Userspace
 - [x] System calls
-- [ ] ELF
+- [x] ELF
 - [ ] Signals
 - [ ] Userspace
 - [ ] Libc

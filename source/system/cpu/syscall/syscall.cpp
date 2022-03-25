@@ -133,9 +133,11 @@ static void syscall_fork(registers_t *regs)
     newproc->pid = scheduler::alloc_pid();
     newproc->state = scheduler::INITIAL;
 
-    newproc->pagemap = vmm::clonePagemap(oldproc->pagemap);
+    newproc->pagemap = oldproc->pagemap->fork();
     newproc->current_dir = oldproc->current_dir;
     newproc->parent = oldproc;
+    newproc->thread_stack_top = oldproc->thread_stack_top;
+    newproc->mmap_anon_base = oldproc->mmap_anon_base;
 
     for (size_t i = 0; i < scheduler::max_fds; i++)
     {

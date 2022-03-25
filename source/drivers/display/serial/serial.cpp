@@ -49,7 +49,6 @@ static char read(COMS com = COM1)
 
 void printc(char c, void *arg)
 {
-    if (!initialised) return;
     while (!is_transmit_empty());
     outb(reinterpret_cast<uintptr_t>(arg), c);
 }

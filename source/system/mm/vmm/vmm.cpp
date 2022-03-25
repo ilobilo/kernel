@@ -2,6 +2,7 @@
 
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <system/sched/scheduler/scheduler.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <kernel/kernel.hpp>
@@ -17,6 +18,259 @@ namespace kernel::system::mm::vmm {
 bool initialised = false;
 bool lvl5 = LVL5_PAGING;
 Pagemap *kernel_pagemap = nullptr;
+
+void mmap_range_global::map_in_range(uint64_t vaddr, uint64_t paddr, int prot)
+{
+    uint64_t flags = Present | UserSuper;
+    if (prot & ProtWrite) flags |= ReadWrite;
+    this->shadow_pagemap.mapMem(vaddr, paddr, flags);
+
+    for (auto local : this->locals)
+    {
+        if (vaddr < local->base || vaddr >= local->base + local->length) continue;
+        local->pagemap->mapMem(vaddr, paddr, flags);
+    }
+}
+
+void Pagemap::mapRange(uint64_t vaddr, uint64_t paddr, uint64_t length, int prot, int flags)
+{
+    flags |= MapAnon;
+
+    length = ALIGN_UP(length + (vaddr - ALIGN_DOWN(vaddr, page_size)), page_size);
+    vaddr = ALIGN_DOWN(vaddr, page_size);
+
+    auto local = new mmap_range_local
+    {
+        .pagemap = this,
+        .base = vaddr,
+        .length = length,
+        .prot = prot,
+        .flags = flags
+    };
+
+    auto global = new mmap_range_global
+    {
+        .base = vaddr,
+        .length = length
+    };
+
+    local->global = global;
+    global->locals.push_back(local);
+    global->shadow_pagemap.TOPLVL = static_cast<PTable*>(pmm::alloc());
+
+    this->lock.lock();
+    this->ranges.push_back(local);
+    this->lock.unlock();
+
+    for (size_t i = 0; i < length; i += page_size)
+    {
+        global->map_in_range(vaddr + i, paddr + i, prot);
+    }
+}
+
+void *Pagemap::mmap(void *addr, uint64_t length, int prot, int flags, vfs::resource_t *res, int64_t offset)
+{
+    if (length == 0)
+    {
+        errno_set(EINVAL);
+        return nullptr;
+    }
+    if ((flags & MapAnon) == 0 && res->can_mmap == false)
+    {
+        errno_set(ENODEV);
+        return nullptr;
+    }
+
+    length = ALIGN_UP(length, page_size);
+
+    uint64_t base = 0;
+    if (flags & MapFixed)
+    {
+        base = reinterpret_cast<uint64_t>(addr);
+        this->munmap(addr, length);
+    }
+    else
+    {
+        base = this_proc()->mmap_anon_base;
+        this_proc()->mmap_anon_base += length + page_size;
+    }
+
+    auto local = new mmap_range_local
+    {
+        .pagemap = this,
+        .base = base,
+        .length = length,
+        .offset = offset,
+        .prot = prot,
+        .flags = flags
+    };
+
+    auto global = new mmap_range_global
+    {
+        .res = res,
+        .base = base,
+        .length = length,
+        .offset = offset
+    };
+
+    local->global = global;
+    global->locals.push_back(local);
+    global->shadow_pagemap.TOPLVL = static_cast<PTable*>(pmm::alloc());
+
+    this->lock.lock();
+    this->ranges.push_back(local);
+    this->lock.unlock();
+
+    if (res != nullptr) res->refcount++;
+    return reinterpret_cast<void*>(base);
+}
+
+bool Pagemap::munmap(void *addr, uint64_t length)
+{
+    if (length == 0)
+    {
+        errno_set(EINVAL);
+        return false;
+    }
+    length = ALIGN_UP(length, page_size);
+
+    uint64_t address = reinterpret_cast<uint64_t>(addr);
+    for (uint64_t i = address; i < address + length; i += page_size)
+    {
+        auto local = this->addr2range(i).local;
+        if (local == nullptr) continue;
+
+        auto global = local->global;
+        uint64_t snip_begin = i;
+        while (true)
+        {
+            i += page_size;
+            if (i >= local->base + local->length || i >= address + length) break;
+        }
+        uint64_t snip_end = i;
+        uint64_t snip_size = snip_end - snip_begin;
+
+        if (snip_begin > local->base && snip_end < local->base + local->length)
+        {
+            auto range = new mmap_range_local
+            {
+                .pagemap = local->pagemap,
+                .global = local->global,
+                .base = snip_end,
+                .length = (local->base + local->length) - snip_end,
+                .offset = local->offset + static_cast<int64_t>(snip_end - local->base),
+                .prot = local->prot,
+                .flags = local->flags,
+            };
+            this->ranges.push_back(range);
+            local->length -= range->length;
+        }
+
+        for (size_t p = 0; p < snip_end; p += page_size) this->unmapMem(p);
+        if (snip_size == local->length) this->ranges.remove(local);
+        if (snip_size == local->length && global->locals.size() == 1)
+        {
+            if (local->flags & MapAnon)
+            {
+                for (size_t p = global->base; p < global->base + global->length; p += page_size)
+                {
+                    uint64_t paddr = global->shadow_pagemap.virt2phys(p);
+                    if (!global->shadow_pagemap.unmapMem(p))
+                    {
+                        errno_set(EINVAL);
+                        return false;
+                    }
+                    pmm::free(reinterpret_cast<void*>(paddr));
+                }
+            }
+            // else global->res->munmap(i);
+            delete local;
+        }
+        else
+        {
+            if (snip_begin == local->base)
+            {
+                local->offset += snip_size;
+                local->base = snip_end;
+            }
+            local->length -= snip_size;
+        }
+    }
+
+    return true;
+}
+
+Pagemap *Pagemap::fork()
+{
+    lockit(this->lock);
+    Pagemap *newpagemap = newPagemap();
+
+    for (auto local : this->ranges)
+    {
+        auto global = local->global;
+        auto newlocal = new mmap_range_local;
+        *newlocal = *local;
+
+        if (global->res) global->res->refcount++;
+        if (local->flags & MapShared)
+        {
+            global->locals.push_back(newlocal);
+            for (size_t i = local->base; i < local->base + local->length; i += page_size)
+            {
+                auto oldpml = this->virt2pte(i, false);
+                if (oldpml == nullptr) continue;
+
+                auto newpml = newpagemap->virt2pte(i, true);
+                if (newpml == nullptr) return nullptr;
+                newpml->value = oldpml->value;
+            }
+        }
+        else
+        {
+            auto newglobal = new mmap_range_global;
+
+            newglobal->res = global->res;
+            newglobal->base = global->base;
+            newglobal->length = global->length;
+            newglobal->offset = global->offset;
+            newglobal->locals.push_back(newlocal);
+            newglobal->shadow_pagemap.TOPLVL = static_cast<PTable*>(pmm::alloc());
+
+            if (local->flags & MapAnon)
+            {
+                for (size_t i = local->base; i < local->base + local->length; i += page_size)
+                {
+                    auto oldpml = this->virt2pte(i, false);
+                    if (oldpml == nullptr || !oldpml->getflag(Present)) continue;
+
+                    auto newpml = newpagemap->virt2pte(i, true);
+                    if (newpml == nullptr) return nullptr;
+
+                    auto newshadowpml = newglobal->shadow_pagemap.virt2pte(i, true);
+                    if (newpml == nullptr) return nullptr;
+
+                    void *page = pmm::alloc();
+                    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(page) + hhdm_tag->addr), reinterpret_cast<void*>((oldpml->getAddr() << 12) + hhdm_tag->addr), page_size);
+                    newpml->value = (oldpml->value & 0xFFFUL) | reinterpret_cast<uint64_t>(page);
+                    newshadowpml->value = newpml->value;
+                }
+            }
+            else panic("Non-anonymous fork!");
+        }
+        newpagemap->ranges.push_back(newlocal);
+    }
+    return newpagemap;
+}
+
+void Pagemap::deleteThis()
+{
+    lockit(this->lock);
+    for (auto range : this->ranges)
+    {
+        this->munmap(reinterpret_cast<void*>(range->base), range->length);
+    }
+    delete this;
+}
 
 static PTable *get_next_lvl(PTable *curr_lvl, size_t entry, bool allocate = true)
 {
@@ -85,7 +339,7 @@ void Pagemap::mapMemRange(uint64_t vaddr, uint64_t paddr, uint64_t size, uint64_
     }
 }
 
-void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
+bool Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
 {
     this->lock.lock();
 
@@ -94,7 +348,7 @@ void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
     {
         error("VMM: Could not get page map entry!");
         this->lock.unlock();
-        return;
+        return false;
     }
 
     uint64_t paddr = pml1_entry->getAddr() << 12;
@@ -103,9 +357,10 @@ void Pagemap::remapMem(uint64_t vaddr_old, uint64_t vaddr_new, uint64_t flags)
     this->lock.unlock();
 
     this->mapMem(vaddr_new, paddr, flags);
+    return true;
 }
 
-void Pagemap::unmapMem(uint64_t vaddr, bool hugepages)
+bool Pagemap::unmapMem(uint64_t vaddr, bool hugepages)
 {
     lockit(this->lock);
 
@@ -113,11 +368,12 @@ void Pagemap::unmapMem(uint64_t vaddr, bool hugepages)
     if (pml_entry == nullptr)
     {
         error("VMM: Could not get page map entry!");
-        return;
+        return false;
     }
 
     pml_entry->value = 0;
     invlpg(vaddr);
+    return true;
 }
 
 void Pagemap::unmapMemRange(uint64_t vaddr, uint64_t size, bool hugepages)
@@ -128,32 +384,9 @@ void Pagemap::unmapMemRange(uint64_t vaddr, uint64_t size, bool hugepages)
     }
 }
 
-void Pagemap::setflags(uint64_t vaddr, uint64_t flags, bool hugepages, bool enabled)
+void Pagemap::switchTo()
 {
-    lockit(this->lock);
-
-    PDEntry *pml_entry = this->virt2pte(vaddr, false);
-    if (pml_entry == nullptr)
-    {
-        error("VMM: Could not get page map entry!");
-        this->lock.unlock();
-        return;
-    }
-    pml_entry->setflags(flags | (hugepages ? LargerPages : 0), enabled);
-}
-
-bool Pagemap::getflags(uint64_t vaddr, uint64_t flags, bool hugepages)
-{
-    lockit(this->lock);
-
-    PDEntry *pml_entry = this->virt2pte(vaddr, false);
-    if (pml_entry == nullptr)
-    {
-        error("VMM: Could not get page map entry!");
-        this->lock.unlock();
-        return false;
-    };
-    return pml_entry->getflags(flags);
+    write_cr(3, reinterpret_cast<uint64_t>(this->TOPLVL));
 }
 
 Pagemap *newPagemap()
@@ -217,23 +450,6 @@ Pagemap *newPagemap()
     return pagemap;
 }
 
-Pagemap *clonePagemap(Pagemap *old)
-{
-    Pagemap *pagemap = new Pagemap;
-    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
-
-    PTable *pml4 = pagemap->TOPLVL;
-    PTable *old_pml4 = old->TOPLVL;
-    for (size_t i = 0; i < 512; i++) pml4->entries[i] = old_pml4->entries[i];
-
-    return pagemap;
-}
-
-void switchPagemap(Pagemap *pmap)
-{
-    write_cr(3, reinterpret_cast<uint64_t>(pmap->TOPLVL));
-}
-
 PTable *getPagemap()
 {
     return reinterpret_cast<PTable*>(read_cr(3));
@@ -250,7 +466,7 @@ void init()
     }
 
     kernel_pagemap = newPagemap();
-    switchPagemap(kernel_pagemap);
+    kernel_pagemap->switchTo();
 
     serial::newline();
     initialised = true;

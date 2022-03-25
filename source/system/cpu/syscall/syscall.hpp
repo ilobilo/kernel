@@ -32,7 +32,7 @@ enum syscalls
     SYSCALL_IOCTL = 16,
     SYSCALL_ACCESS = 21,
     SYSCALL_GETPID = 39,
-    SYSCALL_FORK = 57, // Broken: Fix in scheduler
+    SYSCALL_FORK = 57,
     SYSCALL_EXIT = 60,
     SYSCALL_UNAME = 63,
     SYSCALL_GETCWD = 79,

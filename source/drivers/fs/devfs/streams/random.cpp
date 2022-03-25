@@ -2,8 +2,11 @@
 
 #include <drivers/fs/devfs/streams/random.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
+
+using namespace kernel::system::mm;
 
 namespace kernel::drivers::fs::streams::random {
 
@@ -51,7 +54,7 @@ void random_res::unlink(void *handle)
 
 void *random_res::mmap(uint64_t page, int flags)
 {
-    return malloc(0x1000);
+    return pmm::alloc();
 }
 
 void init()
