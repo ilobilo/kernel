@@ -5,7 +5,9 @@
 #include <drivers/fs/devfs/streams/zero.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/mm/pmm/pmm.hpp>
+#include <system/mm/vmm/vmm.hpp>
 #include <system/vfs/vfs.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/log.hpp>
@@ -110,7 +112,17 @@ void devfs_res::unlink(void *handle)
 
 void *devfs_res::mmap(uint64_t page, int flags)
 {
-    return nullptr;
+    lockit(this->lock);
+
+    if (flags & vmm::MapShared)
+    {
+        return reinterpret_cast<void*>(reinterpret_cast<uint64_t>(&this->storage[page * vmm::page_size]) - hhdm_tag->addr);
+    }
+
+    void *copy = pmm::alloc();
+    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(copy) + hhdm_tag->addr), &this->storage[page * vmm::page_size], vmm::page_size);
+
+    return copy;
 }
 
 void devfs_fs::init() { }

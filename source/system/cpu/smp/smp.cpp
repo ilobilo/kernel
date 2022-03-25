@@ -30,7 +30,7 @@ static void cpu_init(stivale2_smp_info *cpu)
     gdt::reloadall(i);
     idt::reload();
 
-    vmm::switchPagemap(vmm::kernel_pagemap);
+    vmm::kernel_pagemap->switchTo();
     set_kernel_gs(static_cast<uintptr_t>(cpu->extra_argument));
     set_user_gs(static_cast<uintptr_t>(cpu->extra_argument));
 

@@ -95,9 +95,9 @@ bool thread_t::map_user()
     // TODO: Fix this if broken
     this->parent->thread_stack_top -= STACK_SIZE;
     uint64_t stack_bottom_vma = this->parent->thread_stack_top;
-    this->parent->thread_stack_top -= 0x1000;
+    this->parent->thread_stack_top -= vmm::page_size;
 
-    this->parent->pagemap->mapMemRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE, vmm::Present | vmm::ReadWrite | vmm::UserSuper);
+    this->parent->pagemap->mapRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE, vmm::ProtRead | vmm::ProtWrite, vmm::MapAnon);
     this->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
 
     this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
@@ -353,7 +353,7 @@ void clean_proc(process_t *proc)
             }
         }
         pids.Set(proc->pid, false);
-        free(proc->pagemap);
+        proc->pagemap->deleteThis();
         free(proc);
         proc_count--;
     }
@@ -395,7 +395,7 @@ size_t switchThread(registers_t *regs, thread_t *thread)
 
     *regs = thread->regs;
     this_cpu->fpu_restore(thread->fpu_storage);
-    vmm::switchPagemap(thread->parent->pagemap);
+    thread->parent->pagemap->switchTo();
 
     thread->state = RUNNING;
 

@@ -66,6 +66,7 @@ struct process_t
     int next_tid = 1;
     state_t state;
     vmm::Pagemap *pagemap;
+    uint64_t mmap_anon_base = 0x80000000000;
     lock_t fd_lock;
     vfs::fs_node_t *current_dir;
     void *fds[max_fds];
