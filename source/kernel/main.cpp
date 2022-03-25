@@ -82,15 +82,6 @@ void time()
     }
 }
 
-void test()
-{
-    syscall::syscall(syscall::SYSCALL_FORK);
-    while (true)
-    {
-        hpet::msleep(50);
-    }
-}
-
 using constructor_t = void (*)();
 
 extern "C" constructor_t __init_array_start[];
@@ -168,9 +159,6 @@ void main()
     auto proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH, false);
     proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW, false);
     proc->table_add();
-
-    auto testproc = new scheduler::process_t("Test", reinterpret_cast<uint64_t>(test), 0, scheduler::MID, false);
-    testproc->table_add();
 
     scheduler::init();
 }

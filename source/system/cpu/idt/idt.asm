@@ -4,11 +4,22 @@
 
 [EXTERN int_handler]
 int_common_stub:
+    test qword [rsp + 8], 0x3
+    jz .next0
+    swapgs
+    .next0:
+
     pushall
     mov rdi, rsp
     call int_handler
     popall
     add rsp, 16
+
+    test qword [rsp + 8], 0x3
+    jz .next1
+    swapgs
+    .next1:
+
     iretq
 
 %macro isr 1

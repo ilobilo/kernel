@@ -120,13 +120,18 @@ thread_t *thread_t::fork(registers_t *regs)
     memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
 
     newthread->regs = *regs;
+    newthread->regs.rax = 0;
+    newthread->regs.rdx = 0;
 
     newthread->regs.rflags = 0x202;
     newthread->regs.cs = (this->user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
-    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
+    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);\
+
+    uint64_t offset = reinterpret_cast<uint64_t>(newthread->stack) - reinterpret_cast<uint64_t>(this->stack);
+    newthread->regs.rsp += offset;
+    newthread->regs.rbp += offset;
 
     memcpy(newthread->stack, this->stack, STACK_SIZE);
-    newthread->regs.rsp = reinterpret_cast<uint64_t>(newthread->stack) + STACK_SIZE;
 
     newthread->priority = this->priority;
     newthread->parent = this->parent;

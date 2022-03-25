@@ -143,11 +143,7 @@ static void syscall_fork(registers_t *regs)
         vfs::fdnum_dup(oldproc, i, newproc, i, 0, true, false);
     }
 
-    for (auto *oldthread : oldproc->threads)
-    {
-        newproc->add_thread(oldthread->fork(regs));
-    }
-
+    newproc->add_thread(this_thread()->fork(regs));
     newproc->table_add();
 
     RAX_RET = newproc->pid;
