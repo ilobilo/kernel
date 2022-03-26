@@ -27,7 +27,7 @@ namespace kernel::system::cpu::gdt {
 new_lock(gdt_lock);
 bool initialised = false;
 GDTDescriptor gdtDescriptor;
-TSS *tss = new TSS[smp_tag->cpu_count]();
+TSS *tss = new TSS[smp_request.response->cpu_count]();
 
 void reloadgdt()
 {

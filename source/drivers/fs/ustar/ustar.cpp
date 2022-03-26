@@ -2,6 +2,7 @@
 
 #include <drivers/fs/ustar/ustar.hpp>
 #include <system/mm/pmm/pmm.hpp>
+#include <system/mm/vmm/vmm.hpp>
 #include <system/vfs/vfs.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
@@ -91,7 +92,7 @@ void init(uint64_t address)
         node->res->stat.gid = oct2dec(header->gid);
 
         next:
-        pmm::free(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(header) - hhdm_tag->addr), (512 + ALIGN_UP(size, 512)) / 0x1000);
+        pmm::free(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(header) - vmm::hhdm_offset), (512 + ALIGN_UP(size, 512)) / 0x1000);
         address += 512 + ALIGN_UP(size, 512);
     }
 

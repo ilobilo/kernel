@@ -116,11 +116,11 @@ void *devfs_res::mmap(uint64_t page, int flags)
 
     if (flags & vmm::MapShared)
     {
-        return reinterpret_cast<void*>(reinterpret_cast<uint64_t>(&this->storage[page * vmm::page_size]) - hhdm_tag->addr);
+        return reinterpret_cast<void*>(reinterpret_cast<uint64_t>(&this->storage[page * vmm::page_size]) - vmm::hhdm_offset);
     }
 
     void *copy = pmm::alloc();
-    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(copy) + hhdm_tag->addr), &this->storage[page * vmm::page_size], vmm::page_size);
+    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(copy) + vmm::hhdm_offset), &this->storage[page * vmm::page_size], vmm::page_size);
 
     return copy;
 }

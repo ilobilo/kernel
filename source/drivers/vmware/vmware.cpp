@@ -59,8 +59,8 @@ void handle_mouse()
     send(cmd);
 
     buttons = (cmd.ax & 0xFFFF);
-    ps2::mousepos.X = (cmd.bx * framebuffer::frm_width) / 0xFFFF;
-    ps2::mousepos.Y = (cmd.cx * framebuffer::frm_height) / 0xFFFF;
+    ps2::mousepos.X = (cmd.bx * framebuffer::main_frm->width) / 0xFFFF;
+    ps2::mousepos.Y = (cmd.cx * framebuffer::main_frm->height) / 0xFFFF;
 
     ps2::mouseclear();
 

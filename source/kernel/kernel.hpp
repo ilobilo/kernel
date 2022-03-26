@@ -2,27 +2,24 @@
 
 #pragma once
 
-#include <stivale2.h>
+#include <limine.h>
 
-static constexpr uint64_t STACK_SIZE = 0x2000;
+static constexpr uint64_t STACK_SIZE = 0x4000;
+extern uint8_t *kernel_stack;
+extern const char *cmdline;
 
-extern uint8_t kernel_stack[];
+#if LVL5_PAGING
+extern volatile limine_5_level_paging_request _5_level_paging_request;
+#endif
+extern volatile limine_terminal_request terminal_request;
+extern volatile limine_framebuffer_request framebuffer_request;
+extern volatile limine_smp_request smp_request;
+extern volatile limine_memmap_request memmap_request;
+extern volatile limine_rsdp_request rsdp_request;
+extern volatile limine_module_request module_request;
+extern volatile limine_kernel_file_request kernel_file_request;
+extern volatile limine_boot_time_request boot_time_request;
+extern volatile limine_hhdm_request hhdm_request;
+extern volatile limine_kernel_address_request kernel_address_request;
 
-extern struct stivale2_struct_tag_terminal *term_tag;
-extern struct stivale2_struct_tag_framebuffer *frm_tag;
-extern struct stivale2_struct_tag_smp *smp_tag;
-extern struct stivale2_struct_tag_memmap *mmap_tag;
-extern struct stivale2_struct_tag_rsdp *rsdp_tag;
-extern struct stivale2_struct_tag_modules *mod_tag;
-extern struct stivale2_struct_tag_cmdline *cmd_tag;
-extern struct stivale2_struct_tag_kernel_file_v2 *kfilev2_tag;
-extern struct stivale2_struct_tag_epoch *epoch_tag;
-extern struct stivale2_struct_tag_hhdm *hhdm_tag;
-extern struct stivale2_struct_tag_pmrs *pmrs_tag;
-extern struct stivale2_struct_tag_kernel_base_address *kbad_tag;
-
-extern char *cmdline;
-
-void *get_tag(stivale2_struct *stivale, uint64_t id);
-
-stivale2_module *find_module(const char *name);
+limine_file *find_module(const char *name);

@@ -57,8 +57,9 @@ void trace(bool terminal)
 
 void init()
 {
-    Elf64_Ehdr *header = reinterpret_cast<Elf64_Ehdr*>(kfilev2_tag->kernel_file);
-    Elf64_Shdr *sections = reinterpret_cast<Elf64_Shdr*>(kfilev2_tag->kernel_file + header->e_shoff);
+    uint64_t kfile = reinterpret_cast<uint64_t>(kernel_file_request.response->kernel_file->base);
+    Elf64_Ehdr *header = reinterpret_cast<Elf64_Ehdr*>(kfile);
+    Elf64_Shdr *sections = reinterpret_cast<Elf64_Shdr*>(kfile + header->e_shoff);
     Elf64_Sym *symtab;
     char *strtab;
 
@@ -67,11 +68,11 @@ void init()
         switch (sections[i].sh_type)
         {
             case SHT_SYMTAB:
-                symtab = reinterpret_cast<Elf64_Sym*>(kfilev2_tag->kernel_file + sections[i].sh_offset);
+                symtab = reinterpret_cast<Elf64_Sym*>(kfile + sections[i].sh_offset);
                 entries = sections[i].sh_size / sections[i].sh_entsize;
                 break;
             case SHT_STRTAB:
-                strtab = reinterpret_cast<char*>(kfilev2_tag->kernel_file + sections[i].sh_offset);
+                strtab = reinterpret_cast<char*>(kfile + sections[i].sh_offset);
                 break;
         }
     }
