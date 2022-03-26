@@ -16,6 +16,7 @@
 #include <lib/io.hpp>
 
 using namespace kernel::system::sched;
+using namespace kernel::system::mm;
 using namespace kernel::drivers;
 
 [[gnu::always_inline]] inline bool is_canonical(uint64_t addr)
@@ -120,18 +121,18 @@ void init()
         return;
     }
 
-    rsdp = reinterpret_cast<RSDP*>(rsdp_tag->rsdp);
+    rsdp = reinterpret_cast<RSDP*>(rsdp_request.response->address);
 
     if (rsdp->revision >= 2 && rsdp->xsdtaddr)
     {
         use_xstd = true;
-        rsdt = reinterpret_cast<SDTHeader*>(rsdp->xsdtaddr + hhdm_tag->addr);
+        rsdt = reinterpret_cast<SDTHeader*>(rsdp->xsdtaddr);
         log("Found XSDT at: 0x%X", rsdp->xsdtaddr);
     }
     else
     {
         use_xstd = false;
-        rsdt = reinterpret_cast<SDTHeader*>(rsdp->rsdtaddr + hhdm_tag->addr);
+        rsdt = reinterpret_cast<SDTHeader*>(rsdp->rsdtaddr);
         log("Found RSDT at: 0x%X", rsdp->rsdtaddr);
     }
 
@@ -189,16 +190,16 @@ void *laihost_map(size_t address, size_t count)
 {
     for (size_t i = 0; i < count; i += 0x1000)
     {
-        kernel::system::mm::vmm::kernel_pagemap->mapMem(address + hhdm_tag->addr, address);
+        vmm::kernel_pagemap->mapMem(address + vmm::hhdm_offset, address);
     }
-	return reinterpret_cast<void*>(address + hhdm_tag->addr);
+	return reinterpret_cast<void*>(address + vmm::hhdm_offset);
 }
 
 void laihost_unmap(void *address, size_t count)
 {
     for (size_t i = 0; i < count; i += 0x1000)
     {
-        kernel::system::mm::vmm::kernel_pagemap->unmapMem(reinterpret_cast<uint64_t>(address) + i);
+        vmm::kernel_pagemap->unmapMem(reinterpret_cast<uint64_t>(address) + i);
     }
 }
 

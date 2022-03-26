@@ -128,7 +128,7 @@ static void initport(COMS com)
     outb(com + 2, 0xC7);
     outb(com + 4, 0x0B);
 
-    print(com, "\033[0m");
+    print(com, "\033[0m\n");
 }
 
 void early_init()

@@ -40,7 +40,6 @@
 #include <lib/panic.hpp>
 #include <lib/alloc.hpp>
 #include <lib/log.hpp>
-#include <stivale2.h>
 #pragma endregion include
 
 using namespace kernel::drivers::display;
@@ -58,9 +57,9 @@ namespace kernel {
 
 void time()
 {
-    stivale2_module *ssfn_mod = find_module("sfn");
+    limine_file *ssfn_mod = find_module("sfn");
     if (ssfn_mod == nullptr) return;
-    ssfn::init(ssfn_mod->begin);
+    ssfn::init(reinterpret_cast<uint64_t>(ssfn_mod->base));
 
     while (true)
     {
@@ -101,16 +100,16 @@ void main()
     if (!strcmp(KERNEL_VERSION, "0")) printf("Git version: %s\n", GIT_VERSION);
     else printf("Version: %s\n", KERNEL_VERSION);
 
-    log("CPU cores available: %ld", smp_tag->cpu_count);
+    log("CPU cores available: %ld", smp_request.response->cpu_count);
     log("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
-    printf("CPU cores available: %ld\n", smp_tag->cpu_count);
+    printf("CPU cores available: %ld\n", smp_request.response->cpu_count);
     printf("Total usable memory: %ld MB\n", getmemsize() / 1024 / 1024);
 
     log("Kernel cmdline: %s", cmdline);
     log("Available kernel modules:");
-    for (size_t i = 0; i < mod_tag->module_count; i++)
+    for (size_t i = 0; i < module_request.response->module_count; i++)
     {
-        log("%zu) %s", i, mod_tag->modules[i].string);
+        log("%zu) %s", i, module_request.response->modules[i]->cmdline);
     }
     serial::newline();
 
@@ -144,8 +143,8 @@ void main()
     terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
     serial::init();
 
-    stivale2_module *initrd_mod = find_module("initrd");
-    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), initrd_mod->begin, ustar::initialised, (initrd_mod != nullptr && strstr(cmdline, "initrd")));
+    limine_file *initrd_mod = find_module("initrd");
+    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->base) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
 

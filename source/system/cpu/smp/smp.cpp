@@ -21,10 +21,10 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 
 new_lock(cpu_lock);
-cpu_t *cpus = new cpu_t[smp_tag->cpu_count]();
+cpu_t *cpus = new cpu_t[smp_request.response->cpu_count]();
 static size_t i = 0;
 
-static void cpu_init(stivale2_smp_info *cpu)
+static void cpu_init(limine_smp_info *cpu)
 {
     cpu_lock.lock();
     gdt::reloadall(i);
@@ -85,7 +85,7 @@ static void cpu_init(stivale2_smp_info *cpu)
     this_cpu->is_up = true;
 
     cpu_lock.unlock();
-    if (cpu->lapic_id != smp_tag->bsp_lapic_id)
+    if (cpu->lapic_id != smp_request.response->bsp_lapic_id)
     {
         if (apic::initialised) apic::lapic_init(this_cpu->lapic_id);
         scheduler::init();
@@ -103,24 +103,21 @@ void init()
         return;
     }
 
-    for (; i < smp_tag->cpu_count; i++)
+    for (; i < smp_request.response->cpu_count; i++)
     {
-        smp_tag->smp_info[i].extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);
+        limine_smp_info *smp_info = smp_request.response->cpus[i];
+        smp_info->extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);
         cpus[i].id = i;
 
         uint64_t sched_stack = malloc<uint64_t>(STACK_SIZE);
-        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + hhdm_tag->addr;
+        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + vmm::hhdm_offset;
 
-        if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
+        if (smp_request.response->bsp_lapic_id != smp_info->lapic_id)
         {
-            uint64_t stack = malloc<uint64_t>(STACK_SIZE);
-            gdt::tss[i].RSP[0] = stack + STACK_SIZE + hhdm_tag->addr;
-
-            smp_tag->smp_info[i].target_stack = stack + STACK_SIZE + hhdm_tag->addr;
-            smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);
+            smp_request.response->cpus[i]->goto_address = cpu_init;
             while (cpus[i].is_up == false);
         }
-        else cpu_init(&smp_tag->smp_info[i]);
+        else cpu_init(smp_info);
     }
 
     log("All CPUs are up\n");

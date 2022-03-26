@@ -3,13 +3,16 @@
 #pragma once
 
 #include <lib/bitmap.hpp>
-#include <kernel/main.hpp>
+#include <limine.h>
 #include <cstdint>
 
 namespace kernel::system::mm::pmm {
 
 extern Bitmap bitmap;
 extern bool initialised;
+
+extern limine_memmap_entry **memmaps;
+extern uint64_t memmap_count;
 
 void *alloc(size_t count = 1);
 void *realloc(void *ptr, size_t oldcount = 1, size_t newcount = 1);

@@ -9,11 +9,11 @@ uint64_t getmemsize()
     static uint64_t meminbytes = 0;
     if (meminbytes > 0) return meminbytes;
 
-    for (size_t i = 0; i < mmap_tag->entries; i++)
+    for (size_t i = 0; i < memmap_request.response->entry_count; i++)
     {
-        if (mmap_tag->memmap[i].type != STIVALE2_MMAP_USABLE) continue;
+        if (memmap_request.response->entries[i]->type != LIMINE_MEMMAP_USABLE) continue;
 
-        meminbytes += mmap_tag->memmap[i].length;
+        meminbytes += memmap_request.response->entries[i]->length;
     }
 
     return meminbytes;
