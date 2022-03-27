@@ -70,6 +70,12 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
     this->stack = this->stack_phys + hhdm_offset;
 
+    if (user)
+    {
+        this->kstack_phys = malloc<uint8_t*>(STACK_SIZE);
+        this->kstack = this->kstack_phys + hhdm_offset;
+    }
+
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
 
@@ -84,8 +90,10 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     this->priority = priority;
     this->parent = parent;
-
     this->user = user;
+
+    this->gsbase = (this->user ? 0 : reinterpret_cast<uint64_t>(this));
+    this->fsbase = 0;
 }
 
 bool thread_t::map_user()
@@ -115,6 +123,12 @@ thread_t *thread_t::fork(registers_t *regs)
     newthread->stack_phys = malloc<uint8_t*>(STACK_SIZE);
     newthread->stack = newthread->stack_phys + hhdm_offset;
 
+    if (user)
+    {
+        newthread->kstack_phys = malloc<uint8_t*>(STACK_SIZE);
+        newthread->kstack = newthread->kstack_phys + hhdm_offset;
+    }
+
     newthread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     newthread->fpu_storage_size = this->fpu_storage_size;
     memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
@@ -125,7 +139,7 @@ thread_t *thread_t::fork(registers_t *regs)
 
     newthread->regs.rflags = 0x202;
     newthread->regs.cs = (this->user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
-    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);\
+    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
 
     uint64_t offset = reinterpret_cast<uint64_t>(newthread->stack) - reinterpret_cast<uint64_t>(this->stack);
     newthread->regs.rsp += offset;
@@ -135,8 +149,10 @@ thread_t *thread_t::fork(registers_t *regs)
 
     newthread->priority = this->priority;
     newthread->parent = this->parent;
-
     newthread->user = this->user;
+
+    newthread->gsbase = (this->user ? this->gsbase : reinterpret_cast<uint64_t>(newthread));
+    newthread->fsbase = this->fsbase;
 
     return newthread;
 }
@@ -333,6 +349,7 @@ void clean_proc(process_t *proc)
             free(thread->fpu_storage - hhdm_offset);
             // TODO: Fix this
             // free(thread->stack_phys); // Trple fault
+            // if (thread->kstack_phys) free(thread->kstack_phys); // Trple fault
             free(thread);
             thread_count--;
         }
@@ -368,6 +385,7 @@ void clean_proc(process_t *proc)
                 free(thread->fpu_storage - hhdm_offset);
                 // TODO: Fix this
                 // free(thread->stack_phys); // Trple fault
+                // if (thread->kstack_phys) free(thread->kstack_phys); // Trple fault
                 free(thread);
                 thread_count--;
             }
@@ -386,6 +404,10 @@ size_t switchThread(registers_t *regs, thread_t *thread)
     {
         this_thread()->regs = *regs;
         this_cpu->fpu_save(this_thread()->fpu_storage);
+        this_proc()->pagemap->save();
+
+        this_thread()->gsbase = get_kernel_gs();
+        this_thread()->fsbase = get_fs();
 
         if (this_thread()->state == RUNNING) this_thread()->state = READY;
     }
@@ -393,11 +415,16 @@ size_t switchThread(registers_t *regs, thread_t *thread)
     this_cpu->current_thread = thread;
     this_cpu->current_proc = thread->parent;
 
-    *regs = thread->regs;
-    this_cpu->fpu_restore(thread->fpu_storage);
-    thread->parent->pagemap->switchTo();
+    *regs = this_thread()->regs;
+    this_thread()->cpu = this_cpu->id;
+    this_cpu->fpu_restore(this_thread()->fpu_storage);
+    this_proc()->pagemap->switchTo();
 
-    thread->state = RUNNING;
+    set_gs(reinterpret_cast<uint64_t>(thread));
+    set_kernel_gs(this_thread()->user ? this_thread()->gsbase : reinterpret_cast<uint64_t>(thread));
+    set_fs(this_thread()->fsbase);
+
+    this_thread()->state = RUNNING;
 
     return thread->priority;
 }
