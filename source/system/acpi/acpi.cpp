@@ -190,9 +190,9 @@ void *laihost_map(size_t address, size_t count)
 {
     for (size_t i = 0; i < count; i += 0x1000)
     {
-        vmm::kernel_pagemap->mapMem(address + vmm::hhdm_offset, address);
+        vmm::kernel_pagemap->mapMem(address + hhdm_offset, address);
     }
-	return reinterpret_cast<void*>(address + vmm::hhdm_offset);
+	return reinterpret_cast<void*>(address + hhdm_offset);
 }
 
 void laihost_unmap(void *address, size_t count)

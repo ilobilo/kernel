@@ -17,9 +17,6 @@ static size_t lastI = 0;
 static size_t usedRam = 0;
 static size_t freeRam = 0;
 
-limine_memmap_entry **memmaps;
-uint64_t memmap_count;
-
 new_lock(pmm_lock);
 
 static void *inner_alloc(size_t count, size_t limit)
@@ -113,8 +110,8 @@ void init()
         return;
     }
 
-    memmaps = memmap_request.response->entries;
-    memmap_count = memmap_request.response->entry_count;
+    limine_memmap_entry **memmaps = memmap_request.response->entries;
+    uint64_t memmap_count = memmap_request.response->entry_count;
 
     for (size_t i = 0; i < memmap_count; i++)
     {

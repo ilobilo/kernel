@@ -17,7 +17,6 @@ namespace kernel::system::mm::vmm {
 
 bool initialised = false;
 bool lvl5 = LVL5_PAGING;
-uint64_t hhdm_offset;
 Pagemap *kernel_pagemap = nullptr;
 
 void mmap_range_global::map_in_range(uint64_t vaddr, uint64_t paddr, int prot)
@@ -449,8 +448,6 @@ void init()
         warn("VMM has already been initialised!\n");
         return;
     }
-
-    hhdm_offset = hhdm_request.response->offset;
 
     kernel_pagemap = newPagemap();
     kernel_pagemap->switchTo();

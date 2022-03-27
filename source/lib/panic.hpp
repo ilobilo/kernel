@@ -6,10 +6,8 @@
 #include <cstddef>
 #include <utility>
 
-// [[noreturn]] void panic(const char *message, std::source_location location = std::source_location::current());
-
-[[noreturn]] void panic(const char *message, std::source_location location);
-#define panic(msg) panic((msg), std::source_location::current())
+[[noreturn]] void panic(const char *message, const char *func, std::source_location location);
+#define panic(msg) panic((msg), __PRETTY_FUNCTION__, std::source_location::current())
 
 #define ASSERT_MSG(x, msg) (!(x) ? panic(msg) : static_cast<void>(const_cast<char*>(msg)))
 #define ASSERT_NOMSG(x) (!(x) ? panic("Assertion failed: " #x) : static_cast<void>(x))

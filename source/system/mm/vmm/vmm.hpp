@@ -161,7 +161,6 @@ struct mmap_range_global
 
 extern bool initialised;
 extern bool lvl5;
-extern uint64_t hhdm_offset;
 extern Pagemap *kernel_pagemap;
 
 Pagemap *newPagemap();

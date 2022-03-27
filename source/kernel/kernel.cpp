@@ -16,6 +16,7 @@ using namespace kernel::drivers::display;
 
 uint8_t *kernel_stack;
 const char *cmdline;
+uint64_t hhdm_offset;
 
 #if LVL5_PAGING
 volatile limine_5_level_paging_request _5_level_paging_request
@@ -134,6 +135,7 @@ extern "C" void _start()
     assert(kernel_address_request.response, "Could not get kernel address response!");
 
     cmdline = kernel_file_request.response->kernel_file->cmdline;
+    hhdm_offset = hhdm_request.response->offset;
 
     framebuffer::init();
     kernel::main();
