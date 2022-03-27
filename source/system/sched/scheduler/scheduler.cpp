@@ -68,9 +68,9 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     this->state = INITIAL;
     this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
-    this->stack = this->stack_phys + vmm::hhdm_offset;
+    this->stack = this->stack_phys + hhdm_offset;
 
-    this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + vmm::hhdm_offset;
+    this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
 
     this->regs.rflags = 0x202;
@@ -113,9 +113,9 @@ thread_t *thread_t::fork(registers_t *regs)
 
     newthread->state = INITIAL;
     newthread->stack_phys = malloc<uint8_t*>(STACK_SIZE);
-    newthread->stack = newthread->stack_phys + vmm::hhdm_offset;
+    newthread->stack = newthread->stack_phys + hhdm_offset;
 
-    newthread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + vmm::hhdm_offset;
+    newthread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     newthread->fpu_storage_size = this->fpu_storage_size;
     memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
 
@@ -330,7 +330,7 @@ void clean_proc(process_t *proc)
         {
             thread_t *thread = proc->threads[i];
             proc->threads.remove(proc->threads.find(thread));
-            free(thread->fpu_storage - vmm::hhdm_offset);
+            free(thread->fpu_storage - hhdm_offset);
             // TODO: Fix this
             // free(thread->stack_phys); // Trple fault
             free(thread);
@@ -365,7 +365,7 @@ void clean_proc(process_t *proc)
             if (thread->state == KILLED)
             {
                 proc->threads.remove(proc->threads.find(thread));
-                free(thread->fpu_storage - vmm::hhdm_offset);
+                free(thread->fpu_storage - hhdm_offset);
                 // TODO: Fix this
                 // free(thread->stack_phys); // Trple fault
                 free(thread);

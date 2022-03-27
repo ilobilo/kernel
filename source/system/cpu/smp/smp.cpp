@@ -110,7 +110,7 @@ void init()
         cpus[i].id = i;
 
         uint64_t sched_stack = malloc<uint64_t>(STACK_SIZE);
-        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + vmm::hhdm_offset;
+        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + hhdm_offset;
 
         if (smp_request.response->bsp_lapic_id != smp_info->lapic_id)
         {

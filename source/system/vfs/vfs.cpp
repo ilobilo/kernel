@@ -223,10 +223,12 @@ bool unlink(fs_node_t *parent, string name, bool remdir)
     return true;
 }
 
-bool mount(fs_node_t *parent, string source, string target, filesystem_t *filesystem)
+bool mount(fs_node_t *parent, string source, string target, string fs)
 {
-    if (filesystem == nullptr) return false;
     lockit(vfs_lock);
+
+    filesystem_t *filesystem = search_fs(fs);
+    if (filesystem == nullptr) return false;
 
     fs_node_t *source_node = nullptr;
     if (!source.empty())

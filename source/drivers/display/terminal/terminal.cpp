@@ -11,20 +11,12 @@ namespace kernel::drivers::display::terminal {
 char *colour = "\033[0m"_c;
 new_lock(term_lock);
 
-limine_terminal_write write = nullptr;
-
-void setwrite()
-{
-    if (write != nullptr) return;
-    write = terminal_request.response->write;
-}
-
 #pragma region Print
 void print(const char *str)
 {
     lockit(term_lock);
-    setwrite();
-    write(str, strlen(str));
+    if (terminal_request.response == nullptr) return;
+    terminal_request.response->write(str, strlen(str));
 }
 
 void printi(int num)
@@ -55,9 +47,8 @@ void printi(int num)
 
 void printc(char c)
 {
-    lockit(term_lock);
-    setwrite();
-    write(&c, 1);
+    char str[] = { c, 0 };
+    print(str);
 }
 #pragma endregion Print
 
@@ -78,8 +69,8 @@ void resetcolour()
 void reset()
 {
     lockit(term_lock);
-    setwrite();
-    write("", TERM_FULL_REFRESH);
+    if (terminal_request.response == nullptr) return;
+    terminal_request.response->write("", TERM_FULL_REFRESH);
 }
 
 void clear(const char *ansii_colour)

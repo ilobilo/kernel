@@ -7,6 +7,7 @@
 static constexpr uint64_t STACK_SIZE = 0x4000;
 extern uint8_t *kernel_stack;
 extern const char *cmdline;
+extern uint64_t hhdm_offset;
 
 #if LVL5_PAGING
 extern volatile limine_5_level_paging_request _5_level_paging_request;
