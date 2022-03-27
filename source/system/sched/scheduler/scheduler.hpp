@@ -35,14 +35,20 @@ enum priority_t
 struct process_t;
 struct thread_t
 {
+    uint64_t cpu;
+    uint8_t *stack;
+    uint8_t *kstack;
+
     int tid = 1;
     bool user;
-    errno err;
+    errno_t err;
     state_t state;
-    uint8_t *stack;
     uint8_t *stack_phys;
+    uint8_t *kstack_phys;
     uint8_t *fpu_storage;
     size_t fpu_storage_size;
+    uint64_t gsbase;
+    uint64_t fsbase;
     registers_t regs;
     process_t *parent;
     priority_t priority;
@@ -77,11 +83,11 @@ struct process_t
 
     bool in_table = false;
 
-    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user);
+    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
     thread_t *add_thread(thread_t *thread);
     bool table_add();
 
-    process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user);
+    process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
     process_t(string name);
     process_t() { };
 

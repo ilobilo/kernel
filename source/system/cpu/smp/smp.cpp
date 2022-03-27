@@ -1,6 +1,7 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
+#include <system/cpu/syscall/syscall.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -22,17 +23,22 @@ bool initialised = false;
 
 new_lock(cpu_lock);
 cpu_t *cpus = new cpu_t[smp_request.response->cpu_count]();
-static size_t i = 0;
 
 static void cpu_init(limine_smp_info *cpu)
 {
+    if (cpu->lapic_id != smp_request.response->bsp_lapic_id)
+    {
+        asm volatile ("mov %%rsp, %0" : "=r"(gdt::tss[reinterpret_cast<cpu_t*>(cpu->extra_argument)->id].RSP[0]) : : "memory");
+    }
+
     cpu_lock.lock();
-    gdt::reloadall(i);
+    set_kernel_gs(cpu->extra_argument);
+    set_gs(cpu->extra_argument);
+
+    gdt::reloadall(this_cpu->id);
     idt::reload();
 
     vmm::kernel_pagemap->switchTo();
-    set_kernel_gs(static_cast<uintptr_t>(cpu->extra_argument));
-    set_user_gs(static_cast<uintptr_t>(cpu->extra_argument));
 
     this_cpu->lapic_id = cpu->lapic_id;
     this_cpu->tss = &gdt::tss[this_cpu->id];
@@ -81,6 +87,11 @@ static void cpu_init(limine_smp_info *cpu)
     }
     else panic("No known SIMD save mechanism");
 
+    wrmsr(0xC0000080, rdmsr(0xC0000080) | (1 << 0));
+    wrmsr(0xC0000081, 0x33002800000000);
+    wrmsr(0xC0000082, reinterpret_cast<uint64_t>(syscall::syscall_entry));
+    wrmsr(0xC0000084, ~static_cast<uint32_t>(0x02));
+
     log("CPU %ld is up", this_cpu->id);
     this_cpu->is_up = true;
 
@@ -103,7 +114,7 @@ void init()
         return;
     }
 
-    for (; i < smp_request.response->cpu_count; i++)
+    for (size_t i = 0; i < smp_request.response->cpu_count; i++)
     {
         limine_smp_info *smp_info = smp_request.response->cpus[i];
         smp_info->extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);

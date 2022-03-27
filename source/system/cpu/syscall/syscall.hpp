@@ -11,7 +11,7 @@ namespace kernel::system::cpu::syscall {
 struct syscall_ret
 {
     uint64_t retval;
-    uint64_t errno;
+    uint64_t err;
 };
 
 #define RDX_ERRNO regs->rdx
@@ -79,8 +79,9 @@ extern bool initialised;
         "ret"
     );
 }
+extern "C" syscall_t syscall_table[];
+extern "C" void syscall_entry();
 
 void reboot(string message);
-
 void init();
 }

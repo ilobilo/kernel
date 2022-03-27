@@ -32,12 +32,14 @@ struct [[gnu::packed]] registers_t
 uint64_t rdmsr(uint32_t msr);
 void wrmsr(uint32_t msr, uint64_t value);
 
-void set_kernel_gs(uintptr_t addr);
-void set_user_gs(uintptr_t addr);
-void set_user_fs(uintptr_t addr);
+void set_kernel_gs(uint64_t addr);
+uint64_t get_kernel_gs();
 
-uintptr_t get_user_gs();
-uintptr_t get_user_fs();
+void set_gs(uint64_t addr);
+uint64_t get_gs();
+
+void set_fs(uint64_t addr);
+uint64_t get_fs();
 
 void write_cr(uint64_t reg, uint64_t val);
 uint64_t read_cr(uint64_t reg);
@@ -57,3 +59,10 @@ void enableSMEP();
 void enableSMAP();
 void enableUMIP();
 void enablePAT();
+
+#define read_gs(offset) \
+({ \
+    uint64_t value; \
+    asm volatile("movq %%gs:[" #offset "], %0" : "=r"(value) : : "memory"); \
+    value; \
+})

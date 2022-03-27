@@ -145,6 +145,7 @@ struct Pagemap
     Pagemap *fork();
     void deleteThis();
     void switchTo();
+    void save();
 };
 
 struct mmap_range_global

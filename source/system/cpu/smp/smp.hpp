@@ -13,7 +13,7 @@ namespace kernel::system::cpu::smp {
 
 struct cpu_t
 {
-    size_t id;
+    uint64_t id;
     uint32_t lapic_id;
     gdt::TSS *tss;
 
@@ -25,7 +25,7 @@ struct cpu_t
     scheduler::process_t *current_proc;
     scheduler::process_t *idle_proc;
 
-    errno err;
+    errno_t err;
 
     volatile bool is_up;
 };
@@ -33,12 +33,7 @@ struct cpu_t
 extern bool initialised;
 extern cpu_t *cpus;
 
-#define this_cpu \
-({ \
-    uint64_t cpu_number; \
-    asm volatile("movq %%gs:[0], %0" : "=r"(cpu_number) : : "memory"); \
-    &kernel::system::cpu::smp::cpus[cpu_number]; \
-})
+#define this_cpu ({ &kernel::system::cpu::smp::cpus[read_gs(0)]; })
 
 void init();
 }

@@ -214,6 +214,7 @@ Pagemap *Pagemap::fork()
         if (global->res) global->res->refcount++;
         if (local->flags & MapShared)
         {
+            newlocal->global = global;
             global->locals.push_back(newlocal);
             for (size_t i = local->base; i < local->base + local->length; i += page_size)
             {
@@ -387,6 +388,11 @@ void Pagemap::unmapMemRange(uint64_t vaddr, uint64_t size, bool hugepages)
 void Pagemap::switchTo()
 {
     write_cr(3, reinterpret_cast<uint64_t>(this->TOPLVL));
+}
+
+void Pagemap::save()
+{
+    this->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
 }
 
 Pagemap *newPagemap()
