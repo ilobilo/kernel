@@ -789,7 +789,7 @@ static void handler(registers_t *regs)
 
 void reboot(string message)
 {
-    syscall(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message.c_str());
+    syscall_i(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message.c_str());
 }
 
 void init()
