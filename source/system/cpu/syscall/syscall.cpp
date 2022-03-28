@@ -21,7 +21,6 @@ using namespace kernel::system::mm;
 namespace kernel::system::cpu::syscall {
 
 bool initialised = false;
-extern syscall_t syscalls[];
 
 static void syscall_read(registers_t *regs)
 {
@@ -62,7 +61,7 @@ static void syscall_open(registers_t *regs)
     RDX_ARG2 = flags;
     R10_ARG3 = fd;
 
-    syscalls[SYSCALL_OPENAT](regs);
+    syscall_table[SYSCALL_OPENAT](regs);
 }
 
 static void syscall_close(registers_t *regs)
@@ -108,7 +107,7 @@ static void syscall_access(registers_t *regs)
     RDX_ARG2 = mode;
     R10_ARG3 = 0;
 
-    syscalls[SYSCALL_FACCESAT](regs);
+    syscall_table[SYSCALL_FACCESAT](regs);
 }
 
 static void syscall_getpid(registers_t *regs)
@@ -272,7 +271,7 @@ static void syscall_link(registers_t *regs)
     R10_ARG3 = newpath;
     R8_ARG4 = 0;
 
-    syscalls[SYSCALL_LINKAT](regs);
+    syscall_table[SYSCALL_LINKAT](regs);
 }
 
 static void syscall_chmod(registers_t *regs)
@@ -750,7 +749,7 @@ static void syscall_faccessat(registers_t *regs)
     RDX_ERRNO = 0;
 }
 
-syscall_t syscalls[] = {
+syscall_t syscall_table[] = {
     [SYSCALL_READ] = syscall_read,
     [SYSCALL_WRITE] = syscall_write,
     [SYSCALL_OPEN] = syscall_open,
@@ -785,12 +784,12 @@ syscall_t syscalls[] = {
 
 static void handler(registers_t *regs)
 {
-    if (RAX_RET >= 0 && syscalls[RAX_RET]) syscalls[RAX_RET](regs);
+    if (RAX_RET >= 0 && syscall_table[RAX_RET]) syscall_table[RAX_RET](regs);
 }
 
 void reboot(string message)
 {
-    syscall(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message.c_str());
+    syscall_i(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message.c_str());
 }
 
 void init()

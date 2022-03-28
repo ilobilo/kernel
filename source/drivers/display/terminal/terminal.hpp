@@ -9,10 +9,6 @@
 namespace kernel::drivers::display::terminal {
 
 extern bool initialised;
-
-extern uint16_t columns;
-extern uint16_t rows;
-
 extern char *colour;
 
 void print(const char *string);

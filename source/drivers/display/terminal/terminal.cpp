@@ -5,38 +5,18 @@
 #include <lib/string.hpp>
 #include <lib/lock.hpp>
 #include <lib/log.hpp>
-#include <stivale2.h>
 
 namespace kernel::drivers::display::terminal {
 
+char *colour = "\033[0m"_c;
 new_lock(term_lock);
 
-bool initialised = false;
-uint16_t columns;
-uint16_t rows;
-
-char *colour = "\033[0m"_c;
-
-void (*write)(const char*, uint64_t);
-
-void init()
-{
-    log("Initialising terminal\n");
-
-    write = reinterpret_cast<void (*)(const char *, uint64_t)>(term_tag->term_write);
-    columns = term_tag->cols;
-    rows = term_tag->rows;
-
-    initialised = true;
-}
-
 #pragma region Print
-void print(const char *string)
+void print(const char *str)
 {
-    if (!initialised) return;
     lockit(term_lock);
-
-    write(string, strlen(string));
+    if (terminal_request.response == nullptr) return;
+    terminal_request.response->write(str, strlen(str));
 }
 
 void printi(int num)
@@ -67,7 +47,8 @@ void printi(int num)
 
 void printc(char c)
 {
-    write(&c, 1);
+    char str[] = { c, 0 };
+    print(str);
 }
 #pragma endregion Print
 
@@ -80,8 +61,7 @@ void setcolour(const char *ascii_colour)
 
 void resetcolour()
 {
-    colour = "\033[0m"_c;
-    printf("%s", colour);
+    print("\033[0m");
 }
 #pragma endregion Colour
 
@@ -89,13 +69,14 @@ void resetcolour()
 void reset()
 {
     lockit(term_lock);
-    write("", STIVALE2_TERM_FULL_REFRESH);
+    if (terminal_request.response == nullptr) return;
+    terminal_request.response->write("", LIMINE_TERMINAL_FULL_REFRESH);
 }
 
 void clear(const char *ansii_colour)
 {
     setcolour(ansii_colour);
-    printf("\033[H\033[2J");
+    print("\033[H\033[2J");
 }
 #pragma endregion Clear
 
@@ -121,9 +102,9 @@ void cursor_left(int lines)
 #pragma region Misc
 void center(const char *text)
 {
-    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
+    for (uint64_t i = 0; i < terminal_request.response->columns / 2 - strlen(text) / 2; i++) printc(' ');
     print(text);
-    for (uint64_t i = 0; i < columns / 2 - strlen(text) / 2; i++) printc(' ');
+    for (uint64_t i = 0; i < terminal_request.response->columns / 2 - strlen(text) / 2; i++) printc(' ');
 }
 void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit)
 {
@@ -131,7 +112,7 @@ void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shou
 
     if (shouldinit) reinterpret_cast<void (*)(uint64_t)>(init)(args);
 
-    printf("\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), columns - 5, (ok ? "32mOK" : "31m!!"));
+    printf("\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), terminal_request.response->columns - 5, (ok ? "32mOK" : "31m!!"));
 }
 #pragma endregion Misc
 }

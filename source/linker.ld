@@ -28,10 +28,6 @@ SECTIONS
         PROVIDE_HIDDEN (__init_array_end = .);
     }
 
-    .stivale2hdr : {
-        KEEP(*(.stivale2hdr))
-    } :rodata
-
     .rodata : {
         *(.rodata .rodata.*)
     } :rodata

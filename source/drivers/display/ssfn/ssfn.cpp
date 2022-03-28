@@ -4,6 +4,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #define SSFN_CONSOLEBITMAP_TRUECOLOR
 #define SSFN_CONSOLEBITMAP_CONTROL
+#define __THROW
 #include <ssfn.h>
 
 namespace kernel::drivers::display::ssfn {
@@ -50,10 +51,10 @@ void init(uint64_t sfn)
 {
     ssfn_src = reinterpret_cast<ssfn_font_t*>(sfn);
 
-    ssfn_dst.ptr = reinterpret_cast<uint8_t*>(framebuffer::frm_addr);
-    ssfn_dst.w = framebuffer::frm_width;
-    ssfn_dst.h = framebuffer::frm_height;
-    ssfn_dst.p = framebuffer::frm_pitch;
+    ssfn_dst.ptr = reinterpret_cast<uint8_t*>(framebuffer::main_frm->address);
+    ssfn_dst.w = framebuffer::main_frm->width;
+    ssfn_dst.h = framebuffer::main_frm->height;
+    ssfn_dst.p = framebuffer::main_frm->pitch;
     ssfn_dst.x = ssfn_dst.y = pos.X = pos.Y = 0;
     ssfn_dst.fg = fgcolour;
 }

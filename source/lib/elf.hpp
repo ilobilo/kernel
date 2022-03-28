@@ -84,7 +84,7 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
         uint64_t paddr = reinterpret_cast<uint64_t>(addr);
 
         pagemap->mapRange(vaddr, paddr, pages * vmm::page_size, vmm::ProtRead | vmm::ProtExec | (phdr->p_flags & PF_W ? vmm::ProtWrite : 0), vmm::MapAnon);
-        uint8_t *buffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(addr) + misalign + hhdm_tag->addr);
+        uint8_t *buffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(addr) + misalign + hhdm_offset);
         res->read(0, buffer, phdr->p_offset, phdr->p_filesz);
     }
     return ret { auxval, ld_path };

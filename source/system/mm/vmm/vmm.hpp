@@ -9,8 +9,8 @@
 
 namespace kernel::system::mm::vmm {
 
-static uint64_t large_page_size = 0x200000;
-static uint64_t page_size = 0x1000;
+static constexpr uint64_t large_page_size = 0x200000;
+static constexpr uint64_t page_size = 0x1000;
 
 enum PT_Flag
 {
@@ -145,6 +145,7 @@ struct Pagemap
     Pagemap *fork();
     void deleteThis();
     void switchTo();
+    void save();
 };
 
 struct mmap_range_global

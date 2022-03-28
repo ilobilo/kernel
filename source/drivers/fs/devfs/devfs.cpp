@@ -116,11 +116,11 @@ void *devfs_res::mmap(uint64_t page, int flags)
 
     if (flags & vmm::MapShared)
     {
-        return reinterpret_cast<void*>(reinterpret_cast<uint64_t>(&this->storage[page * vmm::page_size]) - hhdm_tag->addr);
+        return reinterpret_cast<void*>(reinterpret_cast<uint64_t>(&this->storage[page * vmm::page_size]) - hhdm_offset);
     }
 
     void *copy = pmm::alloc();
-    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(copy) + hhdm_tag->addr), &this->storage[page * vmm::page_size], vmm::page_size);
+    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(copy) + hhdm_offset), &this->storage[page * vmm::page_size], vmm::page_size);
 
     return copy;
 }
@@ -233,11 +233,10 @@ void init()
     }
 
     devfs->name = "devfs";
-
     vfs::install_fs(devfs);
 
-    vfs::create(vfs::fs_root, "/dev", 0644 | vfs::ifdir);
-    vfs::mount(vfs::fs_root, "", "/dev", devfs);
+    vfs::create(nullptr, "/dev", 0644 | vfs::ifdir);
+    vfs::mount(nullptr, "", "/dev", "devfs");
 
     streams::random::init();
     streams::null::init();
