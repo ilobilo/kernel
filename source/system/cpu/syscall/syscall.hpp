@@ -61,7 +61,7 @@ using syscall_t = void (*)(registers_t *);
 
 extern bool initialised;
 
-[[gnu::naked]] static inline syscall_ret syscall(size_t number, ...)
+[[gnu::naked]] static inline syscall_ret syscall_i(size_t number, ...)
 {
     asm volatile (
         "push %rbp \n\t"
@@ -79,6 +79,26 @@ extern bool initialised;
         "ret"
     );
 }
+
+[[gnu::naked]] static inline syscall_ret syscall_s(size_t number, ...)
+{
+    asm volatile (
+        "push %rbp \n\t"
+        "mov %rsp, %rbp \n\t"
+        "mov %rdi, %rax \n\t"
+        "mov %rsi, %rdi \n\t"
+        "mov %rdx, %rsi \n\t"
+        "mov %rcx, %rdx \n\t"
+        "mov %r8, %r10 \n\t"
+        "mov %r9, %r8 \n\t"
+        "mov 8(%rsp), %r9 \n\t"
+        "syscall \n\t"
+        "mov %rbp, %rsp \n\t"
+        "pop %rbp \n\t"
+        "ret"
+    );
+}
+
 extern "C" syscall_t syscall_table[];
 extern "C" void syscall_entry();
 

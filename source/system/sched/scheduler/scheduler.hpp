@@ -6,6 +6,7 @@
 #include <system/vfs/vfs.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
+#include <lib/elf.hpp>
 #include <cstdint>
 
 using namespace kernel::system::mm;
@@ -40,7 +41,6 @@ struct thread_t
     uint8_t *kstack;
 
     int tid = 1;
-    bool user;
     errno_t err;
     state_t state;
     uint8_t *stack_phys;
@@ -53,7 +53,10 @@ struct thread_t
     process_t *parent;
     priority_t priority;
 
-    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user);
+    bool user;
+
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority);
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp);
     thread_t() { };
 
     bool map_user();
@@ -83,11 +86,11 @@ struct process_t
 
     bool in_table = false;
 
-    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
+    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID);
     thread_t *add_thread(thread_t *thread);
     bool table_add();
 
-    process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID, bool user = false);
+    process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID);
     process_t(string name);
     process_t() { };
 

@@ -99,6 +99,14 @@ volatile limine_kernel_address_request kernel_address_request
     .response = nullptr
 };
 
+volatile limine_stack_size_request stack_size_request
+{
+    .id = LIMINE_STACK_SIZE_REQUEST,
+    .revision = 0,
+    .response = nullptr,
+    .stack_size = STACK_SIZE
+};
+
 limine_file *find_module(const char *name)
 {
     for (size_t i = 0; i < module_request.response->module_count; i++)
@@ -133,6 +141,7 @@ extern "C" void _start()
     assert(boot_time_request.response, "Could not get boot time response!");
     assert(hhdm_request.response, "Could not get hhdm response!");
     assert(kernel_address_request.response, "Could not get kernel address response!");
+    assert(stack_size_request.response, "Could not get stack size response!");
 
     cmdline = kernel_file_request.response->kernel_file->cmdline;
     hhdm_offset = hhdm_request.response->offset;

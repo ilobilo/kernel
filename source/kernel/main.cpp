@@ -57,26 +57,20 @@ namespace kernel {
 
 void time()
 {
-    limine_file *ssfn_mod = find_module("sfn");
+    auto ssfn_mod = find_module("sfn");
     if (ssfn_mod == nullptr) return;
     ssfn::init(reinterpret_cast<uint64_t>(ssfn_mod->base));
 
     while (true)
     {
-        size_t size = 0;
-        for (size_t i = 0; i < STACK_SIZE; i++)
-        {
-            if (kernel_stack[i] != 'A') break;
-            size++;
-        }
-
         uint64_t free = pmm::freemem() / 1024;
+        uint64_t used = pmm::usedmem() / 1024;
 
         ssfn::setcolour(ssfn::fgcolour, 0x227AD3);
         ssfn::resetpos();
 
         ssfn::printf("Current RTC time: %s\n", rtc::getTime());
-        ssfn::printf("Maximum stack usage: %zu Bytes, Free RAM: %ld KB\n", STACK_SIZE - size, free);
+        ssfn::printf("Total usable RAM: %ld KB, Used RAM: %ld KB\n", free + used, used);
         ssfn::printf("Process count: %zu, Thread count: %zu", scheduler::proc_count, scheduler::thread_count);
     }
 }
@@ -155,8 +149,8 @@ void main()
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    auto proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH, false);
-    proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW, false);
+    auto proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH);
+    proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW);
     proc->table_add();
 
     scheduler::init();
