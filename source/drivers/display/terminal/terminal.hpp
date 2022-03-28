@@ -8,11 +8,6 @@
 
 namespace kernel::drivers::display::terminal {
 
-#define TERM_CTX_SIZE static_cast<uint64_t>(-1)
-#define TERM_CTX_SAVE static_cast<uint64_t>(-2)
-#define TERM_CTX_RESTORE static_cast<uint64_t>(-3)
-#define TERM_FULL_REFRESH static_cast<uint64_t>(-4)
-
 extern bool initialised;
 extern char *colour;
 
