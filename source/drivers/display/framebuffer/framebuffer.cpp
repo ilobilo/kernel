@@ -8,58 +8,40 @@
 
 namespace kernel::drivers::display::framebuffer {
 
-uint64_t frm_addr;
-uint16_t frm_width;
-uint16_t frm_height;
-uint16_t frm_pitch;
-uint16_t frm_bpp;
-uint16_t frm_pixperscanline;
-uint32_t frm_size;
+limine_framebuffer **framebuffers;
+limine_framebuffer *main_frm;
 
 uint32_t cursorbuffer[16 * 19];
 uint32_t cursorbuffersecond[16 * 19];
 
 bool mousedrawn;
 
-void putpix(uint32_t x, uint32_t y, uint32_t colour)
+void putpix(uint32_t x, uint32_t y, uint32_t colour, limine_framebuffer *frm)
 {
-    *reinterpret_cast<uint32_t*>(frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = colour;
+    *reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(frm->address) + (x * 4) + (y * (frm->pitch / (frm->bpp / 8)) * 4)) = colour;
 }
 
-void putpix(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint64_t b)
+void putpix(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint64_t b, limine_framebuffer *frm)
 {
-    *reinterpret_cast<uint32_t*>(frm_addr + (x * 4) + (y * frm_pixperscanline * 4)) = (r << 16) | (g << 8) | b;
+    *reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(frm->address) + (x * 4) + (y * (frm->pitch / (frm->bpp / 8)) * 4)) = (r << 16) | (g << 8) | b;
 }
 
-uint32_t getpix(uint32_t x, uint32_t y)
+uint32_t getpix(uint32_t x, uint32_t y, limine_framebuffer *frm)
 {
-    return *reinterpret_cast<uint32_t*>(frm_addr + (x * 4) + (y * frm_pixperscanline * 4));
+    return *reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(frm->address) + (x * 4) + (y * (frm->pitch / (frm->bpp / 8)) * 4));
 }
 
-void framebuffer_restore(uint32_t *frm)
-{
-    memcpy(reinterpret_cast<void*>(frm_addr), frm, frm_height * frm_pitch);
-    free(frm);
-}
-
-uint32_t *framebuffer_backup()
-{
-    uint32_t *frm = (uint32_t*)malloc(frm_height * frm_pitch);
-    memcpy(frm, reinterpret_cast<void*>(frm_addr), frm_height * frm_pitch);
-    return frm;
-}
-
-void drawvertline(int x, int y, int dy, uint32_t colour)
+static void drawvertline(int x, int y, int dy, uint32_t colour, limine_framebuffer *frm = main_frm)
 {
     for (int i = 0; i < dy; i++) putpix(x, y + i, colour);
 }
 
-void drawhorline(int x, int y, int dx, uint32_t colour)
+static void drawhorline(int x, int y, int dx, uint32_t colour, limine_framebuffer *frm = main_frm)
 {
     for (int i = 0; i < dx; i++) putpix(x + i, y, colour);
 }
 
-void drawdiagline(int x0, int y0, int x1, int y1, uint32_t colour)
+static void drawdiagline(int x0, int y0, int x1, int y1, uint32_t colour, limine_framebuffer *frm = main_frm)
 {
     int i;
     int sdx = sign(x1);
@@ -101,12 +83,12 @@ void drawdiagline(int x0, int y0, int x1, int y1, uint32_t colour)
     }
 }
 
-void drawline(int x0, int y0, int x1, int y1, uint32_t colour)
+void drawline(int x0, int y0, int x1, int y1, uint32_t colour, limine_framebuffer *frm)
 {
-    if (x0 > frm_width) x0 = frm_width - 1;
-    if (x1 > frm_width) x1 = frm_width - 1;
-    if (y0 > frm_height) y0 = frm_height - 1;
-    if (y1 > frm_height) y1 = frm_height - 1;
+    if (x0 > frm->width) x0 = frm->width - 1;
+    if (x1 > frm->width) x1 = frm->width - 1;
+    if (y0 > frm->height) y0 = frm->height - 1;
+    if (y1 > frm->height) y1 = frm->height - 1;
 
     if (x0 < -1) x0 = -1;
     if (x1 < -1) x1 = -1;
@@ -124,7 +106,7 @@ void drawline(int x0, int y0, int x1, int y1, uint32_t colour)
     drawdiagline(x0, y0, dx, dy, colour);
 }
 
-void drawrectangle(int x, int y, int w, int h, uint32_t colour)
+void drawrectangle(int x, int y, int w, int h, uint32_t colour, limine_framebuffer *frm)
 {
     drawline(x, y, x + w, y, colour); // ¯
     drawline(x, y + h - 1, x + w, y + h - 1, colour); // _
@@ -132,12 +114,12 @@ void drawrectangle(int x, int y, int w, int h, uint32_t colour)
     drawline(x + w - 1, y, x + w - 1, y + h, colour); // *|
 }
 
-void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour)
+void drawfilledrectangle(int x, int y, int w, int h, uint32_t colour, limine_framebuffer *frm)
 {
     for (int i = 0; i < h; i++) drawline(x, y + i, x + w, y + i, colour);
 }
 
-void drawcircle(int cx, int cy, int radius, uint32_t colour)
+void drawcircle(int cx, int cy, int radius, uint32_t colour, limine_framebuffer *frm)
 {
     int x = -radius, y = 0, err = 2 - 2 * radius;
     do
@@ -152,7 +134,7 @@ void drawcircle(int cx, int cy, int radius, uint32_t colour)
     } while (x < 0);
 }
 
-void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
+void drawfilledcircle(int cx, int cy, int radius, uint32_t colour, limine_framebuffer *frm)
 {
     if ((radius > cx) | (radius > cy)) { cx = radius; cy = radius; };
     int x = radius;
@@ -186,11 +168,11 @@ void drawfilledcircle(int cx, int cy, int radius, uint32_t colour)
     }
 }
 
-void clearcursor(uint8_t cursor[], point pos)
+void clearcursor(uint8_t cursor[], point pos, limine_framebuffer *frm)
 {
     if (!mousedrawn) return;
 
-    int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
+    int xmax = 16, ymax = 19, dx = frm->width - pos.X, dy = frm->height - pos.Y;
 
     if (dx < 16) xmax = dx;
     if (dy < 19) ymax = dy;
@@ -209,9 +191,9 @@ void clearcursor(uint8_t cursor[], point pos)
     }
 }
 
-void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
+void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back, limine_framebuffer *frm)
 {
-    int xmax = 16, ymax = 19, dx = frm_width - pos.X, dy = frm_height - pos.Y;
+    int xmax = 16, ymax = 19, dx = frm->width - pos.X, dy = frm->height - pos.Y;
 
     if (dx < 16) xmax = dx;
     if (dy < 19) ymax = dy;
@@ -236,15 +218,7 @@ void drawovercursor(uint8_t cursor[], point pos, uint32_t colour, bool back)
 
 void init()
 {
-    log("Initialising framebuffer\n");
-
-    frm_addr = frm_tag->framebuffer_addr;
-    frm_width = frm_tag->framebuffer_width;
-    frm_height = frm_tag->framebuffer_height;
-    frm_pitch = frm_tag->framebuffer_pitch;
-    frm_bpp = frm_tag->framebuffer_bpp;
-    frm_pixperscanline = frm_pitch / 4;
-
-    frm_size = frm_height * frm_pitch;
+    framebuffers = framebuffer_request.response->framebuffers;
+    main_frm = framebuffers[0];
 }
 }

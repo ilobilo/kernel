@@ -323,7 +323,7 @@ fs_node_t *get_node(fs_node_t *parent, string path, bool links = false);
 fs_node_t *create(fs_node_t *parent, string name, int mode);
 fs_node_t *symlink(fs_node_t *parent, string path, string target);
 bool unlink(fs_node_t *parent, string name, bool remdir);
-bool mount(fs_node_t *parent, string source, string target, filesystem_t *filesystem);
+bool mount(fs_node_t *parent, string source, string target, string fs);
 
 int fdnum_from_node(fs_node_t *node, int flags, int oldfd, bool specific);
 

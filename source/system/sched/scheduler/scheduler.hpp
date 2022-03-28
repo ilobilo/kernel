@@ -6,6 +6,7 @@
 #include <system/vfs/vfs.hpp>
 #include <lib/lock.hpp>
 #include <lib/cpu.hpp>
+#include <lib/elf.hpp>
 #include <cstdint>
 
 using namespace kernel::system::mm;
@@ -35,19 +36,27 @@ enum priority_t
 struct process_t;
 struct thread_t
 {
-    int tid = 1;
-    bool user;
-    errno err;
-    state_t state;
+    uint64_t cpu;
     uint8_t *stack;
+    uint8_t *kstack;
+
+    int tid = 1;
+    errno_t err;
+    state_t state;
     uint8_t *stack_phys;
+    uint8_t *kstack_phys;
     uint8_t *fpu_storage;
     size_t fpu_storage_size;
+    uint64_t gsbase;
+    uint64_t fsbase;
     registers_t regs;
     process_t *parent;
     priority_t priority;
 
-    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user);
+    bool user;
+
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority);
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp);
     thread_t() { };
 
     bool map_user();
@@ -77,11 +86,11 @@ struct process_t
 
     bool in_table = false;
 
-    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user);
+    thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID);
     thread_t *add_thread(thread_t *thread);
     bool table_add();
 
-    process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user);
+    process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID);
     process_t(string name);
     process_t() { };
 

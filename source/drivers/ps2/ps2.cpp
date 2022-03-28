@@ -536,10 +536,10 @@ void proccesspacket()
     }
 
     if (mousepos.X < 0) mousepos.X = 0;
-    if (mousepos.X > framebuffer::frm_width - 1) mousepos.X = framebuffer::frm_width - 1;
+    if (mousepos.X > framebuffer::main_frm->width - 1) mousepos.X = framebuffer::main_frm->width - 1;
 
     if (mousepos.Y < 0) mousepos.Y = 0;
-    if (mousepos.Y > framebuffer::frm_height - 1) mousepos.Y = framebuffer::frm_height - 1;
+    if (mousepos.Y > framebuffer::main_frm->height - 1) mousepos.Y = framebuffer::main_frm->height - 1;
 
     mouseclear();
 

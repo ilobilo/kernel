@@ -2,7 +2,7 @@
 
 #pragma once
 
-enum errno
+enum errno_t
 {
     EDOM = 1,
     EILSEQ = 2,
@@ -89,5 +89,5 @@ enum errno
     EBADFD = 1081
 };
 
-void errno_set(errno err);
-errno errno_get();
+void errno_set(errno_t err);
+errno_t errno_get();

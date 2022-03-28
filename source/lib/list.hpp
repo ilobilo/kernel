@@ -11,7 +11,7 @@ template<typename type>
 class list
 {
     private:
-    vector<const char*> keys;
+    vector<string> keys;
     vector<type> values;
     type null = type();
 
@@ -42,7 +42,7 @@ class list
         on = false;
     }
 
-    void push_back(const char *key, const type &value)
+    void push_back(const type &value, string key = "")
     {
         if (!on) this->init();
         this->keys.push_back(key);
@@ -73,16 +73,11 @@ class list
         return this->values[pos];
     }
 
-    type &operator[](int pos)
-    {
-        return this->values[pos];
-    }
-
-    type &operator[](const char *key)
+    type &operator[](string key)
     {
         for (size_t i = 0; i < this->keys.size(); i++)
         {
-            if (!strcmp(this->keys[i], key)) return this->values[i];
+            if (this->keys[i] == key) return this->values[i];
         }
         return this->null;
     }
@@ -151,7 +146,7 @@ class list
         this->values.expand(size);
     }
 
-    void insert(size_t pos, const char *key, const type &value)
+    void insert(size_t pos, string key, const type &value)
     {
         if (!on) this->init();
         this->keys.insert(pos, key);

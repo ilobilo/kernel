@@ -214,6 +214,7 @@ Pagemap *Pagemap::fork()
         if (global->res) global->res->refcount++;
         if (local->flags & MapShared)
         {
+            newlocal->global = global;
             global->locals.push_back(newlocal);
             for (size_t i = local->base; i < local->base + local->length; i += page_size)
             {
@@ -250,7 +251,7 @@ Pagemap *Pagemap::fork()
                     if (newpml == nullptr) return nullptr;
 
                     void *page = pmm::alloc();
-                    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(page) + hhdm_tag->addr), reinterpret_cast<void*>((oldpml->getAddr() << 12) + hhdm_tag->addr), page_size);
+                    memcpy(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(page) + hhdm_offset), reinterpret_cast<void*>((oldpml->getAddr() << 12) + hhdm_offset), page_size);
                     newpml->value = (oldpml->value & 0xFFFUL) | reinterpret_cast<uint64_t>(page);
                     newshadowpml->value = newpml->value;
                 }
@@ -389,62 +390,51 @@ void Pagemap::switchTo()
     write_cr(3, reinterpret_cast<uint64_t>(this->TOPLVL));
 }
 
+void Pagemap::save()
+{
+    this->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
+}
+
 Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
 
-    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
+    // pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
 
     if (kernel_pagemap == nullptr)
     {
-        for (size_t i = 256; i < 512; i++) get_next_lvl(pagemap->TOPLVL, i);
+        pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
 
-        for (size_t i = 0; i < pmrs_tag->entries; i++)
-        {
-            stivale2_pmr &pmr = pmrs_tag->pmrs[i];
+        // for (uint64_t i = 0; i < 0x100000000; i += page_size)
+        // {
+        //     pagemap->mapMem(i, i, Present | ReadWrite | UserSuper);
+        //     pagemap->mapMem(i + hhdm_offset, i, Present | ReadWrite | UserSuper);
+        // }
 
-            uint64_t vaddr = pmr.base;
-            uint64_t paddr = kbad_tag->physical_base_address + (vaddr - kbad_tag->virtual_base_address);
-            uint64_t length = pmr.length;
+        // for (size_t i = 0; i < memmap_request.response->entry_count; i++)
+        // {
+        //     limine_memmap_entry *mmap = memmap_request.response->entries[i];
 
-            for (uint64_t t = 0; t < length; t += page_size)
-            {
-                pagemap->mapMem(vaddr + t, paddr + t);
-            }
-        }
+        //     uint64_t base = ALIGN_DOWN(mmap->base, page_size);
+        //     uint64_t top = ALIGN_UP(mmap->base + mmap->length, page_size);
+        //     uint64_t type = mmap->type;
+        //     if (top < 0x100000000) continue;
 
-        for (uint64_t i = 0; i < 0x100000000; i += large_page_size)
-        {
-            pagemap->mapMem(i, i, Present | ReadWrite, true);
-            pagemap->mapMem(i + hhdm_tag->addr, i, Present | ReadWrite, true);
-        }
-
-        for (size_t i = 0; i < mmap_tag->entries; i++)
-        {
-            stivale2_mmap_entry &mmap = mmap_tag->memmap[i];
-
-            uint64_t base = ALIGN_DOWN(mmap.base, page_size);
-            uint64_t top = ALIGN_UP(mmap.base + mmap.length, page_size);
-            if (top < 0x100000000) continue;
-
-            for (uint64_t t = base; t < top; t += page_size)
-            {
-                if (t < 0x100000000) continue;
-
-                pagemap->mapMem(t, t);
-                pagemap->mapMem(t + hhdm_tag->addr, t);
-            }
-        }
-
-        uint64_t frm_addr = ALIGN_DOWN(framebuffer::frm_addr, large_page_size);
-        uint64_t frm_size = ALIGN_UP(framebuffer::frm_height * framebuffer::frm_pitch, large_page_size);
-        pagemap->mapMemRange(frm_addr, frm_addr - hhdm_tag->addr, frm_size, Present | ReadWrite | CacheDisable, true);
+        //     for (uint64_t t = base; t < top; t += page_size)
+        //     {
+        //         if (t < 0x100000000) continue;
+        //         pagemap->mapMem(t, t, Present | ReadWrite | UserSuper | (type == LIMINE_MEMMAP_FRAMEBUFFER ? CacheDisable : 0));
+        //         pagemap->mapMem(t + hhdm_offset, t, Present | ReadWrite | UserSuper | (type == LIMINE_MEMMAP_FRAMEBUFFER ? CacheDisable : 0));
+        //     }
+        // }
 
         return pagemap;
     }
 
-    PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_tag->addr);
-    PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_tag->addr);
+    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
+
+    PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_offset);
+    PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_offset);
     for (size_t i = 0; i < 512; i++) toplvl[i] = kerenltoplvl[i];
 
     return pagemap;

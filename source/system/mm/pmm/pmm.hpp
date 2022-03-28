@@ -3,7 +3,7 @@
 #pragma once
 
 #include <lib/bitmap.hpp>
-#include <kernel/main.hpp>
+#include <limine.h>
 #include <cstdint>
 
 namespace kernel::system::mm::pmm {

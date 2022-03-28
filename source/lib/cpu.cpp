@@ -20,29 +20,34 @@ void wrmsr(uint32_t msr, uint64_t value)
     asm volatile("wrmsr" : : "a"(eax), "d"(edx), "c"(msr) : "memory");
 }
 
-void set_kernel_gs(uintptr_t addr)
+void set_kernel_gs(uint64_t addr)
 {
-    wrmsr(0xc0000101, addr);
+    wrmsr(0xC0000102, addr);
 }
 
-void set_user_gs(uintptr_t addr)
+uint64_t get_kernel_gs()
 {
-    wrmsr(0xc0000102, addr);
+    return rdmsr(0xC0000102);
 }
 
-void set_user_fs(uintptr_t addr)
+void set_gs(uint64_t addr)
 {
-    wrmsr(0xc0000100, addr);
+    wrmsr(0xC0000101, addr);
 }
 
-uintptr_t get_user_gs()
+uint64_t get_gs()
 {
-    return rdmsr(0xc0000102);
+    return rdmsr(0xC0000101);
 }
 
-uintptr_t get_user_fs()
+void set_fs(uint64_t addr)
 {
-    return rdmsr(0xc0000100);
+    wrmsr(0xC0000100, addr);
+}
+
+uint64_t get_fs()
+{
+    return rdmsr(0xC0000100);
 }
 
 void write_cr(uint64_t reg, uint64_t val)

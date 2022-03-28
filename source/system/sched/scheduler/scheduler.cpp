@@ -62,20 +62,20 @@ void func_wrapper(uint64_t addr, uint64_t args)
     this_thread()->exit();
 }
 
-thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, bool user)
+thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority)
 {
     lockit(thread_lock);
 
     this->state = INITIAL;
     this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
-    this->stack = this->stack_phys + hhdm_tag->addr;
+    this->stack = this->stack_phys + hhdm_offset;
 
-    this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_tag->addr;
+    this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
 
     this->regs.rflags = 0x202;
-    this->regs.cs = (user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
-    this->regs.ss = (user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
+    this->regs.cs = gdt::GDT_CODE_64;
+    this->regs.ss = gdt::GDT_DATA_64;
 
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
     this->regs.rdi = reinterpret_cast<uint64_t>(addr);
@@ -84,15 +84,34 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     this->priority = priority;
     this->parent = parent;
+    this->user = false;
 
-    this->user = user;
+    this->gsbase = reinterpret_cast<uint64_t>(this);
+    this->fsbase = 0;
 }
 
-bool thread_t::map_user()
+thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp)
 {
-    if (this->parent == nullptr) return false;
+    if (parent == nullptr)
+    {
+        error("Parent can not be null!");
+        return;
+    }
 
-    // TODO: Fix this if broken
+    lockit(thread_lock);
+
+    this->priority = priority;
+    this->parent = parent;
+    this->user = true;
+
+    this->state = INITIAL;
+    this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
+    this->stack = this->stack_phys + hhdm_offset;
+
+    this->kstack_phys = malloc<uint8_t*>(STACK_SIZE);
+    this->kstack = this->kstack_phys + hhdm_offset;
+
+    uint64_t stack_vma = this->parent->thread_stack_top;
     this->parent->thread_stack_top -= STACK_SIZE;
     uint64_t stack_bottom_vma = this->parent->thread_stack_top;
     this->parent->thread_stack_top -= vmm::page_size;
@@ -102,7 +121,64 @@ bool thread_t::map_user()
 
     this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
 
-    return true;
+    this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
+    this->fpu_storage_size = this_cpu->fpu_storage_size;
+
+    this->regs.rflags = 0x202;
+    this->regs.cs = gdt::GDT_USER_CODE_64;
+    this->regs.ss = gdt::GDT_USER_DATA_64;
+
+    this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
+    this->regs.rdi = reinterpret_cast<uint64_t>(addr);
+    this->regs.rsi = reinterpret_cast<uint64_t>(args);
+    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
+
+    this->gsbase = 0;
+    this->fsbase = 0;
+
+    uintptr_t *tmpstack = reinterpret_cast<uintptr_t*>(this->stack + STACK_SIZE);
+    uint64_t orig_stack_vma = stack_vma;
+
+    for (string seg : envp)
+    {
+        tmpstack = reinterpret_cast<uintptr_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+        memcpy(tmpstack, seg.c_str(), seg.length() + 1);
+    }
+    for (string seg : argv)
+    {
+        tmpstack = reinterpret_cast<uintptr_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+        memcpy(tmpstack, seg.c_str(), seg.length() + 1);
+    }
+    tmpstack = reinterpret_cast<uintptr_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
+
+    if ((argv.size() + envp.size() + 1) & 1) tmpstack--;
+
+    *--tmpstack = 0;
+    *--tmpstack = 0;
+
+    tmpstack -= 2; *tmpstack = AT_ENTRY; *(tmpstack + 1) = auxval.entry;
+    tmpstack -= 2; *tmpstack = AT_PHDR; *(tmpstack + 1) = auxval.phdr;
+    tmpstack -= 2; *tmpstack = AT_PHENT; *(tmpstack + 1) = auxval.phent;
+    tmpstack -= 2; *tmpstack = AT_PHNUM; *(tmpstack + 1) = auxval.phnum;
+
+    *--tmpstack = 0;
+    tmpstack -= envp.size();
+    for (size_t i = 0; i < envp.size(); i++)
+    {
+        orig_stack_vma -= envp[i].length() - 1;
+        tmpstack[i] = orig_stack_vma;
+    }
+
+    *--tmpstack = 0;
+    tmpstack -= argv.size();
+    for (size_t i = 0; i < argv.size(); i++)
+    {
+        orig_stack_vma -= argv[i].length() - 1;
+        tmpstack[i] = orig_stack_vma;
+    }
+
+    *--tmpstack = argv.size();
+    this->regs.rsp -= reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE - reinterpret_cast<uint64_t>(tmpstack);
 }
 
 thread_t *thread_t::fork(registers_t *regs)
@@ -113,9 +189,15 @@ thread_t *thread_t::fork(registers_t *regs)
 
     newthread->state = INITIAL;
     newthread->stack_phys = malloc<uint8_t*>(STACK_SIZE);
-    newthread->stack = newthread->stack_phys + hhdm_tag->addr;
+    newthread->stack = newthread->stack_phys + hhdm_offset;
 
-    newthread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_tag->addr;
+    if (user)
+    {
+        newthread->kstack_phys = malloc<uint8_t*>(STACK_SIZE);
+        newthread->kstack = newthread->kstack_phys + hhdm_offset;
+    }
+
+    newthread->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     newthread->fpu_storage_size = this->fpu_storage_size;
     memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
 
@@ -125,7 +207,7 @@ thread_t *thread_t::fork(registers_t *regs)
 
     newthread->regs.rflags = 0x202;
     newthread->regs.cs = (this->user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
-    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);\
+    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
 
     uint64_t offset = reinterpret_cast<uint64_t>(newthread->stack) - reinterpret_cast<uint64_t>(this->stack);
     newthread->regs.rsp += offset;
@@ -135,18 +217,19 @@ thread_t *thread_t::fork(registers_t *regs)
 
     newthread->priority = this->priority;
     newthread->parent = this->parent;
-
     newthread->user = this->user;
+
+    newthread->gsbase = (this->user ? this->gsbase : reinterpret_cast<uint64_t>(newthread));
+    newthread->fsbase = this->fsbase;
 
     return newthread;
 }
 
-thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priority, bool user)
+thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priority)
 {
     lockit(proc_lock);
 
-    thread_t *thread = new thread_t(addr, args, this, priority, user);
-    if (user == true) thread->map_user();
+    thread_t *thread = new thread_t(addr, args, this, priority);
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -162,7 +245,6 @@ thread_t *process_t::add_thread(thread_t *thread)
     lockit(proc_lock);
 
     if (thread->parent != this) thread->parent = this;
-    if (thread->user == true) thread->map_user();
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -175,7 +257,7 @@ thread_t *process_t::add_thread(thread_t *thread)
 
 bool process_t::table_add()
 {
-    if (this->in_table) return false;
+    if (this->in_table || (this->children.size() == 0 && this->threads.size() == 0)) return false;
     lockit(proc_lock);
 
     if (initproc == nullptr) initproc = this;
@@ -188,7 +270,7 @@ bool process_t::table_add()
     return true;
 }
 
-process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t priority, bool user)
+process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t priority)
 {
     lockit(proc_lock);
 
@@ -201,7 +283,7 @@ process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t prior
     this->parent = nullptr;
 
     proc_lock.unlock();
-    this->add_thread(addr, args, priority, user);
+    this->add_thread(addr, args, priority);
 }
 
 process_t::process_t(string name)
@@ -330,9 +412,10 @@ void clean_proc(process_t *proc)
         {
             thread_t *thread = proc->threads[i];
             proc->threads.remove(proc->threads.find(thread));
-            free(thread->fpu_storage - hhdm_tag->addr);
+            free(thread->fpu_storage - hhdm_offset);
             // TODO: Fix this
             // free(thread->stack_phys); // Trple fault
+            // if (thread->kstack_phys) free(thread->kstack_phys); // Trple fault
             free(thread);
             thread_count--;
         }
@@ -365,9 +448,10 @@ void clean_proc(process_t *proc)
             if (thread->state == KILLED)
             {
                 proc->threads.remove(proc->threads.find(thread));
-                free(thread->fpu_storage - hhdm_tag->addr);
+                free(thread->fpu_storage - hhdm_offset);
                 // TODO: Fix this
                 // free(thread->stack_phys); // Trple fault
+                // if (thread->kstack_phys) free(thread->kstack_phys); // Trple fault
                 free(thread);
                 thread_count--;
             }
@@ -386,6 +470,10 @@ size_t switchThread(registers_t *regs, thread_t *thread)
     {
         this_thread()->regs = *regs;
         this_cpu->fpu_save(this_thread()->fpu_storage);
+        this_proc()->pagemap->save();
+
+        this_thread()->gsbase = get_kernel_gs();
+        this_thread()->fsbase = get_fs();
 
         if (this_thread()->state == RUNNING) this_thread()->state = READY;
     }
@@ -393,11 +481,16 @@ size_t switchThread(registers_t *regs, thread_t *thread)
     this_cpu->current_thread = thread;
     this_cpu->current_proc = thread->parent;
 
-    *regs = thread->regs;
-    this_cpu->fpu_restore(thread->fpu_storage);
-    thread->parent->pagemap->switchTo();
+    *regs = this_thread()->regs;
+    this_thread()->cpu = this_cpu->id;
+    this_cpu->fpu_restore(this_thread()->fpu_storage);
+    this_proc()->pagemap->switchTo();
 
-    thread->state = RUNNING;
+    set_gs(reinterpret_cast<uint64_t>(thread));
+    set_kernel_gs(this_thread()->user ? this_thread()->gsbase : reinterpret_cast<uint64_t>(thread));
+    set_fs(this_thread()->fsbase);
+
+    this_thread()->state = RUNNING;
 
     return thread->priority;
 }
@@ -499,7 +592,7 @@ void schedule(registers_t *regs)
 
     if (this_cpu->idle_proc == nullptr)
     {
-        this_cpu->idle_proc = new process_t("Idle Process", reinterpret_cast<uint64_t>(idle), 0, LOW, false);
+        this_cpu->idle_proc = new process_t("Idle Process", reinterpret_cast<uint64_t>(idle), 0, LOW);
         thread_count--;
     }
 

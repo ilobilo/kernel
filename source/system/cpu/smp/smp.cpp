@@ -1,6 +1,7 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
+#include <system/cpu/syscall/syscall.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/cpu/smp/smp.hpp>
@@ -21,18 +22,23 @@ namespace kernel::system::cpu::smp {
 bool initialised = false;
 
 new_lock(cpu_lock);
-cpu_t *cpus = new cpu_t[smp_tag->cpu_count]();
-static size_t i = 0;
+cpu_t *cpus = new cpu_t[smp_request.response->cpu_count]();
 
-static void cpu_init(stivale2_smp_info *cpu)
+static void cpu_init(limine_smp_info *cpu)
 {
+    if (cpu->lapic_id != smp_request.response->bsp_lapic_id)
+    {
+        asm volatile ("mov %%rsp, %0" : "=r"(gdt::tss[reinterpret_cast<cpu_t*>(cpu->extra_argument)->id].RSP[0]) : : "memory");
+    }
+
     cpu_lock.lock();
-    gdt::reloadall(i);
+    set_kernel_gs(cpu->extra_argument);
+    set_gs(cpu->extra_argument);
+
+    gdt::reloadall(this_cpu->id);
     idt::reload();
 
     vmm::kernel_pagemap->switchTo();
-    set_kernel_gs(static_cast<uintptr_t>(cpu->extra_argument));
-    set_user_gs(static_cast<uintptr_t>(cpu->extra_argument));
 
     this_cpu->lapic_id = cpu->lapic_id;
     this_cpu->tss = &gdt::tss[this_cpu->id];
@@ -81,11 +87,16 @@ static void cpu_init(stivale2_smp_info *cpu)
     }
     else panic("No known SIMD save mechanism");
 
+    wrmsr(0xC0000080, rdmsr(0xC0000080) | (1 << 0));
+    wrmsr(0xC0000081, 0x33002800000000);
+    wrmsr(0xC0000082, reinterpret_cast<uint64_t>(syscall::syscall_entry));
+    wrmsr(0xC0000084, ~static_cast<uint32_t>(0x02));
+
     log("CPU %ld is up", this_cpu->id);
     this_cpu->is_up = true;
 
     cpu_lock.unlock();
-    if (cpu->lapic_id != smp_tag->bsp_lapic_id)
+    if (cpu->lapic_id != smp_request.response->bsp_lapic_id)
     {
         if (apic::initialised) apic::lapic_init(this_cpu->lapic_id);
         scheduler::init();
@@ -103,24 +114,21 @@ void init()
         return;
     }
 
-    for (; i < smp_tag->cpu_count; i++)
+    for (size_t i = 0; i < smp_request.response->cpu_count; i++)
     {
-        smp_tag->smp_info[i].extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);
+        limine_smp_info *smp_info = smp_request.response->cpus[i];
+        smp_info->extra_argument = reinterpret_cast<uint64_t>(&cpus[i]);
         cpus[i].id = i;
 
         uint64_t sched_stack = malloc<uint64_t>(STACK_SIZE);
-        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + hhdm_tag->addr;
+        gdt::tss[i].IST[0] = sched_stack + STACK_SIZE + hhdm_offset;
 
-        if (smp_tag->bsp_lapic_id != smp_tag->smp_info[i].lapic_id)
+        if (smp_request.response->bsp_lapic_id != smp_info->lapic_id)
         {
-            uint64_t stack = malloc<uint64_t>(STACK_SIZE);
-            gdt::tss[i].RSP[0] = stack + STACK_SIZE + hhdm_tag->addr;
-
-            smp_tag->smp_info[i].target_stack = stack + STACK_SIZE + hhdm_tag->addr;
-            smp_tag->smp_info[i].goto_address = reinterpret_cast<uintptr_t>(cpu_init);
+            smp_request.response->cpus[i]->goto_address = cpu_init;
             while (cpus[i].is_up == false);
         }
-        else cpu_init(&smp_tag->smp_info[i]);
+        else cpu_init(smp_info);
     }
 
     log("All CPUs are up\n");

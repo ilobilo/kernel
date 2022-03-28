@@ -46,7 +46,7 @@ void pcidevice_t::msi_set(uint8_t vector)
 {
     if (!this->msi_support) return;
     uint16_t msg_ctrl = this->readw(this->msi_offset + 2);
-    this->writel(this->msi_offset + 0x04, (0x0FEE << 20) | (smp_tag->bsp_lapic_id << 12));
+    this->writel(this->msi_offset + 0x04, (0x0FEE << 20) | (smp_request.response->bsp_lapic_id << 12));
     this->writel(this->msi_offset + (((msg_ctrl << 7) & 1) == 1 ? 0x0C : 0x08), vector);
     this->writew(this->msi_offset + 2, (msg_ctrl | 1) & ~(0b111 << 4));
 }

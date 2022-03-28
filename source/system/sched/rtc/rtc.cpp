@@ -74,7 +74,7 @@ uint64_t epoch()
 
 uint64_t seconds_since_boot()
 {
-    return epoch() - epoch_tag->epoch;
+    return epoch() - boot_time_request.response->boot_time;
 }
 
 void sleep(uint64_t sec)
