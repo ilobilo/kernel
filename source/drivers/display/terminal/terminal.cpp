@@ -70,7 +70,7 @@ void reset()
 {
     lockit(term_lock);
     if (terminal_request.response == nullptr) return;
-    terminal_request.response->write("", TERM_FULL_REFRESH);
+    terminal_request.response->write("", LIMINE_TERMINAL_FULL_REFRESH);
 }
 
 void clear(const char *ansii_colour)
