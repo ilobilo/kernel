@@ -61,7 +61,8 @@ void setcolour(const char *ascii_colour)
 
 void resetcolour()
 {
-    print("\033[0m");
+    colour = "\033[0m"_c;
+    print(colour);
 }
 #pragma endregion Colour
 
