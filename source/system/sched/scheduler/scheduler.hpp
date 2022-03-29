@@ -15,6 +15,8 @@ namespace kernel::system::sched::scheduler {
 
 static constexpr uint64_t max_procs = 65536;
 static constexpr uint64_t max_fds = 256;
+static constexpr uint64_t MMAP_ANON_BASE = 0x80000000000;
+static constexpr uint64_t THREAD_STACK_TOP = 0x70000000000;
 
 enum state_t
 {
@@ -55,8 +57,8 @@ struct thread_t
 
     bool user;
 
+    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
     thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority);
-    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp);
     thread_t() { };
 
     bool map_user();
@@ -65,7 +67,7 @@ struct thread_t
 
     void block();
     void unblock();
-    void exit();
+    void exit(bool halt = true);
 };
 
 struct process_t
@@ -75,17 +77,18 @@ struct process_t
     int next_tid = 1;
     state_t state;
     vmm::Pagemap *pagemap;
-    uint64_t mmap_anon_base = 0x80000000000;
+    uint64_t mmap_anon_base = MMAP_ANON_BASE;
     lock_t fd_lock;
     vfs::fs_node_t *current_dir;
     void *fds[max_fds];
     vector<thread_t*> threads;
     vector<process_t*> children;
     process_t *parent;
-    uint64_t thread_stack_top = 0x70000000000;
+    uint64_t thread_stack_top = THREAD_STACK_TOP;
 
     bool in_table = false;
 
+    thread_t *add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
     thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID);
     thread_t *add_thread(thread_t *thread);
     bool table_add();
@@ -96,7 +99,7 @@ struct process_t
 
     void block();
     void unblock();
-    void exit();
+    void exit(bool halt = true);
 };
 
 extern bool debug;
@@ -108,6 +111,7 @@ extern size_t proc_count;
 extern size_t thread_count;
 
 int alloc_pid();
+process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, bool execve, string procname = "");
 
 void yield(uint64_t ms = 1);
 void schedule(registers_t *regs);

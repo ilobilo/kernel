@@ -137,7 +137,7 @@ void main()
     terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
     serial::init();
 
-    limine_file *initrd_mod = find_module("initrd");
+    auto initrd_mod = find_module("initrd");
     terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->base) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
