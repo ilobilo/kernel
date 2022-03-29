@@ -78,3 +78,20 @@ struct invalid_builtin_data
     source_location location;
     uint8_t kind;
 };
+
+struct float_cast_overflow_data
+{
+    source_location location;
+};
+
+struct missing_return_data
+{
+    source_location location;
+};
+
+struct alignment_assumption_data
+{
+	source_location location;
+	source_location assumption_location;
+	type_descriptor *type;
+};

@@ -90,7 +90,7 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->fsbase = 0;
 }
 
-thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp)
+thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself)
 {
     if (parent == nullptr)
     {
@@ -119,73 +119,74 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->parent->pagemap->mapRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE, vmm::ProtRead | vmm::ProtWrite, vmm::MapAnon);
     this->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
 
-    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
-
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
 
     this->regs.rflags = 0x202;
-    this->regs.cs = gdt::GDT_USER_CODE_64;
-    this->regs.ss = gdt::GDT_USER_DATA_64;
+    this->regs.cs = gdt::GDT_USER_CODE_64 | 0x03;
+    this->regs.ss = gdt::GDT_USER_DATA_64 | 0x03;
 
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
     this->regs.rdi = reinterpret_cast<uint64_t>(addr);
     this->regs.rsi = reinterpret_cast<uint64_t>(args);
-    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
+    this->regs.rsp = stack_vma;
 
     this->gsbase = 0;
     this->fsbase = 0;
 
-    uintptr_t *tmpstack = reinterpret_cast<uintptr_t*>(this->stack + STACK_SIZE);
-    uint64_t orig_stack_vma = stack_vma;
-
-    for (string seg : envp)
+    if (iself)
     {
-        tmpstack = reinterpret_cast<uintptr_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
-        memcpy(tmpstack, seg.c_str(), seg.length() + 1);
+        uint8_t *tmpstack = reinterpret_cast<uint8_t*>(this->regs.rsp);
+        uint64_t orig_stack_vma = stack_vma;
+
+        for (string seg : envp)
+        {
+            tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+            strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
+        }
+        for (string seg : argv)
+        {
+            tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+            strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
+        }
+        tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
+
+        if ((argv.size() + envp.size() + 1) & 1) tmpstack--;
+
+        *(--tmpstack) = 0;
+        *(--tmpstack) = 0;
+
+        tmpstack -= 2; *tmpstack = AT_ENTRY; *(tmpstack + 1) = auxval.entry;
+        tmpstack -= 2; *tmpstack = AT_PHDR; *(tmpstack + 1) = auxval.phdr;
+        tmpstack -= 2; *tmpstack = AT_PHENT; *(tmpstack + 1) = auxval.phent;
+        tmpstack -= 2; *tmpstack = AT_PHNUM; *(tmpstack + 1) = auxval.phnum;
+
+        *--tmpstack = 0;
+        tmpstack -= envp.size();
+        for (size_t i = 0; i < envp.size(); i++)
+        {
+            orig_stack_vma -= envp[i].length() - 1;
+            tmpstack[i] = orig_stack_vma;
+        }
+
+        *--tmpstack = 0;
+        tmpstack -= argv.size();
+        for (size_t i = 0; i < argv.size(); i++)
+        {
+            orig_stack_vma -= argv[i].length() - 1;
+            tmpstack[i] = orig_stack_vma;
+        }
+
+        *--tmpstack = argv.size();
+        this->regs.rsp -= reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE - reinterpret_cast<uint64_t>(tmpstack);
     }
-    for (string seg : argv)
-    {
-        tmpstack = reinterpret_cast<uintptr_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
-        memcpy(tmpstack, seg.c_str(), seg.length() + 1);
-    }
-    tmpstack = reinterpret_cast<uintptr_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
-
-    if ((argv.size() + envp.size() + 1) & 1) tmpstack--;
-
-    *--tmpstack = 0;
-    *--tmpstack = 0;
-
-    tmpstack -= 2; *tmpstack = AT_ENTRY; *(tmpstack + 1) = auxval.entry;
-    tmpstack -= 2; *tmpstack = AT_PHDR; *(tmpstack + 1) = auxval.phdr;
-    tmpstack -= 2; *tmpstack = AT_PHENT; *(tmpstack + 1) = auxval.phent;
-    tmpstack -= 2; *tmpstack = AT_PHNUM; *(tmpstack + 1) = auxval.phnum;
-
-    *--tmpstack = 0;
-    tmpstack -= envp.size();
-    for (size_t i = 0; i < envp.size(); i++)
-    {
-        orig_stack_vma -= envp[i].length() - 1;
-        tmpstack[i] = orig_stack_vma;
-    }
-
-    *--tmpstack = 0;
-    tmpstack -= argv.size();
-    for (size_t i = 0; i < argv.size(); i++)
-    {
-        orig_stack_vma -= argv[i].length() - 1;
-        tmpstack[i] = orig_stack_vma;
-    }
-
-    *--tmpstack = argv.size();
-    this->regs.rsp -= reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE - reinterpret_cast<uint64_t>(tmpstack);
 }
 
 thread_t *thread_t::fork(registers_t *regs)
 {
     lockit(thread_lock);
 
-    thread_t *newthread = new thread_t;
+    auto newthread = new thread_t;
 
     newthread->state = INITIAL;
     newthread->stack_phys = malloc<uint8_t*>(STACK_SIZE);
@@ -225,11 +226,26 @@ thread_t *thread_t::fork(registers_t *regs)
     return newthread;
 }
 
+thread_t *process_t::add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself)
+{
+    lockit(proc_lock);
+
+    auto thread = new thread_t(addr, args, this, priority, auxval, argv, envp, iself);
+
+    thread->tid = this->next_tid++;
+    thread_count++;
+
+    this->threads.push_back(thread);
+    thread->state = READY;
+
+    return thread;
+}
+
 thread_t *process_t::add_thread(uint64_t addr, uint64_t args, priority_t priority)
 {
     lockit(proc_lock);
 
-    thread_t *thread = new thread_t(addr, args, this, priority);
+    auto thread = new thread_t(addr, args, this, priority);
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -261,6 +277,7 @@ bool process_t::table_add()
     lockit(proc_lock);
 
     if (initproc == nullptr) initproc = this;
+
     proc_table.push_back(this);
     proc_count++;
 
@@ -299,6 +316,88 @@ process_t::process_t(string name)
     this->parent = nullptr;
 }
 
+process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, bool execve, string procname)
+{
+    auto prog = vfs::get_node(dir, path, true);
+    if (prog == nullptr || prog->res == nullptr)
+    {
+        error("No such file or directory!");
+        return nullptr;
+    }
+
+    // TODO: Shebang
+
+    auto *proc = (execve ? this_proc() : new process_t(procname));
+    auto [auxval, ld_path] = elf_load(proc->pagemap, prog->res, 0);
+    uint64_t entry = 0;
+
+    if (ld_path.empty()) entry = auxval.entry;
+    else
+    {
+        auto ld_node = vfs::get_node(nullptr, ld_path, true);
+        if (ld_node == nullptr || ld_node->res == nullptr)
+        {
+            error("Could not find dynamic linker!");
+            return nullptr;
+        }
+        entry = elf_load(proc->pagemap, ld_node->res, 0x40000000).auxval.entry;
+    }
+
+    if (execve)
+    {
+        for (thread_t *thread : proc->threads)
+        {
+            thread->exit(false);
+        }
+        while (proc->threads.size());
+
+        vmm::kernel_pagemap->switchTo();
+        proc->pagemap->deleteThis();
+        proc->pagemap = vmm::newPagemap();
+
+        proc->mmap_anon_base = MMAP_ANON_BASE;
+        proc->thread_stack_top = THREAD_STACK_TOP;
+
+        proc->add_user_thread(entry, 0, MID, auxval, argv, envp, true);
+    }
+    else
+    {
+        auto stdin_node = vfs::get_node(nullptr, stdin, true);
+        auto stdin_handle = new vfs::handle_t
+        {
+            .res = stdin_node->res,
+            .node = stdin_node,
+            .refcount = 1
+        };
+        auto stdin_fd = new vfs::fd_t { .handle = stdin_handle };
+        proc->fds[0] = stdin_fd;
+
+        auto stdout_node = vfs::get_node(nullptr, stdout, true);
+        auto stdout_handle = new vfs::handle_t
+        {
+            .res = stdout_node->res,
+            .node = stdout_node,
+            .refcount = 1
+        };
+        auto stdout_fd = new vfs::fd_t { .handle = stdout_handle };
+        proc->fds[1] = stdout_fd;
+
+        auto stderr_node = vfs::get_node(nullptr, stderr, true);
+        auto stderr_handle = new vfs::handle_t
+        {
+            .res = stderr_node->res,
+            .node = stderr_node,
+            .refcount = 1
+        };
+        auto stderr_fd = new vfs::fd_t { .handle = stderr_handle };
+        proc->fds[2] = stderr_fd;
+
+        proc->add_user_thread(entry, 0, MID, auxval, argv, envp, true);
+    }
+
+    return proc;
+}
+
 void process_t::block()
 {
     if (this->state != READY && this->state != RUNNING) return;
@@ -314,7 +413,6 @@ void process_t::block()
     if (debug) log("Blocking process with PID: %d", this->pid);
 
     asm volatile ("sti");
-    yield();
     if (this == this_proc())
     {
         yield();
@@ -334,7 +432,7 @@ void process_t::unblock()
     asm volatile ("sti");
 }
 
-void process_t::exit()
+void process_t::exit(bool halt)
 {
     if (this == initproc)
     {
@@ -348,8 +446,11 @@ void process_t::exit()
     if (debug) log("Exiting process with PID: %d", this->pid);
 
     asm volatile ("sti");
-    yield();
-    asm volatile ("hlt");
+    if (halt)
+    {
+        yield();
+        while (true) asm volatile ("hlt");
+    }
 }
 
 void thread_t::block()
@@ -379,7 +480,7 @@ void thread_t::unblock()
     asm volatile ("sti");
 }
 
-void thread_t::exit()
+void thread_t::exit(bool halt)
 {
     if (this->parent == initproc && this->parent->threads.size() == 1 && this->parent->children.size() == 0)
     {
@@ -393,8 +494,11 @@ void thread_t::exit()
     if (debug) log("Exiting thread with TID: %d and PID: %d", this->tid, this->parent->pid);
 
     asm volatile ("sti");
-    yield();
-    while (true) asm volatile ("hlt");
+    if (halt)
+    {
+        yield();
+        while (true) asm volatile ("hlt");
+    }
 }
 
 void clean_proc(process_t *proc)
@@ -413,9 +517,9 @@ void clean_proc(process_t *proc)
             thread_t *thread = proc->threads[i];
             proc->threads.remove(proc->threads.find(thread));
             free(thread->fpu_storage - hhdm_offset);
-            // TODO: Fix this
-            // free(thread->stack_phys); // Trple fault
-            // if (thread->kstack_phys) free(thread->kstack_phys); // Trple fault
+            // TODO: Fix this: Triple fault
+            // free(thread->stack_phys);
+            // if (thread->kstack_phys) free(thread->kstack_phys);
             free(thread);
             thread_count--;
         }
@@ -449,9 +553,9 @@ void clean_proc(process_t *proc)
             {
                 proc->threads.remove(proc->threads.find(thread));
                 free(thread->fpu_storage - hhdm_offset);
-                // TODO: Fix this
-                // free(thread->stack_phys); // Trple fault
-                // if (thread->kstack_phys) free(thread->kstack_phys); // Trple fault
+                // TODO: Fix this: Triple fault
+                // free(thread->stack_phys);
+                // if (thread->kstack_phys) free(thread->kstack_phys);
                 free(thread);
                 thread_count--;
             }

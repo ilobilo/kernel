@@ -1,4 +1,5 @@
 #include <lib/alloc.hpp>
+#include <lib/math.hpp>
 
 BuddyAlloc buddyheap;
 SlabAlloc slabheap;
@@ -95,9 +96,20 @@ size_t allocsize(void *ptr)
     return 0;
 }
 
+
+namespace std
+{
+    enum class align_val_t: size_t {};
+}
+
 void *operator new(size_t size)
 {
     return malloc(size);
+}
+
+void *operator new(size_t size, std::align_val_t alignment)
+{
+    return malloc(ALIGN_UP(size, static_cast<size_t>(alignment)));
 }
 
 void *operator new[](size_t size)
@@ -105,12 +117,27 @@ void *operator new[](size_t size)
     return malloc(size);
 }
 
+void *operator new[](size_t size, std::align_val_t alignment)
+{
+    return malloc(ALIGN_UP(size, static_cast<size_t>(alignment)));
+}
+
 void operator delete(void *ptr)
 {
     free(ptr);
 }
 
+void operator delete(void *ptr, std::align_val_t alignment)
+{
+    free(ptr);
+}
+
 void operator delete[](void *ptr)
+{
+    free(ptr);
+}
+
+void operator delete[](void *ptr, std::align_val_t alignment)
 {
     free(ptr);
 }

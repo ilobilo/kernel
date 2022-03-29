@@ -27,7 +27,7 @@ symtable_t lookup(uint64_t addr)
 bool backtrace(uint64_t addr, size_t &i, bool terminal)
 {
     symtable_t symtable = lookup(addr);
-    while (symtable.name == "int_handler" || symtable.name == "int_common_stub")
+    while (symtable.name == "int_handler" || symtable.name == "int_common_stub" || symtable.name == "int_common_stub.next0")
     {
         i--;
         return true;
