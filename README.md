@@ -146,6 +146,7 @@ https://discord.gg/fM5GK3RpS7
 * Osdev discord server: https://discord.gg/RnCtsqD
 * PonchoOS: https://github.com/Absurdponcho/PonchoOS
 * Poncho discord server: https://discord.gg/N2Dpwpu4qT
+* Limine: https://github.com/limine-bootloader/limine
 * Vinix: https://github.com/vlang/vinix
 * Lyre: https://github.com/lyre-os/lyre
 * Polaris: https://github.com/NSG650/Polaris

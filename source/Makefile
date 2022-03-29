@@ -8,8 +8,7 @@ BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
 TERMFONT = $(SOURCEDIR)/misc/unifont.bin
 SFNFONT = $(SOURCEDIR)/misc/unifont.sfn
 
-#INITRD := $(SOURCEDIR)/initrd.tar.gz
-INITRD := $(SOURCEDIR)/initrd.tar
+INITRD := $(SOURCEDIR)/initrd.tar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 
 ISO = $(ROOTDIR)/image.iso
@@ -165,8 +164,7 @@ endif
 .PHONY: initrd
 initrd:
 	@printf "TAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
-#	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
-	tar cf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
+	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(TERMFONT) $(SFNFONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \
