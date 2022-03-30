@@ -39,6 +39,7 @@
 #include <lib/memory.hpp>
 #include <lib/panic.hpp>
 #include <lib/alloc.hpp>
+#include <lib/ring.hpp>
 #include <lib/log.hpp>
 #pragma endregion include
 
@@ -151,7 +152,7 @@ void main()
 
     auto proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH);
     proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW);
-    proc->table_add();
+    proc->enqueue();
 
     scheduler::init();
 }

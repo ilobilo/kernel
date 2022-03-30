@@ -302,6 +302,8 @@ PDEntry *Pagemap::virt2pte(uint64_t vaddr, bool allocate, bool hugepages)
     if (lvl5)
     {
         pml5 = this->TOPLVL;
+        if (pml5 == nullptr) return nullptr;
+
         pml4 = get_next_lvl(pml5, pml5_entry, allocate);
     }
     else
@@ -309,11 +311,18 @@ PDEntry *Pagemap::virt2pte(uint64_t vaddr, bool allocate, bool hugepages)
         pml5 = nullptr;
         pml4 = this->TOPLVL;
     }
+    if (pml4 == nullptr) return nullptr;
+
     pml3 = get_next_lvl(pml4, pml4_entry, allocate);
+    if (pml3 == nullptr) return nullptr;
+
     pml2 = get_next_lvl(pml3, pml3_entry, allocate);
+    if (pml2 == nullptr) return nullptr;
     if (hugepages) return &pml2->entries[pml2_entry];
 
     pml1 = get_next_lvl(pml2, pml2_entry, allocate);
+    if (pml1 == nullptr) return nullptr;
+
     return &pml1->entries[pml1_entry];
 }
 
@@ -399,53 +408,50 @@ Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
 
-    if (kernel_pagemap == nullptr)
+    if (kernel_pagemap)
+    {
+        pagemap->TOPLVL = new PTable;
+
+        PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_offset);
+        PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_offset);
+        for (size_t i = 256; i < 512; i++) toplvl[i] = kerenltoplvl[i];
+    }
+    else
     {
         pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
         return pagemap;
     }
 
-    pagemap->TOPLVL = static_cast<PTable*>(pmm::alloc());
+    for (uint64_t i = 0; i < 0x100000000; i += large_page_size)
+    {
+        pagemap->mapMem(i, i, Present | ReadWrite | UserSuper, true);
+        pagemap->mapMem(i + hhdm_offset, i, Present | ReadWrite | UserSuper, true);
+    }
 
-    PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_offset);
-    PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_offset);
-    for (size_t i = 0; i < 512; i++) toplvl[i] = kerenltoplvl[i];
+    for (size_t i = 0; i < memmap_request.response->entry_count; i++)
+    {
+        limine_memmap_entry *mmap = memmap_request.response->entries[i];
+
+        uint64_t base = ALIGN_DOWN(mmap->base, page_size);
+        uint64_t top = ALIGN_UP(mmap->base + mmap->length, page_size);
+        if (top < 0x100000000) continue;
+
+        for (uint64_t t = base; t < top; t += page_size)
+        {
+            if (t < 0x100000000) continue;
+            pagemap->mapMem(t, t, Present | ReadWrite | UserSuper);
+            pagemap->mapMem(t + hhdm_offset, t, Present | ReadWrite | UserSuper);
+        }
+    }
+
+    for (size_t i = 0; i < kernel_file_request.response->kernel_file->length; i += page_size)
+    {
+        uint64_t paddr = kernel_address_request.response->physical_base + i;
+        uint64_t vaddr = kernel_address_request.response->virtual_base + i;
+        pagemap->mapMem(vaddr, paddr, Present | ReadWrite | UserSuper);
+    }
 
     return pagemap;
-
-    // Pagemap *pagemap = new Pagemap;
-    // pagemap->TOPLVL = new PTable;
-
-    // if (kernel_pagemap)
-    // {
-    //     PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_offset);
-    //     PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_offset);
-    //     for (size_t i = 256; i < 512; i++) toplvl[i] = kerenltoplvl[i];
-    // }
-
-    // for (uint64_t i = 0; i < 0x100000000; i += large_page_size)
-    // {
-    //     pagemap->mapMem(i, i, Present | ReadWrite | UserSuper, true);
-    //     pagemap->mapMem(i + hhdm_offset, i, Present | ReadWrite | UserSuper, true);
-    // }
-
-    // for (size_t i = 0; i < memmap_request.response->entry_count; i++)
-    // {
-    //     limine_memmap_entry *mmap = memmap_request.response->entries[i];
-
-    //     uint64_t base = ALIGN_DOWN(mmap->base, page_size);
-    //     uint64_t top = ALIGN_UP(mmap->base + mmap->length, page_size);
-    //     if (top < 0x100000000) continue;
-
-    //     for (uint64_t t = base; t < top; t += page_size)
-    //     {
-    //         if (t < 0x100000000) continue;
-    //         pagemap->mapMem(t, t, Present | ReadWrite | UserSuper);
-    //         pagemap->mapMem(t + hhdm_offset, t, Present | ReadWrite | UserSuper);
-    //     }
-    // }
-
-    // return pagemap;
 }
 
 PTable *getPagemap()

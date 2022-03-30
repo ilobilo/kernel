@@ -3,7 +3,7 @@ memcpy:
     mov rax, rdi
     rep movsb
     ret
-GLOBAL memcpy
+[GLOBAL memcpy]
 
 memset:
     push rdi
@@ -12,7 +12,7 @@ memset:
     rep stosb
     pop rax
     ret
-GLOBAL memset
+[GLOBAL memset]
 
 memmove:
     mov rcx, rdx
@@ -33,7 +33,7 @@ memmove:
 
 .done:
     ret
-GLOBAL memmove
+[GLOBAL memmove]
 
 memcmp:
     mov rcx, rdx
@@ -50,4 +50,4 @@ memcmp:
 
 .done:
     ret
-GLOBAL memcmp
+[GLOBAL memcmp]
