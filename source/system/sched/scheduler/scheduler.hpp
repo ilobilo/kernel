@@ -91,7 +91,7 @@ struct process_t
     thread_t *add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
     thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID);
     thread_t *add_thread(thread_t *thread);
-    bool table_add();
+    bool enqueue();
 
     process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID);
     process_t(string name);
@@ -111,7 +111,7 @@ extern size_t proc_count;
 extern size_t thread_count;
 
 int alloc_pid();
-process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, bool execve, string procname = "");
+process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, string procname = "");
 
 void yield(uint64_t ms = 1);
 void schedule(registers_t *regs);

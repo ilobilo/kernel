@@ -145,7 +145,7 @@ static void syscall_fork(registers_t *regs)
     }
 
     newproc->add_thread(this_thread()->fork(regs));
-    newproc->table_add();
+    newproc->enqueue();
 
     RAX_RET = newproc->pid;
     RDX_ERRNO = 0;

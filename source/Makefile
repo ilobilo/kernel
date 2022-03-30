@@ -45,7 +45,7 @@ QEMUFLAGS = -M q35 -serial stdio \
 
 XORRISOFLAGS = -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
-		--efi-boot limine-eltorito-efi.bin -efi-boot-part \
+		--efi-boot limine-cd-efi.bin -efi-boot-part \
 		--efi-boot-image --protective-msdos-label
 
 CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
@@ -168,7 +168,7 @@ initrd:
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(TERMFONT) $(SFNFONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \
-		$(LIMINEDIR)/limine-cd.bin $(LIMINEDIR)/limine-eltorito-efi.bin $(ROOTDIR)/iso_root/
+		$(LIMINEDIR)/limine-cd.bin $(LIMINEDIR)/limine-cd-efi.bin $(ROOTDIR)/iso_root/
 
 	@printf "XORRISO\t%s\n" $(ISO:$(ROOTDIR)/%=%)
 	$(XORRISO) $(XORRISOFLAGS) $(ROOTDIR)/iso_root -o $(ISO) 2> /dev/null || echo "\e[31mFailed to build iso!\e[0m"

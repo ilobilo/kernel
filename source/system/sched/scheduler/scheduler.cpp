@@ -78,8 +78,8 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->regs.ss = gdt::GDT_DATA_64;
 
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
-    this->regs.rdi = reinterpret_cast<uint64_t>(addr);
-    this->regs.rsi = reinterpret_cast<uint64_t>(args);
+    this->regs.rdi = addr;
+    this->regs.rsi = args;
     this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
 
     this->priority = priority;
@@ -113,10 +113,12 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     uint64_t stack_vma = this->parent->thread_stack_top;
     this->parent->thread_stack_top -= STACK_SIZE;
+
     uint64_t stack_bottom_vma = this->parent->thread_stack_top;
     this->parent->thread_stack_top -= vmm::page_size;
 
     this->parent->pagemap->mapRange(stack_bottom_vma, reinterpret_cast<uint64_t>(this->stack_phys), STACK_SIZE, vmm::ProtRead | vmm::ProtWrite, vmm::MapAnon);
+    this->parent->pagemap->switchTo();
     this->stack = reinterpret_cast<uint8_t*>(stack_bottom_vma);
 
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
@@ -127,9 +129,9 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->regs.ss = gdt::GDT_USER_DATA_64 | 0x03;
 
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
-    this->regs.rdi = reinterpret_cast<uint64_t>(addr);
-    this->regs.rsi = reinterpret_cast<uint64_t>(args);
-    this->regs.rsp = stack_vma;
+    this->regs.rdi = addr;
+    this->regs.rsi = args;
+    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack + STACK_SIZE);
 
     this->gsbase = 0;
     this->fsbase = 0;
@@ -203,12 +205,6 @@ thread_t *thread_t::fork(registers_t *regs)
     memcpy(newthread->fpu_storage, this->fpu_storage, this->fpu_storage_size);
 
     newthread->regs = *regs;
-    newthread->regs.rax = 0;
-    newthread->regs.rdx = 0;
-
-    newthread->regs.rflags = 0x202;
-    newthread->regs.cs = (this->user ? (gdt::GDT_USER_CODE_64 | 0x03) : gdt::GDT_CODE_64);
-    newthread->regs.ss = (this->user ? (gdt::GDT_USER_DATA_64 | 0x03) : gdt::GDT_DATA_64);
 
     uint64_t offset = reinterpret_cast<uint64_t>(newthread->stack) - reinterpret_cast<uint64_t>(this->stack);
     newthread->regs.rsp += offset;
@@ -271,7 +267,7 @@ thread_t *process_t::add_thread(thread_t *thread)
     return thread;
 }
 
-bool process_t::table_add()
+bool process_t::enqueue()
 {
     if (this->in_table || (this->children.size() == 0 && this->threads.size() == 0)) return false;
     lockit(proc_lock);
@@ -316,7 +312,7 @@ process_t::process_t(string name)
     this->parent = nullptr;
 }
 
-process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, bool execve, string procname)
+process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, string procname)
 {
     auto prog = vfs::get_node(dir, path, true);
     if (prog == nullptr || prog->res == nullptr)
@@ -327,7 +323,7 @@ process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, 
 
     // TODO: Shebang
 
-    auto *proc = (execve ? this_proc() : new process_t(procname));
+    auto *proc = new process_t(procname);
     auto [auxval, ld_path] = elf_load(proc->pagemap, prog->res, 0);
     uint64_t entry = 0;
 
@@ -343,57 +339,37 @@ process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, 
         entry = elf_load(proc->pagemap, ld_node->res, 0x40000000).auxval.entry;
     }
 
-    if (execve)
+    auto stdin_node = vfs::get_node(nullptr, stdin, true);
+    auto stdin_handle = new vfs::handle_t
     {
-        for (thread_t *thread : proc->threads)
-        {
-            thread->exit(false);
-        }
-        while (proc->threads.size());
+        .res = stdin_node->res,
+        .node = stdin_node,
+        .refcount = 1
+    };
+    auto stdin_fd = new vfs::fd_t { .handle = stdin_handle };
+    proc->fds[0] = stdin_fd;
 
-        vmm::kernel_pagemap->switchTo();
-        proc->pagemap->deleteThis();
-        proc->pagemap = vmm::newPagemap();
-
-        proc->mmap_anon_base = MMAP_ANON_BASE;
-        proc->thread_stack_top = THREAD_STACK_TOP;
-
-        proc->add_user_thread(entry, 0, MID, auxval, argv, envp, true);
-    }
-    else
+    auto stdout_node = vfs::get_node(nullptr, stdout, true);
+    auto stdout_handle = new vfs::handle_t
     {
-        auto stdin_node = vfs::get_node(nullptr, stdin, true);
-        auto stdin_handle = new vfs::handle_t
-        {
-            .res = stdin_node->res,
-            .node = stdin_node,
-            .refcount = 1
-        };
-        auto stdin_fd = new vfs::fd_t { .handle = stdin_handle };
-        proc->fds[0] = stdin_fd;
+        .res = stdout_node->res,
+        .node = stdout_node,
+        .refcount = 1
+    };
+    auto stdout_fd = new vfs::fd_t { .handle = stdout_handle };
+    proc->fds[1] = stdout_fd;
 
-        auto stdout_node = vfs::get_node(nullptr, stdout, true);
-        auto stdout_handle = new vfs::handle_t
-        {
-            .res = stdout_node->res,
-            .node = stdout_node,
-            .refcount = 1
-        };
-        auto stdout_fd = new vfs::fd_t { .handle = stdout_handle };
-        proc->fds[1] = stdout_fd;
+    auto stderr_node = vfs::get_node(nullptr, stderr, true);
+    auto stderr_handle = new vfs::handle_t
+    {
+        .res = stderr_node->res,
+        .node = stderr_node,
+        .refcount = 1
+    };
+    auto stderr_fd = new vfs::fd_t { .handle = stderr_handle };
+    proc->fds[2] = stderr_fd;
 
-        auto stderr_node = vfs::get_node(nullptr, stderr, true);
-        auto stderr_handle = new vfs::handle_t
-        {
-            .res = stderr_node->res,
-            .node = stderr_node,
-            .refcount = 1
-        };
-        auto stderr_fd = new vfs::fd_t { .handle = stderr_handle };
-        proc->fds[2] = stderr_fd;
-
-        proc->add_user_thread(entry, 0, MID, auxval, argv, envp, true);
-    }
+    proc->add_user_thread(entry, 0, MID, auxval, argv, envp, true);
 
     return proc;
 }
@@ -615,7 +591,7 @@ void schedule(registers_t *regs)
     {
         for (size_t i = 0; i < proc_table.size(); i++)
         {
-            process_t *proc = proc_table[i];
+            auto proc = proc_table[i];
             if (proc->state != READY)
             {
                 clean_proc(proc);
@@ -624,7 +600,7 @@ void schedule(registers_t *regs)
 
             for (size_t t = 0; t < proc->threads.size(); t++)
             {
-                thread_t *thread = proc->threads[t];
+                auto thread = proc->threads[t];
                 if (thread->state != READY) continue;
 
                 timeslice = switchThread(regs, thread);
@@ -640,7 +616,7 @@ void schedule(registers_t *regs)
 
         for (size_t t = this_thread_id + 1; t < this_proc()->threads.size(); t++)
         {
-            thread_t *thread = this_proc()->threads[t];
+            auto thread = this_proc()->threads[t];
 
             if (this_proc()->state != READY) break;
             if (thread->state != READY) continue;
@@ -652,7 +628,7 @@ void schedule(registers_t *regs)
         }
         for (size_t p = this_proc_id + 1; p < proc_table.size(); p++)
         {
-            process_t *proc = proc_table[p];
+            auto proc = proc_table[p];
             if (proc->state != READY) continue;
 
             for (size_t t = 0; t < proc->threads.size(); t++)
@@ -668,12 +644,12 @@ void schedule(registers_t *regs)
         }
         for (size_t p = 0; p < this_proc_id + 1; p++)
         {
-            process_t *proc = proc_table[p];
+            auto proc = proc_table[p];
             if (proc->state != READY) continue;
 
             for (size_t t = 0; t < proc->threads.size(); t++)
             {
-                thread_t *thread = proc->threads[t];
+                auto thread = proc->threads[t];
                 if (thread->state != READY) continue;
 
                 clean_proc(this_proc());
@@ -743,7 +719,7 @@ void init()
 scheduler::thread_t *this_thread()
 {
     asm volatile ("cli");
-    scheduler::thread_t *thread = this_cpu->current_thread;
+    auto thread = this_cpu->current_thread;
     asm volatile ("sti");
     return thread;
 }
@@ -751,7 +727,7 @@ scheduler::thread_t *this_thread()
 scheduler::process_t *this_proc()
 {
     asm volatile ("cli");
-    scheduler::process_t *proc = this_cpu->current_proc;
+    auto proc = this_cpu->current_proc;
     asm volatile ("sti");
     return proc;
 }

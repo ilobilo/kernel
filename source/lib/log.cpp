@@ -18,6 +18,7 @@ int log(const char *fmt, ...)
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
+
     return ret;
 }
 
@@ -31,6 +32,7 @@ int warn(const char *fmt, ...)
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
+
     return ret;
 }
 
@@ -44,5 +46,6 @@ int error(const char *fmt, ...)
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
+
     return ret;
 }

@@ -4,7 +4,7 @@
 
 [EXTERN int_handler]
 int_common_stub:
-    test qword [rsp + 8], 0x3
+    test qword [rsp + 24], 0x03
     jz .next0
     swapgs
     .next0:
@@ -15,7 +15,7 @@ int_common_stub:
     popall
     add rsp, 16
 
-    test qword [rsp + 8], 0x3
+    test qword [rsp + 8], 0x03
     jz .next1
     swapgs
     .next1:
@@ -37,7 +37,6 @@ isr i
 %assign i i+1
 %endrep
 
-; Interrupts array
 section .data
 int_table:
 %assign i 0
@@ -45,4 +44,4 @@ int_table:
     dq isr_%+i
 %assign i i+1
 %endrep
-GLOBAL int_table
+[GLOBAL int_table]
