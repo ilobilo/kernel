@@ -1,13 +1,18 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <drivers/display/terminal/terminal.hpp>
+#include <drivers/audio/pcspk/pcspk.hpp>
+#include <drivers/ps2/ps2.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/lock.hpp>
 #include <lib/log.hpp>
 
+using namespace kernel::drivers::audio;
+
 namespace kernel::drivers::display::terminal {
 
+static point pos = { 0, 0 };
 char *colour = "\033[0m"_c;
 new_lock(term_lock);
 
@@ -115,6 +120,47 @@ void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shou
 
     printf("\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), terminal_request.response->columns - 5, (ok ? "32mOK" : "31m!!"));
 }
+
+void callback(uint64_t type, uint64_t first, uint64_t second, uint64_t third)
+{
+    switch (type)
+    {
+        case LIMINE_TERMINAL_CB_BELL:
+            pcspk::beep(800, 200);
+            break;
+        case LIMINE_TERMINAL_CB_POS_REPORT:
+            pos.X = first;
+            pos.Y = second;
+            break;
+        case LIMINE_TERMINAL_CB_KBD_LEDS:
+            switch (first)
+            {
+                case 0:
+                    ps2::kbd_mod.scrolllock = false;
+                    ps2::kbd_mod.numlock = false;
+                    ps2::kbd_mod.capslock = false;
+                    break;
+                case 1:
+                    ps2::kbd_mod.scrolllock = true;
+                    break;
+                case 2:
+                    ps2::kbd_mod.numlock = true;
+                    break;
+                case 3:
+                    ps2::kbd_mod.capslock = true;
+                    break;
+            }
+            ps2::update_leds();
+            break;
+    }
+}
+
+point getpos()
+{
+    print("\033[6n");
+    return pos;
+}
+
 #pragma endregion Misc
 }
 

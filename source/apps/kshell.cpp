@@ -3,7 +3,7 @@
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/sched/timer/timer.hpp>
-#include <drivers/fs/ustar/ustar.hpp>
+#include <drivers/fs/devfs/dev/tty.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/mm/pmm/pmm.hpp>
@@ -18,6 +18,7 @@
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
+using namespace kernel::drivers::fs::dev;
 using namespace kernel::drivers;
 using namespace kernel::system::sched;
 using namespace kernel::system::mm;
@@ -240,11 +241,9 @@ void run()
     while (true)
     {
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name.first() != '/') ? "/" : "", current_path->name.c_str(), terminal::colour);
-        string command(ps2::getline());
+        string command(tty::current_tty->getline());
 
-        command.remove_leading();
-        command.remove_middle();
-        command.remove_trailing();
+        command.whitespaces();
 
         string arg(command.c_str());
         arg.erase(0, command.find(" ") + 1);

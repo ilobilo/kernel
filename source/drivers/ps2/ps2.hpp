@@ -127,8 +127,7 @@ mousestate getmousestate();
 void mousedraw();
 void mouseclear();
 
-char getchar();
-[[clang::optnone]] char *getline();
+void update_leds();
 
 void reboot();
 void init();

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <drivers/display/terminal/printf.h>
+#include <lib/math.hpp>
 #include <cstdint>
 #include <stdarg.h>
 
@@ -23,6 +24,9 @@ void reset();
 void clear(const char *ansii_colour = colour);
 void setcolour(const char *ascii_colour), resetcolour();
 void center(const char *text);
+
+void callback(uint64_t type, uint64_t first, uint64_t second, uint64_t third);
+point getpos();
 
 void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit = true);
 }

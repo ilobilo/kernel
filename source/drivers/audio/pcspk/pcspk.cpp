@@ -1,11 +1,15 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <system/sched/pit/pit.hpp>
+#include <system/sched/timer/timer.hpp>
+#include <lib/lock.hpp>
+#include <lib/log.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::system::sched;
 
 namespace kernel::drivers::audio::pcspk {
+
+new_lock(pcspk_lock);
 
 void play(uint64_t freq)
 {
@@ -29,8 +33,10 @@ void stop()
 
 void beep(uint64_t freq, uint64_t msec)
 {
+    lockit(pcspk_lock);
+
     play(freq);
-    pit::msleep(msec);
+    timer::msleep(msec);
     stop();
 }
 }

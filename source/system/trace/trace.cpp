@@ -57,7 +57,7 @@ void trace(bool terminal)
 
 void init()
 {
-    uint64_t kfile = reinterpret_cast<uint64_t>(kernel_file_request.response->kernel_file->base);
+    uint64_t kfile = reinterpret_cast<uint64_t>(kernel_file_request.response->kernel_file->address);
     Elf64_Ehdr *header = reinterpret_cast<Elf64_Ehdr*>(kfile);
     Elf64_Shdr *sections = reinterpret_cast<Elf64_Shdr*>(kfile + header->e_shoff);
     Elf64_Sym *symtab;

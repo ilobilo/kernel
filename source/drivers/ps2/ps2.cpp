@@ -3,6 +3,7 @@
 #include <drivers/ps2/kbscancodetable/kbscancodetable.hpp>
 #include <drivers/display/framebuffer/framebuffer.hpp>
 #include <drivers/display/terminal/terminal.hpp>
+#include <drivers/fs/devfs/dev/tty.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/acpi/acpi.hpp>
@@ -14,6 +15,7 @@
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::display;
+using namespace kernel::drivers::fs::dev;
 using namespace kernel::system::cpu;
 using namespace kernel::system;
 
@@ -169,19 +171,8 @@ static bool writedev(devices device, uint8_t value)
 
 bool kbdinitialised = false;
 
-char *buff = nullptr;
-char c[10] = "\0";
-
-char *retstr = nullptr;
-bool reading = false;
-size_t gi = 0;
-
-volatile bool pressed = false;
-volatile bool enter = false;
-
 kbd_mod_t kbd_mod;
 new_lock(kbd_lock);
-new_lock(getline_lock);
 
 void setscancodeset(uint8_t scancode)
 {
@@ -217,39 +208,7 @@ static char get_ascii_char(uint8_t key_code)
     return 0;
 }
 
-void clearbuff()
-{
-    if (!kbdinitialised) return;
-    memset(buff, 0, KBD_BUFFSIZE);
-}
-
-void clearretstr()
-{
-    if (!kbdinitialised) return;
-    memset(retstr, 0, KBD_BUFFSIZE);
-}
-
-static void handle_comb(uint8_t scancode)
-{
-    char ch = get_ascii_char(scancode);
-
-    // Reboot the os: CTRL + ALT + DEL
-    if (kbd_mod.ctrl && kbd_mod.alt && scancode == keys::DELETE) acpi::reboot();
-    else if (kbd_mod.ctrl && ((ch == 'r') || (ch == 'R'))) terminal::reset();
-    else if (kbd_mod.ctrl && ((ch == 'l') || (ch == 'L')))
-    {
-        terminal::clear();
-        terminal::reset();
-        if (reading)
-        {
-            clearretstr();
-            enter = true;
-        }
-        clearbuff();
-    }
-}
-
-static void update_leds()
+void update_leds()
 {
     uint8_t value = 0b000;
     if (kbd_mod.scrolllock) value |= (1 << 0);
@@ -257,42 +216,6 @@ static void update_leds()
     if (kbd_mod.capslock) value |= (1 << 2);
     writedev(kbddevice, PS2_KEYBOARD_SET_LEDS);
     writedev(kbddevice, value);
-}
-
-char getchar()
-{
-    if (!kbdinitialised) return 0;
-    while (!pressed);
-    pressed = false;
-    return c[0];
-}
-
-char *getline()
-{
-    if (!kbdinitialised) return nullptr;
-    lockit(getline_lock);
-    reading = true;
-    memset(retstr, '\0', KBD_BUFFSIZE);
-    while (!enter)
-    {
-        if (pressed)
-        {
-            if (gi >= KBD_BUFFSIZE - 1)
-            {
-                printf("\nBuffer Overflow\n");
-                enter = false;
-                reading = false;
-                gi = 0;
-                return nullptr;
-            }
-            retstr[gi] = getchar();
-            gi++;
-        }
-    }
-    enter = false;
-    reading = false;
-    gi = 0;
-    return retstr;
 }
 
 static void Keyboard_handler(registers_t *)
@@ -343,47 +266,37 @@ static void Keyboard_handler(registers_t *)
                 kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? true : false;
                 update_leds();
                 break;
+            case UP:
+                tty::current_tty->add_str("\033[A");
+                break;
+            case DOWN:
+                tty::current_tty->add_str("\033[B");
+                break;
+            case RIGHT:
+                tty::current_tty->add_str("\033[C");
+                break;
+            case LEFT:
+                tty::current_tty->add_str("\033[D");
+                break;
+            case HOME:
+                tty::current_tty->add_str("\033[1~");
+                break;
+            case END:
+                tty::current_tty->add_str("\033[4~");
+                break;
+            case PGUP:
+                tty::current_tty->add_str("\033[5~");
+                break;
+            case PGDN:
+                tty::current_tty->add_str("\033[6~");
+                break;
+            case DELETE:
+                tty::current_tty->add_str("\033[3~");
+                break;
             default:
-                memset(c, 0, strlen(c));
-                c[0] = get_ascii_char(scancode);
-                if (kbd_mod.alt || kbd_mod.ctrl)
-                {
-                    // char ch = toupper(c[0]);
-
-                    // if (kbd_mod.ctrl)
-                    // {
-                    //     if ((ch >= 'A' && ch <= '_') || ch == '?' || ch == '0')
-                    //     {
-                    //         printf("%c", escapes[tonum(ch)]);
-                    //     }
-                    // }
-                    // else if (kbd_mod.alt) printf("\x1b[%c", ch);
-                    handle_comb(scancode);
-                }
-                else
-                {
-                    switch (c[0])
-                    {
-                        case '\n':
-                            printf("\n");
-                            clearbuff();
-                            enter = true;
-                            break;
-                        case '\b':
-                            if (buff[0] != '\0')
-                            {
-                                buff[strlen(buff) - 1] = '\0';
-                                if (reading) retstr[--gi] = 0;
-                                printf("\b \b");
-                            }
-                            break;
-                        default:
-                            pressed = true;
-                            printf("%s", c);
-                            strcat(buff, c);
-                            break;
-                    }
-                }
+                char c = get_ascii_char(scancode);
+                if (kbd_mod.ctrl && c >= 0x40) c = toupper(c) - 0x40;
+                tty::current_tty->add_char(c);
                 break;
         }
     }
@@ -402,9 +315,6 @@ static bool setupKbd(devices device)
     log("PS/2: Current scancode set is: %d", getscancodeset());
 
     update_leds();
-    buff = new char[KBD_BUFFSIZE];
-    retstr = new char[KBD_BUFFSIZE];
-
     idt::register_interrupt_handler(idt::IRQ1, Keyboard_handler, true);
 
     kbdinitialised = true;

@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 
+static constexpr uint64_t default_ring_size = 0x1000;
+
 template<typename type>
 class ringbuffer
 {
@@ -15,13 +17,18 @@ class ringbuffer
     uint64_t head = 0;
     uint64_t tail = 0;
     size_t cap = 0;
-    bool full = false;
+    bool isfull = false;
 
     public:
     ringbuffer(size_t cap)
     {
         this->cap = cap;
         this->buffer = new type[cap];
+    }
+    ringbuffer()
+    {
+        this->cap = default_ring_size;
+        this->buffer = new type[default_ring_size];
     }
     ~ringbuffer()
     {
@@ -34,9 +41,9 @@ class ringbuffer
 
         buffer[this->head] = item;
 
-        if (full) this->tail = (this->tail + 1) % this->cap;
+        if (this->isfull) this->tail = (this->tail + 1) % this->cap;
         this->head = (this->head + 1) % this->cap;
-        this->full = this->head == this->tail;
+        this->isfull = this->head == this->tail;
     }
 
     type get()
@@ -46,15 +53,28 @@ class ringbuffer
         if (this->empty()) return 0;
 
         type val = this->buffer[this->tail];
-        this->full = false;
+        this->isfull = false;
         this->tail = (this->tail + 1) % this->cap;
 
         return val;
     }
 
+    void clear()
+    {
+        lockit(this->lock);
+
+        this->head = this->tail;
+        this->isfull = false;
+    }
+
     bool empty()
     {
-        return (this->full == false && this->head == this->tail);
+        return (this->isfull == false && this->head == this->tail);
+    }
+
+    bool full()
+    {
+        return this->isfull;
     }
 
     size_t capacity()
@@ -67,7 +87,7 @@ class ringbuffer
         lockit(this->lock);
 
         size_t size = this->cap;
-        if (this->full == false)
+        if (this->isfull == false)
         {
             if (this->head >= this->tail) size = this->head - this->tail;
             else size = this->cap + this->head - this->tail;

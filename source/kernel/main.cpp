@@ -60,7 +60,7 @@ void time()
 {
     auto ssfn_mod = find_module("sfn");
     if (ssfn_mod == nullptr) return;
-    ssfn::init(reinterpret_cast<uint64_t>(ssfn_mod->base));
+    ssfn::init(reinterpret_cast<uint64_t>(ssfn_mod->address));
 
     while (true)
     {
@@ -139,7 +139,7 @@ void main()
     serial::init();
 
     auto initrd_mod = find_module("initrd");
-    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->base) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
+    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->address) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
 
