@@ -1166,23 +1166,19 @@ public:
 		return (*this);
 	}
 
-	/*
-	*** string_base<T> &remove_leading()
-	*** removes leading whitespaces from whole string
-	*/
 	string_base<T> &remove_leading() { while (*cbegin() == ' ') pop_front(); return (*this); }
-
-	/*
-	*** string_base<T> &remove_trailing()
-	*** removes trailing whitespaces from whole string
-	*/
 	string_base<T> &remove_trailing() { while (*(cend() - 1) == ' ') pop_back(); return (*this); }
-
-	/*
-	*** string_base<T> &remove_middle()
-	*** changes multiple whitespaces into one from whole string
-	*/
 	string_base<T> &remove_middle() { while (find("  ") != length()) erase(find("  "), 1); return (*this); }
+	string_base<T> &whitespaces() { remove_leading(); remove_middle(); remove_trailing(); return (*this); }
+	string_base<T> &backspaces()
+	{
+		unsigned int i = 0;
+		while ((i = find('\b', 0)) != length())
+		{
+			erase(i - 1, 2);
+		}
+		return (*this);
+	}
 
 	/*
 	*********************************************************************

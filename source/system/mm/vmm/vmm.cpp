@@ -444,7 +444,7 @@ Pagemap *newPagemap()
         }
     }
 
-    for (size_t i = 0; i < kernel_file_request.response->kernel_file->length; i += page_size)
+    for (size_t i = 0; i < kernel_file_request.response->kernel_file->size; i += page_size)
     {
         uint64_t paddr = kernel_address_request.response->physical_base + i;
         uint64_t vaddr = kernel_address_request.response->virtual_base + i;

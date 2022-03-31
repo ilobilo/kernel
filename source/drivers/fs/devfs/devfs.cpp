@@ -3,6 +3,7 @@
 #include <drivers/fs/devfs/dev/random.hpp>
 #include <drivers/fs/devfs/dev/null.hpp>
 #include <drivers/fs/devfs/dev/zero.hpp>
+#include <drivers/fs/devfs/dev/tty.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
@@ -241,6 +242,7 @@ void init()
     dev::random::init();
     dev::null::init();
     dev::zero::init();
+    dev::tty::init();
 
     serial::newline();
     initialised = true;

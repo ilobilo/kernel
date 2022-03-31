@@ -32,7 +32,7 @@ volatile limine_terminal_request terminal_request
     .id = LIMINE_TERMINAL_REQUEST,
     .revision = 0,
     .response = nullptr,
-    .callback = nullptr
+    .callback = terminal::callback
 };
 
 volatile limine_framebuffer_request framebuffer_request
