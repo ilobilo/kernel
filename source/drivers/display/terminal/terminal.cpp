@@ -13,18 +13,29 @@ using namespace kernel::drivers::audio;
 namespace kernel::drivers::display::terminal {
 
 static point pos = { 0, 0 };
-char *colour = "\033[0m"_c;
 new_lock(term_lock);
+char *resetcolour = "\033[0m"_c;
 
-#pragma region Print
-void print(const char *str)
+limine_terminal **terminals;
+limine_terminal *main_term;
+uint64_t term_count;
+
+void init()
 {
-    lockit(term_lock);
-    if (terminal_request.response == nullptr) return;
-    terminal_request.response->write(str, strlen(str));
+    terminals = terminal_request.response->terminals;
+    main_term = terminals[0];
+    term_count = terminal_request.response->terminal_count;
 }
 
-void printi(int num)
+#pragma region Print
+void print(const char *str, limine_terminal *term)
+{
+    lockit(term_lock);
+    if (terminal_request.response == nullptr || term == nullptr) return;
+    terminal_request.response->write(term, str, strlen(str));
+}
+
+void printi(int num, limine_terminal *term)
 {
     if (num != 0)
     {
@@ -45,83 +56,69 @@ void printi(int num)
             temp[i++] = num % 10 + '0';
             num /= 10;
         }
-        while (--i >= 0) printc(temp[i]);
+        while (--i >= 0) printc(temp[i], term);
     }
-    else printc('0');
+    else printc('0', term);
 }
 
-void printc(char c)
+void printc(char c, limine_terminal *term)
 {
     char str[] = { c, 0 };
-    print(str);
+    print(str, term);
 }
 #pragma endregion Print
 
-#pragma region Colour
-void setcolour(const char *ascii_colour)
-{
-    colour = const_cast<char*>(ascii_colour);
-    printf("%s", colour);
-}
-
-void resetcolour()
-{
-    colour = "\033[0m"_c;
-    print(colour);
-}
-#pragma endregion Colour
-
 #pragma region Clear
-void reset()
+void reset(limine_terminal *term)
 {
     lockit(term_lock);
-    if (terminal_request.response == nullptr) return;
-    terminal_request.response->write("", LIMINE_TERMINAL_FULL_REFRESH);
+    if (terminal_request.response == nullptr || term == nullptr) return;
+    terminal_request.response->write(term, "", LIMINE_TERMINAL_FULL_REFRESH);
 }
 
-void clear(const char *ansii_colour)
+void clear(const char *ansii_colour, limine_terminal *term)
 {
-    setcolour(ansii_colour);
-    print("\033[H\033[2J");
+    print(ansii_colour, term);
+    print("\033[H\033[2J", term);
 }
 #pragma endregion Clear
 
 #pragma region CursorCtrl
-void cursor_up(int lines)
+void cursor_up(int lines, limine_terminal *term)
 {
-    printf("\033[%dA", lines);
+    printf(term, "\033[%dA", lines);
 }
-void cursor_down(int lines)
+void cursor_down(int lines, limine_terminal *term)
 {
-    printf("\033[%dB", lines);
+    printf(term, "\033[%dB", lines);
 }
-void cursor_right(int lines)
+void cursor_right(int lines, limine_terminal *term)
 {
-    printf("\033[%dC", lines);
+    printf(term, "\033[%dC", lines);
 }
-void cursor_left(int lines)
+void cursor_left(int lines, limine_terminal *term)
 {
-    printf("\033[%dD", lines);
+    printf(term, "\033[%dD", lines);
 }
 #pragma endregion CursorCtrl
 
 #pragma region Misc
-void center(const char *text)
+void center(const char *text, limine_terminal *term)
 {
-    for (uint64_t i = 0; i < terminal_request.response->columns / 2 - strlen(text) / 2; i++) printc(' ');
+    for (uint64_t i = 0; i < term->columns / 2 - strlen(text) / 2; i++) printc(' ');
     print(text);
-    for (uint64_t i = 0; i < terminal_request.response->columns / 2 - strlen(text) / 2; i++) printc(' ');
+    for (uint64_t i = 0; i < term->columns / 2 - strlen(text) / 2; i++) printc(' ');
 }
-void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit)
+void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit, limine_terminal *term)
 {
-    printf("\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
+    printf(term, "\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
 
     if (shouldinit) reinterpret_cast<void (*)(uint64_t)>(init)(args);
 
-    printf("\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), terminal_request.response->columns - 5, (ok ? "32mOK" : "31m!!"));
+    printf(term, "\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), term->columns - 5, (ok ? "32mOK" : "31m!!"));
 }
 
-void callback(uint64_t type, uint64_t first, uint64_t second, uint64_t third)
+void callback(limine_terminal *term, uint64_t type, uint64_t first, uint64_t second, uint64_t third)
 {
     switch (type)
     {
@@ -155,9 +152,9 @@ void callback(uint64_t type, uint64_t first, uint64_t second, uint64_t third)
     }
 }
 
-point getpos()
+point getpos(limine_terminal *term)
 {
-    print("\033[6n");
+    print("\033[6n", term);
     return pos;
 }
 

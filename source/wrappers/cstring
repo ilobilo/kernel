@@ -1,2 +1,4 @@
+#pragma once
+
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
