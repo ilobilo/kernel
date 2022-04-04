@@ -108,50 +108,50 @@ void main()
     }
     serial::newline();
 
-    terminal::check("Initialising PMM...", reinterpret_cast<uint64_t>(pmm::init), -1, pmm::initialised);
-    terminal::check("Initialising VMM...", reinterpret_cast<uint64_t>(vmm::init), -1, vmm::initialised);
+    terminal::check("Initialising PMM...", pmm::init, -1, pmm::initialised);
+    terminal::check("Initialising VMM...", vmm::init, -1, vmm::initialised);
     constructors_init();
 
-    terminal::check("Initialising GDT...", reinterpret_cast<uint64_t>(gdt::init), -1, gdt::initialised);
-    terminal::check("Initialising IDT...", reinterpret_cast<uint64_t>(idt::init), -1, idt::initialised);
+    terminal::check("Initialising GDT...", gdt::init, -1, gdt::initialised);
+    terminal::check("Initialising IDT...", idt::init, -1, idt::initialised);
 
-    terminal::check("Initialising ACPI...", reinterpret_cast<uint64_t>(acpi::init), -1, acpi::initialised);
-    terminal::check("Initialising HPET...", reinterpret_cast<uint64_t>(hpet::init), -1, hpet::initialised);
-    terminal::check("Initialising PIT...", reinterpret_cast<uint64_t>(pit::init), -1, pit::initialised);
-    terminal::check("Initialising PCI...", reinterpret_cast<uint64_t>(pci::init), -1, pci::initialised);
-    terminal::check("Initialising APIC...", reinterpret_cast<uint64_t>(apic::init), -1, apic::initialised);
-    terminal::check("Initialising SMP...", reinterpret_cast<uint64_t>(smp::init), -1, smp::initialised);
+    terminal::check("Initialising ACPI...", acpi::init, -1, acpi::initialised);
+    terminal::check("Initialising HPET...", hpet::init, -1, hpet::initialised);
+    terminal::check("Initialising PIT...", pit::init, -1, pit::initialised);
+    terminal::check("Initialising PCI...", pci::init, -1, pci::initialised);
+    terminal::check("Initialising APIC...", apic::init, -1, apic::initialised);
+    terminal::check("Initialising SMP...", smp::init, -1, smp::initialised);
     // lai_enable_acpi(apic::initialised ? 1 : 0);
 
-    terminal::check("Initialising AHCI...", reinterpret_cast<uint64_t>(ahci::init), -1, ahci::initialised);
-    terminal::check("Initialising ATA...", reinterpret_cast<uint64_t>(ata::init), -1, ata::initialised);
+    terminal::check("Initialising AHCI...", ahci::init, -1, ahci::initialised);
+    terminal::check("Initialising ATA...", ata::init, -1, ata::initialised);
 
-    terminal::check("Initialising RTL8139...", reinterpret_cast<uint64_t>(rtl8139::init), -1, rtl8139::initialised);
-    terminal::check("Initialising RTL8169...", reinterpret_cast<uint64_t>(rtl8169::init), -1, rtl8169::initialised);
-    terminal::check("Initialising E1000...", reinterpret_cast<uint64_t>(e1000::init), -1, e1000::initialised);
+    terminal::check("Initialising RTL8139...", rtl8139::init, -1, rtl8139::initialised);
+    terminal::check("Initialising RTL8169...", rtl8169::init, -1, rtl8169::initialised);
+    terminal::check("Initialising E1000...", e1000::init, -1, e1000::initialised);
 
-    terminal::check("Initialising Drive Manager...", reinterpret_cast<uint64_t>(drivemgr::init), -1, drivemgr::initialised);
-    terminal::check("Initialising NIC Manager...", reinterpret_cast<uint64_t>(nicmgr::init), -1, nicmgr::initialised);
+    terminal::check("Initialising Drive Manager...", drivemgr::init, -1, drivemgr::initialised);
+    terminal::check("Initialising NIC Manager...", nicmgr::init, -1, nicmgr::initialised);
 
-    terminal::check("Initialising VFS...", reinterpret_cast<uint64_t>(vfs::init), -1, vfs::initialised);
-    terminal::check("Initialising TMPFS...", reinterpret_cast<uint64_t>(tmpfs::init), -1, tmpfs::initialised);
-    terminal::check("Initialising DEVFS...", reinterpret_cast<uint64_t>(devfs::init), -1, devfs::initialised);
+    terminal::check("Initialising VFS...", vfs::init, -1, vfs::initialised);
+    terminal::check("Initialising TMPFS...", tmpfs::init, -1, tmpfs::initialised);
+    terminal::check("Initialising DEVFS...", devfs::init, -1, devfs::initialised);
     serial::init();
 
     auto initrd_mod = find_module("initrd");
-    terminal::check("Initialising Initrd...", reinterpret_cast<uint64_t>(ustar::init), (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->address) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
+    terminal::check("Initialising Initrd...", ustar::init, (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->address) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
 
-    terminal::check("Initialising System Calls...", reinterpret_cast<uint64_t>(syscall::init), -1, syscall::initialised);
+    terminal::check("Initialising System Calls...", syscall::init, -1, syscall::initialised);
 
-    terminal::check("Initialising PS/2 Controller...", reinterpret_cast<uint64_t>(ps2::init), -1, ps2::initialised);
+    terminal::check("Initialising PS/2 Controller...", ps2::init, -1, ps2::initialised);
 
-    terminal::check("Initialising VMWare Tools...", reinterpret_cast<uint64_t>(vmware::init), -1, vmware::initialised);
+    terminal::check("Initialising VMWare Tools...", vmware::init, -1, vmware::initialised);
 
     printf("Current RTC time: %s\n\n", rtc::getTime());
     printf("Userspace has not been implemented yet! dropping to kernel shell...\n\n");
 
-    auto proc = new scheduler::process_t("Init", reinterpret_cast<uint64_t>(apps::kshell::run), 0, scheduler::HIGH);
-    proc->add_thread(reinterpret_cast<uint64_t>(time), 0, scheduler::LOW);
+    auto proc = new scheduler::process_t("Init", apps::kshell::run, 0, scheduler::HIGH);
+    proc->add_thread(time, 0, scheduler::LOW);
     proc->enqueue();
 
     scheduler::init();

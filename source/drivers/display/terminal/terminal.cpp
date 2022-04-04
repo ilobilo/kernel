@@ -109,14 +109,6 @@ void center(const char *text, limine_terminal *term)
     print(text);
     for (uint64_t i = 0; i < term->columns / 2 - strlen(text) / 2; i++) printc(' ');
 }
-void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit, limine_terminal *term)
-{
-    printf(term, "\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
-
-    if (shouldinit) reinterpret_cast<void (*)(uint64_t)>(init)(args);
-
-    printf(term, "\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), term->columns - 5, (ok ? "32mOK" : "31m!!"));
-}
 
 void callback(limine_terminal *term, uint64_t type, uint64_t first, uint64_t second, uint64_t third)
 {
