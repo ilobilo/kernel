@@ -59,6 +59,10 @@ struct thread_t
 
     thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
     thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority);
+
+    thread_t(auto addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself) : thread_t(reinterpret_cast<uint64_t>(addr), args, parent, priority, auxval, argv, envp, iself) { };
+    thread_t(auto addr, uint64_t args, process_t *parent, priority_t priority) : thread_t(reinterpret_cast<uint64_t>(addr), args, parent, priority) { };
+
     thread_t() { };
 
     bool map_user();
@@ -90,16 +94,30 @@ struct process_t
 
     thread_t *add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
     thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID);
+
+    thread_t *add_user_thread(auto addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself)
+    {
+        this->add_user_thread(reinterpret_cast<uint64_t>(addr), args, priority, auxval, argv, envp, iself);
+    }
+    thread_t *add_thread(auto addr, uint64_t args, priority_t priority = MID)
+    {
+        return this->add_thread(reinterpret_cast<uint64_t>(addr), args, priority);
+    }
     thread_t *add_thread(thread_t *thread);
+
     bool enqueue();
 
     process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID);
+    process_t(string name, auto addr, uint64_t args, priority_t priority = MID) : process_t(name, reinterpret_cast<uint64_t>(addr), args, priority) { };
+
     process_t(string name);
     process_t() { };
 
     void block();
     void unblock();
     void exit(bool halt = true);
+
+    private:
 };
 
 extern bool debug;

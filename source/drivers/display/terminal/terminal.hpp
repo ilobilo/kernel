@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <cstdarg>
 
+static inline int printf(limine_terminal *term, const char *format, ...);
+
 namespace kernel::drivers::display::terminal {
 
 extern bool initialised;
@@ -32,7 +34,14 @@ void center(const char *text, limine_terminal *term = main_term);
 void callback(limine_terminal *term, uint64_t type, uint64_t first, uint64_t second, uint64_t third);
 point getpos(limine_terminal *term = main_term);
 
-void check(const char *message, uint64_t init, int64_t args, bool &ok, bool shouldinit = true, limine_terminal *term = main_term);
+static void check(const char *message, auto init, int64_t args, bool &ok, bool shouldinit = true, limine_terminal *term = main_term)
+{
+    printf(term, "\033[1m[\033[21m*\033[0m\033[1m]\033[21m %s", message);
+
+    if (shouldinit) reinterpret_cast<void (*)(uint64_t)>(init)(args);
+
+    printf(term, "\033[2G\033[%s\033[0m\033[%dG\033[1m[\033[21m \033[%s\033[0m \033[1m]\033[21m", (ok ? "32m*" : "31m*"), term->columns - 5, (ok ? "32mOK" : "31m!!"));
+}
 }
 
 static inline int printf(limine_terminal *term, const char *format, ...)
