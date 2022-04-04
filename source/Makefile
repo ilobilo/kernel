@@ -28,7 +28,7 @@ ASM = nasm
 
 CXXFILT = llvm-cxxfilt
 
-LIMINE = $(LIMINEDIR)/limine-s2deploy
+LIMINE = $(LIMINEDIR)/limine-deploy
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
@@ -61,7 +61,6 @@ INCLUDES := \
 	-I$(SOURCEDIR)/ \
 	-I$(SOURCEDIR)/wrappers/ \
 	-I$(LIBDIR)/ \
-	-I$(LIBDIR)/incbin/ \
 	-I$(LIBDIR)/lai/include/ \
 	-I$(LIBDIR)/scalable-font2/ \
 	-I$(LIBDIR)/cxxshim/stage2/include/ \

@@ -132,7 +132,11 @@ extern "C" void _start()
     serial::early_init();
 
     assert(terminal_request.response, "Could not get terminal response!");
+    terminal::init();
+
     assert(framebuffer_request.response, "Could not get framebuffer response!");
+    framebuffer::init();
+
     assert(smp_request.response, "Could not get smp response!");
     assert(memmap_request.response, "Could not get memmap response!");
     assert(rsdp_request.response, "Could not get rsdp response!");
@@ -146,7 +150,6 @@ extern "C" void _start()
     cmdline = kernel_file_request.response->kernel_file->cmdline;
     hhdm_offset = hhdm_request.response->offset;
 
-    framebuffer::init();
     kernel::main();
 
     while (true) asm volatile ("hlt");

@@ -15,7 +15,7 @@ vnc: libs limine
 
 limine:
 	@echo "Downloading Limine"
-	@git clone --single-branch --branch=latest-binary --depth=1 https://github.com/limine-bootloader/limine || echo "\e[31mFailed to download Limine!\e[0m"
+	@git clone --single-branch --branch=v3.0-branch-binary --depth=1 https://github.com/limine-bootloader/limine || echo "\e[31mFailed to download Limine!\e[0m"
 	$(MAKE) -sC $(ROOTDIR)/limine
 
 libs:

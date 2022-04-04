@@ -9,6 +9,7 @@ namespace kernel::drivers::display::framebuffer {
 
 extern limine_framebuffer **framebuffers;
 extern limine_framebuffer *main_frm;
+extern uint64_t frm_count;
 
 void putpix(uint32_t x, uint32_t y, uint32_t colour, limine_framebuffer *frm = main_frm);
 void putpix(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint64_t b, limine_framebuffer *frm = main_frm);

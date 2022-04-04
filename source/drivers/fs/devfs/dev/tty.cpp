@@ -183,37 +183,42 @@ void init()
 {
     if (initialised) return;
 
-    tty_res *tty1_res = new tty_res;
+    for (size_t i = 0; i < terminal::term_count; i++)
+    {
+        tty_res *tty = new tty_res;
 
-    tty1_res->id = next_id++;
+        tty->id = next_id++;
 
-    tty1_res->stat.size = 0;
-    tty1_res->stat.blocks = 0;
-    tty1_res->stat.blksize = 512;
-    tty1_res->stat.rdev = vfs::dev_new_id();
-    tty1_res->stat.mode = 0666 | vfs::ifchr;
-    tty1_res->can_mmap = true;
+        tty->stat.size = 0;
+        tty->stat.blocks = 0;
+        tty->stat.blksize = 512;
+        tty->stat.rdev = vfs::dev_new_id();
+        tty->stat.mode = 0666 | vfs::ifchr;
+        tty->can_mmap = true;
 
-    tty1_res->tios.c_lflag = ISIG | ICANON | ECHO;
-    tty1_res->tios.c_cc[VEOF] = 0x04;
-    tty1_res->tios.c_cc[VEOL] = 0x00;
-    tty1_res->tios.c_cc[VERASE] = 0x7F;
-    tty1_res->tios.c_cc[VINTR] = 0x03;
-    tty1_res->tios.c_cc[VKILL] = 0x15;
-    tty1_res->tios.c_cc[VMIN] = 0x01;
-    tty1_res->tios.c_cc[VQUIT] = 0x1C;
-    tty1_res->tios.c_cc[VSTART] = 0x11;
-    tty1_res->tios.c_cc[VSTOP] = 0x13;
-    tty1_res->tios.c_cc[VSUSP] = 0x1A;
-    tty1_res->tios.c_cc[VTIME] = 0x00;
-    tty1_res->tios.c_cc[VLNEXT] = 0x16;
-    tty1_res->tios.c_cc[VWERASE] = 0x17;
+        tty->tios.c_lflag = ISIG | ICANON | ECHO;
+        tty->tios.c_cc[VEOF] = 0x04;
+        tty->tios.c_cc[VEOL] = 0x00;
+        tty->tios.c_cc[VERASE] = 0x7F;
+        tty->tios.c_cc[VINTR] = 0x03;
+        tty->tios.c_cc[VKILL] = 0x15;
+        tty->tios.c_cc[VMIN] = 0x01;
+        tty->tios.c_cc[VQUIT] = 0x1C;
+        tty->tios.c_cc[VSTART] = 0x11;
+        tty->tios.c_cc[VSTOP] = 0x13;
+        tty->tios.c_cc[VSUSP] = 0x1A;
+        tty->tios.c_cc[VTIME] = 0x00;
+        tty->tios.c_cc[VLNEXT] = 0x16;
+        tty->tios.c_cc[VWERASE] = 0x17;
 
-    tty1_res->wsize.ws_row = terminal_request.response->rows;
-    tty1_res->wsize.ws_col = terminal_request.response->columns;
+        tty->wsize.ws_row = terminal::terminals[i]->rows;
+        tty->wsize.ws_col = terminal::terminals[i]->columns;
 
-    devfs::add(tty1_res, "tty1");
-    current_tty = tty1_res;
+        string ttyname("tty");
+        ttyname.push_back(i + 1 + '0');
+        devfs::add(tty, ttyname);
+        if (current_tty == nullptr) current_tty = tty;
+    }
 
     initialised = true;
 }

@@ -2,7 +2,6 @@
 
 #include <system/sched/scheduler/scheduler.hpp>
 #include <system/vfs/vfs.hpp>
-#include <lib/cwalk.hpp>
 #include <lib/lock.hpp>
 #include <lib/log.hpp>
 

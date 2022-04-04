@@ -59,7 +59,7 @@ void parse(string cmd, string arg)
             vfs::fs_node_t *node = vfs::get_node(current_path, arg);
             if (node == nullptr)
             {
-                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
                 break;
             }
             if (!vfs::isdir(node->res->stat.mode))
@@ -72,21 +72,21 @@ void parse(string cmd, string arg)
             {
                 if (child->name != "." && child->name != ".." && vfs::isdir(child->res->stat.mode))
                 {
-                    printf("\033[35m%s%s ", child->name.c_str(), terminal::colour);
+                    printf("\033[35m%s%s ", child->name.c_str(), terminal::resetcolour);
                 }
             }
             for (vfs::fs_node_t *child : node->children)
             {
                 if (child->name != "." && child->name != ".." &&vfs::ischr(child->res->stat.mode))
                 {
-                    printf("\033[93m%s%s ", child->name.c_str(), terminal::colour);
+                    printf("\033[93m%s%s ", child->name.c_str(), terminal::resetcolour);
                 }
             }
             for (vfs::fs_node_t *child : node->children)
             {
                 if (child->name != "." && child->name != ".." && vfs::islnk(child->res->stat.mode))
                 {
-                    printf("\033[96m%s%s ", child->name.c_str(), terminal::colour);
+                    printf("\033[96m%s%s ", child->name.c_str(), terminal::resetcolour);
                 }
             }
             for (vfs::fs_node_t *child : node->children)
@@ -104,7 +104,7 @@ void parse(string cmd, string arg)
             vfs::fs_node_t *node = vfs::get_node(current_path, arg);
             if (node == nullptr)
             {
-                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
                 break;
             }
             if (vfs::isreg(node->res->stat.mode) || vfs::ischr(node->res->stat.mode))
@@ -119,7 +119,7 @@ void parse(string cmd, string arg)
                 printf("%s%c", buffer, buffer[size - 1] == '\n' ? 0 : '\n');
                 delete[] buffer;
             }
-            else printf("\033[31m%s is not a text file or character device!%s\n", arg.c_str(), terminal::colour);
+            else printf("\033[31m%s is not a text file or character device!%s\n", arg.c_str(), terminal::resetcolour);
             break;
         }
         case hash("cd"):
@@ -127,12 +127,12 @@ void parse(string cmd, string arg)
             if (arg.empty()) arg = "/";
             vfs::fs_node_t *node = vfs::get_node(current_path, arg);                                        if (node == nullptr)
             {
-                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
                 break;
             }
             if (!vfs::isdir(node->res->stat.mode))
             {
-                printf("\033[31m%s is not a directory!%s\n", arg.c_str(), terminal::colour);
+                printf("\033[31m%s is not a directory!%s\n", arg.c_str(), terminal::resetcolour);
                 break;
             }
             current_path = node;
@@ -148,12 +148,12 @@ void parse(string cmd, string arg)
             vfs::fs_node_t *node = vfs::get_node(current_path, arg);
             if (node == nullptr)
             {
-                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
                 break;
             }
             if (!vfs::isreg(node->res->stat.mode))
             {
-                printf("\033[31m%s is not a regular file!%s\n", arg.c_str(), terminal::colour);
+                printf("\033[31m%s is not a regular file!%s\n", arg.c_str(), terminal::resetcolour);
                 break;
             }
             size_t size = node->res->stat.size;
@@ -199,12 +199,12 @@ void parse(string cmd, string arg)
             vfs::fs_node_t *node = vfs::get_node(current_path, "/bin/crash");
             if (node == nullptr)
             {
-                printf("\033[31mNo such file or directory!%s\n", terminal::colour);
+                printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
                 break;
             }
             if (!vfs::isreg(node->res->stat.mode))
             {
-                printf("\033[31m%s is not a regular file!%s\n", arg.c_str(), terminal::colour);
+                printf("\033[31m%s is not a regular file!%s\n", arg.c_str(), terminal::resetcolour);
                 break;
             }
             size_t size = node->res->stat.size;
@@ -240,7 +240,7 @@ void run()
     current_path = this_proc()->current_dir;
     while (true)
     {
-        printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name.first() != '/') ? "/" : "", current_path->name.c_str(), terminal::colour);
+        printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name.first() != '/') ? "/" : "", current_path->name.c_str(), terminal::resetcolour);
         string command(tty::current_tty->getline());
 
         command.whitespaces();

@@ -10,6 +10,7 @@ namespace kernel::drivers::display::framebuffer {
 
 limine_framebuffer **framebuffers;
 limine_framebuffer *main_frm;
+uint64_t frm_count;
 
 uint32_t cursorbuffer[16 * 19];
 uint32_t cursorbuffersecond[16 * 19];
@@ -220,5 +221,6 @@ void init()
 {
     framebuffers = framebuffer_request.response->framebuffers;
     main_frm = framebuffers[0];
+    frm_count = framebuffer_request.response->framebuffer_count;
 }
 }
