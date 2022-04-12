@@ -76,7 +76,7 @@ struct thread_t
 
 struct process_t
 {
-    string name;
+    std::string name;
     int pid = 0;
     int next_tid = 1;
     state_t state;
@@ -107,10 +107,10 @@ struct process_t
 
     bool enqueue();
 
-    process_t(string name, uint64_t addr, uint64_t args, priority_t priority = MID);
-    process_t(string name, auto addr, uint64_t args, priority_t priority = MID) : process_t(name, reinterpret_cast<uint64_t>(addr), args, priority) { };
+    process_t(std::string name, uint64_t addr, uint64_t args, priority_t priority = MID);
+    process_t(std::string name, auto addr, uint64_t args, priority_t priority = MID) : process_t(name, reinterpret_cast<uint64_t>(addr), args, priority) { };
 
-    process_t(string name);
+    process_t(std::string name);
     process_t() { };
 
     void block();
@@ -129,7 +129,7 @@ extern size_t proc_count;
 extern size_t thread_count;
 
 int alloc_pid();
-process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, string procname = "");
+process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> argv, vector<string> envp, std::string stdin, std::string stdout, std::string stderr, std::string procname = "");
 
 void yield(uint64_t ms = 1);
 void schedule(registers_t *regs);

@@ -101,7 +101,7 @@ void init()
         symtable_t sym
         {
             symtab[i].st_value,
-            string(&strtab[symtab[i].st_name])
+            std::string(&strtab[symtab[i].st_name])
         };
         symbol_table[i] = sym;
     }

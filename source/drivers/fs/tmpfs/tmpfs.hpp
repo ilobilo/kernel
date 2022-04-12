@@ -15,10 +15,10 @@ struct tmpfs_fs : vfs::filesystem_t
 
     void init();
     void populate(vfs::fs_node_t *node);
-    vfs::fs_node_t *mount(vfs::fs_node_t *parent, vfs::fs_node_t *source, string dest);
-    vfs::fs_node_t *symlink(vfs::fs_node_t *parent, string source, string dest);
-    vfs::fs_node_t *create(vfs::fs_node_t *parent, string name, int mode);
-    vfs::fs_node_t *link(vfs::fs_node_t *parent, string name, vfs::fs_node_t *old);
+    vfs::fs_node_t *mount(vfs::fs_node_t *parent, vfs::fs_node_t *source, std::string dest);
+    vfs::fs_node_t *symlink(vfs::fs_node_t *parent, std::string source, std::string dest);
+    vfs::fs_node_t *create(vfs::fs_node_t *parent, std::string name, int mode);
+    vfs::fs_node_t *link(vfs::fs_node_t *parent, std::string name, vfs::fs_node_t *old);
 };
 
 struct tmpfs_res : vfs::resource_t

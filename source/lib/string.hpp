@@ -4,7 +4,6 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <string>
 
 unsigned constexpr hash(char const *input)
 {
@@ -443,7 +442,7 @@ public:
 	*** fill whole string buffer with T's value
 	*** inserts null-terminator at the end
 	*** Does nothing if
-		-> len == 0 (string is empty)
+		-> len == 0 (std::string is empty)
 		-> raw_data == NULL (allocation error)
 	*** returns (eventually modified) *this object
 	*** Added with Version 1.5
@@ -465,7 +464,7 @@ public:
 	string buffer with T's value
 	*** inserts null-terminator at the end
 	*** Does nothing if
-		-> len == 0 (string is empty)
+		-> len == 0 (std::string is empty)
 		-> raw_data == NULL (allocation error)
 		-> count == 0 (no chars to copy)
 	*** returns (eventually modified) *this object
@@ -488,7 +487,7 @@ public:
 	*** fill substring of string buffer with T's value
 	*** inserts null-terminator at the end
 	*** Does nothing if
-		-> len == 0 (string is empty)
+		-> len == 0 (std::string is empty)
 		-> raw_data == NULL (allocation error)
 		-> count == 0 (no chars to copy)
 	*** If start is greater than current string length, then start = 0
@@ -1802,7 +1801,7 @@ public:
 
 	/* end of public segment */
 private:
-	T *raw_data;		/* actual character (string) storage */
+	T *raw_data;		/* actual character (std::string) storage */
 	unsigned len, cap;	/* len = length of string / cap = capacity of string */
 
 	/*
@@ -1860,8 +1859,8 @@ class printer
 	public:
 	printer(int (*func)(const char *, ...));
 
-	printer &operator<<(string str);
-	printer &operator<<(string *str);
+	printer &operator<<(std::string str);
+	printer &operator<<(std::string *str);
 	printer &operator<<(size_t i);
 	printer &operator<<(int i);
 	printer &operator<<(unsigned int i);

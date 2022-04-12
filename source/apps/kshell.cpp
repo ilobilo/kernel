@@ -28,7 +28,7 @@ namespace kernel::apps::kshell {
 
 vfs::fs_node_t *current_path = nullptr;
 
-void parse(string cmd, string arg)
+void parse(std::string cmd, std::string arg)
 {
     if (cmd.empty()) return;
     switch (hash(cmd.c_str()))
@@ -241,13 +241,13 @@ void run()
     while (true)
     {
         printf("\033[32mroot@kernel\033[0m:\033[95m%s%s%s# ", (current_path->name.first() != '/') ? "/" : "", current_path->name.c_str(), terminal::resetcolour);
-        string command(tty::current_tty->getline());
+        std::string command(tty::current_tty->getline());
 
         command.whitespaces();
 
-        string arg(command.c_str());
+        std::string arg(command.c_str());
         arg.erase(0, command.find(" ") + 1);
-        string cmd(command.substr(0, command.find(" ")));
+        std::string cmd(command.substr(0, command.find(" ")));
 
         parse(cmd, arg);
     }

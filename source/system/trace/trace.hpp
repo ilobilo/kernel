@@ -16,7 +16,7 @@ struct stackframe_t
 struct symtable_t
 {
     uint64_t addr;
-    string name;
+    std::string name;
 };
 
 void trace(bool terminal);

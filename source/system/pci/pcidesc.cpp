@@ -44,7 +44,7 @@ string getvendorname(uint16_t vendorid)
         case 0x10EC:
             return "Realtek";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.4X", vendorid);
     return ret;
 }
@@ -121,7 +121,7 @@ string getdevicename(uint16_t vendorid, uint16_t deviceid)
             }
             break;
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.4X", deviceid);
     return ret;
 }
@@ -135,7 +135,7 @@ string unclasssubclassname(uint8_t subclasscode)
         case 0x01:
             return "VGA-Compatible Unclassified Device";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -165,7 +165,7 @@ string mscsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -195,7 +195,7 @@ string netsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -213,7 +213,7 @@ string dispsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -233,7 +233,7 @@ string multimediasubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -249,7 +249,7 @@ string memsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -281,7 +281,7 @@ string bridgesubclassname(uint8_t subclasscode){
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -305,7 +305,7 @@ string simplecomsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -331,7 +331,7 @@ string basesyspersubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -353,7 +353,7 @@ string inputdevsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -367,7 +367,7 @@ string dockstatsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -395,7 +395,7 @@ string procsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -425,7 +425,7 @@ string sbcsubclassname(uint8_t subclasscode){
         case 0x80:
             return "SerialBusController - Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -451,7 +451,7 @@ string wirelsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -463,7 +463,7 @@ string intelsubclassname(uint8_t subclasscode)
         case 0x00:
             return "I20";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -481,7 +481,7 @@ string satcomsubclassname(uint8_t subclasscode)
         case 0x03:
             return "Satellite Data Controller";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -497,7 +497,7 @@ string encryptsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -517,7 +517,7 @@ string signprocsubclassname(uint8_t subclasscode)
         case 0x80:
             return "Other";
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -563,7 +563,7 @@ string getsubclassname(uint8_t classcode, uint8_t subclasscode)
         case 0x11:
             return signprocsubclassname(subclasscode);
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", subclasscode);
     return ret;
 }
@@ -846,7 +846,7 @@ string getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
             }
             break;
     }
-    string ret(4);
+    std::string ret(4);
     sprintf(ret.data(), "%.2X", progif);
     return ret;
 }

@@ -127,7 +127,7 @@ void *tmpfs_res::mmap(uint64_t page, int flags)
 void tmpfs_fs::init() { }
 void tmpfs_fs::populate(vfs::fs_node_t *node) { }
 
-vfs::fs_node_t *tmpfs_fs::symlink(vfs::fs_node_t *parent, string source, string dest)
+vfs::fs_node_t *tmpfs_fs::symlink(vfs::fs_node_t *parent, std::string source, std::string dest)
 {
     vfs::fs_node_t *node = vfs::create_node(this, parent, source);
 
@@ -152,7 +152,7 @@ vfs::fs_node_t *tmpfs_fs::symlink(vfs::fs_node_t *parent, string source, string 
     return node;
 }
 
-vfs::fs_node_t *tmpfs_fs::create(vfs::fs_node_t *parent, string name, int mode)
+vfs::fs_node_t *tmpfs_fs::create(vfs::fs_node_t *parent, std::string name, int mode)
 {
     vfs::fs_node_t *node = vfs::create_node(this, parent, name);
 
@@ -183,7 +183,7 @@ vfs::fs_node_t *tmpfs_fs::create(vfs::fs_node_t *parent, string name, int mode)
     return node;
 }
 
-vfs::fs_node_t *tmpfs_fs::link(vfs::fs_node_t *parent, string name, vfs::fs_node_t *old)
+vfs::fs_node_t *tmpfs_fs::link(vfs::fs_node_t *parent, std::string name, vfs::fs_node_t *old)
 {
     vfs::fs_node_t *node = vfs::create_node(this, parent, name);
 
@@ -195,7 +195,7 @@ vfs::fs_node_t *tmpfs_fs::link(vfs::fs_node_t *parent, string name, vfs::fs_node
     return node;
 }
 
-vfs::fs_node_t *tmpfs_fs::mount(vfs::fs_node_t *parent, vfs::fs_node_t *source, string dest)
+vfs::fs_node_t *tmpfs_fs::mount(vfs::fs_node_t *parent, vfs::fs_node_t *source, std::string dest)
 {
     if (this->dev_id == 0) this->dev_id = vfs::dev_new_id();
     return create(parent, dest, 0644 | vfs::ifdir);

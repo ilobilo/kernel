@@ -208,7 +208,7 @@ static void syscall_getcwd(registers_t *regs)
         return;
     }
 
-    string cwd(vfs::node2path(this_proc()->current_dir));
+    std::string cwd(vfs::node2path(this_proc()->current_dir));
     if (cwd.length() >= RSI_ARG1)
     {
         RAX_RET = -1;
@@ -222,7 +222,7 @@ static void syscall_getcwd(registers_t *regs)
 
 static void syscall_chdir(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RDI_ARG0));
+    std::string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -276,7 +276,7 @@ static void syscall_link(registers_t *regs)
 
 static void syscall_chmod(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RDI_ARG0));
+    std::string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -315,7 +315,7 @@ static void syscall_fchmod(registers_t *regs)
 
 static void syscall_chown(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RDI_ARG0));
+    std::string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -357,7 +357,7 @@ static void syscall_fchown(registers_t *regs)
 
 static void syscall_lchown(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RDI_ARG0));
+    std::string path(reinterpret_cast<char*>(RDI_ARG0));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -483,7 +483,7 @@ static void syscall_time(registers_t *regs)
 
 static void syscall_openat(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RSI_ARG1));
+    std::string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -552,7 +552,7 @@ static void syscall_openat(registers_t *regs)
 
 static void syscall_mkdirat(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RSI_ARG1));
+    std::string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -595,7 +595,7 @@ static void syscall_mkdirat(registers_t *regs)
 
 static void syscall_unlinkat(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RSI_ARG1));
+    std::string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -622,7 +622,7 @@ static void syscall_unlinkat(registers_t *regs)
 
 static void syscall_linkat(registers_t *regs)
 {
-    string oldpath(reinterpret_cast<char*>(RSI_ARG1));
+    std::string oldpath(reinterpret_cast<char*>(RSI_ARG1));
     if (oldpath.empty())
     {
         RAX_RET = -1;
@@ -630,7 +630,7 @@ static void syscall_linkat(registers_t *regs)
         return;
     }
 
-    string newpath(reinterpret_cast<char*>(R10_ARG3));
+    std::string newpath(reinterpret_cast<char*>(R10_ARG3));
 
     vfs::fs_node_t *oldparent = vfs::get_parent_dir(RDI_ARG0, oldpath);
     if (oldparent == nullptr)
@@ -683,7 +683,7 @@ static void syscall_linkat(registers_t *regs)
 
 static void syscall_readlinkat(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RSI_ARG1));
+    std::string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -723,7 +723,7 @@ static void syscall_readlinkat(registers_t *regs)
 
 static void syscall_faccessat(registers_t *regs)
 {
-    string path(reinterpret_cast<char*>(RSI_ARG1));
+    std::string path(reinterpret_cast<char*>(RSI_ARG1));
     if (path.empty())
     {
         RAX_RET = -1;
@@ -787,7 +787,7 @@ static void handler(registers_t *regs)
     if (RAX_RET >= 0 && syscall_table[RAX_RET]) syscall_table[RAX_RET](regs);
 }
 
-void reboot(string message)
+void reboot(std::string message)
 {
     syscall_i(SYSCALL_REBOOT, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, message.c_str());
 }

@@ -102,6 +102,6 @@ extern bool initialised;
 extern "C" syscall_t syscall_table[];
 extern "C" void syscall_entry();
 
-void reboot(string message);
+void reboot(std::string message);
 void init();
 }
