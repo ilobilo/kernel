@@ -54,14 +54,14 @@ struct point
     size_t Y = 0;
 };
 
-int pow(int base, int exponent);
-int abs(int num);
-int sign(int num);
+extern "C" int pow(int base, int exponent);
+extern "C" int abs(int num);
+extern "C" int sign(int num);
 
 uint64_t jdn(uint8_t days, uint8_t months, uint16_t years);
 
-uint64_t rand();
-void srand(uint64_t seed);
+extern "C" uint64_t rand();
+extern "C" void srand(uint64_t seed);
 
 uint64_t oct2dec(int n);
 int intlen(int n);

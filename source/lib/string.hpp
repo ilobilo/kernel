@@ -11,6 +11,8 @@ unsigned constexpr hash(char const *input)
     return *input ? static_cast<unsigned int>(*input) + 33 * hash(input + 1) : 5381;
 }
 
+extern "C"
+{
 size_t strlen(const char *str);
 
 char *strcpy(char *destination, const char *source);
@@ -22,7 +24,6 @@ char *strchr(const char *str, char ch);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t n);
 
-char *strrm(char *str, const char *substr);
 char *strdup(const char *src);
 
 long strtol(const char *nPtr, char **endPtr, int base);
@@ -34,9 +35,11 @@ char** strsplit(const char* s, const char* delim);
 char** strsplit_count(const char* s, const char* delim, size_t &nb);
 
 char *strstr(const char *str, const char *substr);
-int lstrstr(const char *str, const char *substr, int skip = 0);
+}
 
 char *getline(const char *str, const char *substr, char *buffer, int skip = 0);
+int lstrstr(const char *str, const char *substr, int skip = 0);
+char *strrm(char *str, const char *substr);
 
 char *reverse(char *str);
 
