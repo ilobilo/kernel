@@ -4,20 +4,20 @@
 BuddyAlloc buddyheap;
 SlabAlloc slabheap;
 
-void *malloc(size_t size, bool calloc)
+void *malloc(size_t size)
 {
     switch (defalloc)
     {
         case LIBALLOC:
-            if (calloc) return liballoc_calloc(1, size);
+            // return liballoc_calloc(1, size);
             return liballoc_malloc(size);
             break;
         case BUDDY:
-            if (calloc) return buddyheap.calloc(1, size);
+            // return buddyheap.calloc(1, size);
             return buddyheap.malloc(size);
             break;
         case SLAB:
-            if (calloc) return slabheap.calloc(1, size);
+            // return slabheap.calloc(1, size);
             return slabheap.malloc(size);
             break;
     }

@@ -20,7 +20,7 @@ static allocs defalloc = SLAB;
 extern BuddyAlloc buddyheap;
 extern SlabAlloc slabheap;
 
-extern "C" void *malloc(size_t size, bool calloc = true);
+extern "C" void *malloc(size_t size);
 extern "C" void *calloc(size_t num, size_t size);
 extern "C" void *realloc(void *ptr, size_t size);
 extern "C" void free(void *ptr);
