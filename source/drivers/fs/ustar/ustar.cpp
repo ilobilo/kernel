@@ -45,8 +45,8 @@ void init(uint64_t address)
 
         uint64_t size = oct2dec(header->size);
         uint64_t mode = oct2dec(header->mode);
-        string name(header->name);
-        string link(header->link);
+        std::string name(header->name);
+        std::string link(header->link);
 
         vfs::fs_node_t *node = nullptr;
         if (name == "./") goto next;

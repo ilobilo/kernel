@@ -23,7 +23,7 @@ struct Auxval
 
 static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_t base)
 {
-    struct ret { Auxval auxval; string ld_path; };
+    struct ret { Auxval auxval; std::string ld_path; };
     ret null { Auxval { 0, 0, 0, 0 }, "" };
 
     Elf64_Ehdr *header = new Elf64_Ehdr;
@@ -52,7 +52,7 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
         .phnum = header->e_phnum
     };
 
-    string ld_path("");
+    std::string ld_path("");
     for (size_t i = 0; i < header->e_phnum; i++)
     {
         Elf64_Phdr *phdr = new Elf64_Phdr;

@@ -4,6 +4,7 @@
 
 #include <system/vfs/vfs.hpp>
 #include <lib/ring.hpp>
+#include <limine.h>
 
 using namespace kernel::system;
 
@@ -158,6 +159,7 @@ struct termios
 struct tty_res : vfs::resource_t
 {
     size_t id = 0;
+    limine_terminal *thisterm;
     ringbuffer<char> buff;
     winsize wsize;
     termios tios;
@@ -174,7 +176,7 @@ struct tty_res : vfs::resource_t
     void add_char(char c);
     void add_str(const char *str);
     char get_char();
-    string getline();
+    std::string getline();
 
     void reset();
 };

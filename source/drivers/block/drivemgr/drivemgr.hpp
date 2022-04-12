@@ -90,7 +90,7 @@ struct partTable
 struct Partition;
 struct Drive
 {
-    string name;
+    std::string name;
     uint8_t *buffer = nullptr;
 
     partTable parttable;
@@ -118,7 +118,7 @@ struct Drive
 
 struct Partition
 {
-    string label;
+    std::string label;
     uint64_t StartLBA;
     uint64_t EndLBA;
     uint64_t Sectors;

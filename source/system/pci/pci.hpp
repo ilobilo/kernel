@@ -159,11 +159,11 @@ extern bool legacy;
 struct pcidevice_t
 {
     pciheader_t *device;
-    string vendorstr;
-    string devicestr;
-    string progifstr;
-    string subclassStr;
-    string ClassStr;
+    std::string vendorstr;
+    std::string devicestr;
+    std::string progifstr;
+    std::string subclassStr;
+    std::string ClassStr;
     uint16_t seg;
     uint8_t bus;
     uint8_t dev;

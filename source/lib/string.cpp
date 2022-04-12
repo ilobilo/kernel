@@ -18,13 +18,13 @@ printer::printer(int (*func)(const char *, ...))
 {
     this->func = func;
 }
-printer &printer::operator<<(string str)
+printer &printer::operator<<(std::string str)
 {
     lockit(this->lock);
     if (this->func) this->func("%s", str.c_str());
     return *this;
 }
-printer &printer::operator<<(string *str)
+printer &printer::operator<<(std::string *str)
 {
     lockit(this->lock);
     if (this->func) this->func("%s", str->c_str());

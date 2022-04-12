@@ -150,7 +150,7 @@ void init()
     res->stat.rdev = vfs::dev_new_id();
     res->stat.mode = 0644 | vfs::ifchr;
     res->com = COM1;
-    devfs::add(res, "stty1");
+    devfs::add(res, "ttyS0");
 
     res = new serial_res;
     res->stat.size = 0;
@@ -159,7 +159,7 @@ void init()
     res->stat.rdev = vfs::dev_new_id();
     res->stat.mode = 0644 | vfs::ifchr;
     res->com = COM2;
-    devfs::add(res, "stty2");
+    devfs::add(res, "ttyS1");
 
     initialised = true;
 }

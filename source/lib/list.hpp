@@ -42,7 +42,7 @@ class list
         on = false;
     }
 
-    void push_back(const type &value, string key = "")
+    void push_back(const type &value, std::string key = "")
     {
         if (!on) this->init();
         this->keys.push_back(key);
@@ -73,7 +73,7 @@ class list
         return this->values[pos];
     }
 
-    type &operator[](string key)
+    type &operator[](std::string key)
     {
         for (size_t i = 0; i < this->keys.size(); i++)
         {
@@ -146,7 +146,7 @@ class list
         this->values.expand(size);
     }
 
-    void insert(size_t pos, string key, const type &value)
+    void insert(size_t pos, std::string key, const type &value)
     {
         if (!on) this->init();
         this->keys.insert(pos, key);

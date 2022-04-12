@@ -34,7 +34,7 @@ void install_fs(filesystem_t *fs)
     filesystems.push_back(fs);
 }
 
-filesystem_t *search_fs(string name)
+filesystem_t *search_fs(std::string name)
 {
     for (filesystem_t *fs : filesystems)
     {
@@ -43,21 +43,21 @@ filesystem_t *search_fs(string name)
     return nullptr;
 }
 
-string path2basename(string path)
+string path2basename(std::string path)
 {
     if (path.empty()) return "";
 
     const char *basename;
     cwk_path_get_basename(path.c_str(), &basename, 0);
-    string ret(basename);
+    std::string ret(basename);
 
     return ret;
 }
 
-string path2absolute(string parent, string path)
+string path2absolute(std::string parent, std::string path)
 {
     if (path.empty()) return "/";
-    string ret;
+    std::string ret;
 
     size_t length = cwk_path_get_absolute(parent.c_str(), path.c_str(), nullptr, 0);
     ret.resize(length);
@@ -66,10 +66,10 @@ string path2absolute(string parent, string path)
     return ret;
 }
 
-string path2normal(string path)
+string path2normal(std::string path)
 {
     if (path.empty()) return "/";
-    string ret;
+    std::string ret;
 
     size_t length = cwk_path_normalize(path.c_str(), nullptr, 0);
     ret.resize(length);
@@ -82,7 +82,7 @@ string node2path(fs_node_t *node)
 {
     if (node == nullptr) return "";
     if (node == fs_root) return "/";
-    string ret;
+    std::string ret;
 
     while (node != nullptr && node != fs_root && node != fs_root->mountpoint)
     {
@@ -93,7 +93,7 @@ string node2path(fs_node_t *node)
     return ret;
 }
 
-fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, string name)
+fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, std::string name)
 {
     fs_node_t *node = new fs_node_t;
     node->name = name;
@@ -116,7 +116,7 @@ fs_node_t *node2reduced(fs_node_t *node, bool symlinks)
     return node;
 }
 
-fs_node_t *get_parent_dir(int dirfd, string path)
+fs_node_t *get_parent_dir(int dirfd, std::string path)
 {
     scheduler::process_t *proc = this_proc();
     fs_node_t *parent = nullptr;
@@ -138,7 +138,7 @@ fs_node_t *get_parent_dir(int dirfd, string path)
     return parent;
 }
 
-fs_node_t *get_node(fs_node_t *parent, string path, bool links)
+fs_node_t *get_node(fs_node_t *parent, std::string path, bool links)
 {
     fs_node_t *node = path2node(parent, path).node;
     if (node == nullptr) return nullptr;
@@ -160,7 +160,7 @@ void fs_node_t::dotentries(fs_node_t *parent)
     this->children.push_back(dotdot);
 }
 
-fs_node_t *create(fs_node_t *parent, string name, int mode)
+fs_node_t *create(fs_node_t *parent, std::string name, int mode)
 {
     lockit(vfs_lock);
 
@@ -186,7 +186,7 @@ fs_node_t *create(fs_node_t *parent, string name, int mode)
     return target_node;
 }
 
-fs_node_t *symlink(fs_node_t *parent, string path, string target)
+fs_node_t *symlink(fs_node_t *parent, std::string path, std::string target)
 {
     lockit(vfs_lock);
 
@@ -203,7 +203,7 @@ fs_node_t *symlink(fs_node_t *parent, string path, string target)
     return target_node;
 }
 
-bool unlink(fs_node_t *parent, string name, bool remdir)
+bool unlink(fs_node_t *parent, std::string name, bool remdir)
 {
     auto [tgt_parent, node, basename] = path2node(parent, name);
     if (node == nullptr) return false;
@@ -222,7 +222,7 @@ bool unlink(fs_node_t *parent, string name, bool remdir)
     return true;
 }
 
-bool mount(fs_node_t *parent, string source, string target, string fs)
+bool mount(fs_node_t *parent, std::string source, std::string target, std::string fs)
 {
     lockit(vfs_lock);
 

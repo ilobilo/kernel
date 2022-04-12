@@ -141,12 +141,12 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
         uint8_t *tmpstack = reinterpret_cast<uint8_t*>(this->regs.rsp);
         uint64_t orig_stack_vma = stack_vma;
 
-        for (string seg : envp)
+        for (std::string seg : envp)
         {
             tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
             strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
         }
-        for (string seg : argv)
+        for (std::string seg : argv)
         {
             tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
             strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
@@ -283,7 +283,7 @@ bool process_t::enqueue()
     return true;
 }
 
-process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t priority)
+process_t::process_t(std::string name, uint64_t addr, uint64_t args, priority_t priority)
 {
     lockit(proc_lock);
 
@@ -299,7 +299,7 @@ process_t::process_t(string name, uint64_t addr, uint64_t args, priority_t prior
     this->add_thread(addr, args, priority);
 }
 
-process_t::process_t(string name)
+process_t::process_t(std::string name)
 {
     lockit(proc_lock);
 
@@ -312,7 +312,7 @@ process_t::process_t(string name)
     this->parent = nullptr;
 }
 
-process_t *start_program(vfs::fs_node_t *dir, string path, vector<string> argv, vector<string> envp, string stdin, string stdout, string stderr, string procname)
+process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> argv, vector<string> envp, std::string stdin, std::string stdout, std::string stderr, std::string procname)
 {
     auto prog = vfs::get_node(dir, path, true);
     if (prog == nullptr || prog->res == nullptr)

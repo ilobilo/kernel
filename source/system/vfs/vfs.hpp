@@ -251,7 +251,7 @@ struct fd_t
 
 struct [[gnu::aligned(16)]] filesystem_t
 {
-    string name;
+    std::string name;
 
     virtual void init()
     {
@@ -263,22 +263,22 @@ struct [[gnu::aligned(16)]] filesystem_t
         errno_set(EINVAL);
         return;
     }
-    virtual fs_node_t *mount(fs_node_t *parent, fs_node_t *source, string dest)
+    virtual fs_node_t *mount(fs_node_t *parent, fs_node_t *source, std::string dest)
     {
         errno_set(EINVAL);
         return nullptr;
     }
-    virtual fs_node_t *symlink(fs_node_t *parent, string source, string dest)
+    virtual fs_node_t *symlink(fs_node_t *parent, std::string source, std::string dest)
     {
         errno_set(EINVAL);
         return nullptr;
     }
-    virtual fs_node_t *create(fs_node_t *parent, string name, int mode)
+    virtual fs_node_t *create(fs_node_t *parent, std::string name, int mode)
     {
         errno_set(EINVAL);
         return nullptr;
     }
-    virtual fs_node_t *link(fs_node_t *parent, string name, fs_node_t *old)
+    virtual fs_node_t *link(fs_node_t *parent, std::string name, fs_node_t *old)
     {
         errno_set(EINVAL);
         return nullptr;
@@ -287,8 +287,8 @@ struct [[gnu::aligned(16)]] filesystem_t
 
 struct fs_node_t
 {
-    string name;
-    string target;
+    std::string name;
+    std::string target;
     resource_t *res;
     filesystem_t *fs;
     fs_node_t *mountpoint;
@@ -307,23 +307,23 @@ extern vector<filesystem_t*> filesystems;
 uint64_t dev_new_id();
 
 void install_fs(filesystem_t *fs);
-filesystem_t *search_fs(string name);
+filesystem_t *search_fs(std::string name);
 
-string path2basename(string path);
-string path2absolute(string parent, string path);
-string path2normal(string path);
+string path2basename(std::string path);
+string path2absolute(std::string parent, std::string path);
+string path2normal(std::string path);
 string node2path(fs_node_t *node);
 
-fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, string name);
+fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, std::string name);
 fs_node_t *node2reduced(fs_node_t *node, bool symlinks);
 
-fs_node_t *get_parent_dir(int dirfd, string path);
-fs_node_t *get_node(fs_node_t *parent, string path, bool links = false);
+fs_node_t *get_parent_dir(int dirfd, std::string path);
+fs_node_t *get_node(fs_node_t *parent, std::string path, bool links = false);
 
-fs_node_t *create(fs_node_t *parent, string name, int mode);
-fs_node_t *symlink(fs_node_t *parent, string path, string target);
-bool unlink(fs_node_t *parent, string name, bool remdir);
-bool mount(fs_node_t *parent, string source, string target, string fs);
+fs_node_t *create(fs_node_t *parent, std::string name, int mode);
+fs_node_t *symlink(fs_node_t *parent, std::string path, std::string target);
+bool unlink(fs_node_t *parent, std::string name, bool remdir);
+bool mount(fs_node_t *parent, std::string source, std::string target, std::string fs);
 
 int fdnum_from_node(fs_node_t *node, int flags, int oldfd, bool specific);
 
@@ -340,9 +340,9 @@ void dump_vfs(fs_node_t *current_node = fs_root);
 
 void init();
 
-static inline auto path2node(fs_node_t *parent, string path)
+static inline auto path2node(fs_node_t *parent, std::string path)
 {
-    struct ret { fs_node_t *parent; fs_node_t *node; string basename; };
+    struct ret { fs_node_t *parent; fs_node_t *node; std::string basename; };
     ret null = { nullptr, nullptr, "" };
 
     if (path.first() == '/' || parent == nullptr) parent = fs_root;
@@ -359,10 +359,10 @@ static inline auto path2node(fs_node_t *parent, string path)
 
     cwk_segment lastsegment;
     cwk_path_get_last_segment(path.c_str(), &lastsegment);
-    string lastseg(lastsegment.begin, lastsegment.size);
+    std::string lastseg(lastsegment.begin, lastsegment.size);
 
     do {
-        string seg(segment.begin, segment.size);
+        std::string seg(segment.begin, segment.size);
         if (seg == lastseg) last = true;
 
         curr_node = node2reduced(curr_node, false);

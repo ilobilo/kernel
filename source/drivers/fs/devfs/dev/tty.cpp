@@ -9,7 +9,7 @@ namespace kernel::drivers::fs::dev::tty {
 
 bool initialised = false;
 tty_res *current_tty = nullptr;
-static size_t next_id = 1;
+static size_t next_id = 0;
 
 int64_t tty_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
@@ -25,7 +25,7 @@ int64_t tty_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t s
 
 int64_t tty_res::write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
-    printf("%.*s", static_cast<int>(size), buffer);
+    printf(this->thisterm, "%.*s", static_cast<int>(size), buffer);
     return size;
 }
 
@@ -97,15 +97,15 @@ void tty_res::add_char(char c)
         {
             case '\n':
                 if (this->buff.full()) return;
-                if (this->tios.c_lflag & ECHO) printf("%c", c);
+                if (this->tios.c_lflag & ECHO) printf(this->thisterm, "%c", c);
                 return;
             case '\b':
                 if (this->buff.empty()) return;
                 if (this->tios.c_lflag & ECHO)
                 {
-                    printf("\b \b");
+                    printf(this->thisterm, "\b \b");
                     char oldchar = this->buff.get();
-                    if (oldchar >= 0x01 && oldchar <= 0x1A) printf("\b \b");
+                    if (oldchar >= 0x01 && oldchar <= 0x1A) printf(this->thisterm, "\b \b");
                 }
                 return;
         }
@@ -113,12 +113,12 @@ void tty_res::add_char(char c)
         {
             if ((c < ' ' || c == 0x7F) && c != '\n')
             {
-                printf("%c%c", '^', ('@' + c) % 128);
+                printf(this->thisterm, "%c%c", '^', ('@' + c) % 128);
             }
-            else printf("%c", c);
+            else printf(this->thisterm, "%c", c);
         }
     }
-    else if (this->tios.c_lflag & ECHO) printf("%c", c);
+    else if (this->tios.c_lflag & ECHO) printf(this->thisterm, "%c", c);
 
     if (this->buff.full()) return;
     this->buff.put(c);
@@ -141,7 +141,7 @@ char tty_res::get_char()
 
 string tty_res::getline()
 {
-    string ret("");
+    std::string ret("");
     char c = 0;
 
     this->tios.c_lflag &= ~ICANON;
@@ -159,7 +159,7 @@ string tty_res::getline()
                 terminal::cursor_right();
                 continue;
             }
-            printf(" \b");
+            printf(this->thisterm, " \b");
             ret.erase(ret.length() - 1);
             continue;
         }
@@ -188,6 +188,7 @@ void init()
         tty_res *tty = new tty_res;
 
         tty->id = next_id++;
+        tty->thisterm = terminal::terminals[i];
 
         tty->stat.size = 0;
         tty->stat.blocks = 0;
@@ -214,7 +215,7 @@ void init()
         tty->wsize.ws_row = terminal::terminals[i]->rows;
         tty->wsize.ws_col = terminal::terminals[i]->columns;
 
-        string ttyname("tty");
+        std::string ttyname("tty");
         ttyname.push_back(i + 1 + '0');
         devfs::add(tty, ttyname);
         if (current_tty == nullptr) current_tty = tty;
