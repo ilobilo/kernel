@@ -46,13 +46,15 @@ class ringbuffer
         this->isfull = this->head == this->tail;
     }
 
-    type get()
+    type get(bool remove = true)
     {
         lockit(this->lock);
 
         if (this->empty()) return 0;
 
         type val = this->buffer[this->tail];
+        if (remove == false) return val;
+
         this->isfull = false;
         this->tail = (this->tail + 1) % this->cap;
 
@@ -94,5 +96,14 @@ class ringbuffer
         }
 
         return size;
+    }
+
+    void copyto(ringbuffer<type> &newring)
+    {
+        size_t s = this->size();
+        for (size_t i = 0; i < s; i++)
+        {
+            newring.put(this->buffer[i]);
+        }
     }
 };
