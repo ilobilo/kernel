@@ -197,7 +197,7 @@ fs_node_t *symlink(fs_node_t *parent, std::string path, std::string target)
         return nullptr;
     }
 
-    fs_node_t *target_node = src_parent->fs->symlink(parent, path, basename);
+    fs_node_t *target_node = src_parent->fs->symlink(parent, basename, target);
     src_parent->children.push_back(target_node);
 
     return target_node;

@@ -12,11 +12,11 @@
 #include <drivers/display/ssfn/ssfn.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
 #include <drivers/display/ssfn/ssfn.hpp>
+#include <drivers/fs/initrd/initrd.hpp>
 #include <drivers/net/e1000/e1000.hpp>
 #include <drivers/block/ahci/ahci.hpp>
 #include <drivers/fs/tmpfs/tmpfs.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
-#include <drivers/fs/ustar/ustar.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <drivers/vmware/vmware.hpp>
 #include <drivers/block/ata/ata.hpp>
@@ -139,7 +139,7 @@ void main()
     serial::init();
 
     auto initrd_mod = find_module("initrd");
-    terminal::check("Initialising Initrd...", ustar::init, (initrd_mod ? reinterpret_cast<uint64_t>(initrd_mod->address) : 0), ustar::initialised, (initrd_mod && strstr(cmdline, "initrd")));
+    terminal::check("Initialising Initrd...", initrd::init, reinterpret_cast<uint64_t>(initrd_mod), initrd::initialised, (initrd_mod && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", syscall::init, -1, syscall::initialised);
 

@@ -13,10 +13,15 @@ static size_t next_id = 0;
 
 int64_t tty_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
+    while (offset--)
+    {
+        while (this->bigbuff.empty());
+        this->bigbuff.get();
+    }
     for (size_t i = 0; i < size; i++)
     {
-        while (this->buff.empty());
-        *buffer = this->buff.get();
+        while (this->bigbuff.empty());
+        *buffer = this->bigbuff.get();
         buffer++;
     }
 
@@ -97,31 +102,35 @@ void tty_res::add_char(char c)
         {
             case '\n':
                 if (this->buff.full()) return;
+                this->buff.put(c);
                 if (this->tios.c_lflag & ECHO) printf(this->thisterm, "%c", c);
+                while (!this->buff.empty()) this->bigbuff.put(this->buff.get());
                 return;
             case '\b':
                 if (this->buff.empty()) return;
+                char oldchar = this->buff.get();
                 if (this->tios.c_lflag & ECHO)
                 {
                     printf(this->thisterm, "\b \b");
-                    char oldchar = this->buff.get();
                     if (oldchar >= 0x01 && oldchar <= 0x1A) printf(this->thisterm, "\b \b");
                 }
                 return;
         }
-        if (this->tios.c_lflag & ECHO)
-        {
-            if ((c < ' ' || c == 0x7F) && c != '\n')
-            {
-                printf(this->thisterm, "%c%c", '^', ('@' + c) % 128);
-            }
-            else printf(this->thisterm, "%c", c);
-        }
-    }
-    else if (this->tios.c_lflag & ECHO) printf(this->thisterm, "%c", c);
 
-    if (this->buff.full()) return;
-    this->buff.put(c);
+        if (this->buff.full()) return;
+        this->buff.put(c);
+    }
+    else
+    {
+        if (this->bigbuff.full()) return;
+        this->bigbuff.put(c);
+    }
+
+    if (this->tios.c_lflag & ECHO)
+    {
+        if (c >= 0x20 && c <= 0x7E) printf(this->thisterm, "%c", c);
+        else if (c >= 0x01 && c <= 0x1A) printf(this->thisterm, "^%c", c + 0x40);
+    }
 }
 
 void tty_res::add_str(const char *str)
@@ -133,50 +142,19 @@ void tty_res::add_str(const char *str)
     }
 }
 
-char tty_res::get_char()
-{
-    while (this->buff.empty());
-    return this->buff.get();
-}
-
 string tty_res::getline()
 {
     std::string ret("");
     char c = 0;
 
-    this->tios.c_lflag &= ~ICANON;
     while (true)
     {
-        while (this->buff.empty());
-        c = this->buff.get();
-
-        lockit(this->lock);
+        current_tty->read(nullptr, reinterpret_cast<uint8_t*>(&c), 0, 1);
         if (c == '\n') break;
-        if (c == '\b')
-        {
-            if (ret.empty())
-            {
-                terminal::cursor_right();
-                continue;
-            }
-            printf(this->thisterm, " \b");
-            ret.erase(ret.length() - 1);
-            continue;
-        }
-        ret.append(c);
+        else ret.append(c);
     }
-    this->tios.c_lflag |= ICANON;
-
-    ret.backspaces();
 
     return ret;
-}
-
-void tty_res::reset()
-{
-    lockit(this->lock);
-
-    this->buff.clear();
 }
 
 void init()

@@ -3,12 +3,14 @@ ROOTDIR := $(shell dirname $(SOURCEDIR))
 
 LIBDIR := $(ROOTDIR)/extlibs
 LIMINEDIR = $(ROOTDIR)/limine
+ILARDIR = $(ROOTDIR)/ilar
 
 BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
 TERMFONT = $(SOURCEDIR)/misc/unifont.bin
 SFNFONT = $(SOURCEDIR)/misc/unifont.sfn
 
-INITRD := $(SOURCEDIR)/initrd.tar.gz
+# INITRD := $(SOURCEDIR)/initrd.tar.gz
+INITRD := $(SOURCEDIR)/initrd.ilar.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 
 ISO = $(ROOTDIR)/image.iso
@@ -29,6 +31,7 @@ ASM = nasm
 CXXFILT = llvm-cxxfilt
 
 LIMINE = $(LIMINEDIR)/limine-deploy
+ILAR = $(ILARDIR)/bin/ilar
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
@@ -162,8 +165,11 @@ endif
 
 .PHONY: initrd
 initrd:
-	@printf "TAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
-	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
+#	@printf "TAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
+#	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
+
+	@printf "ILAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
+	$(ILAR) create $(INITRD) $(SOURCEDIR)/initrd/*
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(TERMFONT) $(SFNFONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \

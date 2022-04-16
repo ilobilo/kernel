@@ -56,7 +56,7 @@ void parse(std::string cmd, std::string arg)
             break;
         case hash("ls"):
         {
-            vfs::fs_node_t *node = vfs::get_node(current_path, arg);
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg, true);
             if (node == nullptr)
             {
                 printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
@@ -101,7 +101,8 @@ void parse(std::string cmd, std::string arg)
         }
         case hash("cat"):
         {
-            vfs::fs_node_t *node = vfs::get_node(current_path, arg);
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg, true);
+            error("%s", node->name.c_str());
             if (node == nullptr)
             {
                 printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
@@ -119,13 +120,13 @@ void parse(std::string cmd, std::string arg)
                 printf("%s%c", buffer, buffer[size - 1] == '\n' ? 0 : '\n');
                 delete[] buffer;
             }
-            else printf("\033[31m%s is not a text file or character device!%s\n", arg.c_str(), terminal::resetcolour);
+            else printf("\033[31m%s is not a file or symlink to one!%s\n", arg.c_str(), terminal::resetcolour);
             break;
         }
         case hash("cd"):
         {
             if (arg.empty()) arg = "/";
-            vfs::fs_node_t *node = vfs::get_node(current_path, arg);                                        if (node == nullptr)
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg, true);                                        if (node == nullptr)
             {
                 printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
                 break;
@@ -145,7 +146,7 @@ void parse(std::string cmd, std::string arg)
                 printf("exec <filename>\n");
                 break;
             }
-            vfs::fs_node_t *node = vfs::get_node(current_path, arg);
+            vfs::fs_node_t *node = vfs::get_node(current_path, arg, true);
             if (node == nullptr)
             {
                 printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);

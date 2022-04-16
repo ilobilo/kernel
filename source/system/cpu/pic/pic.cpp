@@ -7,7 +7,7 @@ namespace kernel::system::cpu::pic {
 
 void eoi(uint64_t int_no)
 {
-    if(int_no >= 40) outb(pic::PIC2_COMMAND, pic::PIC_EOI);
+    if (int_no >= 40) outb(pic::PIC2_COMMAND, pic::PIC_EOI);
     outb(pic::PIC1_COMMAND, pic::PIC_EOI);
 }
 

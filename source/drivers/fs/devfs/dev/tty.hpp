@@ -161,6 +161,7 @@ struct tty_res : vfs::resource_t
     size_t id = 0;
     limine_terminal *thisterm;
     ringbuffer<char> buff;
+    ringbuffer<char> bigbuff;
     winsize wsize;
     termios tios;
 
@@ -175,10 +176,7 @@ struct tty_res : vfs::resource_t
 
     void add_char(char c);
     void add_str(const char *str);
-    char get_char();
     std::string getline();
-
-    void reset();
 };
 
 extern bool initialised;

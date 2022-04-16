@@ -39,5 +39,5 @@ struct file_header_t
 
 extern bool initialised;
 
-void init(uint64_t address);
+void init(uint64_t module);
 }
