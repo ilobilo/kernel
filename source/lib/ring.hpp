@@ -61,6 +61,21 @@ class ringbuffer
         return val;
     }
 
+    type get_back(bool remove = true)
+    {
+        lockit(this->lock);
+
+        if (this->empty()) return 0;
+
+        type val = this->buffer[this->head - 1];
+        if (remove == false) return val;
+
+        this->isfull = false;
+        this->head = (this->head - 1) % this->cap;
+
+        return val;
+    }
+
     void clear()
     {
         lockit(this->lock);

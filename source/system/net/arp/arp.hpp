@@ -3,6 +3,7 @@
 #pragma once
 
 #include <drivers/net/nicmgr/nicmgr.hpp>
+#include <lib/net.hpp>
 #include <cstdint>
 
 using namespace kernel::drivers::net;
@@ -20,22 +21,17 @@ enum hwtypes
     HWTYPE_ETHERNET = 0x01
 };
 
-struct [[gnu::packed]] ipv4
+struct [[gnu::packed]] arpHdr
 {
+    bigendian<uint16_t> hwtype;
+    bigendian<uint16_t> protype;
+    uint8_t hwsize;
+    uint8_t prosize;
+    bigendian<uint16_t> opcode;
     uint8_t smac[6];
     uint8_t sip[4];
     uint8_t dmac[6];
     uint8_t dip[4];
-};
-
-struct [[gnu::packed]] arpHdr
-{
-    uint16_t hwtype;
-    uint16_t protype;
-    uint8_t hwsize;
-    uint8_t prosize;
-    uint16_t opcode;
-    ipv4 ip;
 };
 
 struct tableEntry

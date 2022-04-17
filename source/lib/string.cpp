@@ -430,10 +430,10 @@ char *reverse(char *str)
     return str;
 }
 
-bool isspace(char c)
+int isspace(char c)
 {
-    if (c == ' ') return true;
-    return false;
+    if (c == ' ') return 1;
+    return 0;
 }
 
 bool isempty(char *str)

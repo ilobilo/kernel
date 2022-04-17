@@ -5,7 +5,7 @@
 #include <lib/vector.hpp>
 #include <lib/string.hpp>
 #include <lib/errno.hpp>
-#include <lib/cwalk.hpp>
+#include <cwalk.h>
 #include <cstdint>
 
 namespace kernel::system::sched::scheduler

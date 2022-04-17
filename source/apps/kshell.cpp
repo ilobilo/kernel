@@ -13,9 +13,9 @@
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
 #include <lib/alloc.hpp>
-#include <lib/cwalk.hpp>
 #include <lib/log.hpp>
 #include <lib/io.hpp>
+#include <cwalk.h>
 
 using namespace kernel::drivers::display;
 using namespace kernel::drivers::fs::dev;
@@ -101,8 +101,12 @@ void parse(std::string cmd, std::string arg)
         }
         case hash("cat"):
         {
+            if (arg.empty())
+            {
+                printf("cat <filename>\n");
+                break;
+            }
             vfs::fs_node_t *node = vfs::get_node(current_path, arg, true);
-            error("%s", node->name.c_str());
             if (node == nullptr)
             {
                 printf("\033[31mNo such file or directory!%s\n", terminal::resetcolour);
@@ -114,10 +118,10 @@ void parse(std::string cmd, std::string arg)
                 if (size == 0) size = 50;
 
                 char *buffer = new char[size];
-                node->res->read(nullptr, reinterpret_cast<uint8_t*>(buffer), 0, size);
+                size_t count = node->res->read(nullptr, reinterpret_cast<uint8_t*>(buffer), 0, size);
                 if (buffer[0] == 0) strcpy(buffer, "0");
 
-                printf("%s%c", buffer, buffer[size - 1] == '\n' ? 0 : '\n');
+                printf("%s%c", buffer, buffer[count - 1] == '\n' ? 0 : '\n');
                 delete[] buffer;
             }
             else printf("\033[31m%s is not a file or symlink to one!%s\n", arg.c_str(), terminal::resetcolour);

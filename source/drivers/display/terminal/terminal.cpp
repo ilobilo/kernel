@@ -5,7 +5,6 @@
 #include <drivers/ps2/ps2.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
-#include <lib/lock.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::drivers::audio;
