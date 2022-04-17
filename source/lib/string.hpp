@@ -34,6 +34,21 @@ char** strsplit(const char* s, const char* delim);
 char** strsplit_count(const char* s, const char* delim, size_t &nb);
 
 char *strstr(const char *str, const char *substr);
+
+int isspace(char c);
+
+int isdigit(int c);
+int isalpha(int c);
+int islower(int c);
+
+char tolower(char c);
+char toupper(char c);
+}
+
+bool isempty(char *str);
+static inline bool isempty(const char *str)
+{
+    return isempty(const_cast<char*>(str));
 }
 
 char *getline(const char *str, const char *substr, char *buffer, int skip = 0);
@@ -42,19 +57,6 @@ char *strrm(char *str, const char *substr);
 
 char *reverse(char *str);
 
-bool isspace(char c);
-bool isempty(char *str);
-static inline bool isempty(const char *str)
-{
-    return isempty(const_cast<char*>(str));
-}
-
-int isdigit(int c);
-int isalpha(int c);
-int islower(int c);
-
-char tolower(char c);
-char toupper(char c);
 int tonum(char c);
 char *tostr(char c);
 

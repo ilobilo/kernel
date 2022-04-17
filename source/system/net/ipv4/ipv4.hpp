@@ -3,6 +3,7 @@
 #pragma once
 
 #include <drivers/net/nicmgr/nicmgr.hpp>
+#include <lib/net.hpp>
 #include <cstdint>
 
 using namespace kernel::drivers::net;
@@ -27,18 +28,17 @@ enum ipv4Prot
 
 struct [[gnu::packed]] ipv4Hdr
 {
-    uint8_t verihlptr[0];
-    uint8_t version : 4;
     uint8_t ihl : 4;
-    uint8_t tos;
-    uint16_t len;
-    uint16_t id;
-    uint8_t flgsfrgsptr[0];
-    uint8_t flags : 3;
+    uint8_t version : 4;
+    uint8_t ecn : 2;
+    uint8_t dscp : 6;
+    bigendian<uint16_t> len;
+    bigendian<uint16_t> id;
     uint16_t frag_offset : 13;
+    uint8_t flags : 3;
     uint8_t ttl;
     uint8_t proto;
-    uint16_t csum;
+    bigendian<uint16_t> csum;
     uint8_t sip[4];
     uint8_t dip[4];
     uint8_t data[];

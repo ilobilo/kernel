@@ -3,7 +3,6 @@
 #include <system/net/ethernet/ethernet.hpp>
 #include <system/net/arp/arp.hpp>
 #include <lib/memory.hpp>
-#include <lib/net.hpp>
 #include <lib/log.hpp>
 
 namespace kernel::system::net::arp {
@@ -41,19 +40,19 @@ void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip)
 {
     arpHdr *packet = new arpHdr;
 
-    packet->hwtype = htons(HWTYPE_ETHERNET);
-    packet->protype = htons(ethernet::TYPE_IPv4);
+    packet->hwtype = HWTYPE_ETHERNET;
+    packet->protype = ethernet::TYPE_IPv4;
 
     packet->hwsize = 6;
     packet->prosize = 4;
 
-    packet->opcode = htons(ARP_REQUEST);
+    packet->opcode = ARP_REQUEST;
 
-    memcpy(packet->ip.smac, nic->MAC, 6);
-    memcpy(packet->ip.sip, nic->IPv4, 4);
+    memcpy(packet->smac, nic->MAC, 6);
+    memcpy(packet->sip, nic->IPv4, 4);
 
-    memcpy(packet->ip.dmac, dmac, 6);
-    memcpy(packet->ip.dip, dip, 4);
+    memcpy(packet->dmac, dmac, 6);
+    memcpy(packet->dip, dip, 4);
 
     ethernet::send(nic, dmac, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
     delete packet;
@@ -63,41 +62,35 @@ void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip)
 
 void reply(nicmgr::NIC *nic, arpHdr *packet)
 {
-    memcpy(packet->ip.dmac, packet->ip.smac, 6);
-    memcpy(packet->ip.dip, packet->ip.sip, 4);
+    memcpy(packet->dmac, packet->smac, 6);
+    memcpy(packet->dip, packet->sip, 4);
 
-    memcpy(packet->ip.smac, nic->MAC, 6);
-    memcpy(packet->ip.sip, nic->IPv4, 4);
+    memcpy(packet->smac, nic->MAC, 6);
+    memcpy(packet->sip, nic->IPv4, 4);
 
-    packet->opcode = htons(ARP_REPLY);
+    packet->opcode = ARP_REPLY;
 
-    ethernet::send(nic, packet->ip.dmac, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
+    ethernet::send(nic, packet->dmac, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
 }
 
 void receive(nicmgr::NIC *nic, arpHdr *packet)
 {
-    if (ntohs(packet->hwtype) != HWTYPE_ETHERNET)
+    if (bigendian<uint16_t>(packet->hwtype) != HWTYPE_ETHERNET)
     {
         if (debug) error("ARP: Unsupported hardware type!");
         return;
     }
-    if (ntohs(packet->protype) != ethernet::TYPE_IPv4)
+    if (bigendian<uint16_t>(packet->protype) != ethernet::TYPE_IPv4)
     {
         if (debug) error("ARP: Unsupported protocol type!");
         return;
     }
 
-    tableEntry *entry = table_search(packet->ip.sip);
-    if (entry == nullptr) entry = table_add(packet->ip.smac, packet->ip.sip);
-    else memcpy(entry->mac, packet->ip.smac, 6);
+    tableEntry *entry = table_search(packet->sip);
+    if (entry == nullptr) entry = table_add(packet->smac, packet->sip);
+    else memcpy(entry->mac, packet->smac, 6);
 
-    if (!arraycmp(nic->IPv4, packet->ip.dip, 4))
-    {
-        if (debug) error("ARP: Packet is not for us!");
-        return;
-    }
-
-    switch (ntohs(packet->opcode))
+    switch (bigendian<uint16_t>(packet->opcode))
     {
         case ARP_REQUEST:
             if (debug) log("ARP: Request!");

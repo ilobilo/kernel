@@ -65,6 +65,7 @@ INCLUDES := \
 	-I$(SOURCEDIR)/wrappers/ \
 	-I$(LIBDIR)/ \
 	-I$(LIBDIR)/lai/include/ \
+	-I$(LIBDIR)/cwalk/include/ \
 	-I$(LIBDIR)/scalable-font2/ \
 	-I$(LIBDIR)/cxxshim/stage2/include/ \
 	-I$(LIBDIR)/cxxshim/std-coroutine/include/
@@ -114,7 +115,8 @@ override INTERNALCPPFLAGS :=   \
 	$(INCLUDES)
 
 override CFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*") \
-	$(shell find $(LIBDIR)/lai/ -type f -name '*.c' 2> /dev/null)
+	$(shell find $(LIBDIR)/lai/ -type f -name '*.c' 2> /dev/null) \
+	$(shell find $(LIBDIR)/cwalk/src/ -type f -name '*.c' 2> /dev/null)
 
 override CPPFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
 override ASMFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")

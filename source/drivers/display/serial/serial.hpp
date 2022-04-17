@@ -15,7 +15,7 @@ enum COMS
 extern bool initialised;
 
 void printc(char c, void *arg = nullptr);
-void print(COMS com, const char *fmt, ...);
+int print(COMS com, const char *fmt, ...);
 void newline(COMS com = COM1);
 
 void early_init();

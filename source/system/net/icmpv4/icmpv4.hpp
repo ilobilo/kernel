@@ -22,7 +22,7 @@ struct [[gnu::packed]] icmpv4Hdr
 {
     uint8_t type;
     uint8_t code;
-    uint16_t csum;
+    bigendian<uint16_t> csum;
     uint8_t data[];
 };
 
