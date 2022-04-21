@@ -2,15 +2,14 @@ SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ROOTDIR := $(shell dirname $(SOURCEDIR))
 
 LIBDIR := $(ROOTDIR)/extlibs
-LIMINEDIR = $(ROOTDIR)/limine
-ILARDIR = $(ROOTDIR)/ilar
+LIMINEDIR = $(LIBDIR)/limine
+ILARDIR = $(LIBDIR)/ilar
 
 BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
 TERMFONT = $(SOURCEDIR)/misc/unifont.bin
 SFNFONT = $(SOURCEDIR)/misc/unifont.sfn
 
-# INITRD := $(SOURCEDIR)/initrd.tar.gz
-INITRD := $(SOURCEDIR)/initrd.ilar.gz
+INITRD := $(SOURCEDIR)/initrd.img.gz
 KERNEL := $(SOURCEDIR)/kernel.elf
 
 ISO = $(ROOTDIR)/image.iso
@@ -32,6 +31,7 @@ CXXFILT = llvm-cxxfilt
 
 LIMINE = $(LIMINEDIR)/limine-deploy
 ILAR = $(ILARDIR)/bin/ilar
+TAR = tar
 XORRISO = xorriso
 QEMU = qemu-system-x86_64
 
@@ -63,7 +63,7 @@ ASMFLAGS = -f elf64 -g
 INCLUDES := \
 	-I$(SOURCEDIR)/ \
 	-I$(SOURCEDIR)/wrappers/ \
-	-I$(LIBDIR)/ \
+	-I$(LIBDIR)/limine/ \
 	-I$(LIBDIR)/printf/src/ \
 	-I$(LIBDIR)/lai/include/ \
 	-I$(LIBDIR)/cwalk/include/ \
@@ -168,11 +168,13 @@ endif
 
 .PHONY: initrd
 initrd:
-#	@printf "TAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
-#	tar czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
-
+ifndef USEILAR
+	@printf "TAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
+	$(TAR) czf $(INITRD) -C $(SOURCEDIR)/initrd/ ./ --format=ustar
+else
 	@printf "ILAR\t%s\n" $(INITRD:$(ROOTDIR)/%=%)
 	$(ILAR) create $(INITRD) $(SOURCEDIR)/initrd/*
+endif
 
 iso:
 	cp $(KERNEL) $(BACKGROUND) $(TERMFONT) $(SFNFONT) $(INITRD) $(ROOTDIR)/limine.cfg $(LIMINEDIR)/limine.sys \
