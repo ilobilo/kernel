@@ -26,19 +26,19 @@ extern "C" void *realloc(void *ptr, size_t size);
 extern "C" void free(void *ptr);
 size_t allocsize(void *ptr);
 
-template<typename type>
+template<typename type = void*>
 static inline type malloc(size_t size)
 {
     return reinterpret_cast<type>(malloc(size));
 }
 
-template<typename type>
+template<typename type = void*>
 static inline type calloc(size_t num, size_t size)
 {
     return reinterpret_cast<type>(calloc(num, size));
 }
 
-template<typename type>
+template<typename type = void*>
 static inline type realloc(void *ptr, size_t size)
 {
     return reinterpret_cast<type>(realloc(ptr, size));

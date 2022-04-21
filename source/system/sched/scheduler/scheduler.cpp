@@ -71,6 +71,9 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->stack_phys = malloc<uint8_t*>(STACK_SIZE);
     this->stack = this->stack_phys + hhdm_offset;
 
+    uint64_t *stackptr = reinterpret_cast<uint64_t*>(this->stack + STACK_SIZE);
+    *--stackptr = 0;
+
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
     this_cpu->fpu_save(this->fpu_storage);
@@ -82,7 +85,7 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
     this->regs.rdi = addr;
     this->regs.rsi = args;
-    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
+    this->regs.rsp = reinterpret_cast<uint64_t>(stackptr);
 
     this->priority = priority;
     this->parent = parent;
@@ -133,25 +136,25 @@ thread_t::thread_t(process_t *parent, priority_t priority, Auxval auxval, vector
 
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
     this->regs.rdi = auxval.entry;
-    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack + STACK_SIZE);
+    this->regs.rsp = reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE;
 
     this->gsbase = 0;
     this->fsbase = 0;
 
-    uint8_t *tmpstack = reinterpret_cast<uint8_t*>(this->regs.rsp);
+    uint64_t *tmpstack = reinterpret_cast<uint64_t*>(this->regs.rsp);
     uint64_t orig_stack_vma = stack_vma;
 
     for (std::string seg : envp)
     {
-        tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+        tmpstack = reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
         strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
     }
     for (std::string seg : argv)
     {
-        tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+        tmpstack = reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
         strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
     }
-    tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
+    tmpstack = reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
 
     if ((argv.size() + envp.size() + 1) & 1) tmpstack--;
 
