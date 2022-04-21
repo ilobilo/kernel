@@ -138,6 +138,13 @@ Follow these steps to build and run the os
 If you, for some reason, are on Termux, run this command instead and connect to ``127.0.0.1:5901`` with VNC viewer:\
 ``make vnc -j$(nproc --all)``
 
+### Options
+* ``USEILAR=1``: Use ILAR archive format for initrd instead of USTAR (requires libboost-iostreams-dev)
+* ``NOUBSAN=1``: Turn off UBSAN
+* ``NOCLEAN=1``: Don't clean the source after compiling
+* ``NORUN=1``: Don't run the kernel, just compile
+* ``DEBUG=1``: Turn off kvm and enable qemu logging
+
 ## Discord server
 https://discord.gg/fM5GK3RpS7
 
@@ -150,6 +157,7 @@ https://discord.gg/fM5GK3RpS7
 * Vinix: https://github.com/vlang/vinix
 * Lyre: https://github.com/lyre-os/lyre
 * Polaris: https://github.com/NSG650/Polaris
+* Ilar: https://github.com/ilobilo/ilar
 * Printf: https://github.com/eyalroz/printf
 * Scalable Screen Font: https://gitlab.com/bztsrc/scalable-font2
 * Liballoc: https://github.com/blanham/liballoc
