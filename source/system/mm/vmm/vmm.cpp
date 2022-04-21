@@ -56,7 +56,7 @@ void Pagemap::mapRange(uint64_t vaddr, uint64_t paddr, uint64_t length, int prot
 
     local->global = global;
     global->locals.push_back(local);
-    global->shadow_pagemap.TOPLVL = static_cast<PTable*>(pmm::alloc());
+    global->shadow_pagemap.TOPLVL = pmm::alloc<PTable*>();
 
     this->lock.lock();
     this->ranges.push_back(local);
@@ -235,7 +235,7 @@ Pagemap *Pagemap::fork()
             newglobal->length = global->length;
             newglobal->offset = global->offset;
             newglobal->locals.push_back(newlocal);
-            newglobal->shadow_pagemap.TOPLVL = static_cast<PTable*>(pmm::alloc());
+            newglobal->shadow_pagemap.TOPLVL = pmm::alloc<PTable*>();
 
             if (local->flags & MapAnon)
             {
@@ -282,7 +282,7 @@ PTable *get_next_lvl(PTable *curr_lvl, size_t entry, bool allocate = true)
     }
     else if (allocate == true)
     {
-        ret = reinterpret_cast<PTable*>(pmm::alloc());
+        ret = pmm::alloc<PTable*>();
         curr_lvl->entries[entry].setAddr(reinterpret_cast<uint64_t>(ret) >> 12);
         curr_lvl->entries[entry].setflags(Present | ReadWrite | UserSuper, true);
     }

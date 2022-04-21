@@ -238,7 +238,7 @@ AHCIPort::AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum)
     this->portType = portType;
     this->hbaport = hbaport;
     this->portNum = portNum;
-    this->buffer = static_cast<uint8_t*>(pmm::alloc());
+    this->buffer = pmm::alloc<uint8_t*>();
 
     stopCMD();
 

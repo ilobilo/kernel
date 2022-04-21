@@ -51,7 +51,7 @@ void *alloc(size_t count)
         ret = inner_alloc(count, i);
         if (ret == nullptr) panic("Out of memory!");
     }
-    memset(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(ret) + hhdm_request.response->offset), 0, count * 0x1000);
+    memset(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(ret) + hhdm_offset), 0, count * 0x1000);
 
     usedRam += count * 0x1000;
     freeRam -= count * 0x1000;

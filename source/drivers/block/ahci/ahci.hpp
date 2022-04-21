@@ -278,7 +278,7 @@ class AHCIPort : public drivemgr::Drive
 
         uint64_t start = offset / this->stat.blksize;
         uint64_t count = size / this->stat.blksize;
-        uint8_t *abuffer = static_cast<uint8_t*>(pmm::alloc(count)) + hhdm_offset;
+        uint8_t *abuffer = pmm::alloc<uint8_t*>(count) + hhdm_offset;
 
         if (!this->rw(start, count, abuffer, false))
         {
@@ -302,7 +302,7 @@ class AHCIPort : public drivemgr::Drive
 
         uint64_t start = offset / this->stat.blksize;
         uint64_t count = size / this->stat.blksize;
-        uint8_t *abuffer = static_cast<uint8_t*>(pmm::alloc(count)) + hhdm_offset;
+        uint8_t *abuffer = pmm::alloc<uint8_t*>(count) + hhdm_offset;
 
         memcpy(abuffer, buffer, size);
         if (!this->rw(start, count, abuffer, true))
