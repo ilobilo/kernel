@@ -57,10 +57,9 @@ struct thread_t
 
     bool user;
 
-    thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
+    thread_t(process_t *parent, priority_t priority, Auxval auxval, vector<std::string> argv, vector<std::string> envp);
     thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority);
 
-    thread_t(auto addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself) : thread_t(reinterpret_cast<uint64_t>(addr), args, parent, priority, auxval, argv, envp, iself) { };
     thread_t(auto addr, uint64_t args, process_t *parent, priority_t priority) : thread_t(reinterpret_cast<uint64_t>(addr), args, parent, priority) { };
 
     thread_t() { };
@@ -92,12 +91,12 @@ struct process_t
 
     bool in_table = false;
 
-    thread_t *add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself);
+    thread_t *add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<std::string> argv, vector<std::string> envp);
     thread_t *add_thread(uint64_t addr, uint64_t args, priority_t priority = MID);
 
-    thread_t *add_user_thread(auto addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself)
+    thread_t *add_user_thread(auto addr, uint64_t args, priority_t priority, Auxval auxval, vector<std::string> argv, vector<std::string> envp)
     {
-        this->add_user_thread(reinterpret_cast<uint64_t>(addr), args, priority, auxval, argv, envp, iself);
+        this->add_user_thread(reinterpret_cast<uint64_t>(addr), args, priority, auxval, argv, envp);
     }
     thread_t *add_thread(auto addr, uint64_t args, priority_t priority = MID)
     {
@@ -129,13 +128,13 @@ extern size_t proc_count;
 extern size_t thread_count;
 
 int alloc_pid();
-process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> argv, vector<string> envp, std::string stdin, std::string stdout, std::string stderr, std::string procname = "");
+process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<std::string> argv, vector<std::string> envp, std::string stdin, std::string stdout, std::string stderr, std::string procname = "");
 
 void yield(uint64_t ms = 1);
 void schedule(registers_t *regs);
 
 void kill();
-void init();
+void init(bool last = false);
 }
 
 scheduler::thread_t *this_thread();

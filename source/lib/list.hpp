@@ -11,7 +11,7 @@ template<typename type>
 class list
 {
     private:
-    vector<string> keys;
+    vector<std::string> keys;
     vector<type> values;
     type null = type();
 

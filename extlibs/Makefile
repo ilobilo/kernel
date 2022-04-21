@@ -1,7 +1,7 @@
 LIBDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ROOTDIR := $(shell dirname $(LIBDIR))
 
-all: $(LIBDIR)/lai $(LIBDIR)/cwalk $(LIBDIR)/limine.h $(LIBDIR)/cxxshim $(LIBDIR)/scalable-font2
+all: $(LIBDIR)/lai $(LIBDIR)/cwalk $(LIBDIR)/printf $(LIBDIR)/limine.h $(LIBDIR)/cxxshim $(LIBDIR)/scalable-font2
 
 $(LIBDIR)/lai:
 	echo "Downloading lai"
@@ -10,6 +10,10 @@ $(LIBDIR)/lai:
 $(LIBDIR)/cwalk:
 	echo "Downloading cwalk"
 	git clone --single-branch --branch=master --depth=1 https://github.com/likle/cwalk || echo "\e[31mFailed to download cwalk!\e[0m"
+
+$(LIBDIR)/printf:
+	echo "Downloading printf"
+	git clone --single-branch --branch=master --depth=1 https://github.com/eyalroz/printf || echo "\e[31mFailed to download printf!\e[0m"
 
 $(LIBDIR)/limine.h:
 	echo "Downloading limine.h"
@@ -24,4 +28,4 @@ $(LIBDIR)/scalable-font2:
 	git clone --single-branch --branch=master --depth=1 https://gitlab.com/bztsrc/scalable-font2 || echo "\e[31mFailed to download ssfn!\e[0m"
 
 clean:
-	rm -rf $(LIBDIR)/lai $(LIBDIR)/cwalk $(LIBDIR)/limine.h $(LIBDIR)/cxxshim $(LIBDIR)/scalable-font2
+	rm -rf $(LIBDIR)/lai $(LIBDIR)/cwalk $(LIBDIR)/printf $(LIBDIR)/limine.h $(LIBDIR)/cxxshim $(LIBDIR)/scalable-font2

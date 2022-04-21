@@ -2,12 +2,18 @@
 
 #pragma once
 
+#include <system/vfs/vfs.hpp>
 #include <lib/string.hpp>
 #include <lib/vector.hpp>
 #include <lib/log.hpp>
 #include <cstdint>
 
+using namespace kernel::system;
+
 namespace kernel::drivers::block::drivemgr {
+
+static constexpr uint64_t GPT_SIGNATURE = 0x5452415020494645;
+static constexpr uint64_t SECTOR_SIZE = 512;
 
 enum type_t
 {
@@ -16,12 +22,6 @@ enum type_t
     SATAPI,
     ATA,
     ATAPI
-};
-
-enum partStyle
-{
-    MBR,
-    GPT
 };
 
 enum partFlags
@@ -88,54 +88,62 @@ struct partTable
 };
 
 struct Partition;
-struct Drive
+struct Drive : vfs::resource_t
 {
-    std::string name;
     uint8_t *buffer = nullptr;
 
     partTable parttable;
-    partStyle partstyle;
     vector<Partition*> partitions;
-
     uint64_t sectors;
-    uint64_t size;
-
     type_t type;
-    uint64_t uniqueid;
-
-    virtual bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
-    {
-        error("Read function for this device is not available!");
-        return false;
-    }
-
-    virtual bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
-    {
-        error("Write function for this device is not available!");
-        return false;
-    }
 };
 
-struct Partition
+struct Partition : vfs::resource_t
 {
-    std::string label;
-    uint64_t StartLBA;
-    uint64_t EndLBA;
-    uint64_t Sectors;
-    uint64_t Flags;
-    partStyle partstyle;
-    Drive *parent;
-    size_t i;
+    uint64_t start;
+    uint64_t sectors;
+    uint64_t flags;
+    vfs::resource_t *parent;
 
-    bool read(size_t offset, size_t count, uint8_t *buffer)
+    int64_t read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
     {
-        if (count > Sectors - offset) return false;
-        return parent->read(StartLBA + offset, count, buffer);
+        if (offset + size > this->sectors * this->parent->stat.blksize)
+        {
+            size = this->sectors * this->parent->stat.blksize - offset;
+        }
+        return this->parent->read(handle, buffer, this->start + offset, size);
     }
-    bool write(size_t offset, size_t count, uint8_t *buffer)
+
+    int64_t write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
     {
-        if (count > Sectors - offset) return false;
-        return parent->write(StartLBA + offset, count, buffer);
+        if (offset + size > this->sectors * this->parent->stat.blksize)
+        {
+            size = this->sectors * this->parent->stat.blksize - offset;
+        }
+        return this->parent->write(handle, buffer, this->start + offset, size);
+    }
+
+    int ioctl(void *handle, uint64_t request, void *argp)
+    {
+        return this->parent->ioctl(handle, request, argp);
+    }
+    bool grow(void *handle, size_t new_size)
+    {
+        return this->parent->grow(handle, new_size);
+    }
+    void unref(void *handle)
+    {
+        this->parent->unref(handle);
+    }
+    void link(void *handle)
+    {
+    }
+    void unlink(void *handle)
+    {
+    }
+    void *mmap(uint64_t page, int flags)
+    {
+        return this->parent->mmap(page, flags);
     }
 };
 

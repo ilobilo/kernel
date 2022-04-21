@@ -64,6 +64,7 @@ INCLUDES := \
 	-I$(SOURCEDIR)/ \
 	-I$(SOURCEDIR)/wrappers/ \
 	-I$(LIBDIR)/ \
+	-I$(LIBDIR)/printf/src/ \
 	-I$(LIBDIR)/lai/include/ \
 	-I$(LIBDIR)/cwalk/include/ \
 	-I$(LIBDIR)/scalable-font2/ \

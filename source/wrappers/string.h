@@ -18,6 +18,7 @@ int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t n);
 
 char *strdup(const char *src);
+void strrev(unsigned char *str);
 char *strstr(const char *str, const char *substr);
 
 void *memcpy(void *dest, const void *src, size_t len);

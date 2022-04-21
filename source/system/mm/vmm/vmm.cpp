@@ -273,7 +273,7 @@ void Pagemap::deleteThis()
     delete this;
 }
 
-static PTable *get_next_lvl(PTable *curr_lvl, size_t entry, bool allocate = true)
+PTable *get_next_lvl(PTable *curr_lvl, size_t entry, bool allocate = true)
 {
     PTable *ret = nullptr;
     if (curr_lvl->entries[entry].getflag(Present))
@@ -407,20 +407,16 @@ void Pagemap::save()
 Pagemap *newPagemap()
 {
     Pagemap *pagemap = new Pagemap;
+    pagemap->TOPLVL = new PTable;
 
     if (kernel_pagemap)
     {
-        pagemap->TOPLVL = new PTable;
 
         PTable *toplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(pagemap->TOPLVL) + hhdm_offset);
         PTable *kerenltoplvl = reinterpret_cast<PTable*>(reinterpret_cast<uint64_t>(kernel_pagemap->TOPLVL) + hhdm_offset);
         for (size_t i = 256; i < 512; i++) toplvl[i] = kerenltoplvl[i];
     }
-    else
-    {
-        pagemap->TOPLVL = reinterpret_cast<PTable*>(read_cr(3));
-        return pagemap;
-    }
+    else for (size_t i = 256; i < 512; i++) get_next_lvl(pagemap->TOPLVL, i, true);
 
     for (uint64_t i = 0; i < 0x100000000; i += large_page_size)
     {
