@@ -11,7 +11,7 @@ using namespace kernel::system::mm;
 void slab_t::init(uint64_t size)
 {
     this->size = size;
-    this->firstfree = reinterpret_cast<uint64_t>(pmm::alloc());
+    this->firstfree = pmm::alloc<uint64_t>();
 
     uint64_t available = 0x1000 - ALIGN_UP(sizeof(slabHdr), this->size);
     slabHdr *slabptr = reinterpret_cast<slabHdr*>(this->firstfree);

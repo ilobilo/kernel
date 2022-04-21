@@ -163,9 +163,9 @@ ATAPort::ATAPort(uint16_t port, uint16_t bmport, uint16_t ctrlport0, size_t driv
     }
     else this->sectors = this->sectors = *reinterpret_cast<uint64_t*>(&identify[ATA_IDENT_MAX_LBA_EXT]);
 
-    this->buffer = static_cast<uint8_t*>(pmm::alloc(2));
-    this->prdt = static_cast<uint64_t*>(pmm::alloc(2));
-    this->prdtBuffer = static_cast<uint64_t*>(pmm::alloc(2));
+    this->buffer = pmm::alloc<uint8_t*>(2);
+    this->prdt = pmm::alloc<uint64_t*>(2);
+    this->prdtBuffer = pmm::alloc<uint64_t*>(2);
 
     *this->prdt = (reinterpret_cast<uint64_t>(this->prdtBuffer) | (static_cast<uint64_t>(0x1000) << 32) | 0x8000000000000000ULL) & 0xFFFFFFFF;
 

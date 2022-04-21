@@ -95,6 +95,9 @@ void terminal_res::add_char(char c)
 {
     lockit(this->lock);
 
+    auto is_control = [](char c) -> bool { return ((c >= 0x01 && c <= 0x1F) || c == 0x7F); };
+    auto is_printable = [](char c) -> bool { return (c >= 0x20 && c <= 0x7E); };
+
     if (this->tios.c_iflag & ISTRIP) c &= 0x7F;
     if ((this->tios.c_iflag & IGNCR) && c == '\r') return;
 
@@ -122,7 +125,7 @@ void terminal_res::add_char(char c)
                 if (this->tios.c_lflag & ECHO)
                 {
                     this->print("\b \b");
-                    if (oldchar >= 0x01 && oldchar <= 0x1A) this->print("\b \b");
+                    if (is_control(oldchar)) this->print("\b \b");
                 }
                 return;
         }
@@ -138,8 +141,8 @@ void terminal_res::add_char(char c)
 
     if (this->tios.c_lflag & ECHO)
     {
-        if (c >= 0x20 && c <= 0x7E) this->print("%c", c);
-        else if (c >= 0x01 && c <= 0x1A) this->print("^%c", c + 0x40);
+        if (is_printable(c)) this->print("%c", c);
+        else if (is_control(c)) this->print("^%c", c + 0x40);
     }
 }
 
