@@ -148,6 +148,19 @@ char *strdup(const char *src)
     return s;
 }
 
+void strrev(unsigned char *str)
+{
+    unsigned char a;
+    unsigned len = strlen(reinterpret_cast<const char*>(str));
+
+    for (size_t i = 0, j = len - 1; i < j; i++, j--)
+    {
+        a = str[i];
+        str[i] = str[j];
+        str[j] = a;
+    }
+}
+
 long strtol(const char *nPtr, char **endPtr, int base)
 {
     if((base < 2 || base > 36) && base != 0) return 0;
@@ -304,6 +317,35 @@ unsigned long long int strtoull(const char *nPtr, char **endPtr, int base)
     return strtol(nPtr, endPtr, base);
 }
 
+int itoa(int num, unsigned char *str, int len, int base)
+{
+    if (len == 0) return -1;
+
+    int sum = num;
+    int i = 0;
+    int digit;
+
+    do
+    {
+        digit = sum % base;
+        if (digit < 0xA) str[i++] = '0' + digit;
+        else str[i++] = 'A' + digit - 0xA;
+        sum /= base;
+
+    } while (sum && (1 < (len - 1)));
+
+    if (i == (len - 1) && sum) return -1;
+    str[i] = '\0';
+    strrev(str);
+
+    return 0;
+}
+
+int atoi(const char *str)
+{
+    return static_cast<int>(strtol(str, nullptr, 10));
+}
+
 static char** _strsplit(const char* s, const char* delim, size_t* nb)
 {
     void *data;
@@ -419,17 +461,6 @@ char *getline(const char *str, const char *substr, char *buffer, int skip)
     return 0;
 }
 
-char *reverse(char *str)
-{
-    for (size_t i = 0, j = strlen(str) - 1; i < j; i++, j--)
-    {
-        char c = str[i];
-        str[i] = str[j];
-        str[j] = c;
-    }
-    return str;
-}
-
 int isspace(char c)
 {
     if (c == ' ') return 1;
@@ -483,54 +514,4 @@ char *tostr(char c)
 {
     str[0] = c;
     return str;
-}
-
-char *int2string(int num)
-{
-    bool isMinus = false;
-    char out[10];
-    int g = 0;
-    if (num != 0)
-    {
-        char temp[10];
-        int i = 0;
-        if (num < 0)
-        {
-            isMinus = true;
-            num = -num;
-        }
-        if (num > 0);
-        else
-        {
-            temp[i++] = '8';
-            num = -(num / 10);
-        }
-        while (num > 0)
-        {
-            temp[i++] = num % 10 + '0';
-            num /= 10;
-        }
-        if (isMinus)
-        {
-            out[g] = '-';
-            g++;
-        }
-        while (--i >= 0)
-        {
-            out[g] = temp[i];
-            g++;
-        }
-        return strdup(out);
-    }
-    else return 0;
-}
-
-int string2int(const char *str)
-{
-    int res = 0;
-    for (int i = 0; str[i] != '\0'; ++i)
-    {
-        res = res * 10 + str[i] - '0';
-    }
-    return res;
 }

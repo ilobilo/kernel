@@ -309,10 +309,10 @@ uint64_t dev_new_id();
 void install_fs(filesystem_t *fs);
 filesystem_t *search_fs(std::string name);
 
-string path2basename(std::string path);
-string path2absolute(std::string parent, std::string path);
-string path2normal(std::string path);
-string node2path(fs_node_t *node);
+std::string path2basename(std::string path);
+std::string path2absolute(std::string parent, std::string path);
+std::string path2normal(std::string path);
+std::string node2path(fs_node_t *node);
 
 fs_node_t *create_node(filesystem_t *fs, fs_node_t *parent, std::string name);
 fs_node_t *node2reduced(fs_node_t *node, bool symlinks);

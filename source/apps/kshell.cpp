@@ -77,7 +77,7 @@ void parse(std::string cmd, std::string arg)
             }
             for (vfs::fs_node_t *child : node->children)
             {
-                if (child->name != "." && child->name != ".." &&vfs::ischr(child->res->stat.mode))
+                if (child->name != "." && child->name != ".." && (vfs::ischr(child->res->stat.mode) || vfs::isblk(child->res->stat.mode)))
                 {
                     printf("\033[93m%s%s ", child->name.c_str(), terminal::resetcolour);
                 }
@@ -91,7 +91,7 @@ void parse(std::string cmd, std::string arg)
             }
             for (vfs::fs_node_t *child : node->children)
             {
-                if (child->name != "." && child->name != ".." && !vfs::isdir(child->res->stat.mode) && !vfs::ischr(child->res->stat.mode) && !vfs::islnk(child->res->stat.mode))
+                if (child->name != "." && child->name != ".." && !vfs::isdir(child->res->stat.mode) && !vfs::ischr(child->res->stat.mode) && !vfs::isblk(child->res->stat.mode) && !vfs::islnk(child->res->stat.mode))
                 {
                     printf("%s ", child->name.c_str());
                 }

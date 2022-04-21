@@ -1,6 +1,7 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <drivers/fs/tmpfs/tmpfs.hpp>
+#include <system/sched/rtc/rtc.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/vfs/vfs.hpp>
@@ -10,7 +11,7 @@
 #include <lib/math.hpp>
 #include <lib/log.hpp>
 
-using namespace kernel::drivers::display;
+using namespace kernel::system::sched;
 using namespace kernel::system::mm;
 
 namespace kernel::drivers::fs::tmpfs {
@@ -142,9 +143,10 @@ vfs::fs_node_t *tmpfs_fs::symlink(vfs::fs_node_t *parent, std::string source, st
     res->stat.mode = 0777 | vfs::iflnk;
     res->stat.nlink = 1;
 
-    // res->stat.atime = ;
-    // res->stat.mtime = ;
-    // res->stat.ctime = ;
+    vfs::timespec_t epoch { static_cast<int64_t>(rtc::epoch()), 0 };
+    res->stat.atime = epoch;
+    res->stat.mtime = epoch;
+    res->stat.ctime = epoch;
 
     node->res = res;
     node->target = dest;
@@ -174,9 +176,10 @@ vfs::fs_node_t *tmpfs_fs::create(vfs::fs_node_t *parent, std::string name, int m
     res->stat.mode = mode;
     res->stat.nlink = 1;
 
-    // res->stat.atime = ;
-    // res->stat.mtime = ;
-    // res->stat.ctime = ;
+    vfs::timespec_t epoch { static_cast<int64_t>(rtc::epoch()), 0 };
+    res->stat.atime = epoch;
+    res->stat.mtime = epoch;
+    res->stat.ctime = epoch;
 
     node->res = res;
 

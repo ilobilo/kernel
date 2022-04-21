@@ -32,6 +32,7 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
     if (memcmp(header->e_ident, ELFMAG, 4))
     {
         error("ELF: Invalid magic!");
+        delete header;
         return null;
     }
 
@@ -41,6 +42,7 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
         || header->e_machine != R_IA64_PLTOFF64MSB)
     {
         error("ELF: Unsupported ELF file!");
+        delete header;
         return null;
     }
 
@@ -67,25 +69,31 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
             case PT_PHDR:
                 auxval.phdr = base + phdr->p_vaddr;
                 break;
+            case PT_LOAD:
+            {
+                uint64_t misalign = (phdr->p_vaddr & (vmm::page_size - 1));
+                uint64_t pages = DIV_ROUNDUP(misalign + phdr->p_memsz, vmm::page_size);
+                void *addr = pmm::alloc(pages);
+                if (addr == nullptr)
+                {
+                    error("ELF: Could not allocate memory!");
+                    delete header;
+                    delete phdr;
+                    return null;
+                }
+
+                uint64_t vaddr = base + phdr->p_vaddr;
+                uint64_t paddr = reinterpret_cast<uint64_t>(addr);
+
+                pagemap->mapRange(vaddr, paddr, pages * vmm::page_size, vmm::ProtRead | vmm::ProtExec | (phdr->p_flags & PF_W ? vmm::ProtWrite : 0), vmm::MapAnon);
+
+                uint8_t *buffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(addr) + misalign + hhdm_offset);
+                res->read(0, buffer, phdr->p_offset, phdr->p_filesz);
+                break;
+            }
         }
-
-        if (phdr->p_type != PT_LOAD) continue;
-
-        uint64_t misalign = (phdr->p_vaddr & (vmm::page_size - 1));
-        uint64_t pages = DIV_ROUNDUP(misalign + phdr->p_memsz, vmm::page_size);
-        void *addr = pmm::alloc(pages);
-        if (addr == nullptr)
-        {
-            error("ELF: Could not allocate memory!");
-            return null;
-        }
-
-        uint64_t vaddr = base + phdr->p_vaddr;
-        uint64_t paddr = reinterpret_cast<uint64_t>(addr);
-
-        pagemap->mapRange(vaddr, paddr, pages * vmm::page_size, vmm::ProtRead | vmm::ProtExec | (phdr->p_flags & PF_W ? vmm::ProtWrite : 0), vmm::MapAnon);
-        uint8_t *buffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(addr) + misalign + hhdm_offset);
-        res->read(0, buffer, phdr->p_offset, phdr->p_filesz);
+        delete phdr;
     }
+    delete header;
     return ret { auxval, ld_path };
 }

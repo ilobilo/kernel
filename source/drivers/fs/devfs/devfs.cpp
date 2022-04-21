@@ -5,6 +5,7 @@
 #include <drivers/fs/devfs/dev/zero.hpp>
 #include <drivers/fs/devfs/dev/tty.hpp>
 #include <drivers/fs/devfs/devfs.hpp>
+#include <system/sched/rtc/rtc.hpp>
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/vfs/vfs.hpp>
@@ -13,7 +14,7 @@
 #include <lib/math.hpp>
 #include <lib/log.hpp>
 
-using namespace kernel::drivers::display;
+using namespace kernel::system::sched;
 using namespace kernel::system::mm;
 
 namespace kernel::drivers::fs::devfs {
@@ -144,9 +145,10 @@ vfs::fs_node_t *devfs_fs::symlink(vfs::fs_node_t *parent, std::string source, st
     res->stat.mode = 0777 | vfs::iflnk;
     res->stat.nlink = 1;
 
-    // res->stat.atime = ;
-    // res->stat.mtime = ;
-    // res->stat.ctime = ;
+    vfs::timespec_t epoch { static_cast<int64_t>(rtc::epoch()), 0 };
+    res->stat.atime = epoch;
+    res->stat.mtime = epoch;
+    res->stat.ctime = epoch;
 
     node->res = res;
     node->target = dest;
@@ -176,9 +178,10 @@ vfs::fs_node_t *devfs_fs::create(vfs::fs_node_t *parent, std::string name, int m
     res->stat.mode = mode;
     res->stat.nlink = 1;
 
-    // res->stat.atime = ;
-    // res->stat.mtime = ;
-    // res->stat.ctime = ;
+    vfs::timespec_t epoch { static_cast<int64_t>(rtc::epoch()), 0 };
+    res->stat.atime = epoch;
+    res->stat.mtime = epoch;
+    res->stat.ctime = epoch;
 
     node->res = res;
 
@@ -214,9 +217,10 @@ bool add(vfs::resource_t *res, std::string name)
     node->res->stat.inode = inode_counter++;
     node->res->stat.nlink = 1;
 
-    // res->stat.atime = ;
-    // res->stat.mtime = ;
-    // res->stat.ctime = ;
+    vfs::timespec_t epoch { static_cast<int64_t>(rtc::epoch()), 0 };
+    res->stat.atime = epoch;
+    res->stat.mtime = epoch;
+    res->stat.ctime = epoch;
 
     devfs_root->children.push_back(node);
 
@@ -233,11 +237,11 @@ void init()
         return;
     }
 
-    devfs->name = "devfs";
+    devfs->name = "devtmpfs";
     vfs::install_fs(devfs);
 
     vfs::create(nullptr, "/dev", 0644 | vfs::ifdir);
-    vfs::mount(nullptr, "", "/dev", "devfs");
+    vfs::mount(nullptr, "", "/dev", "devtmpfs");
 
     dev::random::init();
     dev::null::init();

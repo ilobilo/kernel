@@ -2,10 +2,12 @@
 
 #include <drivers/block/drivemgr/drivemgr.hpp>
 #include <drivers/block/ahci/ahci.hpp>
+#include <drivers/fs/devfs/devfs.hpp>
 #include <drivers/block/ata/ata.hpp>
 #include <lib/memory.hpp>
-#include <lib/math.hpp>
 #include <lib/log.hpp>
+
+using namespace kernel::drivers::fs;
 
 namespace kernel::drivers::block::drivemgr {
 
@@ -18,41 +20,47 @@ void addDrive(Drive *drive, type_t type)
     log("Registering drive #%zu", drives.size());
     drives.push_back(drive);
     drive->type = type;
-    drive->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
-    drive->name = "Drive #";
-    drive->name.push_back(static_cast<char>(drives.size() - 1 + '0'));
 
-    drive->read(0, 2, drive->buffer);
+    std::string prefix("sd");
+    prefix.push_back('a' + drives.size() - 1);
+    devfs::add(drive, prefix);
+
+    drive->read(nullptr, drive->buffer, 0, 1024);
     memcpy(&drive->parttable, drive->buffer, sizeof(partTable));
 
-    if (drive->parttable.gpt.Signature == 0x5452415020494645)
+    if (drive->parttable.gpt.Signature == GPT_SIGNATURE)
     {
         log("- Found GPT!");
-        drive->partstyle = GPT;
-
         uint32_t entries_pr = 512 / drive->parttable.gpt.EntrySize;
         uint32_t sectors = drive->parttable.gpt.PartCount / entries_pr;
 
         for (uint8_t block = 0; block < sectors; block++)
         {
-            drive->read(2 + block, 1, drive->buffer);
+            drive->read(nullptr, drive->buffer, 1024 + block * 512, 2 * 512);
             for (uint8_t part = 0; part < entries_pr; part++)
             {
                 GPTPart gptpart = reinterpret_cast<GPTPart*>(drive->buffer)[part];
                 if (gptpart.TypeLow || gptpart.TypeHigh)
                 {
                     Partition *partition = new Partition;
-                    partition->label = "GPT Part #";
-                    partition->label.push_back(static_cast<char>(drives.size() - 1 + '0'));
-                    partition->StartLBA = gptpart.StartLBA;
-                    partition->EndLBA = gptpart.EndLBA;
-                    partition->Sectors = partition->EndLBA - partition->StartLBA;
-                    partition->Flags = PRESENT;
-                    if (gptpart.Attributes & 1) partition->Flags |= EFISYS;
-                    partition->partstyle = GPT;
+                    partition->start = gptpart.StartLBA * drive->stat.blksize;
+                    partition->sectors = gptpart.EndLBA - gptpart.StartLBA;
                     partition->parent = drive;
-                    partition->i = drive->partitions.size() - 1;
+
+                    partition->flags = PRESENT;
+                    if (gptpart.Attributes & 1) partition->flags |= EFISYS;
+
+                    partition->stat.blocks = partition->sectors;
+                    partition->stat.blksize = drive->stat.blksize;
+                    partition->stat.size = partition->sectors * partition->stat.blksize;
+                    partition->stat.rdev = vfs::dev_new_id();
+                    partition->stat.mode = 0644 | vfs::stats::ifblk;
+
                     drive->partitions.push_back(partition);
+
+                    std::string name(prefix.c_str());
+                    name.push_back(static_cast<char>(drives.size() - 1 + '0'));
+                    devfs::add(partition, name);
                 }
             }
         }
@@ -61,23 +69,29 @@ void addDrive(Drive *drive, type_t type)
     else if (drive->parttable.mbr.Signature[0] == 0x55 && drive->parttable.mbr.Signature[1] == 0xAA)
     {
         log("- Found MBR!");
-        drive->partstyle = MBR;
-
         for (size_t p = 0; p < 4; p++)
         {
-            if (drive->parttable.mbr.Partitions[p].LBAFirst != 0)
+            if (drive->parttable.mbr.Partitions[p].Type != 0 && drive->parttable.mbr.Partitions[p].Type != 0xEE)
             {
                 Partition *partition = new Partition;
-                partition->label = "MBR Part #";
-                partition->label.push_back(static_cast<char>(drives.size() - 1 + '0'));
-                partition->StartLBA = drive->parttable.mbr.Partitions[p].LBAFirst;
-                partition->EndLBA = drive->parttable.mbr.Partitions[p].LBAFirst + drive->parttable.mbr.Partitions[p].Sectors;
-                partition->Sectors = drive->parttable.mbr.Partitions[p].Sectors;
-                partition->Flags = PRESENT | BOOTABLE;
-                partition->partstyle = MBR;
+                partition->start = drive->parttable.mbr.Partitions[p].LBAFirst;
+                partition->sectors = drive->parttable.mbr.Partitions[p].Sectors;
                 partition->parent = drive;
-                partition->i = drive->partitions.size() - 1;
+
+                partition->flags = PRESENT;
+                if (drive->parttable.mbr.Partitions[p].Type & (1 << 7)) partition->flags |= BOOTABLE;
+
+                partition->stat.blocks = partition->sectors;
+                partition->stat.blksize = drive->stat.blksize;
+                partition->stat.size = partition->sectors * partition->stat.blksize;
+                partition->stat.rdev = vfs::dev_new_id();
+                partition->stat.mode = 0644 | vfs::stats::ifblk;
+
                 drive->partitions.push_back(partition);
+
+                std::string name(prefix.c_str());
+                name.push_back(static_cast<char>(drives.size() - 1 + '0'));
+                devfs::add(partition, name);
             }
         }
         log("- Partition count: %zu", drive->partitions.size());

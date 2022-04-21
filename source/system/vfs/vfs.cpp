@@ -43,7 +43,7 @@ filesystem_t *search_fs(std::string name)
     return nullptr;
 }
 
-string path2basename(std::string path)
+std::string path2basename(std::string path)
 {
     if (path.empty()) return "";
 
@@ -54,7 +54,7 @@ string path2basename(std::string path)
     return ret;
 }
 
-string path2absolute(std::string parent, std::string path)
+std::string path2absolute(std::string parent, std::string path)
 {
     if (path.empty()) return "/";
     std::string ret;
@@ -66,7 +66,7 @@ string path2absolute(std::string parent, std::string path)
     return ret;
 }
 
-string path2normal(std::string path)
+std::string path2normal(std::string path)
 {
     if (path.empty()) return "/";
     std::string ret;
@@ -78,7 +78,7 @@ string path2normal(std::string path)
     return ret;
 }
 
-string node2path(fs_node_t *node)
+std::string node2path(fs_node_t *node)
 {
     if (node == nullptr) return "";
     if (node == fs_root) return "/";

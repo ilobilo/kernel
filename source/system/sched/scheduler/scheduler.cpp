@@ -15,8 +15,9 @@ using namespace kernel::system::cpu;
 
 namespace kernel::system::sched::scheduler {
 
-bool debug = false;
+bool initialised = false;
 static bool die = false;
+bool debug = false;
 
 Bitmap pids;
 static uint8_t sched_vector = 0;
@@ -72,6 +73,7 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
+    this_cpu->fpu_save(this->fpu_storage);
 
     this->regs.rflags = 0x202;
     this->regs.cs = gdt::GDT_CODE_64;
@@ -90,7 +92,7 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
     this->fsbase = 0;
 }
 
-thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself)
+thread_t::thread_t(process_t *parent, priority_t priority, Auxval auxval, vector<std::string> argv, vector<std::string> envp)
 {
     if (parent == nullptr)
     {
@@ -123,65 +125,62 @@ thread_t::thread_t(uint64_t addr, uint64_t args, process_t *parent, priority_t p
 
     this->fpu_storage = malloc<uint8_t*>(this_cpu->fpu_storage_size) + hhdm_offset;
     this->fpu_storage_size = this_cpu->fpu_storage_size;
+    this_cpu->fpu_save(this->fpu_storage);
 
     this->regs.rflags = 0x202;
     this->regs.cs = gdt::GDT_USER_CODE_64 | 0x03;
     this->regs.ss = gdt::GDT_USER_DATA_64 | 0x03;
 
     this->regs.rip = reinterpret_cast<uint64_t>(func_wrapper);
-    this->regs.rdi = addr;
-    this->regs.rsi = args;
+    this->regs.rdi = auxval.entry;
     this->regs.rsp = reinterpret_cast<uint64_t>(this->stack + STACK_SIZE);
 
     this->gsbase = 0;
     this->fsbase = 0;
 
-    if (iself)
+    uint8_t *tmpstack = reinterpret_cast<uint8_t*>(this->regs.rsp);
+    uint64_t orig_stack_vma = stack_vma;
+
+    for (std::string seg : envp)
     {
-        uint8_t *tmpstack = reinterpret_cast<uint8_t*>(this->regs.rsp);
-        uint64_t orig_stack_vma = stack_vma;
-
-        for (std::string seg : envp)
-        {
-            tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
-            strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
-        }
-        for (std::string seg : argv)
-        {
-            tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
-            strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
-        }
-        tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
-
-        if ((argv.size() + envp.size() + 1) & 1) tmpstack--;
-
-        *(--tmpstack) = 0;
-        *(--tmpstack) = 0;
-
-        tmpstack -= 2; *tmpstack = AT_ENTRY; *(tmpstack + 1) = auxval.entry;
-        tmpstack -= 2; *tmpstack = AT_PHDR; *(tmpstack + 1) = auxval.phdr;
-        tmpstack -= 2; *tmpstack = AT_PHENT; *(tmpstack + 1) = auxval.phent;
-        tmpstack -= 2; *tmpstack = AT_PHNUM; *(tmpstack + 1) = auxval.phnum;
-
-        *--tmpstack = 0;
-        tmpstack -= envp.size();
-        for (size_t i = 0; i < envp.size(); i++)
-        {
-            orig_stack_vma -= envp[i].length() - 1;
-            tmpstack[i] = orig_stack_vma;
-        }
-
-        *--tmpstack = 0;
-        tmpstack -= argv.size();
-        for (size_t i = 0; i < argv.size(); i++)
-        {
-            orig_stack_vma -= argv[i].length() - 1;
-            tmpstack[i] = orig_stack_vma;
-        }
-
-        *--tmpstack = argv.size();
-        this->regs.rsp -= reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE - reinterpret_cast<uint64_t>(tmpstack);
+        tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+        strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
     }
+    for (std::string seg : argv)
+    {
+        tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (seg.length() + 1));
+        strcpy(reinterpret_cast<char*>(tmpstack), seg.c_str());
+    }
+    tmpstack = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(tmpstack) - (reinterpret_cast<uint64_t>(tmpstack) & 0x0F));
+
+    if ((argv.size() + envp.size() + 1) & 1) tmpstack--;
+
+    *(--tmpstack) = 0; *(--tmpstack) = 0;
+    tmpstack -= 2; *tmpstack = AT_ENTRY; *(tmpstack + 1) = auxval.entry;
+    tmpstack -= 2; *tmpstack = AT_PHDR; *(tmpstack + 1) = auxval.phdr;
+    tmpstack -= 2; *tmpstack = AT_PHENT; *(tmpstack + 1) = auxval.phent;
+    tmpstack -= 2; *tmpstack = AT_PHNUM; *(tmpstack + 1) = auxval.phnum;
+
+    *(--tmpstack) = 0;
+
+    tmpstack -= envp.size();
+    for (size_t i = 0; i < envp.size(); i++)
+    {
+        orig_stack_vma -= envp[i].length() + 1;
+        tmpstack[i] = orig_stack_vma;
+    }
+
+    *(--tmpstack) = 0;
+
+    tmpstack -= argv.size();
+    for (size_t i = 0; i < argv.size(); i++)
+    {
+        orig_stack_vma -= argv[i].length() + 1;
+        tmpstack[i] = orig_stack_vma;
+    }
+
+    *(--tmpstack) = argv.size();
+    this->regs.rsp -= reinterpret_cast<uint64_t>(this->stack) + STACK_SIZE - reinterpret_cast<uint64_t>(tmpstack);
 }
 
 thread_t *thread_t::fork(registers_t *regs)
@@ -222,11 +221,11 @@ thread_t *thread_t::fork(registers_t *regs)
     return newthread;
 }
 
-thread_t *process_t::add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<string> argv, vector<string> envp, bool iself)
+thread_t *process_t::add_user_thread(uint64_t addr, uint64_t args, priority_t priority, Auxval auxval, vector<std::string> argv, vector<std::string> envp)
 {
     lockit(proc_lock);
 
-    auto thread = new thread_t(addr, args, this, priority, auxval, argv, envp, iself);
+    auto thread = new thread_t(this, priority, auxval, argv, envp);
 
     thread->tid = this->next_tid++;
     thread_count++;
@@ -312,7 +311,7 @@ process_t::process_t(std::string name)
     this->parent = nullptr;
 }
 
-process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> argv, vector<string> envp, std::string stdin, std::string stdout, std::string stderr, std::string procname)
+process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<std::string> argv, vector<std::string> envp, std::string stdin, std::string stdout, std::string stderr, std::string procname)
 {
     auto prog = vfs::get_node(dir, path, true);
     if (prog == nullptr || prog->res == nullptr)
@@ -323,7 +322,7 @@ process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> a
 
     // TODO: Shebang
 
-    auto *proc = new process_t(procname);
+    auto proc = new process_t(procname);
     auto [auxval, ld_path] = elf_load(proc->pagemap, prog->res, 0);
     uint64_t entry = 0;
 
@@ -334,6 +333,7 @@ process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> a
         if (ld_node == nullptr || ld_node->res == nullptr)
         {
             error("Could not find dynamic linker!");
+            delete proc;
             return nullptr;
         }
         entry = elf_load(proc->pagemap, ld_node->res, 0x40000000).auxval.entry;
@@ -369,7 +369,7 @@ process_t *start_program(vfs::fs_node_t *dir, std::string path, vector<string> a
     auto stderr_fd = new vfs::fd_t { .handle = stderr_handle };
     proc->fds[2] = stderr_fd;
 
-    proc->add_user_thread(entry, 0, MID, auxval, argv, envp, true);
+    proc->add_user_thread(entry, 0, MID, auxval, argv, envp);
 
     return proc;
 }
@@ -578,7 +578,7 @@ size_t switchThread(registers_t *regs, thread_t *thread)
 void schedule(registers_t *regs)
 {
     if (die) while (true) asm volatile ("cli; hlt");
-    if (initproc == nullptr)
+    if (initproc == nullptr || initialised == false)
     {
         yield();
         return;
@@ -690,7 +690,7 @@ void kill()
 }
 
 bool idt_init = false;
-void init()
+void init(bool last)
 {
     if (apic::initialised)
     {
@@ -712,6 +712,7 @@ void init()
         }
         if (initproc != nullptr) pit::schedule = true;
     }
+    if (last) initialised = true;
     while (true) asm volatile ("hlt");
 }
 }

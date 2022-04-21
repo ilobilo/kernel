@@ -152,7 +152,7 @@ void terminal_res::add_str(const char *str)
     }
 }
 
-string terminal_res::getline()
+std::string terminal_res::getline()
 {
     std::string ret("");
     char c = 0;

@@ -3,10 +3,13 @@
 #pragma once
 
 #include <drivers/block/drivemgr/drivemgr.hpp>
+#include <system/mm/pmm/pmm.hpp>
 #include <system/pci/pci.hpp>
+#include <kernel/kernel.hpp>
 #include <lib/lock.hpp>
 #include <cstdint>
 
+using namespace kernel::system::mm;
 using namespace kernel::system;
 
 namespace kernel::drivers::block::ahci {
@@ -23,8 +26,8 @@ enum cmds
     ATA_CMD_WRITE_DMA_EX = 0x35,
     ATA_CMD_IDENTIFY = 0xEC,
     ATAPI_PACKET = 0xA0,
-    ATAPI_IDENTIFY = 0xEC,
-    ATAPI_IDENTIFY_PACKET = 0xA1,
+    ATAPI_CMD_IDENTIFY = 0xEC,
+    ATAPI_CMD_IDENTIFY_PACKET = 0xA1,
     ATAPI_CMD_READ = 0xA8,
     ATAPI_CMD_EJECT = 0x1B
 };
@@ -259,12 +262,84 @@ class AHCIPort : public drivemgr::Drive
 
     size_t findSlot();
     [[clang::optnone]] bool rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool write);
+    [[clang::optnone]] bool identify();
 
     public:
+    bool initialised = false;
     AHCIPortType portType;
 
-    bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
-    bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
+    int64_t read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+    {
+        if (offset % this->stat.blksize || size % this->stat.blksize)
+        {
+            errno_set(EIO);
+            return -1;
+        }
+
+        uint64_t start = offset / this->stat.blksize;
+        uint64_t count = size / this->stat.blksize;
+        uint8_t *abuffer = static_cast<uint8_t*>(pmm::alloc(count)) + hhdm_offset;
+
+        if (!this->rw(start, count, abuffer, false))
+        {
+            errno_set(EIO);
+            pmm::free(abuffer - hhdm_offset);
+            return -1;
+        }
+        memcpy(buffer, abuffer, size);
+
+        pmm::free(abuffer - hhdm_offset);
+        return size;
+    }
+
+    int64_t write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+    {
+        if (offset % this->stat.blksize || size % this->stat.blksize)
+        {
+            errno_set(EIO);
+            return -1;
+        }
+
+        uint64_t start = offset / this->stat.blksize;
+        uint64_t count = size / this->stat.blksize;
+        uint8_t *abuffer = static_cast<uint8_t*>(pmm::alloc(count)) + hhdm_offset;
+
+        memcpy(abuffer, buffer, size);
+        if (!this->rw(start, count, abuffer, true))
+        {
+            errno_set(EIO);
+            pmm::free(abuffer - hhdm_offset);
+            return -1;
+        }
+
+        pmm::free(abuffer - hhdm_offset);
+        return size;
+    }
+
+    int ioctl(void *handle, uint64_t request, void *argp)
+    {
+        return default_ioctl(this, request, argp);
+    }
+
+    void unref(void *handle)
+    {
+        this->refcount--;
+    }
+
+    void link(void *handle)
+    {
+        this->stat.nlink++;
+    }
+
+    void unlink(void *handle)
+    {
+        this->stat.nlink--;
+    }
+
+    void *mmap(uint64_t page, int flags)
+    {
+        return nullptr;
+    }
 
     [[clang::optnone]] AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
 };

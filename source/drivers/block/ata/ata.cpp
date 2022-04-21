@@ -96,29 +96,6 @@ bool ATAPort::rw(uint64_t sector, uint32_t sectorCount, bool write)
     return true;
 }
 
-bool ATAPort::read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
-{
-    if (sector + sectorCount > this->sectors) sectorCount = this->sectors = sector;
-    for (size_t i = 0; i < sectorCount; i++)
-    {
-        if (!this->rw(sector + i, 1, false)) return false;
-        memcpy(buffer, this->prdtBuffer, 512);
-        buffer += 512;
-    }
-    return true;
-}
-bool ATAPort::write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer)
-{
-    if (sector + sectorCount > this->sectors) sectorCount = this->sectors = sector;
-    for (size_t i = 0; i < sectorCount; i++)
-    {
-        memcpy(this->prdtBuffer, buffer, 512);
-        if (!this->rw(sector + i, 1, true)) return true;
-        buffer += 512;
-    }
-    return true;
-}
-
 ATAPort::ATAPort(uint16_t port, uint16_t bmport, uint16_t ctrlport0, size_t drive)
 {
     this->port = port;
@@ -180,22 +157,23 @@ ATAPort::ATAPort(uint16_t port, uint16_t bmport, uint16_t ctrlport0, size_t driv
 
     this->portType = ATA;
 
-    if (static_cast<uint32_t>(identify[ATA_IDENT_COMMANDSETS] | (identify[ATA_IDENT_COMMANDSETS + 1] << 16)) & (1 << 26))
+    if (*reinterpret_cast<uint64_t*>(&identify[ATA_IDENT_COMMANDSETS]) & (1 << 26))
     {
-        this->sectors = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA_EXT] | (identify[ATA_IDENT_MAX_LBA_EXT + 1] << 16));
-        this->size = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA_EXT] | (identify[ATA_IDENT_MAX_LBA_EXT + 1] << 16)) * 512;
+        this->sectors = *reinterpret_cast<uint64_t*>(&identify[ATA_IDENT_MAX_LBA_EXT]);
     }
-    else
-    {
-        this->sectors = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA] | (identify[ATA_IDENT_MAX_LBA + 1] << 16));
-        this->size = static_cast<uint32_t>(identify[ATA_IDENT_MAX_LBA] | (identify[ATA_IDENT_MAX_LBA + 1] << 16)) * 512;
-    }
+    else this->sectors = this->sectors = *reinterpret_cast<uint64_t*>(&identify[ATA_IDENT_MAX_LBA_EXT]);
 
-    this->buffer = static_cast<uint8_t*>(pmm::alloc());
-    this->prdt = static_cast<uint64_t*>(pmm::alloc());
-    this->prdtBuffer = static_cast<uint64_t*>(pmm::alloc());
+    this->buffer = static_cast<uint8_t*>(pmm::alloc(2));
+    this->prdt = static_cast<uint64_t*>(pmm::alloc(2));
+    this->prdtBuffer = static_cast<uint64_t*>(pmm::alloc(2));
 
     *this->prdt = (reinterpret_cast<uint64_t>(this->prdtBuffer) | (static_cast<uint64_t>(0x1000) << 32) | 0x8000000000000000ULL) & 0xFFFFFFFF;
+
+    this->stat.blocks = this->sectors;
+    this->stat.blksize = 512;
+    this->stat.size = this->stat.blocks * this->stat.blksize;
+    this->stat.rdev = vfs::dev_new_id();
+    this->stat.mode = 0644 | vfs::stats::ifblk;
 
     this->initialised = true;
 }

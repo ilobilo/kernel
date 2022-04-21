@@ -123,6 +123,13 @@ void main()
     terminal::check("Initialising SMP...", smp::init, -1, smp::initialised);
     // lai_enable_acpi(apic::initialised ? 1 : 0);
 
+    terminal::check("Initialising VFS...", vfs::init, -1, vfs::initialised);
+    terminal::check("Initialising TMPFS...", tmpfs::init, -1, tmpfs::initialised);
+    terminal::check("Initialising DEVFS...", devfs::init, -1, devfs::initialised);
+
+    auto initrd_mod = find_module("initrd");
+    terminal::check("Initialising Initrd...", initrd::init, reinterpret_cast<uint64_t>(initrd_mod), initrd::initialised, (initrd_mod && strstr(cmdline, "initrd")));
+
     terminal::check("Initialising AHCI...", ahci::init, -1, ahci::initialised);
     terminal::check("Initialising ATA...", ata::init, -1, ata::initialised);
 
@@ -132,14 +139,7 @@ void main()
 
     terminal::check("Initialising Drive Manager...", drivemgr::init, -1, drivemgr::initialised);
     terminal::check("Initialising NIC Manager...", nicmgr::init, -1, nicmgr::initialised);
-
-    terminal::check("Initialising VFS...", vfs::init, -1, vfs::initialised);
-    terminal::check("Initialising TMPFS...", tmpfs::init, -1, tmpfs::initialised);
-    terminal::check("Initialising DEVFS...", devfs::init, -1, devfs::initialised);
     serial::init();
-
-    auto initrd_mod = find_module("initrd");
-    terminal::check("Initialising Initrd...", initrd::init, reinterpret_cast<uint64_t>(initrd_mod), initrd::initialised, (initrd_mod && strstr(cmdline, "initrd")));
 
     terminal::check("Initialising System Calls...", syscall::init, -1, syscall::initialised);
 
@@ -154,6 +154,14 @@ void main()
     proc->add_thread(time, 0, scheduler::LOW);
     proc->enqueue();
 
-    scheduler::init();
+    // vector<std::string> argv;
+    // argv.push_back("Hello");
+
+    // vector<std::string> envp;
+    // envp.push_back("HELLO=WORLD");
+
+    // scheduler::start_program(vfs::fs_root, "/prog1", argv, envp, "/dev/tty0", "/dev/tty0", "/dev/tty0", "test")->enqueue();
+
+    scheduler::init(true);
 }
 }

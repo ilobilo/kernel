@@ -29,7 +29,7 @@ const char *device_classes[20]
     "Non Essential Instrumentation"
 };
 
-string getvendorname(uint16_t vendorid)
+std::string getvendorname(uint16_t vendorid)
 {
     switch (vendorid)
     {
@@ -49,7 +49,7 @@ string getvendorname(uint16_t vendorid)
     return ret;
 }
 
-string getdevicename(uint16_t vendorid, uint16_t deviceid)
+std::string getdevicename(uint16_t vendorid, uint16_t deviceid)
 {
     switch (vendorid)
     {
@@ -111,6 +111,8 @@ string getdevicename(uint16_t vendorid, uint16_t deviceid)
                     return "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller";
                 case 0x2930:
                     return "82801I (ICH9 Family) SMBus Controller";
+                case 0x7010:
+                    return "82371SB PIIX3 IDE [Natoma/Triton II]";
             }
             break;
         case 0x10EC:
@@ -126,7 +128,7 @@ string getdevicename(uint16_t vendorid, uint16_t deviceid)
     return ret;
 }
 
-string unclasssubclassname(uint8_t subclasscode)
+std::string unclasssubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -140,7 +142,7 @@ string unclasssubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string mscsubclassname(uint8_t subclasscode)
+std::string mscsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -170,7 +172,7 @@ string mscsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string netsubclassname(uint8_t subclasscode)
+std::string netsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -200,7 +202,7 @@ string netsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string dispsubclassname(uint8_t subclasscode)
+std::string dispsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -218,7 +220,7 @@ string dispsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string multimediasubclassname(uint8_t subclasscode)
+std::string multimediasubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -238,7 +240,7 @@ string multimediasubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string memsubclassname(uint8_t subclasscode)
+std::string memsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -254,7 +256,7 @@ string memsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string bridgesubclassname(uint8_t subclasscode){
+std::string bridgesubclassname(uint8_t subclasscode){
     switch (subclasscode){
         case 0x00:
             return "Host Bridge";
@@ -286,7 +288,7 @@ string bridgesubclassname(uint8_t subclasscode){
     return ret;
 }
 
-string simplecomsubclassname(uint8_t subclasscode)
+std::string simplecomsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -310,7 +312,7 @@ string simplecomsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string basesyspersubclassname(uint8_t subclasscode)
+std::string basesyspersubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -336,7 +338,7 @@ string basesyspersubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string inputdevsubclassname(uint8_t subclasscode)
+std::string inputdevsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -358,7 +360,7 @@ string inputdevsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string dockstatsubclassname(uint8_t subclasscode)
+std::string dockstatsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -372,7 +374,7 @@ string dockstatsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string procsubclassname(uint8_t subclasscode)
+std::string procsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -400,7 +402,7 @@ string procsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string sbcsubclassname(uint8_t subclasscode){
+std::string sbcsubclassname(uint8_t subclasscode){
     switch (subclasscode){
         case 0x00:
             return "FireWire (IEEE 1394) Controller";
@@ -430,7 +432,7 @@ string sbcsubclassname(uint8_t subclasscode){
     return ret;
 }
 
-string wirelsubclassname(uint8_t subclasscode)
+std::string wirelsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -456,7 +458,7 @@ string wirelsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string intelsubclassname(uint8_t subclasscode)
+std::string intelsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -468,7 +470,7 @@ string intelsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string satcomsubclassname(uint8_t subclasscode)
+std::string satcomsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -486,7 +488,7 @@ string satcomsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string encryptsubclassname(uint8_t subclasscode)
+std::string encryptsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -502,7 +504,7 @@ string encryptsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string signprocsubclassname(uint8_t subclasscode)
+std::string signprocsubclassname(uint8_t subclasscode)
 {
     switch (subclasscode)
     {
@@ -522,7 +524,7 @@ string signprocsubclassname(uint8_t subclasscode)
     return ret;
 }
 
-string getsubclassname(uint8_t classcode, uint8_t subclasscode)
+std::string getsubclassname(uint8_t classcode, uint8_t subclasscode)
 {
     switch (classcode)
     {
@@ -568,7 +570,7 @@ string getsubclassname(uint8_t classcode, uint8_t subclasscode)
     return ret;
 }
 
-string getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
+std::string getprogifname(uint8_t classcode, uint8_t subclasscode, uint8_t progif)
 {
     switch (classcode)
     {

@@ -24,6 +24,7 @@ int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t n);
 
 char *strdup(const char *src);
+void strrev(unsigned char *str);
 
 long strtol(const char *nPtr, char **endPtr, int base);
 long long int strtoll(const char *nPtr, char **endPtr, int base);
@@ -43,6 +44,9 @@ int islower(int c);
 
 char tolower(char c);
 char toupper(char c);
+
+int itoa(int num, unsigned char *str, int len, int base);
+int atoi(const char *str);
 }
 
 bool isempty(char *str);
@@ -54,8 +58,6 @@ static inline bool isempty(const char *str)
 char *getline(const char *str, const char *substr, char *buffer, int skip = 0);
 int lstrstr(const char *str, const char *substr, int skip = 0);
 char *strrm(char *str, const char *substr);
-
-char *reverse(char *str);
 
 int tonum(char c);
 char *tostr(char c);

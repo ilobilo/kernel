@@ -126,7 +126,7 @@ static void syscall_getpid(registers_t *regs)
 static void syscall_fork(registers_t *regs)
 {
     auto *oldproc = this_proc();
-    auto *newproc = new scheduler::process_t();
+    auto *newproc = new scheduler::process_t;
 
     newproc->name = oldproc->name;
     newproc->pid = scheduler::alloc_pid();
@@ -417,6 +417,23 @@ static void syscall_getppid(registers_t *regs)
         return;
     }
     RAX_RET = ppid;
+    RDX_ERRNO = 0;
+}
+
+static void syscall_mount(registers_t *regs)
+{
+    std::string source(reinterpret_cast<char*>(RDI_ARG0));
+    std::string target(reinterpret_cast<char*>(RSI_ARG1));
+    std::string fstype(reinterpret_cast<char*>(RDX_ARG2));
+
+    if (!vfs::mount(this_proc()->current_dir, source, target, fstype))
+    {
+        RAX_RET = -1;
+        RDX_ERRNO = errno_get();
+        return;
+    }
+
+    RAX_RET = 0;
     RDX_ERRNO = 0;
 }
 
@@ -772,6 +789,7 @@ syscall_t syscall_table[] = {
     [SYSCALL_LCHOWN] = syscall_lchown,
     [SYSCALL_SYSINFO] = syscall_sysinfo,
     [SYSCALL_GETPPID] = syscall_getppid,
+    [SYSCALL_MOUNT] = syscall_mount,
     [SYSCALL_REBOOT] = syscall_reboot,
     [SYSCALL_TIME] = syscall_time,
     [SYSCALL_OPENAT] = syscall_openat,

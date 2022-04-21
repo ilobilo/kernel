@@ -72,8 +72,8 @@ enum cmds
     ATA_CMD_WRITE_DMA_EX = 0x35,
     ATA_CMD_IDENTIFY = 0xEC,
     ATAPI_PACKET = 0xA0,
-    ATAPI_IDENTIFY = 0xEC,
-    ATAPI_IDENTIFY_PACKET = 0xA1,
+    ATAPI_CMD_IDENTIFY = 0xEC,
+    ATAPI_CMD_IDENTIFY_PACKET = 0xA1,
     ATAPI_CMD_READ = 0xA8,
     ATAPI_CMD_EJECT = 0x1B
 };
@@ -88,7 +88,6 @@ struct ATAController;
 class ATAPort : public drivemgr::Drive
 {
     private:
-    lock_t lock;
     uint16_t port;
     uint16_t bmport;
     uint16_t ctrlport0;
@@ -109,11 +108,110 @@ class ATAPort : public drivemgr::Drive
 
     public:
     bool initialised = false;
-
     ATAPortType portType;
 
-    bool read(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
-    bool write(uint64_t sector, uint32_t sectorCount, uint8_t *buffer);
+    int64_t read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+    {
+        if (offset % this->stat.blksize || size % this->stat.blksize)
+        {
+            errno_set(EIO);
+            return -1;
+        }
+
+        uint64_t start = offset / this->stat.blksize;
+        uint64_t count = size / this->stat.blksize;
+
+        if (count % 16)
+        {
+            uint64_t extra = count % 16;
+            if (!this->rw(start, extra, false))
+            {
+                errno_set(EIO);
+                return -1;
+            }
+            memcpy(buffer, this->prdtBuffer, this->stat.blksize * extra);
+            buffer += this->stat.blksize * extra;
+            count -= extra;
+            start += extra;
+        }
+        if (count == 0) return size;
+
+        for (size_t i = 0; i < count; i += 16)
+        {
+            if (!this->rw(start + i, 16, false))
+            {
+                errno_set(EIO);
+                return -1;
+            }
+            memcpy(buffer, this->prdtBuffer, this->stat.blksize * 16);
+            buffer += this->stat.blksize * 16;
+        }
+        return size;
+    }
+
+    int64_t write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+    {
+        if (offset % this->stat.blksize || size % this->stat.blksize)
+        {
+            errno_set(EIO);
+            return -1;
+        }
+
+        uint64_t start = offset / this->stat.blksize;
+        uint64_t count = size / this->stat.blksize;
+
+        if (count % 16)
+        {
+            uint64_t extra = count % 16;
+            memcpy(this->prdtBuffer, buffer, this->stat.blksize * extra);
+            if (!this->rw(start, extra, true))
+            {
+                errno_set(EIO);
+                return -1;
+            }
+            buffer += this->stat.blksize * extra;
+            count -= extra;
+            start += extra;
+        }
+        if (count == 0) return size;
+
+        for (size_t i = 0; i < count; i += 16)
+        {
+            memcpy(this->prdtBuffer, buffer, this->stat.blksize * 16);
+            if (!this->rw(start + i, 16, true))
+            {
+                errno_set(EIO);
+                return -1;
+            }
+            buffer += this->stat.blksize * 16;
+        }
+        return size;
+    }
+
+    int ioctl(void *handle, uint64_t request, void *argp)
+    {
+        return default_ioctl(this, request, argp);
+    }
+
+    void unref(void *handle)
+    {
+        this->refcount--;
+    }
+
+    void link(void *handle)
+    {
+        this->stat.nlink++;
+    }
+
+    void unlink(void *handle)
+    {
+        this->stat.nlink--;
+    }
+
+    void *mmap(uint64_t page, int flags)
+    {
+        return nullptr;
+    }
 
     ATAPort(uint16_t port, uint16_t bmport, uint16_t ctrlport0, size_t drive);
 };

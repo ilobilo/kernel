@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include <drivers/display/terminal/printf.h>
+#define PRINTF_ALIAS_STANDARD_FUNCTION_NAMES 1
+#include <printf/printf.h>
 #include <lib/math.hpp>
 #include <limine.h>
 #include <cstdint>
@@ -44,16 +45,20 @@ static void check(const char *message, auto init, int64_t args, bool &ok, bool s
 }
 }
 
-static inline int printf(limine_terminal *term, const char *format, ...)
+static inline int vprintf(limine_terminal *term, const char *fmt, va_list args)
 {
-    limine_terminal *oldterm = kernel::drivers::display::terminal::main_term;
-    kernel::drivers::display::terminal::main_term = term;
+    auto printc = reinterpret_cast<void (*)(char, void*)>(kernel::drivers::display::terminal::printc);
+    int ret = vfctprintf(printc, term, fmt, args);
 
+    return ret;
+}
+
+static inline int printf(limine_terminal *term, const char *fmt, ...)
+{
     va_list args;
-    va_start(args, format);
-    int ret = vprintf(format, args);
+    va_start(args, fmt);
+    int ret = vprintf(term, fmt, args);
     va_end(args);
 
-    kernel::drivers::display::terminal::main_term = oldterm;
     return ret;
 }

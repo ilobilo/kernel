@@ -133,13 +133,24 @@ static void exception_handler(registers_t *regs)
 
     switch (regs->int_no)
     {
-        // case 14:
-        // {
-        //     uint64_t addr = 0;
-        //     asm volatile ("mov %%cr2, %0" : "=r"(addr));
-        //     error("CR2: 0x%lX", addr);
-        //     printf("[\033[31mPANIC\033[0m] CR2: 0x%lX\n", addr);
-        // }
+        case 14:
+        {
+            uint64_t addr = 0;
+            asm volatile ("mov %%cr2, %0" : "=r"(addr));
+
+            auto proc = this_proc();
+            if (proc == nullptr) break;
+
+            auto [range, mem_page, file_page] = proc->pagemap->addr2range(addr);
+            if (range == nullptr) break;
+
+            void *page = nullptr;
+            if (range->flags & vmm::MapAnon) page = pmm::alloc();
+            else page = range->global->res->mmap(file_page, range->flags);
+
+            range->global->map_in_range(mem_page * vmm::page_size, reinterpret_cast<uint64_t>(page), range->prot);
+            halt = false;
+        }
     }
 
     if (!halt)

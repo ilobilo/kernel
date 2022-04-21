@@ -19,15 +19,11 @@ struct tty_res : terminal_res
 
     int print(const char *fmt, ...)
     {
-        limine_terminal *oldterm = terminal::main_term;
-        terminal::main_term = this->thisterm;
-
         va_list args;
         va_start(args, fmt);
-        int ret = vprintf(fmt, args);
+        int ret = vprintf(this->thisterm, fmt, args);
         va_end(args);
 
-        terminal::main_term = oldterm;
         return ret;
     }
 };
