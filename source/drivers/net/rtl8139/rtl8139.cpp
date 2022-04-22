@@ -113,7 +113,7 @@ void RTL8139::receive()
     if (this->current_packet > 8192) this->current_packet -= 8192;
     this->outw(REG_CAPR, this->current_packet - 0x10);
 
-    ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+    ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet));
     free(packet);
 }
 

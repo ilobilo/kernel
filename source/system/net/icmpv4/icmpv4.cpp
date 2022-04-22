@@ -11,7 +11,7 @@ namespace kernel::system::net::icmpv4 {
 
 bool debug = NET_DEBUG;
 
-void reply(nicmgr::NIC *nic, uint8_t *dip, icmpv4Hdr *oldpacket, size_t length)
+static void reply(nicmgr::NIC *nic, ipv4addr dip, icmpv4Hdr *oldpacket, size_t length)
 {
     icmpv4Hdr *newpacket = malloc<icmpv4Hdr*>(length);
 

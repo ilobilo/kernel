@@ -10,33 +10,33 @@ namespace kernel::system::net::arp {
 vector<tableEntry*> table;
 bool debug = NET_DEBUG;
 
-tableEntry *table_add(uint8_t *mac, uint8_t *ip)
+tableEntry *table_add(macaddr mac, ipv4addr ip)
 {
     tableEntry *entry = new tableEntry;
-    memcpy(entry->mac, mac, 6);
-    memcpy(entry->ip, ip, 4);
+    entry->mac = mac;
+    entry->ip = ip;
     table.push_back(entry);
     return entry;
 }
 
-tableEntry *table_search(uint8_t *ip)
+tableEntry *table_search(ipv4addr ip)
 {
     for (size_t i = 0; i < table.size(); i++)
     {
-        if (arraycmp(table[i]->ip, ip, 4)) return table[i];
+        if (table[i]->ip == ip) return table[i];
     }
     return nullptr;
 }
 
-tableEntry *table_update(uint8_t *mac, uint8_t *ip)
+tableEntry *table_update(macaddr mac, ipv4addr ip)
 {
     tableEntry *oldentry = table_search(ip);
     if (oldentry == nullptr) return table_add(mac, ip);
-    memcpy(oldentry->mac, mac, 6);
+    oldentry->mac = mac;
     return oldentry;
 }
 
-void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip)
+void send(nicmgr::NIC *nic, macaddr dmac, ipv4addr dip)
 {
     arpHdr *packet = new arpHdr;
 
@@ -48,11 +48,11 @@ void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip)
 
     packet->opcode = ARP_REQUEST;
 
-    memcpy(packet->smac, nic->MAC, 6);
-    memcpy(packet->sip, nic->IPv4, 4);
+    packet->smac = nic->MAC;
+    packet->sip = nic->IPv4;
 
-    memcpy(packet->dmac, dmac, 6);
-    memcpy(packet->dip, dip, 4);
+    packet->dmac = dmac;
+    packet->dip = dip;
 
     ethernet::send(nic, dmac, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
     delete packet;
@@ -62,11 +62,11 @@ void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip)
 
 void reply(nicmgr::NIC *nic, arpHdr *packet)
 {
-    memcpy(packet->dmac, packet->smac, 6);
-    memcpy(packet->dip, packet->sip, 4);
+    packet->dmac = packet->smac;
+    packet->dip = packet->sip;
 
-    memcpy(packet->smac, nic->MAC, 6);
-    memcpy(packet->sip, nic->IPv4, 4);
+    packet->smac = nic->MAC;
+    packet->sip = nic->IPv4;
 
     packet->opcode = ARP_REPLY;
 
@@ -88,7 +88,7 @@ void receive(nicmgr::NIC *nic, arpHdr *packet)
 
     tableEntry *entry = table_search(packet->sip);
     if (entry == nullptr) entry = table_add(packet->smac, packet->sip);
-    else memcpy(entry->mac, packet->smac, 6);
+    else entry->mac = packet->smac;
 
     switch (bigendian<uint16_t>(packet->opcode))
     {

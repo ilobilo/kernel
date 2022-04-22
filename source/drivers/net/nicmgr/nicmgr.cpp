@@ -14,7 +14,7 @@ namespace kernel::drivers::net::nicmgr {
 bool initialised = false;
 vector<NIC*> nics;
 
-static uint8_t next = 2;
+static uint8_t next = 50;
 void addCard(NIC *card, type_t type)
 {
     log("Registering NIC #%zu", nics.size());
@@ -23,13 +23,12 @@ void addCard(NIC *card, type_t type)
     nics.front()->uniqueid = rand() % (RAND_MAX + 1 - 10000) + 10000;
 
     // Temporarily hardcode IPv4 addresses
-    // NIC 0 IPv4 = 192.168.0.2
-    // NIC 0 IPv4 = 192.168.0.3
-    // NIC 0 IPv4 = 192.168.0.4
+    // NIC 0 IPv4 = 192.168.0.50
+    // NIC 0 IPv4 = 192.168.0.51
+    // NIC 0 IPv4 = 192.168.0.52
     // ...
 
-    uint8_t ip[4] = { 192, 168, 0, next++ };
-    memcpy(card->IPv4, ip, 4);
+    card->IPv4 = { 192, 168, 0, next++ };
 }
 
 void addRTL8139()
