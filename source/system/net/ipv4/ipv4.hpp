@@ -39,13 +39,13 @@ struct [[gnu::packed]] ipv4Hdr
     uint8_t ttl;
     uint8_t proto;
     bigendian<uint16_t> csum;
-    uint8_t sip[4];
-    uint8_t dip[4];
+    ipv4addr sip;
+    ipv4addr dip;
     uint8_t data[];
 };
 
 extern bool debug;
 
-void send(nicmgr::NIC *nic, uint8_t *dip, void *data, size_t length, ipv4Prot protocol);
-void receive(nicmgr::NIC *nic, ipv4Hdr *packet, uint8_t *smac);
+void send(nicmgr::NIC *nic, ipv4addr dip, void *data, size_t length, ipv4Prot protocol);
+void receive(nicmgr::NIC *nic, ipv4Hdr *packet, macaddr smac);
 }

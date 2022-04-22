@@ -4,6 +4,7 @@
 
 #include <lib/vector.hpp>
 #include <lib/log.hpp>
+#include <lib/net.hpp>
 #include <cstdint>
 
 namespace kernel::drivers::net::nicmgr {
@@ -18,8 +19,8 @@ enum type_t
 struct NIC
 {
     char name[32] = "New NIC";
-    uint8_t MAC[6];
-    uint8_t IPv4[4];
+    macaddr MAC;
+    ipv4addr IPv4;
     type_t type;
     uint64_t uniqueid;
     bool debug = NET_DEBUG;

@@ -138,10 +138,13 @@ static void exception_handler(registers_t *regs)
             uint64_t addr = 0;
             asm volatile ("mov %%cr2, %0" : "=r"(addr));
 
-            auto proc = this_proc();
-            if (proc == nullptr) break;
+            vmm::Pagemap *pagemap = nullptr;
 
-            auto [range, mem_page, file_page] = proc->pagemap->addr2range(addr);
+            auto proc = this_proc();
+            if (proc == nullptr) pagemap = vmm::kernel_pagemap;
+            else pagemap = proc->pagemap;
+
+            auto [range, mem_page, file_page] = pagemap->addr2range(addr);
             if (range == nullptr) break;
 
             void *page = nullptr;

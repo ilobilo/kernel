@@ -125,7 +125,7 @@ void RTL8169::receive()
         this->rxdescs[this->rxcurr]->command |= RTL8169_OWN;
         if (++this->rxcurr >= RTL8169_NUM_RX_DESC) this->rxcurr = 0;
 
-        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet));
         free(packet);
     }
 }

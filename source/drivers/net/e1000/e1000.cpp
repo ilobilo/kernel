@@ -165,7 +165,7 @@ void E1000::receive()
         this->rxcurr = (this->rxcurr + 1) % E1000_NUM_RX_DESC;
         this->outcmd(REG_RXDESCTAIL, old_cur);
 
-        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet), length);
+        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet));
         delete[] packet;
     }
 }

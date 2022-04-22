@@ -28,25 +28,25 @@ struct [[gnu::packed]] arpHdr
     uint8_t hwsize;
     uint8_t prosize;
     bigendian<uint16_t> opcode;
-    uint8_t smac[6];
-    uint8_t sip[4];
-    uint8_t dmac[6];
-    uint8_t dip[4];
+    macaddr smac;
+    ipv4addr sip;
+    macaddr dmac;
+    ipv4addr dip;
 };
 
 struct tableEntry
 {
-    uint8_t mac[6];
-    uint8_t ip[4];
+    macaddr mac;
+    ipv4addr ip;
 };
 
 extern vector<tableEntry*> table;
 extern bool debug;
 
-tableEntry *table_add(uint8_t *mac, uint8_t *ip);
-tableEntry *table_search(uint8_t *ip);
-tableEntry *table_update(uint8_t *mac, uint8_t *ip);
+tableEntry *table_add(macaddr mac, ipv4addr ip);
+tableEntry *table_search(ipv4addr ip);
+tableEntry *table_update(macaddr mac, ipv4addr ip);
 
-void send(nicmgr::NIC *nic, uint8_t *dmac, uint8_t *dip);
+void send(nicmgr::NIC *nic, macaddr dmac, ipv4addr dip);
 void receive(nicmgr::NIC *nic, arpHdr *packet);
 }

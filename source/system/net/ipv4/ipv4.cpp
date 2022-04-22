@@ -11,7 +11,7 @@ namespace kernel::system::net::ipv4 {
 
 bool debug = NET_DEBUG;
 
-void send(nicmgr::NIC *nic, uint8_t *dip, void *data, size_t length, ipv4Prot protocol)
+void send(nicmgr::NIC *nic, ipv4addr dip, void *data, size_t length, ipv4Prot protocol)
 {
     ipv4Hdr *packet = malloc<ipv4Hdr*>(length + sizeof(ipv4Hdr));
 
@@ -22,23 +22,22 @@ void send(nicmgr::NIC *nic, uint8_t *dip, void *data, size_t length, ipv4Prot pr
     packet->ttl = IP_TTL;
     packet->proto = protocol;
     packet->csum = 0;
-    memcpy(packet->sip, nic->IPv4, 4);
-    memcpy(packet->dip, dip, 4);
+    packet->sip = nic->IPv4;
+    packet->dip = dip;
 
-    packet->csum = htons(checksum(packet, packet->ihl * 4));
+    packet->csum = checksum(packet, packet->ihl * 4);
 
     memcpy(packet->data, data, length);
 
-    uint8_t dmac[6];
+    macaddr dmac;
     arp::tableEntry *entry = arp::table_search(dip);
 
     for (size_t i = IP_TRIES; i > 0 && entry == nullptr; i--)
     {
-        uint8_t zeromac[6] = { 0, 0, 0, 0, 0, 0 };
-        arp::send(nic, zeromac, dip);
+        arp::send(nic, macaddr(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF), dip);
         entry = arp::table_search(dip);
     }
-    if (entry != nullptr) memcpy(dmac, entry->mac, 6);
+    if (entry != nullptr) dmac = entry->mac;
     else
     {
         error("IPv4: Could not find destination MAC address!");
@@ -51,14 +50,15 @@ void send(nicmgr::NIC *nic, uint8_t *dip, void *data, size_t length, ipv4Prot pr
     if (debug) log("IPv4: Packet sent!");
 }
 
-void receive(nicmgr::NIC *nic, ipv4Hdr *packet, uint8_t *smac)
+void receive(nicmgr::NIC *nic, ipv4Hdr *packet, macaddr smac)
 {
     arp::table_update(smac, packet->sip);
-    if (!arraycmp(nic->IPv4, packet->dip, 4))
-    {
-        if (debug) error("IPv4: Packet is not for us!");
-        return;
-    }
+    // if (!arraycmp(nic->IPv4, packet->dip, 4))
+    // {
+    //     if (debug) error("IPv4: Packet is not for us!");
+    //     return;
+    // }
+
     if (packet->ihl < 5)
     {
         if (debug) error("IPv4: Packet IHL must be at least 5!");
@@ -69,8 +69,10 @@ void receive(nicmgr::NIC *nic, ipv4Hdr *packet, uint8_t *smac)
         if (debug) error("IPv4: TTL has reached 0!");
         return;
     }
+
     bigendian<uint16_t> csum = packet->csum;
-    if (csum.value != checksum(packet, sizeof(ipv4Hdr)))
+    packet->csum = 0;
+    if (csum.value != checksum(packet, sizeof(ipv4Hdr)).value)
     {
         if (debug) error("IPv4: Invalid checksum!");
         return;
