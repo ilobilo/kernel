@@ -56,7 +56,7 @@ CFLAGS = -Ofast -pipe -Werror -Wall -Wextra \
 	-DGIT_VERSION=\"$(shell git rev-parse --short HEAD)\" \
 	-DKERNEL_VERSION=\"$(VERSION)\" -DNET_DEBUG=$(NET_DEBUG) -DLVL5_PAGING=$(LVL5_PAGING) -g
 
-CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter -Wno-register
+CPPFLAGS = $(CFLAGS) -Wno-c99-designator -Wno-unused-parameter -Wno-deprecated-volatile -Wno-register
 
 LDFLAGS = 
 ASMFLAGS = -f elf64 -g

@@ -2,7 +2,6 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <system/sched/scheduler/scheduler.hpp>
-#include <system/sched/timer/timer.hpp>
 #include <drivers/fs/devfs/dev/tty.hpp>
 #include <system/sched/rtc/rtc.hpp>
 #include <system/sched/pit/pit.hpp>
@@ -10,8 +9,10 @@
 #include <system/acpi/acpi.hpp>
 #include <drivers/ps2/ps2.hpp>
 #include <system/pci/pci.hpp>
+#include <lib/shared_ptr.hpp>
 #include <lib/string.hpp>
 #include <lib/memory.hpp>
+#include <lib/timer.hpp>
 #include <lib/alloc.hpp>
 #include <lib/log.hpp>
 #include <lib/io.hpp>
@@ -117,12 +118,11 @@ void parse(std::string cmd, std::string arg)
                 size_t size = node->res->stat.size;
                 if (size == 0) size = 50;
 
-                char *buffer = new char[size];
-                size_t count = node->res->read(nullptr, reinterpret_cast<uint8_t*>(buffer), 0, size);
-                if (buffer[0] == 0) strcpy(buffer, "0");
+                std::shared_ptr<char> buffer(new char[size]);
+                size_t count = node->res->read(nullptr, reinterpret_cast<uint8_t*>(buffer.get()), 0, size);
+                if (buffer[0] == 0) strcpy(buffer.get(), "0");
 
-                printf("%s%c", buffer, buffer[count - 1] == '\n' ? 0 : '\n');
-                delete[] buffer;
+                printf("%s%c", buffer.get(), buffer[count - 1] == '\n' ? 0 : '\n');
             }
             else printf("\033[31m%s is not a file or symlink to one!%s\n", arg.c_str(), terminal::resetcolour);
             break;
@@ -162,10 +162,9 @@ void parse(std::string cmd, std::string arg)
                 break;
             }
             size_t size = node->res->stat.size;
-            uint8_t *buffer = new uint8_t[size];
-            node->res->read(nullptr, buffer, 0, size);
-            reinterpret_cast<int (*)()>(buffer)();
-            delete[] buffer;
+            std::shared_ptr<uint8_t> buffer(new uint8_t[size]);
+            node->res->read(nullptr, buffer.get(), 0, size);
+            reinterpret_cast<int (*)()>(buffer.get())();
             break;
         }
         case hash("free"):
@@ -213,10 +212,9 @@ void parse(std::string cmd, std::string arg)
                 break;
             }
             size_t size = node->res->stat.size;
-            uint8_t *buffer = new uint8_t[size];
-            node->res->read(nullptr, buffer, 0, size);
-            reinterpret_cast<int (*)()>(buffer)();
-            delete[] buffer;
+            std::shared_ptr<uint8_t> buffer(new uint8_t[size]);
+            node->res->read(nullptr, buffer.get(), 0, size);
+            reinterpret_cast<int (*)()>(buffer.get())();
             break;
         }
         case hash("shutdown"):

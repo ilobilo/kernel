@@ -1,6 +1,5 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <system/sched/timer/timer.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/pic/pic.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -8,13 +7,12 @@
 #include <lai/helpers/sci.h>
 #include <lai/helpers/pm.h>
 #include <kernel/main.hpp>
+#include <lib/timer.hpp>
 #include <lib/mmio.hpp>
 #include <lib/cpu.hpp>
 #include <lib/log.hpp>
 #include <lib/io.hpp>
 #include <cpuid.h>
-
-using namespace kernel::system::sched;
 
 namespace kernel::system::cpu::apic {
 

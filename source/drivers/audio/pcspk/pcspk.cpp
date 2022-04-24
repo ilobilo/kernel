@@ -1,11 +1,9 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <system/sched/timer/timer.hpp>
+#include <lib/timer.hpp>
 #include <lib/lock.hpp>
 #include <lib/log.hpp>
 #include <lib/io.hpp>
-
-using namespace kernel::system::sched;
 
 namespace kernel::drivers::audio::pcspk {
 

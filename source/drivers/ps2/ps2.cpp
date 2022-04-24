@@ -187,27 +187,6 @@ uint8_t getscancodeset()
     return read() & 3;
 }
 
-static char get_ascii_char(uint8_t key_code)
-{
-    if (!kbd_mod.shift && !kbd_mod.capslock)
-    {
-        return kbdus[key_code];
-    }
-    if (kbd_mod.shift && !kbd_mod.capslock)
-    {
-        return kbdus_shft[key_code];
-    }
-    if (!kbd_mod.shift && kbd_mod.capslock)
-    {
-        return kbdus_caps[key_code];
-    }
-    if (kbd_mod.shift && kbd_mod.capslock)
-    {
-        return kbdus_capsshft[key_code];
-    }
-    return 0;
-}
-
 void update_leds()
 {
     uint8_t value = 0b000;
@@ -221,84 +200,139 @@ void update_leds()
 static void Keyboard_handler(registers_t *)
 {
     // if (checkint(kbddevice) == false) return;
-    uint8_t scancode = inb(PS2_PORT_DATA);
     lockit(kbd_lock);
+    uint8_t scancode = inb(PS2_PORT_DATA);
+    static bool extra = false;
 
-    if (scancode & 0x80)
+    auto extra_keys = [&scancode]() -> bool
     {
         switch (scancode)
         {
-            case keys::L_SHIFT_UP:
-            case keys::R_SHIFT_UP:
-                kbd_mod.shift = false;
-                break;
-            case keys::CTRL_UP:
-                kbd_mod.ctrl = false;
-                break;
-            case keys::ALT_UP:
-                kbd_mod.alt = false;
-                break;
-        }
-    }
-    else
-    {
-        switch (scancode)
-        {
-            case keys::L_SHIFT_DOWN:
-            case keys::R_SHIFT_DOWN:
-                kbd_mod.shift = true;
-                break;
-            case keys::CTRL_DOWN:
-                kbd_mod.ctrl = true;
-                break;
-            case keys::ALT_DOWN:
-                kbd_mod.alt = true;
-                break;
-            case keys::CAPSLOCK:
-                kbd_mod.capslock = (!kbd_mod.capslock) ? true : false;
-                update_leds();
-                break;
-            case keys::NUMLOCK:
-                kbd_mod.numlock = (!kbd_mod.numlock) ? true : false;
-                update_leds();
-                break;
-            case keys::SCROLLLOCK:
-                kbd_mod.scrolllock = (!kbd_mod.scrolllock) ? true : false;
-                update_leds();
-                break;
             case UP:
                 tty::current_tty->add_str("\033[A");
-                break;
+                return true;
             case DOWN:
                 tty::current_tty->add_str("\033[B");
-                break;
+                return true;
             case RIGHT:
                 tty::current_tty->add_str("\033[C");
-                break;
+                return true;
             case LEFT:
                 tty::current_tty->add_str("\033[D");
-                break;
+                return true;
             case HOME:
                 tty::current_tty->add_str("\033[1~");
-                break;
-            case END:
-                tty::current_tty->add_str("\033[4~");
-                break;
-            case PGUP:
-                tty::current_tty->add_str("\033[5~");
-                break;
-            case PGDN:
-                tty::current_tty->add_str("\033[6~");
-                break;
+                return true;
+            case INSERT:
+                tty::current_tty->add_str("\033[2~");
+                return true;
             case DELETE:
                 tty::current_tty->add_str("\033[3~");
-                break;
-            default:
-                char c = get_ascii_char(scancode);
-                if (kbd_mod.ctrl && c >= 0x40) c = toupper(c) - 0x40;
-                tty::current_tty->add_char(c);
-                break;
+                return true;
+            case END:
+                tty::current_tty->add_str("\033[4~");
+                return true;
+            case PGUP:
+                tty::current_tty->add_str("\033[5~");
+                return true;
+            case PGDN:
+                tty::current_tty->add_str("\033[6~");
+                return true;
+            case KPD_ENTER:
+                tty::current_tty->add_char('\n');
+                return true;
+            case KPD_SLASH:
+                tty::current_tty->add_char('/');
+                return true;
         }
+        return false;
+    };
+
+    if (scancode == 0xE0)
+    {
+        extra = true;
+        return;
+    }
+
+    if (extra == true)
+    {
+        extra = false;
+        switch (scancode)
+        {
+            case CTRL_DOWN:
+                kbd_mod.ctrl = true;
+                return;
+            case CTRL_UP:
+                kbd_mod.ctrl = false;
+                return;
+            default:
+                if (extra_keys()) return;
+        }
+    }
+
+    switch (scancode)
+    {
+        case L_SHIFT_DOWN:
+        case R_SHIFT_DOWN:
+            kbd_mod.shift = true;
+            break;
+        case L_SHIFT_UP:
+        case R_SHIFT_UP:
+            kbd_mod.shift = false;
+            break;
+        case CTRL_DOWN:
+            kbd_mod.ctrl = true;
+            break;
+        case CTRL_UP:
+            kbd_mod.ctrl = false;
+            break;
+        case ALT_DOWN:
+            kbd_mod.alt = true;
+            break;
+        case ALT_UP:
+            kbd_mod.alt = false;
+            break;
+        case CAPSLOCK:
+            kbd_mod.capslock = !kbd_mod.capslock;
+            update_leds();
+            break;
+        case NUMLOCK:
+            kbd_mod.numlock = !kbd_mod.numlock;
+            update_leds();
+            break;
+        case SCROLLLOCK:
+            kbd_mod.scrolllock = !kbd_mod.scrolllock;
+            update_leds();
+            break;
+        default:
+            char c = 0;
+            if (scancode == 0x37 || scancode == 0x4A || scancode == 0x4E || scancode == 0x47 || scancode == 0x48 || scancode == 0x49 || scancode == 0x4B || scancode == 0x4C || scancode == 0x4D || scancode == 0x4F || scancode == 0x50 || scancode == 0x51 || scancode == 0x52 || scancode == 0x53)
+            {
+                if (kbd_mod.numlock) c = kbdus_numpad[scancode];
+                else
+                {
+                    if (!extra_keys() && scancode == 0x4C) break;
+                    else c = kbdus_numpad[scancode];
+                }
+            }
+            if (c == 0)
+            {
+                if (scancode >= 0x57) break;
+                if (kbd_mod.shift)
+                {
+                    if (kbd_mod.capslock) c = kbdus_capsshft[scancode];
+                    else c = kbdus_shft[scancode];
+                }
+                else
+                {
+                    if (kbd_mod.capslock) c = kbdus_caps[scancode];
+                    else c = kbdus[scancode];
+                }
+            }
+
+            if (kbd_mod.ctrl) c = toupper(c) - 0x40;
+            tty::current_tty->add_char(c);
+            break;
     }
 }
 

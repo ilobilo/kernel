@@ -1,6 +1,5 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <system/sched/timer/timer.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/acpi/acpi.hpp>
@@ -9,6 +8,7 @@
 #include <kernel/kernel.hpp>
 #include <acpispec/tables.h>
 #include <lai/helpers/pm.h>
+#include <lib/timer.hpp>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
 #include <lai/host.h>
@@ -279,7 +279,7 @@ uint32_t laihost_pci_readd(uint16_t seg, uint8_t bus, uint8_t slot, uint8_t fun,
 
 void laihost_sleep(uint64_t ms)
 {
-    kernel::system::sched::timer::usleep(ms * 1000);
+    timer::usleep(ms * 1000);
 }
 
 uint64_t laihost_timer()

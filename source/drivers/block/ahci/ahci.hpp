@@ -25,11 +25,12 @@ enum cmds
     ATA_CMD_READ_DMA_EX = 0x25,
     ATA_CMD_WRITE_DMA_EX = 0x35,
     ATA_CMD_IDENTIFY = 0xEC,
-    ATAPI_PACKET = 0xA0,
+
+    ATAPI_CMD_PACKET = 0xA0,
     ATAPI_CMD_IDENTIFY = 0xEC,
     ATAPI_CMD_IDENTIFY_PACKET = 0xA1,
     ATAPI_CMD_READ = 0xA8,
-    ATAPI_CMD_EJECT = 0x1B
+    ATAPI_CMD_CAPACITY = 0x25
 };
 
 enum hbaportstatus
@@ -52,7 +53,9 @@ enum hbacmd
     HBA_PxCMD_CR = 0x8000,
     HBA_PxCMD_FRE = 0x0010,
     HBA_PxCMD_ST = 0x0001,
-    HBA_PxCMD_FR = 0x4000
+    HBA_PxCMD_FR = 0x4000,
+    HBA_PxCMD_ICC = (0xF << 28),
+    HBA_PxCMD_ICC_ACTIVE = (1 << 28)
 };
 
 enum FIS_TYPE
@@ -64,7 +67,37 @@ enum FIS_TYPE
     FIS_TYPE_DATA = 0x46,
     FIS_TYPE_BIST = 0x58,
     FIS_TYPE_PIO_SETUP = 0x5F,
-    FIS_TYPE_DEV_BITS = 0xA1,
+    FIS_TYPE_DEV_BITS = 0xA1
+};
+
+enum ghc
+{
+    AHCI_GHC_HR = (1 << 0),
+    AHCI_GHC_IE = (1 << 1),
+    AHCI_GHC_MRSM = (1 << 2),
+    AHCI_GHC_AE = (1 << 31)
+};
+
+enum bohc
+{
+    AHCI_BIOS_BUSY = 1 << 4,
+    AHCI_OWNER_OS = 1 << 1,
+    AHCI_OWNER_BIOS = 1
+};
+
+enum ssts
+{
+    HBA_PxSSTS_DET = 0xFULL,
+    HBA_PxSSTS_DET_INIT = 1,
+    HBA_PxSSTS_DET_PRESENT = 3
+};
+
+enum sctls
+{
+    SCTL_PORT_DET_INIT 	 = 0x1,
+	SCTL_PORT_IPM_NOPART = 0x100,
+	SCTL_PORT_IPM_NOSLUM = 0x200,
+	SCTL_PORT_IPM_NODSLP = 0x400
 };
 
 enum AHCIPortType
@@ -76,7 +109,7 @@ enum AHCIPortType
     SATAPI = 4
 };
 
-struct HBAPort
+using HBAPort = volatile struct
 {
     uint32_t CommandListBase;
     uint32_t CommandListBaseUpper;
@@ -117,7 +150,7 @@ struct HBAMemory
     HBAPort Ports[1];
 };
 
-struct HBACommandHeader
+using HBACommandHeader = volatile struct
 {
     uint8_t CommandFISLength : 5;
     uint8_t ATAPI : 1;
@@ -257,12 +290,12 @@ class AHCIPort : public drivemgr::Drive
     uint8_t portNum;
     lock_t lock;
 
-    [[clang::optnone]] void stopCMD();
+    void stopCMD();
     void startCMD();
 
     size_t findSlot();
-    [[clang::optnone]] bool rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool write);
-    [[clang::optnone]] bool identify();
+    bool rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool write);
+    bool identify();
 
     public:
     bool initialised = false;
@@ -341,7 +374,7 @@ class AHCIPort : public drivemgr::Drive
         return nullptr;
     }
 
-    [[clang::optnone]] AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum);
+    AHCIPort(HBAPort *hbaport, size_t portNum);
 };
 
 class AHCIController

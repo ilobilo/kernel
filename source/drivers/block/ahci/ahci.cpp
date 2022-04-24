@@ -2,7 +2,9 @@
 
 #include <drivers/block/ahci/ahci.hpp>
 #include <system/mm/pmm/pmm.hpp>
+#include <lib/shared_ptr.hpp>
 #include <lib/memory.hpp>
+#include <lib/timer.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::system::mm;
@@ -12,53 +14,30 @@ namespace kernel::drivers::block::ahci {
 bool initialised = false;
 vector<AHCIController*> devices;
 
-AHCIPortType checkPortType(HBAPort *port)
-{
-    uint32_t statStat = port->SataStatus;
-    uint8_t intpowman = (statStat >> 8) & 0b111;
-    uint8_t devdetect = statStat & 0b111;
-
-    if (devdetect != HBA_PORT_DEV_PRESENT) return AHCIPortType::NONE;
-    if (intpowman != HBA_PORT_IPM_ACTIVE) return AHCIPortType::NONE;
-
-    switch (port->Signature)
-    {
-        case SATA_SIG_ATA:
-            return AHCIPortType::SATA;
-        case SATA_SIG_ATAPI:
-            return AHCIPortType::SATAPI;
-        case SATA_SIG_PM:
-            return AHCIPortType::PM;
-        case SATA_SIG_SEMB:
-            return AHCIPortType::SEMB;
-        default:
-            return AHCIPortType::NONE;
-    }
-}
-
 void AHCIPort::stopCMD()
 {
-    hbaport->CommandStatus &= ~HBA_PxCMD_ST;
-    hbaport->CommandStatus &= ~HBA_PxCMD_FRE;
+    this->hbaport->CommandStatus &= ~HBA_PxCMD_ST;
+    this->hbaport->CommandStatus &= ~HBA_PxCMD_FRE;
 
     while (true)
     {
-        if (hbaport->CommandStatus & HBA_PxCMD_FR) continue;
-        if (hbaport->CommandStatus & HBA_PxCMD_CR) continue;
+        if (this->hbaport->CommandStatus & HBA_PxCMD_FR) continue;
+        if (this->hbaport->CommandStatus & HBA_PxCMD_CR) continue;
         break;
     }
 }
 
 void AHCIPort::startCMD()
 {
-    while (hbaport->CommandStatus & HBA_PxCMD_CR);
-    hbaport->CommandStatus |= HBA_PxCMD_FRE;
-    hbaport->CommandStatus |= HBA_PxCMD_ST;
+    this->hbaport->CommandStatus &= ~HBA_PxCMD_ST;
+    while (this->hbaport->CommandStatus & HBA_PxCMD_CR);
+    this->hbaport->CommandStatus |= HBA_PxCMD_FRE;
+    this->hbaport->CommandStatus |= HBA_PxCMD_ST;
 }
 
 size_t AHCIPort::findSlot()
 {
-    uint32_t slots = hbaport->SataActive | hbaport->CommandIssue;
+    uint32_t slots = this->hbaport->SataActive | this->hbaport->CommandIssue;
     for (uint8_t i = 0; i < 32; i++)
     {
         if ((slots & (1 << i)) == 0) return i;
@@ -70,24 +49,32 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool w
 {
     if (this->portType == AHCIPortType::SATAPI && write)
     {
-        error("Can not write to ATAPI drive!");
+        error("AHCI: Port #%d: Can not write to ATAPI drive!", this->portNum);
         return false;
     }
 
     lockit(this->lock);
 
-    hbaport->InterruptStatus = static_cast<uint32_t>(-1);
-    size_t spin = 0;
+    this->hbaport->InterruptEnable = 0xFFFFFFFF;
+    this->hbaport->InterruptStatus = 0;
+
     int slot = findSlot();
     if (slot == -1) return false;
 
-    HBACommandHeader *cmdHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase | static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32);
+    this->hbaport->TaskFileData = this->hbaport->SataError = 0;
+
+    HBACommandHeader *cmdHdr = reinterpret_cast<HBACommandHeader*>(this->hbaport->CommandListBase | static_cast<uint64_t>(this->hbaport->CommandListBaseUpper) << 32);
     cmdHdr += slot;
     cmdHdr->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
-    cmdHdr->Write = write ? 1 : 0;
-    cmdHdr->ClearBusy = 1;
+    // cmdHdr->ATAPI = (this->portType == SATAPI ? 1 : 0);
+    cmdHdr->ATAPI = 0;
+    cmdHdr->Write = write;
+    cmdHdr->ClearBusy = 0;
+    cmdHdr->Prefetchable = 0;
+
+    cmdHdr->PRDBCount = 0;
+    cmdHdr->PortMultiplier = 0;
     cmdHdr->PRDTLength = static_cast<uint16_t>((sectorCount - 1) >> 4) + 1;
-    // if (portType == SATAPI) cmdHdr->ATAPI = 1;
 
     HBACommandTable *cmdtable = reinterpret_cast<HBACommandTable*>(cmdHdr->CommandTableBaseAddress | static_cast<uint64_t>(cmdHdr->CommandTableBaseAddressUpper) << 32);
     memset(cmdtable, 0, sizeof(HBACommandTable) + (cmdHdr->PRDTLength - 1) * sizeof(HBAPRDTEntry));
@@ -107,7 +94,7 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool w
     cmdtable->PRDTEntry[i].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(buffer) << 32);
     cmdtable->PRDTEntry[i].ByteCount = (sectorCount << 9) - 1;
     cmdtable->PRDTEntry[i].InterruptOnCompletion = 1;
-    // if (portType == SATAPI)
+    // if (this->portType == SATAPI)
     // {
     //     cmdtable->ATAPICommand[0] = ATAPI_CMD_READ;
     //     cmdtable->ATAPICommand[2] = static_cast<uint8_t>(sector >> 24);
@@ -120,8 +107,9 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool w
     FIS_REG_H2D *cmdFIS = reinterpret_cast<FIS_REG_H2D*>(&cmdtable->CommandFIS);
     cmdFIS->FISType = FIS_TYPE::FIS_TYPE_REG_H2D;
     cmdFIS->CommandControl = 1;
-    // cmdFIS->Command = (portType == SATAPI ? ATAPI_PACKET : (write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX));
-    cmdFIS->Command = write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX;
+    cmdFIS->PortMultiplier = 0;
+    // cmdFIS->Command = (this->portType == SATAPI ? ATAPI_CMD_PACKET : (write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX));
+    cmdFIS->Command = (write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX);
 
     cmdFIS->LBA0 = static_cast<uint8_t>(sector);
     cmdFIS->LBA1 = static_cast<uint8_t>(sector >> 8);
@@ -132,110 +120,143 @@ bool AHCIPort::rw(uint64_t sector, uint32_t sectorCount, uint8_t *buffer, bool w
 
     cmdFIS->DeviceRegister = 1 << 6;
 
-    cmdFIS->CountLow = sectorCount & 0xFF;
-    cmdFIS->CountHigh = (sectorCount >> 8) & 0xFF;
+    cmdFIS->CountLow = static_cast<uint8_t>(sectorCount);
+    cmdFIS->CountHigh = static_cast<uint8_t>(sectorCount >> 8);
 
-    while ((hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000) spin++;
-    if (spin == 1000000)
+    size_t spin = 100;
+    while (spin-- && (this->hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ))) timer::msleep(1);
+    if (spin <= 0)
     {
-        error("AHCI: Port #%d is hung!", this->portNum);
+        error("AHCI: Port #%d: Hung!", this->portNum);
         return false;
     }
 
-    hbaport->CommandIssue = 1 << slot;
+    this->hbaport->InterruptEnable = this->hbaport->InterruptStatus = 0xFFFFFFFF;
 
-    while (true)
+    this->startCMD();
+    this->hbaport->CommandIssue |= 1 << slot;
+
+    while (this->hbaport->CommandIssue & (1 << slot))
     {
-        if ((hbaport->CommandIssue & (1 << slot)) == 0) break;
-        if (hbaport->InterruptStatus & HBA_PxIS_TFES)
+        if (this->hbaport->InterruptStatus & HBA_PxIS_TFES)
         {
-            error("AHCI: Port #%d %s error!", this->portNum, write ? "write" : "read");
+            error("AHCI: Port #%d: %s error!", this->portNum, write ? "Write" : "Read");
+            this->stopCMD();
             return false;
         }
     }
 
-    if (hbaport->InterruptStatus & HBA_PxIS_TFES)
+    spin = 100;
+    while (spin-- && (this->hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ))) timer::msleep(1);
+
+    this->stopCMD();
+    if (spin <= 0)
     {
-        error("AHCI: Port #%d %s error!", this->portNum, write ? "write" : "read");
+        error("AHCI: Port #%d: Hung!", this->portNum);
         return false;
     }
-    while (hbaport->CommandIssue);
+
+    if (this->hbaport->InterruptStatus & HBA_PxIS_TFES)
+    {
+        error("AHCI: Port #%d: %s error!", this->portNum, write ? "Write" : "Read");
+        return false;
+    }
 
     return true;
 }
 
 bool AHCIPort::identify()
 {
-    if (this->portType == AHCIPortType::SATAPI)
-    {
-        error("AHCI: ATAPI unsupported!");
-        return true;
-    }
-
     lockit(this->lock);
-    uint16_t data[256];
+    std::shared_ptr<uint16_t> data(new uint16_t[256]);
 
-    hbaport->InterruptStatus = static_cast<uint32_t>(-1);
-    size_t spin = 0;
+    this->hbaport->InterruptEnable = 0xFFFFFFFF;
+    this->hbaport->InterruptStatus = 0;
+
     int slot = findSlot();
     if (slot == -1) return false;
 
-    HBACommandHeader *cmdHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase | static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32);
+    HBACommandHeader *cmdHdr = reinterpret_cast<HBACommandHeader*>(this->hbaport->CommandListBase | static_cast<uint64_t>(this->hbaport->CommandListBaseUpper) << 32);
     cmdHdr += slot;
     cmdHdr->CommandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
+    // cmdHdr->ATAPI = (this->portType == SATAPI ? 1 : 0);
+    cmdHdr->ATAPI = 0;
     cmdHdr->Write = 0;
-    cmdHdr->ClearBusy = 1;
+    cmdHdr->ClearBusy = 0;
+    cmdHdr->Prefetchable = 0;
+
+    cmdHdr->PRDBCount = 0;
+    cmdHdr->PortMultiplier = 0;
     cmdHdr->PRDTLength = 1;
-    // if (this->portType == SATAPI) cmdHdr->ATAPI = 1;
 
     HBACommandTable *cmdtable = reinterpret_cast<HBACommandTable*>(cmdHdr->CommandTableBaseAddress | static_cast<uint64_t>(cmdHdr->CommandTableBaseAddressUpper) << 32);
     memset(cmdtable, 0, sizeof(HBACommandTable) + (cmdHdr->PRDTLength - 1) * sizeof(HBAPRDTEntry));
 
-    cmdtable->PRDTEntry[0].DataBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(data));
-    cmdtable->PRDTEntry[0].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(data) << 32);
+    cmdtable->PRDTEntry[0].DataBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(data.get()));
+    cmdtable->PRDTEntry[0].DataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(data.get()) << 32);
     cmdtable->PRDTEntry[0].ByteCount = (1 << 9) - 1;
     cmdtable->PRDTEntry[0].InterruptOnCompletion = 1;
 
     // if (this->portType == SATAPI)
     // {
-    //     cmdtable->ATAPICommand[0] = ATAPI_CMD_IDENTIFY;
+    //     cmdtable->ATAPICommand[0] = ATAPI_CMD_CAPACITY;
     //     cmdtable->ATAPICommand[9] = 1;
     // }
 
     FIS_REG_H2D *cmdFIS = reinterpret_cast<FIS_REG_H2D*>(&cmdtable->CommandFIS);
-    cmdFIS->FISType = FIS_TYPE::FIS_TYPE_REG_H2D;
+    cmdFIS->FISType = FIS_TYPE_REG_H2D;
     cmdFIS->CommandControl = 1;
-    // cmdFIS->Command = (this->portType == AHCIPortType::SATAPI ? ATAPI_CMD_IDENTIFY : ATA_CMD_IDENTIFY);
+    cmdFIS->PortMultiplier = 0;
+    // cmdFIS->Command = (this->portType == AHCIPortType::SATAPI ? ATAPI_CMD_IDENTIFY_PACKET : ATA_CMD_IDENTIFY);
     cmdFIS->Command = ATA_CMD_IDENTIFY;
 
-    // cmdFIS->DeviceRegister = 1 << 6;
+    cmdFIS->LBA0 = 0;
+    cmdFIS->LBA1 = 0;
+    cmdFIS->LBA2 = 0;
+    cmdFIS->LBA3 = 0;
+    cmdFIS->LBA4 = 0;
+    cmdFIS->LBA5 = 0;
+    cmdFIS->DeviceRegister = 0;
 
-    while ((hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000) spin++;
-    if (spin == 1000000)
+    cmdFIS->CountLow = 0;
+    cmdFIS->CountHigh = 0;
+    cmdFIS->Control = 0;
+
+    size_t spin = 100;
+    while (spin-- && (this->hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ))) timer::msleep(1);
+    if (spin <= 0)
     {
-        error("AHCI: Port #%d is hung!", this->portNum);
+        error("AHCI: Port #%d: Hung!", this->portNum);
         return false;
     }
 
-    hbaport->CommandIssue = 1 << slot;
+    this->hbaport->InterruptEnable = this->hbaport->InterruptStatus = 0xFFFFFFFF;
 
-    while (true)
+    this->startCMD();
+    this->hbaport->SataControl |= 1 << slot;
+    this->hbaport->CommandIssue |= 1 << slot;
+
+    while (this->hbaport->CommandIssue & (1 << slot))
     {
-        if ((hbaport->CommandIssue & (1 << slot)) == 0) break;
-        if (hbaport->InterruptStatus & HBA_PxIS_TFES) return false;
+        if (this->hbaport->InterruptStatus & HBA_PxIS_TFES)
+        {
+            this->stopCMD();
+            return false;
+        }
     }
+    this->stopCMD();
 
-    if (hbaport->InterruptStatus & HBA_PxIS_TFES) return false;
-    while (hbaport->CommandIssue);
+    spin = 100;
+    while (spin-- && (this->hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ))) timer::msleep(1);
+    if (this->hbaport->InterruptStatus & HBA_PxIS_TFES) return false;
 
     this->sectors = *reinterpret_cast<uint64_t*>(&data[100]);
 
     return true;
 }
 
-AHCIPort::AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum)
+AHCIPort::AHCIPort(HBAPort *hbaport, size_t portNum)
 {
-    this->portType = portType;
     this->hbaport = hbaport;
     this->portNum = portNum;
     this->buffer = pmm::alloc<uint8_t*>();
@@ -243,14 +264,14 @@ AHCIPort::AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum)
     stopCMD();
 
     void *newbase = malloc(1024);
-    hbaport->CommandListBase = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase));
-    hbaport->CommandListBaseUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase) >> 32);
+    this->hbaport->CommandListBase = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase));
+    this->hbaport->CommandListBaseUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(newbase) >> 32);
 
     void *fisBase = malloc(256);
-    hbaport->FISBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase));
-    hbaport->FISBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
+    this->hbaport->FISBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase));
+    this->hbaport->FISBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
 
-    HBACommandHeader *commandHdr = reinterpret_cast<HBACommandHeader*>(hbaport->CommandListBase + (static_cast<uint64_t>(hbaport->CommandListBaseUpper) << 32));
+    HBACommandHeader *commandHdr = reinterpret_cast<HBACommandHeader*>(this->hbaport->CommandListBase + (static_cast<uint64_t>(this->hbaport->CommandListBaseUpper) << 32));
     for (size_t i = 0; i < 32; i++)
     {
         commandHdr[i].PRDTLength = 8;
@@ -262,9 +283,55 @@ AHCIPort::AHCIPort(AHCIPortType portType, HBAPort *hbaport, size_t portNum)
 
     startCMD();
 
+    this->hbaport->InterruptStatus = 0;
+    this->hbaport->InterruptEnable = 1;
+    this->hbaport->FISSwitchControl &= ~0xFFFFF000U;
+
+    timer::msleep(10);
+    int spin = 100;
+    while (spin-- && (this->hbaport->SataStatus & HBA_PxSSTS_DET) != HBA_PxSSTS_DET_PRESENT) timer::msleep(1);
+    if ((this->hbaport->SataStatus & HBA_PxSSTS_DET) != HBA_PxSSTS_DET_PRESENT)
+    {
+        error("AHCI: Port #%d: Device not present!", this->portNum);
+        return;
+    }
+
+    this->hbaport->CommandStatus = (this->hbaport->CommandStatus & ~HBA_PxCMD_ICC) | HBA_PxCMD_ICC_ACTIVE;
+
+    spin = 1000;
+    while (spin-- && (this->hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ))) timer::msleep(1);
+    if (spin <= 0)
+    {
+        warn("AHCI: Port #%d: Hung!", this->portNum);
+        this->hbaport->SataControl = SCTL_PORT_DET_INIT | SCTL_PORT_IPM_NOPART | SCTL_PORT_IPM_NOSLUM | SCTL_PORT_IPM_NODSLP;
+    }
+
+    timer::msleep(10);
+    this->hbaport->SataControl &= ~HBA_PxSSTS_DET;
+    timer::msleep(10);
+
+    spin = 200;
+    while (spin-- && (this->hbaport->SataStatus & HBA_PxSSTS_DET_PRESENT) != HBA_PxSSTS_DET_PRESENT) timer::msleep(1);
+
+    if ((this->hbaport->TaskFileData & 0xFF) == 0xFF) timer::msleep(500);
+
+    this->hbaport->SataError = 0;
+    this->hbaport->InterruptStatus = 0;
+
+    spin = 1000;
+    while (spin-- && (this->hbaport->TaskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ))) timer::msleep(1);
+
+    if (spin <= 0) warn("AHCI: Port #%d: Hung!", this->portNum);
+
+    if ((this->hbaport->SataStatus & HBA_PxSSTS_DET) != HBA_PxSSTS_DET_PRESENT)
+    {
+        error("AHCI: Port #%d: Device not present!", this->portNum);
+        return;
+    }
+
     if (!this->identify())
     {
-        error("AHCI: Port #%d identify error!", this->portNum);
+        error("AHCI: Port #%d: Identify error!", this->portNum);
         return;
     }
 
@@ -283,22 +350,85 @@ AHCIController::AHCIController(pci::pcidevice_t *pcidevice)
     this->pcidevice = pcidevice;
     log("Registering AHCI driver #%zu", devices.size());
 
-    ABAR = reinterpret_cast<HBAMemory*>(pcidevice->get_bar(5).address);
+    pcidevice->command(pci::CMD_BUS_MAST | pci::CMD_MEM_SPACE, true);
+
+    this->ABAR = reinterpret_cast<HBAMemory*>(pcidevice->get_bar(5).address);
+
+    if (this->ABAR->Version >= 0x10200 && (this->ABAR->HostCapabilitiesExtended & 1))
+    {
+        this->ABAR->BIOSHandoffControlStatus |= AHCI_OWNER_OS;
+
+        size_t spin = 25;
+        while (spin-- && (this->ABAR->BIOSHandoffControlStatus & AHCI_OWNER_BIOS)) timer::msleep(1);
+
+        if (spin <= 0)
+        {
+            if (this->ABAR->BIOSHandoffControlStatus & AHCI_BIOS_BUSY)
+            {
+                warn("AHCI: BIOS handoff timed out! Retrying...");
+                spin = 25;
+                while (spin-- && (this->ABAR->BIOSHandoffControlStatus & AHCI_OWNER_BIOS)) timer::msleep(1);
+                if (spin <= 0)
+                {
+                    error("AHCI: BIOS handoff timed out!");
+                    return;
+                }
+            }
+            else warn("AHCI: BIOS handoff timed out!");
+        }
+    }
+
+    this->ABAR->GlobalHostControl = this->ABAR->GlobalHostControl | AHCI_GHC_HR;
+    size_t spin = 100;
+    while (spin-- && (this->ABAR->GlobalHostControl & AHCI_GHC_HR)) timer::msleep(1);
+    if (spin <= 0)
+    {
+        error("AHCI: HBA timed out!");
+        return;
+    }
+    this->ABAR->GlobalHostControl |= AHCI_GHC_AE;
+
+    uint32_t cap = this->ABAR->HostCapability;
+    uint8_t maxports = (cap & 0xF) + 1;
+    if (maxports > 32)
+    {
+        error("AHCI: Maximum port count is higher than 32!");
+        return;
+    }
 
     uint32_t portsImpl = ABAR->PortsImplemented;
-    for (size_t i = 0; i < 32; i++)
+    if (portsImpl == 0)
+    {
+        error("AHCI: No implemented ports!");
+        return;
+    }
+
+    while (!(this->ABAR->GlobalHostControl & AHCI_GHC_IE))
+    {
+        this->ABAR->GlobalHostControl |= AHCI_GHC_IE;
+        timer::msleep(1);
+    }
+    this->ABAR->GlobalHostControl |= AHCI_GHC_IE;
+    this->ABAR->InterruptStatus = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < maxports; i++)
     {
         if (portsImpl & (1 << i))
         {
-            AHCIPortType portType = checkPortType(&ABAR->Ports[i]);
-            if (portType == AHCIPortType::SATA || portType == AHCIPortType::SATAPI)
+            auto port = &this->ABAR->Ports[i];
+            uint32_t statStat = port->SataStatus;
+            uint8_t intpowman = (statStat >> 8) & 0b111;
+            uint8_t devdetect = statStat & 0b111;
+
+            if (devdetect != HBA_PORT_DEV_PRESENT) continue;
+            if (intpowman != HBA_PORT_IPM_ACTIVE) continue;
+
+            this->ports.push_back(new AHCIPort(port, ports.size()));
+            if (this->ports.back()->initialised == false)
             {
-                ports.push_back(new AHCIPort(portType, &ABAR->Ports[i], ports.size()));
-                if (ports.front()->initialised == false)
-                {
-                    free(ports.front());
-                    ports.pop_back();
-                }
+                free(this->ports.back());
+                this->ports.pop_back();
+                error("Could not initialise AHCI port #%zu", this->ports.size());
             }
         }
     }

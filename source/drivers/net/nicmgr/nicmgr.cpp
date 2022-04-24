@@ -5,6 +5,7 @@
 #include <drivers/net/rtl8169/rtl8169.hpp>
 #include <drivers/net/nicmgr/nicmgr.hpp>
 #include <drivers/net/e1000/e1000.hpp>
+#include <system/net/ipv4/ipv4.hpp>
 #include <lib/memory.hpp>
 #include <lib/math.hpp>
 #include <lib/log.hpp>

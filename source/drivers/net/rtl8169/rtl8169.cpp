@@ -2,6 +2,7 @@
 
 #include <system/net/ethernet/ethernet.hpp>
 #include <drivers/net/rtl8169/rtl8169.hpp>
+#include <lib/shared_ptr.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
@@ -12,25 +13,24 @@ namespace kernel::drivers::net::rtl8169 {
 bool initialised = false;
 vector<RTL8169*> devices;
 
-static void RTL8169_Handler(registers_t *regs, uint64_t i)
+static void RTL8169_Handler(registers_t *regs, uint64_t addr)
 {
-    if (i >= devices.size()) return;
-    RTL8169 *device = devices[i];
+    auto device = reinterpret_cast<RTL8169*>(addr);
 
     uint16_t status = device->status();
-    if (status & IST_SYSTEM_ERROR) error("RTL8169: Card #%zu: Error!", i);
-    if (status & IST_TIME_OUT) if (device->debug) warn("RTL8169: Card #%zu: Time out!", i);
-    if (status & IST_SOFT_INT) if (device->debug) warn("RTL8169: Card #%zu: Software interrupt!", i);
-    if (status & IST_TX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: TX descriptor unavailable!", i);
-    if (status & IST_RX_FIFO_OVER) if (device->debug) error("RTL8169: Card #%zu: RX FIFO overflow!", i);
-    if (status & IST_LINK_CHANGE) if (device->debug) log("RTL8169: Card #%zu: Link status change!", i);
-    if (status & IST_RX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: RX descriptor unavailable!", i);
-    if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while sending packet!", i);
-    if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8169: Card #%zu: Packet sent!", i);
-    if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while receiving packet!", i);
+    if (status & IST_SYSTEM_ERROR) error("RTL8169: Card #%zu: Error!", device->id);
+    if (status & IST_TIME_OUT) if (device->debug) warn("RTL8169: Card #%zu: Time out!", device->id);
+    if (status & IST_SOFT_INT) if (device->debug) warn("RTL8169: Card #%zu: Software interrupt!", device->id);
+    if (status & IST_TX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: TX descriptor unavailable!", device->id);
+    if (status & IST_RX_FIFO_OVER) if (device->debug) error("RTL8169: Card #%zu: RX FIFO overflow!", device->id);
+    if (status & IST_LINK_CHANGE) if (device->debug) log("RTL8169: Card #%zu: Link status change!", device->id);
+    if (status & IST_RX_UNAVAIL) if (device->debug) error("RTL8169: Card #%zu: RX descriptor unavailable!", device->id);
+    if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while sending packet!", device->id);
+    if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8169: Card #%zu: Packet sent!", device->id);
+    if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8169: Card #%zu: Error while receiving packet!", device->id);
     if (status & IST_RECEIVE_OK)
     {
-        if (device->debug) log("RTL8169: Card #%zu: Packet received!", i);
+        if (device->debug) log("RTL8169: Card #%zu: Packet received!", device->id);
         device->receive();
     }
     device->irq_reset(status);
@@ -96,9 +96,9 @@ void RTL8169::send(void *data, uint64_t length)
 {
     lockit(this->lock);
 
-    void *tdata = malloc(length);
-    memcpy(tdata, data, length);
-    this->txdescs[this->txcurr]->buffer = reinterpret_cast<uint64_t>(tdata);
+    std::shared_ptr<uint8_t> tdata(new uint8_t[length]);
+    memcpy(tdata.get(), data, length);
+    this->txdescs[this->txcurr]->buffer = reinterpret_cast<uint64_t>(tdata.get());
     this->txdescs[this->txcurr]->command = RTL8169_OWN | RTL8169_FFR | RTL8169_LFR | length;
     uint8_t old_cur = this->txcurr;
     if (++this->txcurr >= RTL8169_NUM_TX_DESC)
@@ -107,7 +107,6 @@ void RTL8169::send(void *data, uint64_t length)
         this->txdescs[old_cur]->command |= RTL8169_EOR;
     }
     this->outb(REG_TPPOLL, 0x40);
-    free(tdata);
 }
 
 void RTL8169::receive()
@@ -119,14 +118,13 @@ void RTL8169::receive()
         // size_t length = this->rxdescs[this->rxcurr]->command & 0xFFFF;
         size_t length = (this->rxdescs[this->rxcurr]->command & 0x1FFF) - 4;
         uint64_t t = this->rxdescs[this->rxcurr]->buffer;
-        void *packet = malloc(length);
-        memcpy(packet, reinterpret_cast<void*>(t), length);
+        std::shared_ptr<uint8_t> packet(new uint8_t[length]);
+        memcpy(packet.get(), reinterpret_cast<uint8_t*>(t), length);
 
         this->rxdescs[this->rxcurr]->command |= RTL8169_OWN;
         if (++this->rxcurr >= RTL8169_NUM_RX_DESC) this->rxcurr = 0;
 
-        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet));
-        free(packet);
+        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet.get()));
     }
 }
 
@@ -183,9 +181,11 @@ void RTL8169::start()
     this->read_mac();
 }
 
-RTL8169::RTL8169(pci::pcidevice_t *pcidevice)
+RTL8169::RTL8169(pci::pcidevice_t *pcidevice, uint8_t id)
 {
     this->pcidevice = pcidevice;
+    this->id = id;
+
     log("Registering card #%zu", devices.size());
 
     pci::pcibar bar0 = pcidevice->get_bar(0);
@@ -217,7 +217,7 @@ bool search(uint16_t vendorid, uint16_t deviceid)
 
     for (size_t i = 0; i < count; i++)
     {
-        devices.push_back(new RTL8169(pci::search(vendorid, deviceid, i)));
+        devices.push_back(new RTL8169(pci::search(vendorid, deviceid, i), devices.size()));
         if (devices.back()->initialised == false)
         {
             free(devices.back());
