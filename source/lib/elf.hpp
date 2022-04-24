@@ -5,6 +5,7 @@
 #include <system/mm/pmm/pmm.hpp>
 #include <system/mm/vmm/vmm.hpp>
 #include <system/vfs/vfs.hpp>
+#include <lib/shared_ptr.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/math.hpp>
 #include <cstdint>
@@ -26,13 +27,12 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
     struct ret { Auxval auxval; std::string ld_path; };
     ret null { Auxval { 0, 0, 0, 0 }, "" };
 
-    Elf64_Ehdr *header = new Elf64_Ehdr;
-    res->read(nullptr, reinterpret_cast<uint8_t*>(header), 0, sizeof(Elf64_Ehdr));
+    std::shared_ptr<Elf64_Ehdr> header(new Elf64_Ehdr);
+    res->read(nullptr, reinterpret_cast<uint8_t*>(header.get()), 0, sizeof(Elf64_Ehdr));
 
     if (memcmp(header->e_ident, ELFMAG, 4))
     {
         error("ELF: Invalid magic!");
-        delete header;
         return null;
     }
 
@@ -42,7 +42,6 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
         || header->e_machine != R_IA64_PLTOFF64MSB)
     {
         error("ELF: Unsupported ELF file!");
-        delete header;
         return null;
     }
 
@@ -57,8 +56,8 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
     std::string ld_path("");
     for (size_t i = 0; i < header->e_phnum; i++)
     {
-        Elf64_Phdr *phdr = new Elf64_Phdr;
-        res->read(nullptr, reinterpret_cast<uint8_t*>(phdr), header->e_phoff + sizeof(Elf64_Phdr) * i, sizeof(Elf64_Phdr));
+        std::shared_ptr<Elf64_Phdr> phdr(new Elf64_Phdr);
+        res->read(nullptr, reinterpret_cast<uint8_t*>(phdr.get()), header->e_phoff + sizeof(Elf64_Phdr) * i, sizeof(Elf64_Phdr));
 
         switch (phdr->p_type)
         {
@@ -77,8 +76,6 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
                 if (addr == nullptr)
                 {
                     error("ELF: Could not allocate memory!");
-                    delete header;
-                    delete phdr;
                     return null;
                 }
 
@@ -92,8 +89,6 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
                 break;
             }
         }
-        delete phdr;
     }
-    delete header;
     return ret { auxval, ld_path };
 }

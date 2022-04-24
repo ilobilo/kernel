@@ -9,8 +9,9 @@ enum keys
     SCROLLLOCK = 0x46,
 
     L_SHIFT_DOWN = 0x2A,
-    R_SHIFT_DOWN = 0x36,
     L_SHIFT_UP = 0xAA,
+
+    R_SHIFT_DOWN = 0x36,
     R_SHIFT_UP = 0xB6,
 
     CTRL_DOWN = 0x1D,
@@ -20,7 +21,7 @@ enum keys
     ALT_UP = 0xB8,
 
     HOME = 0x47,
-    END = 0x52,
+    END = 0x4F,
 
     PGUP = 0x49,
     PGDN = 0x51,
@@ -32,11 +33,14 @@ enum keys
     DOWN = 0x50,
     LEFT = 0x4B,
     RIGHT = 0x4D,
-};
 
-extern unsigned char escapes[];
+    KPD_ENTER = 0x1C,
+    KPD_SLASH = 0x35
+};
 
 extern unsigned char kbdus[];
 extern unsigned char kbdus_shft[];
 extern unsigned char kbdus_caps[];
 extern unsigned char kbdus_capsshft[];
+
+extern unsigned char kbdus_numpad[];

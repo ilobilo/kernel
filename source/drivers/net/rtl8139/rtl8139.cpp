@@ -2,6 +2,7 @@
 
 #include <system/net/ethernet/ethernet.hpp>
 #include <drivers/net/rtl8139/rtl8139.hpp>
+#include <lib/shared_ptr.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
@@ -12,22 +13,21 @@ namespace kernel::drivers::net::rtl8139 {
 bool initialised = false;
 vector<RTL8139*> devices;
 
-static void RTL8139_Handler(registers_t *regs, uint64_t i)
+static void RTL8139_Handler(registers_t *regs, uint64_t addr)
 {
-    if (i >= devices.size()) return;
-    RTL8139 *device = devices[i];
+    auto device = reinterpret_cast<RTL8139*>(addr);
 
     uint16_t status = device->status();
-    if (status & IST_SYSTEM_ERROR) error("RTL8139: Card #%zu: Error!", i);
-    if (status & IST_TIME_OUT) if (device->debug) warn("RTL8139: Card #%zu: Time out!", i);
-    if (status & IST_CABLE_LENGTH_CHANGE) if (device->debug) warn("RTL8139: Card #%zu: Cable length change!", i);
-    if (status & IST_RX_BUFF_OVER) if (device->debug) error("RTL8139: Card #%zu: RX buffer overflow!", i);
-    if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while sending packet!", i);
-    if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8139: Card #%zu: Packet sent!", i);
-    if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while receiving packet!", i);
+    if (status & IST_SYSTEM_ERROR) error("RTL8139: Card #%zu: Error!", device->id);
+    if (status & IST_TIME_OUT) if (device->debug) warn("RTL8139: Card #%zu: Time out!", device->id);
+    if (status & IST_CABLE_LENGTH_CHANGE) if (device->debug) warn("RTL8139: Card #%zu: Cable length change!", device->id);
+    if (status & IST_RX_BUFF_OVER) if (device->debug) error("RTL8139: Card #%zu: RX buffer overflow!", device->id);
+    if (status & IST_TRANSMIT_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while sending packet!", device->id);
+    if (status & IST_TRANSMIT_OK) if (device->debug) log("RTL8139: Card #%zu: Packet sent!", device->id);
+    if (status & IST_RECEIVE_ERR) if (device->debug) error("RTL8139: Card #%zu: Error while receiving packet!", device->id);
     if (status & IST_RECEIVE_OK)
     {
-        if (device->debug) log("RTL8139: Card #%zu: Packet received!", i);
+        if (device->debug) log("RTL8139: Card #%zu: Packet received!", device->id);
         device->receive();
     }
     device->irq_reset();
@@ -93,12 +93,11 @@ void RTL8139::send(void *data, uint64_t length)
 {
     lockit(this->lock);
 
-    void *tdata = malloc(length);
-    memcpy(tdata, data, length);
-    this->outl(this->TSAD[this->txcurr], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata)));
+    std::shared_ptr<uint8_t> tdata(new uint8_t[length]);
+    memcpy(tdata.get(), data, length);
+    this->outl(this->TSAD[this->txcurr], static_cast<uint32_t>(reinterpret_cast<uint64_t>(tdata.get())));
     this->outl(this->TSD[this->txcurr++], length);
     if (this->txcurr > 3) this->txcurr = 0;
-    free(tdata);
 }
 
 void RTL8139::receive()
@@ -106,15 +105,14 @@ void RTL8139::receive()
     uint16_t *t = reinterpret_cast<uint16_t*>(this->RXBuffer + this->current_packet);
     uint16_t length = *(t + 1);
     t += 2;
-    void *packet = malloc(length);
-    memcpy(packet, t, length);
+    std::shared_ptr<uint8_t> packet(new uint8_t[length]);
+    memcpy(packet.get(), t, length);
 
     this->current_packet = (this->current_packet + length + 7) & ~3;
     if (this->current_packet > 8192) this->current_packet -= 8192;
     this->outw(REG_CAPR, this->current_packet - 0x10);
 
-    ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet));
-    free(packet);
+    ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet.get()));
 }
 
 void RTL8139::reset()
@@ -139,10 +137,11 @@ void RTL8139::start()
     this->read_mac();
 }
 
-RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
+RTL8139::RTL8139(pci::pcidevice_t *pcidevice, uint8_t id)
 {
     this->pcidevice = pcidevice;
-    log("Registering card #%zu", devices.size());
+    this->id = id;
+    log("Registering card #%zu", id);
 
     pci::pcibar bar0 = pcidevice->get_bar(0);
     pci::pcibar bar1 = pcidevice->get_bar(1);
@@ -154,7 +153,7 @@ RTL8139::RTL8139(pci::pcidevice_t *pcidevice)
 
     this->start();
 
-    pcidevice->irq_set(RTL8139_Handler, devices.size());
+    pcidevice->irq_set(RTL8139_Handler, reinterpret_cast<uint64_t>(this));
 
     this->initialised = true;
 }
@@ -179,7 +178,7 @@ void init()
     devices.init(count);
     for (size_t i = 0; i < count; i++)
     {
-        devices.push_back(new RTL8139(pci::search(0x10EC, 0x8139, i)));
+        devices.push_back(new RTL8139(pci::search(0x10EC, 0x8139, i), devices.size()));
         if (devices.back()->initialised == false)
         {
             free(devices.back());

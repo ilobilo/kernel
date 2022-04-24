@@ -152,6 +152,7 @@ class E1000 : public nicmgr::NIC
 
     public:
     bool initialised = false;
+    uint8_t id;
 
     void send(void *data, uint64_t length);
     void receive();
@@ -162,7 +163,7 @@ class E1000 : public nicmgr::NIC
     void startlink();
     void start();
 
-    E1000(pci::pcidevice_t *pcidevice);
+    E1000(pci::pcidevice_t *pcidevice, uint8_t id);
 };
 
 extern bool initialised;

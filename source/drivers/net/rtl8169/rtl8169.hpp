@@ -106,6 +106,7 @@ class RTL8169 : public nicmgr::NIC
 
     public:
     bool initialised = false;
+    uint8_t id;
 
     void send(void *data, uint64_t length);
     void receive();
@@ -118,7 +119,7 @@ class RTL8169 : public nicmgr::NIC
 
     void read_mac();
 
-    RTL8169(pci::pcidevice_t *pcidevice);
+    RTL8169(pci::pcidevice_t *pcidevice, uint8_t id);
 };
 
 extern bool initialised;

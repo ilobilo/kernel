@@ -1,7 +1,6 @@
 // Copyright (C) 2021-2022  ilobilo
 
 #include <system/sched/scheduler/scheduler.hpp>
-#include <system/sched/timer/timer.hpp>
 #include <system/sched/pit/pit.hpp>
 #include <system/cpu/apic/apic.hpp>
 #include <system/cpu/idt/idt.hpp>
@@ -9,6 +8,7 @@
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/bitmap.hpp>
+#include <lib/timer.hpp>
 #include <lib/log.hpp>
 
 using namespace kernel::system::cpu;

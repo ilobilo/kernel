@@ -1,8 +1,8 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <system/sched/timer/timer.hpp>
 #include <system/sched/hpet/hpet.hpp>
 #include <system/acpi/acpi.hpp>
+#include <lib/timer.hpp>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
 

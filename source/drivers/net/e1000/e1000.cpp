@@ -2,6 +2,7 @@
 
 #include <system/net/ethernet/ethernet.hpp>
 #include <drivers/net/e1000/e1000.hpp>
+#include <lib/shared_ptr.hpp>
 #include <lib/memory.hpp>
 #include <lib/mmio.hpp>
 #include <lib/log.hpp>
@@ -13,26 +14,25 @@ namespace kernel::drivers::net::e1000 {
 bool initialised = false;
 vector<E1000*> devices;
 
-static void E1000_Handler(registers_t *regs, uint64_t i)
+static void E1000_Handler(registers_t *regs, uint64_t addr)
 {
-    if (i >= devices.size()) return;
-    E1000 *device = devices[i];
+    auto device = reinterpret_cast<E1000*>(addr);
 
     uint32_t status = device->status();
-    if (status & (1 << 24)) if (device->debug) warn("E1000: Card #%zu: Time out!", i);
-    if (status & (1 << 23)) if (device->debug) warn("E1000: Card #%zu: Non-fatal error!", i);
-    if (status & (1 << 22)) error("E1000: Card #%zu: Fatal error!", i);
+    if (status & (1 << 24)) if (device->debug) warn("E1000: Card #%zu: Time out!", device->id);
+    if (status & (1 << 23)) if (device->debug) warn("E1000: Card #%zu: Non-fatal error!", device->id);
+    if (status & (1 << 22)) error("E1000: Card #%zu: Fatal error!", device->id);
     if (status & (1 << 7))
     {
-        if (device->debug) log("E1000: Card #%zu: Packets received!", i);
+        if (device->debug) log("E1000: Card #%zu: Packets received!", device->id);
         device->receive();
     }
     if (status & (1 << 2))
     {
-        if (device->debug) log("E1000: Card #%zu: Link status changed!", i);
+        if (device->debug) log("E1000: Card #%zu: Link status changed!", device->id);
         device->startlink();
     }
-    if (status & (1 << 0)) if (device->debug) log("E1000: Card #%zu: Packet sent!", i);
+    if (status & (1 << 0)) if (device->debug) log("E1000: Card #%zu: Packet sent!", device->id);
     device->irq_reset(status);
 }
 
@@ -127,9 +127,9 @@ void E1000::send(void *data, uint64_t length)
 {
     lockit(this->lock);
 
-    void *tdata = malloc(length);
-    memcpy(tdata, data, length);
-    this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(tdata);
+    std::shared_ptr<uint8_t> tdata(new uint8_t[length]);
+    memcpy(tdata.get(), data, length);
+    this->txdescs[this->txcurr]->addr = reinterpret_cast<uint64_t>(tdata.get());
     this->txdescs[this->txcurr]->length = length;
     this->txdescs[this->txcurr]->cmd = CMD_EOP | CMD_IFCS | CMD_RS;
     this->txdescs[this->txcurr]->status = 0;
@@ -146,7 +146,6 @@ void E1000::send(void *data, uint64_t length)
             break;
         }
     }
-    free(tdata);
 }
 
 void E1000::receive()
@@ -157,16 +156,15 @@ void E1000::receive()
         if (this->debug) log("E1000: Handling packet #%zu!", i);
 
         uint16_t length = this->rxdescs[this->rxcurr]->length;
-        uint8_t *packet = new uint8_t[length];
-        memcpy(packet, reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr), length);
+        std::shared_ptr<uint8_t> packet(new uint8_t[length]);
+        memcpy(packet.get(), reinterpret_cast<uint8_t*>(this->rxdescs[this->rxcurr]->addr), length);
 
         this->rxdescs[this->rxcurr]->status = 0;
         old_cur = this->rxcurr;
         this->rxcurr = (this->rxcurr + 1) % E1000_NUM_RX_DESC;
         this->outcmd(REG_RXDESCTAIL, old_cur);
 
-        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet));
-        delete[] packet;
+        ethernet::receive(this, reinterpret_cast<ethernet::ethHdr*>(packet.get()));
     }
 }
 
@@ -238,9 +236,11 @@ void E1000::start()
     this->txinit();
 }
 
-E1000::E1000(pci::pcidevice_t *pcidevice)
+E1000::E1000(pci::pcidevice_t *pcidevice, uint8_t id)
 {
     this->pcidevice = pcidevice;
+    this->id = id;
+
     log("Registering card #%zu", devices.size());
 
     pci::pcibar bar0 = pcidevice->get_bar(0);
@@ -271,7 +271,7 @@ bool search(uint16_t vendorid, uint16_t deviceid)
 
     for (size_t i = 0; i < count; i++)
     {
-        devices.push_back(new E1000(pci::search(vendorid, deviceid, i)));
+        devices.push_back(new E1000(pci::search(vendorid, deviceid, i), devices.size()));
         if (devices.back()->initialised == false)
         {
             free(devices.back());

@@ -1870,12 +1870,22 @@ class printer
 	printer &operator<<(unsigned int i);
 };
 
+static const char *endl = "\n";
 extern printer cout;
 extern printer coutl;
 extern printer coutw;
 extern printer coute;
 
-static inline char *operator"" _c(const char *str, unsigned long length)
+namespace std
+{
+	static const char *endl = ::endl;
+	static printer &cout = ::cout;
+	static printer &coutl = ::coutl;
+	static printer &coutw = ::coutw;
+	static printer &coute = ::coute;
+}
+
+static inline char *operator""_c(const char *str, unsigned long length)
 {
     return const_cast<char*>(str);
 }

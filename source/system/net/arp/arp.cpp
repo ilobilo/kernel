@@ -2,6 +2,7 @@
 
 #include <system/net/ethernet/ethernet.hpp>
 #include <system/net/arp/arp.hpp>
+#include <lib/shared_ptr.hpp>
 #include <lib/memory.hpp>
 #include <lib/log.hpp>
 
@@ -38,7 +39,7 @@ tableEntry *table_update(macaddr mac, ipv4addr ip)
 
 void send(nicmgr::NIC *nic, macaddr dmac, ipv4addr dip)
 {
-    arpHdr *packet = new arpHdr;
+    std::shared_ptr<arpHdr> packet(new arpHdr);
 
     packet->hwtype = HWTYPE_ETHERNET;
     packet->protype = ethernet::TYPE_IPv4;
@@ -54,8 +55,7 @@ void send(nicmgr::NIC *nic, macaddr dmac, ipv4addr dip)
     packet->dmac = dmac;
     packet->dip = dip;
 
-    ethernet::send(nic, dmac, reinterpret_cast<uint8_t*>(packet), sizeof(arpHdr), ethernet::TYPE_ARP);
-    delete packet;
+    ethernet::send(nic, dmac, reinterpret_cast<uint8_t*>(packet.get()), sizeof(arpHdr), ethernet::TYPE_ARP);
 
     if (debug) log("ARP: Packet sent!");
 }
