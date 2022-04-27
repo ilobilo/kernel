@@ -155,11 +155,41 @@ struct termios
 
 struct terminal_res : vfs::resource_t
 {
+    lock_t read_lock;
     ringbuffer<char> buff;
     ringbuffer<char> bigbuff;
+    bool decckm = false;
     winsize wsize;
     termios tios;
-    lock_t read_lock;
+
+    union
+    {
+        struct
+        {
+            bool capslock : 1;
+            bool numlock : 1;
+            bool scrollock : 1;
+            uint8_t rsv0: 5;
+        };
+        uint8_t leds;
+    };
+    uint8_t lastleds;
+
+    uint8_t lockstate;
+    uint8_t slockstate;
+
+    union
+    {
+        struct
+        {
+            bool shift : 1;
+            uint8_t rsv1 : 1;
+            bool ctrl : 1;
+            bool alt : 1;
+            uint8_t rsv2 : 4;
+        };
+        uint8_t shiftstate;
+    };
 
     virtual int print(const char *fmt, ...)
     {

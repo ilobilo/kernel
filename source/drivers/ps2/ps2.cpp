@@ -171,7 +171,6 @@ static bool writedev(devices device, uint8_t value)
 
 bool kbdinitialised = false;
 
-kbd_mod_t kbd_mod;
 new_lock(kbd_lock);
 
 void setscancodeset(uint8_t scancode)
@@ -189,151 +188,183 @@ uint8_t getscancodeset()
 
 void update_leds()
 {
-    uint8_t value = 0b000;
-    if (kbd_mod.scrolllock) value |= (1 << 0);
-    if (kbd_mod.numlock) value |= (1 << 1);
-    if (kbd_mod.capslock) value |= (1 << 2);
     writedev(kbddevice, PS2_KEYBOARD_SET_LEDS);
-    writedev(kbddevice, value);
+    writedev(kbddevice, tty::current_tty->leds);
 }
+
+extern void (*handlers[])(bool, uint8_t);
+
+static void latin_handler(bool up, uint8_t value)
+{
+    if (up == true) return;
+    tty::current_tty->add_char(static_cast<char>(value));
+}
+static void func_handler(bool up, uint8_t value)
+{
+    if (up == true) return;
+    tty::current_tty->add_str(func_table[value]);
+}
+static void spec_handler(bool up, uint8_t value)
+{
+    if (up == true) return;
+    switch (value)
+    {
+        case 1:
+            tty::current_tty->add_char('\n');
+            break;
+        case 7:
+            tty::current_tty->capslock = !tty::current_tty->capslock;
+            break;
+        case 8:
+            tty::current_tty->numlock = !tty::current_tty->numlock;
+            break;
+        case 9:
+            tty::current_tty->scrollock = !tty::current_tty->scrollock;
+            break;
+        case 12:
+            acpi::reboot();
+            break;
+        case 13:
+            tty::current_tty->capslock = true;
+            break;
+        case 19:
+            tty::current_tty->numlock = !tty::current_tty->numlock;
+    }
+}
+static void pad_handler(bool up, uint8_t value)
+{
+    static const char pad_chars[] = "0123456789+-*/\015,.?()#";
+
+    if (up == true) return;
+
+    if (!tty::current_tty->numlock)
+    {
+        switch (value)
+        {
+            case KEY_VALUE(KEY_PCOMMA):
+            case KEY_VALUE(KEY_PDOT):
+                handlers[1](up, KEY_VALUE(KEY_REMOVE));
+                return;
+            case KEY_VALUE(KEY_P0):
+                handlers[1](up, KEY_VALUE(KEY_INSERT));
+                return;
+            case KEY_VALUE(KEY_P1):
+                handlers[1](up, KEY_VALUE(KEY_SELECT));
+                return;
+            case KEY_VALUE(KEY_P2):
+                handlers[6](up, KEY_VALUE(KEY_DOWN));
+                return;
+            case KEY_VALUE(KEY_P3):
+                handlers[1](up, KEY_VALUE(KEY_PGDN));
+                return;
+            case KEY_VALUE(KEY_P4):
+                handlers[6](up, KEY_VALUE(KEY_LEFT));
+                return;
+            case KEY_VALUE(KEY_P5):
+                tty::current_tty->add_str("\033[G");
+                return;
+            case KEY_VALUE(KEY_P6):
+                handlers[6](up, KEY_VALUE(KEY_RIGHT));
+                return;
+            case KEY_VALUE(KEY_P7):
+                handlers[1](up, KEY_VALUE(KEY_FIND));
+                return;
+            case KEY_VALUE(KEY_P8):
+                handlers[6](up, KEY_VALUE(KEY_UP));
+                return;
+            case KEY_VALUE(KEY_P9):
+                handlers[1](up, KEY_VALUE(KEY_PGUP));
+                return;
+        }
+    }
+    tty::current_tty->add_char(pad_chars[value]);
+}
+static void dead_handler(bool up, uint8_t value) { }
+static void cons_handler(bool up, uint8_t value) { }
+static void cur_handler(bool up, uint8_t value)
+{
+    if (up == true) return;
+    static const char cur_chars[] = "BDCA";
+    tty::current_tty->add_str((char[]) { '\033', (tty::current_tty->decckm ? 'O' : '['), cur_chars[value], '\0' });
+}
+static void shift_handler(bool up, uint8_t value)
+{
+    if (up == true) tty::current_tty->shiftstate &= ~(1 << value);
+    else tty::current_tty->shiftstate |= (1 << value);
+}
+static void meta_handler(bool up, uint8_t value)
+{
+    if (up == true) return;
+    tty::current_tty->add_char('\033');
+    tty::current_tty->add_char(value);
+}
+static void ascii_handler(bool up, uint8_t value) { }
+static void lock_handler(bool up, uint8_t value)
+{
+    if (up == true) return;
+    tty::current_tty->lockstate ^= 1 << value;
+}
+static void letter_handler(bool up, uint8_t value) { }
+static void slock_handler(bool up, uint8_t value)
+{
+    handlers[7](up, value);
+    if (up == true) return;
+
+    tty::current_tty->slockstate ^= 1 << value;
+    if (!key_maps[tty::current_tty->lockstate ^ tty::current_tty->slockstate])
+    {
+        tty::current_tty->slockstate = 0;
+        tty::current_tty->slockstate ^= 1 << value;
+    }
+}
+static void dead2_handler(bool up, uint8_t value) { }
+static void brl_handler(bool up, uint8_t value) { }
+
+void (*handlers[15])(bool, uint8_t)
+{
+    latin_handler, func_handler, spec_handler,
+    pad_handler, dead_handler, cons_handler,
+    cur_handler, shift_handler, meta_handler,
+    ascii_handler, lock_handler, letter_handler,
+    slock_handler, dead2_handler, brl_handler
+};
 
 static void Keyboard_handler(registers_t *)
 {
     // if (checkint(kbddevice) == false) return;
     lockit(kbd_lock);
     uint8_t scancode = inb(PS2_PORT_DATA);
-    static bool extra = false;
+    if (scancode == 0xE0) return;
+    if (scancode > 0xFF) return;
 
-    auto extra_keys = [&scancode]() -> bool
+    static uint8_t last_leds = 0;
+    bool up = scancode & 0x80;
+    scancode &= ~0x80;
+
+    int map_i = (tty::current_tty->shiftstate | tty::current_tty->slockstate) ^ tty::current_tty->lockstate;
+    uint16_t *map = key_maps[map_i];
+    if (map == nullptr) map = plain_map;
+    uint16_t keysym = map[scancode];
+    uint8_t type = KEY_TYPE(keysym);
+
+    if (type >= 0xF0)
     {
-        switch (scancode)
+        type -= 0xF0;
+        if (type == KEY_TYPE_LETTER)
         {
-            case UP:
-                tty::current_tty->add_str("\033[A");
-                return true;
-            case DOWN:
-                tty::current_tty->add_str("\033[B");
-                return true;
-            case RIGHT:
-                tty::current_tty->add_str("\033[C");
-                return true;
-            case LEFT:
-                tty::current_tty->add_str("\033[D");
-                return true;
-            case HOME:
-                tty::current_tty->add_str("\033[1~");
-                return true;
-            case INSERT:
-                tty::current_tty->add_str("\033[2~");
-                return true;
-            case DELETE:
-                tty::current_tty->add_str("\033[3~");
-                return true;
-            case END:
-                tty::current_tty->add_str("\033[4~");
-                return true;
-            case PGUP:
-                tty::current_tty->add_str("\033[5~");
-                return true;
-            case PGDN:
-                tty::current_tty->add_str("\033[6~");
-                return true;
-            case KPD_ENTER:
-                tty::current_tty->add_char('\n');
-                return true;
-            case KPD_SLASH:
-                tty::current_tty->add_char('/');
-                return true;
-        }
-        return false;
-    };
-
-    if (scancode == 0xE0)
-    {
-        extra = true;
-        return;
-    }
-
-    if (extra == true)
-    {
-        extra = false;
-        switch (scancode)
-        {
-            case CTRL_DOWN:
-                kbd_mod.ctrl = true;
-                return;
-            case CTRL_UP:
-                kbd_mod.ctrl = false;
-                return;
-            default:
-                if (extra_keys()) return;
-        }
-    }
-
-    switch (scancode)
-    {
-        case L_SHIFT_DOWN:
-        case R_SHIFT_DOWN:
-            kbd_mod.shift = true;
-            break;
-        case L_SHIFT_UP:
-        case R_SHIFT_UP:
-            kbd_mod.shift = false;
-            break;
-        case CTRL_DOWN:
-            kbd_mod.ctrl = true;
-            break;
-        case CTRL_UP:
-            kbd_mod.ctrl = false;
-            break;
-        case ALT_DOWN:
-            kbd_mod.alt = true;
-            break;
-        case ALT_UP:
-            kbd_mod.alt = false;
-            break;
-        case CAPSLOCK:
-            kbd_mod.capslock = !kbd_mod.capslock;
-            update_leds();
-            break;
-        case NUMLOCK:
-            kbd_mod.numlock = !kbd_mod.numlock;
-            update_leds();
-            break;
-        case SCROLLLOCK:
-            kbd_mod.scrolllock = !kbd_mod.scrolllock;
-            update_leds();
-            break;
-        default:
-            char c = 0;
-            if (scancode == 0x37 || scancode == 0x4A || scancode == 0x4E || scancode == 0x47 || scancode == 0x48 || scancode == 0x49 || scancode == 0x4B || scancode == 0x4C || scancode == 0x4D || scancode == 0x4F || scancode == 0x50 || scancode == 0x51 || scancode == 0x52 || scancode == 0x53)
+            type = KEY_TYPE_LATIN;
+            if (tty::current_tty->capslock)
             {
-                if (kbd_mod.numlock) c = kbdus_numpad[scancode];
-                else
-                {
-                    if (!extra_keys() && scancode == 0x4C) break;
-                    else c = kbdus_numpad[scancode];
-                }
+                map = key_maps[map_i ^ (1 << KG_SHIFT)];
+                if (map) keysym = map[scancode];
             }
-            if (c == 0)
-            {
-                if (scancode >= 0x57) break;
-                if (kbd_mod.shift)
-                {
-                    if (kbd_mod.capslock) c = kbdus_capsshft[scancode];
-                    else c = kbdus_shft[scancode];
-                }
-                else
-                {
-                    if (kbd_mod.capslock) c = kbdus_caps[scancode];
-                    else c = kbdus[scancode];
-                }
-            }
-
-            if (kbd_mod.ctrl) c = toupper(c) - 0x40;
-            tty::current_tty->add_char(c);
-            break;
+        }
+        handlers[type](up, KEY_VALUE(keysym));
     }
+    else error("Error: Type < 0xF0?");
+
+    if (last_leds != tty::current_tty->leds) update_leds();
+    last_leds = tty::current_tty->leds;
 }
 
 static bool setupKbd(devices device)
