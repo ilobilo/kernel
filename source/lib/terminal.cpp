@@ -106,28 +106,29 @@ void terminal_res::add_char(char c)
 
     if (this->tios.c_lflag & ICANON)
     {
-        switch (c)
+        if (c == '\n' || (this->tios.c_cc[VEOL] && c == this->tios.c_cc[VEOL]))
         {
-            case '\n':
-                if (this->buff.full()) return;
-                this->buff.put(c);
-                if (this->tios.c_lflag & ECHO) this->print("%c", c);
-                while (!this->buff.empty() && !this->bigbuff.full())
-                {
-                    char ch = this->buff.get();
-                    this->bigbuff.put(ch);
-                }
-                this->buff.clear();
-                return;
-            case '\b':
-                if (this->buff.empty()) return;
-                char oldchar = this->buff.get_back();
-                if (this->tios.c_lflag & ECHO)
-                {
-                    this->print("\b \b");
-                    if (is_control(oldchar)) this->print("\b \b");
-                }
-                return;
+            if (this->buff.full()) return;
+            this->buff.put(c);
+            if (this->tios.c_lflag & ECHO) this->print("%c", c);
+            while (!this->buff.empty() && !this->bigbuff.full())
+            {
+                char ch = this->buff.get();
+                this->bigbuff.put(ch);
+            }
+            this->buff.clear();
+            return;
+        }
+        else if (c == '\b' || c == this->tios.c_cc[VERASE])
+        {
+            if (this->buff.empty()) return;
+            char oldchar = this->buff.get_back();
+            if (this->tios.c_lflag & ECHO)
+            {
+                this->print("\b \b");
+                if (is_control(oldchar)) this->print("\b \b");
+            }
+            return;
         }
 
         if (this->buff.full()) return;
@@ -196,4 +197,6 @@ terminal_res::terminal_res(uint16_t rows, uint64_t columns)
 
     this->wsize.ws_row = rows;
     this->wsize.ws_col = columns;
+
+    this->decckm = false;
 }

@@ -2,11 +2,13 @@
 
 #include <drivers/display/terminal/terminal.hpp>
 #include <drivers/audio/pcspk/pcspk.hpp>
+#include <drivers/fs/devfs/dev/tty.hpp>
 #include <drivers/ps2/ps2.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/string.hpp>
 #include <lib/log.hpp>
 
+using namespace kernel::drivers::fs::dev;
 using namespace kernel::drivers::audio;
 
 namespace kernel::drivers::display::terminal {
@@ -124,18 +126,18 @@ void callback(limine_terminal *term, uint64_t type, uint64_t first, uint64_t sec
             switch (first)
             {
                 case 0:
-                    ps2::kbd_mod.scrolllock = false;
-                    ps2::kbd_mod.numlock = false;
-                    ps2::kbd_mod.capslock = false;
+                    tty::current_tty->scrollock = false;
+                    tty::current_tty->numlock = false;
+                    tty::current_tty->capslock = false;
                     break;
                 case 1:
-                    ps2::kbd_mod.scrolllock = true;
+                    tty::current_tty->scrollock = true;
                     break;
                 case 2:
-                    ps2::kbd_mod.numlock = true;
+                    tty::current_tty->numlock = true;
                     break;
                 case 3:
-                    ps2::kbd_mod.capslock = true;
+                    tty::current_tty->capslock = true;
                     break;
             }
             ps2::update_leds();
