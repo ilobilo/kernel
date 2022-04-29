@@ -149,7 +149,7 @@ uint16_t *key_maps[MAX_NUM_KEYMAPS]
 	plain_map, shift_map, altgr_map, nullptr,
 	ctrl_map, shift_ctrl_map, nullptr, nullptr,
 	alt_map, nullptr, nullptr, nullptr,
-	ctrl_alt_map, nullptr
+	ctrl_alt_map, ctrl_alt_map
 };
 
 unsigned int keymap_count = 7;

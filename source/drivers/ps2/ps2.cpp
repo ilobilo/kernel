@@ -344,6 +344,7 @@ static void Keyboard_handler(registers_t *)
     int map_i = (tty::current_tty->shiftstate | tty::current_tty->slockstate) ^ tty::current_tty->lockstate;
     uint16_t *map = key_maps[map_i];
     if (map == nullptr) map = plain_map;
+
     uint16_t keysym = map[scancode];
     uint8_t type = KEY_TYPE(keysym);
 
@@ -637,6 +638,7 @@ static bool initdev(devices device)
                     error("PS/2: Unknown keyboard type 0x%X!", devtype);
                     break;
             }
+            break;
         default:
             error("PS/2: Unknown device type 0x%X!", devtype);
             break;

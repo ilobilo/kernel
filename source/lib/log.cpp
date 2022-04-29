@@ -14,7 +14,7 @@ int log(const char *fmt, ...)
 
     va_list args;
     va_start(args, fmt);
-    int ret = vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "[INFO] ", args);
+    int ret = vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "[\033[32mINFO\033[0m] ", args);
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), fmt, args);
     ret += vfctprintf(serial::printc, reinterpret_cast<void*>(serial::COM1), "\n", args);
     va_end(args);
