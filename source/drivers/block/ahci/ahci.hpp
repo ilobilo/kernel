@@ -20,6 +20,17 @@ enum status
     ATA_DEV_DRQ = 0x08
 };
 
+enum irqs
+{
+    AHCI_IRQ_TFE = (1 << 30),
+    AHCI_IRQ_RECEIVE_OVER = (1 << 24),
+    AHCI_IRQ_STATE_CHANGE = (1 << 6),
+    AHCI_IRQ_DESC_PROC = (1 << 5),
+    AHCI_IRQ_DMA_SETUP = (1 << 2),
+    AHCI_IRQ_PIO_SETUP = (1 << 1),
+    AHCI_IRQ_D2HR = (1 << 0)
+};
+
 enum cmds
 {
     ATA_CMD_READ_DMA_EX = 0x25,
@@ -207,6 +218,22 @@ struct FIS_REG_H2D
     uint8_t ISOCommandCompletion;
     uint8_t Control;
     uint8_t Reserved1[4];
+
+    inline void count(uint16_t sectors)
+    {
+        this->CountLow = static_cast<uint8_t>(sectors);
+        this->CountHigh = static_cast<uint8_t>(sectors >> 8);
+    }
+
+    inline void lba(uint64_t sector)
+    {
+        this->LBA0 = static_cast<uint8_t>(sector);
+        this->LBA1 = static_cast<uint8_t>(sector >> 8);
+        this->LBA2 = static_cast<uint8_t>(sector >> 16);
+        this->LBA3 = static_cast<uint8_t>(sector >> 24);
+        this->LBA4 = static_cast<uint8_t>(sector >> 32);
+        this->LBA5 = static_cast<uint8_t>(sector >> 40);
+    }
 };
 
 struct FIS_REG_D2H
@@ -287,7 +314,6 @@ class AHCIPort : public drivemgr::Drive
 {
     private:
     HBAPort *hbaport;
-    uint8_t portNum;
     lock_t lock;
 
     void stopCMD();
@@ -300,6 +326,9 @@ class AHCIPort : public drivemgr::Drive
     public:
     bool initialised = false;
     AHCIPortType portType;
+    uint8_t portNum;
+
+    void irq_handler();
 
     int64_t read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
     {
@@ -381,10 +410,13 @@ class AHCIController
 {
     private:
     pci::pcidevice_t *pcidevice;
-    HBAMemory *ABAR;
+
+    bool biosHandoff();
+    bool reset();
 
     public:
     bool initialised = false;
+    HBAMemory *ABAR;
     vector<AHCIPort*> ports;
 
     AHCIController(pci::pcidevice_t *pcidevice);

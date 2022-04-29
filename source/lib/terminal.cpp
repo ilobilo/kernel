@@ -149,6 +149,7 @@ void terminal_res::add_char(char c)
 
 void terminal_res::add_str(const char *str)
 {
+    if (str == nullptr) return;
     while (*str)
     {
         this->add_char(*str);

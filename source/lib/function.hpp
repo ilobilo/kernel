@@ -1,96 +1,63 @@
-// // Copyright (C) 2021-2022  ilobilo
+// Copyright (C) 2021-2022  ilobilo
 
-// #pragma once
+#pragma once
 
-// template<typename Result, typename ...Args>
-// struct abstract_function
-// {
-//     virtual Result operator()(Args ...args) = 0;
-//     virtual abstract_function *clone() const = 0;
-//     virtual ~abstract_function() = default;
-// };
+template<typename func>
+class function;
 
-// template<typename Func, typename Result, typename ...Args>
-// class concrete_function : public abstract_function<Result, Args...>
-// {
-//     private:
-//     Func f;
+template<typename retval, typename... Args>
+class function<retval(Args...)>
+{
+    public:
+    function() { };
 
-//     public:
-//     concrete_function(const Func &x) : f(x) { };
-//     Result operator()(Args ...args) override
-//     {
-//         return f(args...);
-//     }
-//     concrete_function *clone() const override
-//     {
-//         return new concrete_function { f };
-//     }
-// };
+    template<typename func>
+    function(func t) : callable_(new callableFunc<func>(t)) { }
 
-// template<typename Func>
-// struct func_filter
-// {
-//     using type = Func;
-// };
+    ~function()
+    {
+        delete this->callable_;
+    }
 
-// template<typename Result, typename ...Args>
-// struct func_filter<Result(Args...)>
-// {
-//     typedef Result (*type)(Args...);
-// };
+    template<typename func>
+    function &operator=(func t)
+    {
+        this->callable_ = new callableFunc<func>(t);
+        return *this;
+    }
 
-// template<typename signature>
-// class function;
+    retval operator()(Args ...args) const
+    {
+        return this->callable_->invoke(args...);
+    }
 
-// template<typename Result, typename ...Args>
-// class function<Result(Args...)>
-// {
-//     private:
-//     abstract_function<Result, Args...> *f;
+    private:
+    class callable {
+        public:
+        virtual ~callable() = default;
+        virtual retval invoke(Args...) = 0;
+    };
 
-//     public:
-//     function() : f(nullptr) { }
+    template<typename func>
+    class callableFunc : public callable {
+        public:
+        callableFunc(const func &t) : t_(t) { }
+        ~callableFunc() override = default;
 
-//     function(const function &rhs) : f(rhs.f ? rhs.f->clone() : nullptr) { }
+        retval invoke(Args ...args) override
+        {
+            return t_(args...);
+        }
 
-//     template<typename Func>
-//     function(const Func &x) : f(new concrete_function<typename func_filter<Func>::type, Result, Args...>(x)) { }
+        private:
+        func t_;
+    };
 
-//     function &operator=(const function &rhs)
-//     {
-//         if ((&rhs != this) && rhs.f)
-//         {
-//             auto temp = rhs.f->clone();
-//             delete this->f;
-//             this->f = temp;
-//         }
-//         return *this;
-//     }
+    callable *callable_;
+};
 
-//     template<typename Func>
-//     function &operator=(const Func &x)
-//     {
-//         auto temp = new concrete_function<typename func_filter<Func>::type, Result, Args...>(x);
-//         delete this->f;
-//         this->f = temp;
-//         return *this;
-//     }
-
-//     Result operator()(Args ...args)
-//     {
-//         if (this->f) return (*this->f)(args...);
-//         else return Result();
-//     }
-
-//     ~function()
-//     {
-//         delete this->f;
-//     }
-// };
-
-// namespace std
-// {
-//     template<typename func>
-//     using function = ::function<func>;
-// }
+namespace std
+{
+    template<typename func>
+    using function = ::function<func>;
+}
