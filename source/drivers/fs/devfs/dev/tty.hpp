@@ -3,7 +3,7 @@
 #pragma once
 
 #include <drivers/display/terminal/terminal.hpp>
-#include <lib/terminal.hpp>
+#include <lib/pty.hpp>
 #include <limine.h>
 
 using namespace kernel::drivers;
@@ -11,11 +11,11 @@ using namespace kernel::system;
 
 namespace kernel::drivers::fs::dev::tty {
 
-struct tty_res : terminal_res
+struct tty_res : pty_res
 {
     limine_terminal *thisterm;
 
-    tty_res(limine_terminal *_thisterm) : terminal_res(_thisterm->rows, _thisterm->columns), thisterm(_thisterm) { }
+    tty_res(limine_terminal *_thisterm) : pty_res(_thisterm->rows, _thisterm->columns), thisterm(_thisterm) { }
 
     int print(const char *fmt, ...)
     {

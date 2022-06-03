@@ -1,9 +1,9 @@
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 ROOTDIR := $(shell dirname $(SOURCEDIR))
 
-LIBDIR := $(ROOTDIR)/extlibs
-LIMINEDIR = $(LIBDIR)/limine
-ILARDIR = $(LIBDIR)/ilar
+EXTLIBDIR := $(ROOTDIR)/extlibs
+LIMINEDIR = $(EXTLIBDIR)/limine
+ILARDIR = $(EXTLIBDIR)/ilar
 
 BACKGROUND = $(SOURCEDIR)/misc/bg.bmp
 TERMFONT = $(SOURCEDIR)/misc/unifont.bin
@@ -64,13 +64,13 @@ ASMFLAGS = -f elf64 -g
 INCLUDES := \
 	-I$(SOURCEDIR)/ \
 	-I$(SOURCEDIR)/wrappers/ \
-	-I$(LIBDIR)/limine/ \
-	-I$(LIBDIR)/printf/src/ \
-	-I$(LIBDIR)/lai/include/ \
-	-I$(LIBDIR)/cwalk/include/ \
-	-I$(LIBDIR)/scalable-font2/ \
-	-I$(LIBDIR)/cxxshim/stage2/include/ \
-	-I$(LIBDIR)/cxxshim/std-coroutine/include/
+	-I$(EXTLIBDIR)/limine/ \
+	-I$(EXTLIBDIR)/printf/src/ \
+	-I$(EXTLIBDIR)/lai/include/ \
+	-I$(EXTLIBDIR)/cwalk/include/ \
+	-I$(EXTLIBDIR)/scalable-font2/ \
+	-I$(EXTLIBDIR)/cxxshim/stage2/include/ \
+	-I$(EXTLIBDIR)/cxxshim/std-coroutine/include/
 
 override INTERNALLDFLAGS :=  \
 	-T$(SOURCEDIR)/linker.ld \
@@ -117,8 +117,8 @@ override INTERNALCPPFLAGS :=   \
 	$(INCLUDES)
 
 override CFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.c' -not -path "$(SOURCEDIR)/initrd/*") \
-	$(shell find $(LIBDIR)/lai/ -type f -name '*.c' 2> /dev/null) \
-	$(shell find $(LIBDIR)/cwalk/src/ -type f -name '*.c' 2> /dev/null)
+	$(shell find $(EXTLIBDIR)/lai/ -type f -name '*.c' 2> /dev/null) \
+	$(shell find $(EXTLIBDIR)/cwalk/src/ -type f -name '*.c' 2> /dev/null)
 
 override CPPFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.cpp' -not -path "$(SOURCEDIR)/initrd/*")
 override ASMFILES := $(shell find $(SOURCEDIR)/ -type f -name '*.asm' -not -path "$(SOURCEDIR)/initrd/*")

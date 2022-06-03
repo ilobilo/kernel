@@ -153,9 +153,10 @@ struct termios
     uint8_t c_cc[nccs];
 };
 
-struct terminal_res : vfs::resource_t
+struct pty_res : vfs::resource_t
 {
     lock_t read_lock;
+    lock_t write_lock;
     ringbuffer<char> buff;
     ringbuffer<char> bigbuff;
     bool decckm = false;
@@ -209,5 +210,5 @@ struct terminal_res : vfs::resource_t
     void add_str(const char *str);
     std::string getline();
 
-    terminal_res(uint16_t rows, uint64_t columns);
+    pty_res(uint16_t rows, uint64_t columns);
 };
