@@ -5,9 +5,9 @@
 #include <drivers/fs/devfs/devfs.hpp>
 #include <system/cpu/idt/idt.hpp>
 #include <system/vfs/vfs.hpp>
-#include <lib/terminal.hpp>
 #include <lib/vector.hpp>
 #include <lib/lock.hpp>
+#include <lib/pty.hpp>
 #include <lib/io.hpp>
 
 using namespace kernel::drivers::fs;
@@ -16,11 +16,11 @@ using namespace kernel::system;
 
 namespace kernel::drivers::display::serial {
 
-struct ttys_res : terminal_res
+struct ttys_res : pty_res
 {
     COMS thiscom;
 
-    ttys_res(COMS _thiscom) : terminal_res(0, 0), thiscom(_thiscom) { }
+    ttys_res(COMS _thiscom) : pty_res(0, 0), thiscom(_thiscom) { }
 
     int print(const char *fmt, ...)
     {

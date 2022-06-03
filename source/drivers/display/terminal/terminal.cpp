@@ -79,6 +79,7 @@ void reset(limine_terminal *term)
 
 void clear(const char *ansii_colour, limine_terminal *term)
 {
+    // reset(term);
     print(ansii_colour, term);
     print("\033[H\033[2J", term);
 }

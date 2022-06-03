@@ -1,9 +1,10 @@
 // Copyright (C) 2021-2022  ilobilo
 
-#include <lib/terminal.hpp>
+#include <lib/pty.hpp>
 
-int64_t terminal_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+int64_t pty_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
+    lockit(this->read_lock);
     lockit(this->lock);
 
     while (offset--)
@@ -33,13 +34,15 @@ int64_t terminal_res::read(void *handle, uint8_t *buffer, uint64_t offset, uint6
     return size;
 }
 
-int64_t terminal_res::write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
+int64_t pty_res::write(void *handle, uint8_t *buffer, uint64_t offset, uint64_t size)
 {
+    lockit(this->write_lock);
+
     this->print("%.*s", static_cast<int>(size), buffer);
     return size;
 }
 
-int terminal_res::ioctl(void *handle, uint64_t request, void *argp)
+int pty_res::ioctl(void *handle, uint64_t request, void *argp)
 {
     lockit(this->lock);
 
@@ -66,32 +69,32 @@ int terminal_res::ioctl(void *handle, uint64_t request, void *argp)
     return 0;
 }
 
-bool terminal_res::grow(void *handle, size_t new_size)
+bool pty_res::grow(void *handle, size_t new_size)
 {
     return false;
 }
 
-void terminal_res::unref(void *handle)
+void pty_res::unref(void *handle)
 {
     this->refcount--;
 }
 
-void terminal_res::link(void *handle)
+void pty_res::link(void *handle)
 {
     this->stat.nlink++;
 }
 
-void terminal_res::unlink(void *handle)
+void pty_res::unlink(void *handle)
 {
     this->stat.nlink--;
 }
 
-void *terminal_res::mmap(uint64_t page, int flags)
+void *pty_res::mmap(uint64_t page, int flags)
 {
     return nullptr;
 }
 
-void terminal_res::add_char(char c)
+void pty_res::add_char(char c)
 {
     lockit(this->lock);
 
@@ -147,7 +150,7 @@ void terminal_res::add_char(char c)
     }
 }
 
-void terminal_res::add_str(const char *str)
+void pty_res::add_str(const char *str)
 {
     if (str == nullptr) return;
     while (*str)
@@ -157,7 +160,7 @@ void terminal_res::add_str(const char *str)
     }
 }
 
-std::string terminal_res::getline()
+std::string pty_res::getline()
 {
     std::string ret("");
     char c = 0;
@@ -172,7 +175,7 @@ std::string terminal_res::getline()
     return ret;
 }
 
-terminal_res::terminal_res(uint16_t rows, uint64_t columns)
+pty_res::pty_res(uint16_t rows, uint64_t columns)
 {
     this->stat.size = 0;
     this->stat.blocks = 0;
