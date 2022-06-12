@@ -9,7 +9,7 @@
 #include <system/vfs/vfs.hpp>
 #include <lib/memory.hpp>
 #include <lib/string.hpp>
-#include <linux/reboot.h>
+#include <lib/reboot.hpp>
 #include <lib/alloc.hpp>
 #include <lib/log.hpp>
 
