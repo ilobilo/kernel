@@ -8,8 +8,8 @@
 #include <lib/shared_ptr.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/math.hpp>
+#include <lib/elf.h>
 #include <cstdint>
-#include <elf.h>
 
 using namespace kernel::system::mm;
 using namespace kernel::system;
@@ -39,7 +39,7 @@ static inline auto elf_load(vmm::Pagemap *pagemap, vfs::resource_t *res, uint64_
     if (header->e_ident[EI_CLASS] != ELFCLASS64
         || header->e_ident[EI_DATA] != ELFDATA2LSB
         || header->e_ident[EI_OSABI] != ELFOSABI_SYSV
-        || header->e_machine != R_IA64_PLTOFF64MSB)
+        || header->e_machine != 0x3E)
     {
         error("ELF: Unsupported ELF file!");
         return null;

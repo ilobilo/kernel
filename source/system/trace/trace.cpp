@@ -4,7 +4,7 @@
 #include <system/trace/trace.hpp>
 #include <kernel/kernel.hpp>
 #include <lib/log.hpp>
-#include <elf.h>
+#include <lib/elf.h>
 
 using namespace kernel::drivers::display;
 
