@@ -86,10 +86,10 @@ static void drawdiagline(int x0, int y0, int x1, int y1, uint32_t colour, limine
 
 void drawline(int x0, int y0, int x1, int y1, uint32_t colour, limine_framebuffer *frm)
 {
-    if (x0 > frm->width) x0 = frm->width - 1;
-    if (x1 > frm->width) x1 = frm->width - 1;
-    if (y0 > frm->height) y0 = frm->height - 1;
-    if (y1 > frm->height) y1 = frm->height - 1;
+    if (x0 > (int)frm->width) x0 = frm->width - 1;
+    if (x1 > (int)frm->width) x1 = frm->width - 1;
+    if (y0 > (int)frm->height) y0 = frm->height - 1;
+    if (y1 > (int)frm->height) y1 = frm->height - 1;
 
     if (x0 < -1) x0 = -1;
     if (x1 < -1) x1 = -1;
