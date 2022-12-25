@@ -1,4 +1,6 @@
 # Kernel project
+Note: This kernel is archived, please see: https://github.com/ilobilo/ilobilix
+
 My first os built from scratch\
 Contributors are welcome
 
